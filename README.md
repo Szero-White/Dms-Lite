@@ -2,8 +2,6 @@
 
 DMS Lite is a mini distribution management system for small wholesalers and distributors. It helps businesses manage customers, products, stock, sales orders, receivable debt, customer payments, audit logs, notifications, and business dashboards.
 
-Du an nay khong phai chi la mot web CRUD ban hang co ban. Muc tieu cua no la mo phong mot bai toan van hanh thuc te trong mo hinh B2B phan phoi nho: ban hang, tru kho, cong no, thanh toan, truy vet thao tac, va bao cao tong quan.
-
 ## Overview
 
 Small B2B distributors often need more than a product list and order form. They need to know:
