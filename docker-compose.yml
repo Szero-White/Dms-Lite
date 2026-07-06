@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: dms_lite
+      POSTGRES_USER: dms
+      POSTGRES_PASSWORD: dms
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dms -d dms_lite"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes: [postgres_data:/var/lib/postgresql/data]
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports: ["5672:5672", "15672:15672"]
+  backend:
+    build: ./backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dms_lite
+      SPRING_DATASOURCE_USERNAME: dms
+      SPRING_DATASOURCE_PASSWORD: dms
+      SPRING_REDIS_HOST: redis
+      SPRING_RABBITMQ_HOST: rabbitmq
+      APP_JWT_SECRET: dms-lite-secret-key-must-be-at-least-32-characters
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_started }
+      rabbitmq: { condition: service_started }
+    ports: ["8080:8080"]
+  frontend:
+    build: ./frontend
+    depends_on: [backend]
+    ports: ["3000:80"]
+  prometheus:
+    image: prom/prometheus
+    volumes: ["./docs/prometheus.yml:/etc/prometheus/prometheus.yml"]
+    ports: ["9090:9090"]
+  grafana:
+    image: grafana/grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports: ["3001:3000"]
+volumes:
+  postgres_data:

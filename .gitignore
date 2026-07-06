@@ -1,0 +1,41 @@
+# Node dependencies / build / cache
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.cache/
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Java / Maven build output
+backend/target/
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE / editor
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs / cache / temp
+*.log
+logs/
+*.tmp
+*.temp
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+application-secret.yml
+application-local-secret.yml
+backend/src/main/resources/application-secret.yml
+backend/src/main/resources/application-local-secret.yml

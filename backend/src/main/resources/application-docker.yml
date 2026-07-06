@@ -1,0 +1,22 @@
+# Docker profile: bật Redis cache và RabbitMQ notification.
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/dms_lite}
+    username: ${SPRING_DATASOURCE_USERNAME:dms}
+    password: ${SPRING_DATASOURCE_PASSWORD:dms}
+  cache:
+    type: redis
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:redis}
+      port: ${SPRING_REDIS_PORT:6379}
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:rabbitmq}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+
+app:
+  messaging:
+    rabbitmq:
+      enabled: true

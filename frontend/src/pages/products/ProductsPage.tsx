@@ -1,0 +1,152 @@
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, Card, Input, Select, Space, Table, Typography } from 'antd';
+import { useMemo, useState } from 'react';
+import { PageHeader } from '../../components/common/PageHeader';
+import { ProductStatusTag } from '../../components/common/StatusTag';
+import { QueryState } from '../../components/common/QueryState';
+import { useCreateProduct, useProducts, useUpdateProduct } from '../../hooks/useAppQueries';
+import { formatCurrency } from '../../lib/format';
+import { ProductFormValues, ProductRow } from '../../types';
+import { ProductFormDrawer } from './ProductFormDrawer';
+
+export function ProductsPage() {
+  const productsQuery = useProducts();
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
+  const [keyword, setKeyword] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOW_STOCK'>('ALL');
+  const [selectedProduct, setSelectedProduct] = useState<ProductRow | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const filteredProducts = useMemo(() => {
+    return (productsQuery.data ?? []).filter((product) => {
+      const matchesKeyword =
+        !keyword ||
+        [product.name, product.sku, product.barcode].some((value) => value?.toLowerCase().includes(keyword.toLowerCase()));
+      const matchesStatus =
+        statusFilter === 'ALL' ||
+        (statusFilter === 'ACTIVE' && product.active) ||
+        (statusFilter === 'LOW_STOCK' && product.isLowStock);
+      return matchesKeyword && matchesStatus;
+    });
+  }, [keyword, productsQuery.data, statusFilter]);
+
+  async function handleSubmit(values: ProductFormValues) {
+    if (selectedProduct) {
+      await updateProduct.mutateAsync({ productId: selectedProduct.id, payload: values });
+    } else {
+      await createProduct.mutateAsync(values);
+    }
+
+    setDrawerOpen(false);
+    setSelectedProduct(null);
+  }
+
+  return (
+    <Space direction="vertical" size={24} style={{ width: '100%' }}>
+      <PageHeader
+        title="Products"
+        subtitle="Maintain catalog, selling price, and low-stock visibility."
+        extra={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setSelectedProduct(null);
+              setDrawerOpen(true);
+            }}
+          >
+            New Product
+          </Button>
+        }
+      />
+
+      <Card className="panel-card">
+        <Space wrap style={{ marginBottom: 16 }}>
+          <Input
+            allowClear
+            prefix={<SearchOutlined />}
+            placeholder="Search SKU, name, barcode"
+            style={{ width: 300 }}
+            value={keyword}
+            onChange={(event) => setKeyword(event.target.value)}
+          />
+          <Select
+            value={statusFilter}
+            style={{ width: 180 }}
+            onChange={setStatusFilter}
+            options={[
+              { value: 'ALL', label: 'All status' },
+              { value: 'ACTIVE', label: 'Active only' },
+              { value: 'LOW_STOCK', label: 'Low stock only' },
+            ]}
+          />
+        </Space>
+
+        <QueryState
+          isLoading={productsQuery.isLoading}
+          isError={productsQuery.isError}
+          error={productsQuery.error}
+          hasData={filteredProducts.length > 0}
+        >
+          <Table
+            rowKey="id"
+            dataSource={filteredProducts}
+            onRow={(record) => ({
+              onDoubleClick: () => {
+                setSelectedProduct(record);
+                setDrawerOpen(true);
+              },
+            })}
+            columns={[
+              { title: 'SKU', dataIndex: 'sku', width: 140 },
+              {
+                title: 'Name',
+                dataIndex: 'name',
+                render: (_, record) => (
+                  <Space direction="vertical" size={0}>
+                    <Typography.Text strong>{record.name}</Typography.Text>
+                    <Typography.Text type="secondary">{record.barcode || 'No barcode'}</Typography.Text>
+                  </Space>
+                ),
+              },
+              { title: 'Cost Price', dataIndex: 'costPrice', render: (value) => formatCurrency(value) },
+              { title: 'Selling Price', dataIndex: 'sellingPrice', render: (value) => formatCurrency(value) },
+              { title: 'Stock', dataIndex: 'stock' },
+              { title: 'Minimum Stock', dataIndex: 'minStock' },
+              {
+                title: 'Status',
+                render: (_, record) => <ProductStatusTag isLowStock={record.isLowStock} active={record.active} />,
+              },
+              {
+                title: 'Action',
+                render: (_, record) => (
+                  <Button
+                    type="link"
+                    onClick={() => {
+                      setSelectedProduct(record);
+                      setDrawerOpen(true);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                ),
+              },
+            ]}
+          />
+        </QueryState>
+      </Card>
+
+      <ProductFormDrawer
+        open={drawerOpen}
+        product={selectedProduct}
+        onClose={() => {
+          setDrawerOpen(false);
+          setSelectedProduct(null);
+        }}
+        onSubmit={handleSubmit}
+        submitting={createProduct.isPending || updateProduct.isPending}
+      />
+    </Space>
+  );
+}

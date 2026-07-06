@@ -1,0 +1,13 @@
+# Local-first profile: chỉ cần PostgreSQL local. Redis/RabbitMQ tắt để dễ code và debug.
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/dms_lite}
+    username: ${SPRING_DATASOURCE_USERNAME:dms}
+    password: ${SPRING_DATASOURCE_PASSWORD:dms}
+  cache:
+    type: simple
+
+app:
+  messaging:
+    rabbitmq:
+      enabled: false
