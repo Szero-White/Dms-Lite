@@ -224,15 +224,6 @@ If you use another PostgreSQL account, update environment variables or `backend/
 
 ### 2. Run Backend with Local Profile
 
-PowerShell:
-
-```powershell
-cd backend
-mvn spring-boot:run "-Dspring-boot.run.profiles=local"
-```
-
-Alternative form if needed in your environment:
-
 ```powershell
 cd backend
 mvn spring-boot:run "-Dspring-boot.run.arguments=--spring.profiles.active=local"
