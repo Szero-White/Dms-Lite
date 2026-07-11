@@ -9,34 +9,40 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class NotificationProducer {
-  private final ObjectProvider<RabbitTemplate> rabbitTemplateProvider;
-  private final NotificationRepository notificationRepository;
+    private final ObjectProvider<RabbitTemplate> rabbitTemplateProvider;
 
-  @Value("${app.queue.notifications}")
-  private String queue;
+    private final NotificationRepository notificationRepository;
 
-  @Value("${app.messaging.rabbitmq.enabled:false}")
-  private boolean rabbitEnabled;
+    @Value("${app.queue.notifications}")
+    private String queue;
 
-  public void publish(Long tenantId, String type, String title, String message) {
-    if (rabbitEnabled) {
-      RabbitTemplate rabbit = rabbitTemplateProvider.getIfAvailable();
-      if (rabbit != null) {
-        try {
-          rabbit.convertAndSend(queue, new NotificationEvent(tenantId, type, title, message));
-          return;
-        } catch (Exception ignored) {
-          // Fallback below keeps local/dev flow usable even if RabbitMQ is down.
+    @Value("${app.messaging.rabbitmq.enabled:false}")
+    private boolean rabbitEnabled;
+
+    public void publish(Long tenantId, String type, String title, String message) {
+        if (rabbitEnabled) {
+            RabbitTemplate rabbit = rabbitTemplateProvider.getIfAvailable();
+            if (rabbit != null) {
+                try {
+                    rabbit.convertAndSend(
+                        queue,
+                        new NotificationEvent(tenantId, type, title, message)
+                    );
+                    return;
+                } catch (Exception ignored) {
+                    // Fallback below keeps local/dev flow usable even if RabbitMQ is down.
+                }
+            }
         }
-      }
-    }
 
-    notificationRepository.save(Notification.builder()
-        .tenantId(tenantId)
-        .type(type)
-        .title(title)
-        .message(message)
-        .readFlag(false)
-        .build());
-  }
+        notificationRepository.save(
+            Notification.builder()
+                .tenantId(tenantId)
+                .type(type)
+                .title(title)
+                .message(message)
+                .readFlag(false)
+                .build()
+        );
+    }
 }

@@ -9,8 +9,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnProperty(prefix = "app.messaging.rabbitmq", name = "enabled", havingValue = "true")
 class NotificationConfig {
-  @Bean
-  Queue queue(@Value("${app.queue.notifications}") String queueName) {
-    return new Queue(queueName, true);
-  }
+
+    @Bean
+    Queue queue(@Value("${app.queue.notifications}") String queueName) {
+        return new Queue(queueName, true);
+    }
 }

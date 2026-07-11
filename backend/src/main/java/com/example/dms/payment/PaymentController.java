@@ -1,9 +1,26 @@
 package com.example.dms.payment;
-import com.example.dms.audit.AuditService;import com.example.dms.common.*;import com.example.dms.customer.*;import com.example.dms.debt.*;import lombok.*;import org.springframework.cache.annotation.CacheEvict;import org.springframework.security.access.prepost.PreAuthorize;import org.springframework.transaction.annotation.Transactional;import org.springframework.web.bind.annotation.*;import java.math.*;
-@RestController @RequestMapping("/api/payments") @RequiredArgsConstructor
+
+import com.example.dms.common.ApiResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/payments")
+@RequiredArgsConstructor
 public class PaymentController {
- private final PaymentRepository payments; private final CustomerRepository customers; private final CustomerDebtRepository debts; private final AuditService audit;
- public record CustomerPayment(Long customerId,BigDecimal amount,String note){}
- @PostMapping("/customer") @PreAuthorize("hasAuthority('PAYMENT_CREATE')") @Transactional @CacheEvict(value="dashboard",allEntries=true)
- ApiResponse<?> pay(@RequestBody CustomerPayment r){Long t=TenantContext.tenantRequired();customers.findByIdAndTenantIdAndDeletedAtIsNull(r.customerId(),t).orElseThrow(()->new BusinessException("Customer not found"));BigDecimal balance=debts.balance(t,r.customerId());if(r.amount().compareTo(balance)>0)throw new BusinessException("Payment exceeds debt");BigDecimal remain=r.amount();for(CustomerDebtTransaction d:debts.findByTenantIdAndCustomerIdAndDirectionAndRemainingAmountGreaterThanOrderByDueDateAscCreatedAtAsc(t,r.customerId(),"INCREASE",BigDecimal.ZERO)){if(remain.signum()<=0)break;BigDecimal applied=remain.min(d.getRemainingAmount());d.setRemainingAmount(d.getRemainingAmount().subtract(applied));remain=remain.subtract(applied);}Payment p=payments.save(Payment.builder().tenantId(t).customerId(r.customerId()).amount(r.amount()).note(r.note()).createdBy(TenantContext.userOrZero()).build());debts.save(CustomerDebtTransaction.builder().tenantId(t).customerId(r.customerId()).sourceType("PAYMENT").sourceId(p.getId()).direction("DECREASE").amount(r.amount()).remainingAmount(BigDecimal.ZERO).note(r.note()).createdBy(TenantContext.userOrZero()).build());audit.log("CUSTOMER_PAYMENT_RECORDED","Payment",p.getId(),r.amount().toPlainString());return ApiResponse.ok(p);}
+
+    private final PaymentService paymentService;
+
+    @PostMapping("/customer")
+    @PreAuthorize("hasAuthority('PAYMENT_CREATE')")
+    public ApiResponse<PaymentResponse> pay(
+        @Valid @RequestBody CustomerPaymentRequest request
+    ) {
+        return ApiResponse.ok(paymentService.recordCustomerPayment(request));
+    }
 }
