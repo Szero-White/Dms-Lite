@@ -9,16 +9,19 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "app.messaging.rabbitmq", name = "enabled", havingValue = "true")
 class NotificationConsumer {
-  private final NotificationRepository repo;
 
-  @RabbitListener(queues = "${app.queue.notifications}")
-  void on(NotificationEvent event) {
-    repo.save(Notification.builder()
-        .tenantId(event.tenantId())
-        .type(event.type())
-        .title(event.title())
-        .message(event.message())
-        .readFlag(false)
-        .build());
-  }
+    private final NotificationRepository notificationRepository;
+
+    @RabbitListener(queues = "${app.queue.notifications}")
+    void on(NotificationEvent event) {
+        notificationRepository.save(
+            Notification.builder()
+                .tenantId(event.tenantId())
+                .type(event.type())
+                .title(event.title())
+                .message(event.message())
+                .readFlag(false)
+                .build()
+        );
+    }
 }

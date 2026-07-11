@@ -1,9 +1,51 @@
 package com.example.dms.debt;
-import org.springframework.data.jpa.repository.*;import org.springframework.data.repository.query.Param;import java.math.*;import java.time.*;import java.util.*;
-public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransaction,Long>{
- List<CustomerDebtTransaction> findByTenantIdAndCustomerIdOrderByCreatedAtDesc(Long tenantId,Long customerId);
- List<CustomerDebtTransaction> findByTenantIdAndCustomerIdAndDirectionAndRemainingAmountGreaterThanOrderByDueDateAscCreatedAtAsc(Long tenantId,Long customerId,String direction,BigDecimal min);
- @Query("select coalesce(sum(case when d.direction='INCREASE' then d.remainingAmount else -d.amount end),0) from CustomerDebtTransaction d where d.tenantId=:t and d.customerId=:c") BigDecimal balance(@Param("t")Long t,@Param("c")Long c);
- @Query("select coalesce(sum(d.remainingAmount),0) from CustomerDebtTransaction d where d.tenantId=:t and d.direction='INCREASE' and d.remainingAmount>0") BigDecimal totalReceivable(@Param("t")Long t);
- @Query("select d from CustomerDebtTransaction d where d.tenantId=:t and d.direction='INCREASE' and d.remainingAmount>0 and d.dueDate<:today") List<CustomerDebtTransaction> overdue(@Param("t")Long t,@Param("today")LocalDate today);
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransaction, Long> {
+
+    List<CustomerDebtTransaction> findByTenantIdAndCustomerIdOrderByCreatedAtDesc(
+        Long tenantId,
+        Long customerId
+    );
+
+    List<CustomerDebtTransaction>
+        findByTenantIdAndCustomerIdAndDirectionAndRemainingAmountGreaterThanOrderByDueDateAscCreatedAtAsc(
+            Long tenantId,
+            Long customerId,
+            String direction,
+            BigDecimal minimumAmount
+        );
+
+    @Query(
+        "select coalesce(sum(case when debt.direction='INCREASE' then debt.remainingAmount else -debt.amount end),0) " +
+        "from CustomerDebtTransaction debt " +
+        "where debt.tenantId=:tenantId and debt.customerId=:customerId"
+    )
+    BigDecimal balance(
+        @Param("tenantId") Long tenantId,
+        @Param("customerId") Long customerId
+    );
+
+    @Query(
+        "select coalesce(sum(debt.remainingAmount),0) " +
+        "from CustomerDebtTransaction debt " +
+        "where debt.tenantId=:tenantId and debt.direction='INCREASE' and debt.remainingAmount>0"
+    )
+    BigDecimal totalReceivable(@Param("tenantId") Long tenantId);
+
+    @Query(
+        "select debt " +
+        "from CustomerDebtTransaction debt " +
+        "where debt.tenantId=:tenantId and debt.direction='INCREASE' and debt.remainingAmount>0 and debt.dueDate<:today"
+    )
+    List<CustomerDebtTransaction> overdue(
+        @Param("tenantId") Long tenantId,
+        @Param("today") LocalDate today
+    );
 }

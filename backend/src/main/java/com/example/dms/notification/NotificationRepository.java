@@ -1,3 +1,9 @@
 package com.example.dms.notification;
-import org.springframework.data.jpa.repository.JpaRepository;import java.util.*;
-public interface NotificationRepository extends JpaRepository<Notification,Long>{List<Notification> findByTenantIdOrderByCreatedAtDesc(Long tenantId);}
+
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface NotificationRepository extends JpaRepository<Notification, Long> {
+
+    List<Notification> findByTenantIdOrderByCreatedAtDesc(Long tenantId);
+}

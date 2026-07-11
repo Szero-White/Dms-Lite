@@ -1,11 +1,55 @@
 package com.example.dms.product;
-import com.example.dms.common.*;import jakarta.validation.constraints.*;import lombok.*;import org.springframework.data.domain.*;import org.springframework.security.access.prepost.PreAuthorize;import org.springframework.web.bind.annotation.*;import java.math.*;import java.time.Instant;
-@RestController @RequestMapping("/api/products") @RequiredArgsConstructor
+
+import com.example.dms.common.ApiResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/products")
+@RequiredArgsConstructor
 public class ProductController {
- private final ProductRepository repo; private final com.example.dms.audit.AuditService audit;
- public record ProductRequest(@NotBlank String name,@NotBlank String sku,String barcode,@NotNull BigDecimal costPrice,@NotNull BigDecimal sellingPrice,@NotNull Integer minStock){}
- @GetMapping @PreAuthorize("hasAuthority('PRODUCT_VIEW')") ApiResponse<?> list(@RequestParam(defaultValue="")String keyword,@RequestParam(defaultValue="0")int page){return ApiResponse.ok(repo.findByTenantIdAndDeletedAtIsNullAndNameContainingIgnoreCase(TenantContext.tenantRequired(),keyword,PageRequest.of(page,20)));}
- @PostMapping @PreAuthorize("hasAuthority('PRODUCT_MANAGE')") ApiResponse<?> create(@RequestBody ProductRequest r){Product p=repo.save(Product.builder().tenantId(TenantContext.tenantRequired()).name(r.name()).sku(r.sku()).barcode(r.barcode()).costPrice(r.costPrice()).sellingPrice(r.sellingPrice()).minStock(r.minStock()).active(true).build());audit.log("PRODUCT_CREATED","Product",p.getId(),p.getName());return ApiResponse.ok(p);}
- @PutMapping("/{id}") @PreAuthorize("hasAuthority('PRODUCT_MANAGE')") ApiResponse<?> update(@PathVariable Long id,@RequestBody ProductRequest r){Product p=repo.findByIdAndTenantIdAndDeletedAtIsNull(id,TenantContext.tenantRequired()).orElseThrow(()->new BusinessException("Product not found"));p.setName(r.name());p.setSku(r.sku());p.setBarcode(r.barcode());p.setCostPrice(r.costPrice());p.setSellingPrice(r.sellingPrice());p.setMinStock(r.minStock());repo.save(p);audit.log("PRODUCT_UPDATED","Product",p.getId(),p.getName());return ApiResponse.ok(p);}
- @DeleteMapping("/{id}") @PreAuthorize("hasAuthority('PRODUCT_MANAGE')") ApiResponse<?> delete(@PathVariable Long id){Product p=repo.findByIdAndTenantIdAndDeletedAtIsNull(id,TenantContext.tenantRequired()).orElseThrow(()->new BusinessException("Product not found"));p.setDeletedAt(Instant.now());repo.save(p);audit.log("PRODUCT_DELETED","Product",id,p.getName());return ApiResponse.ok("deleted",null);}
+
+    private final ProductService productService;
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('PRODUCT_VIEW')")
+    public ApiResponse<Page<Product>> list(
+        @RequestParam(defaultValue = "") String keyword,
+        @RequestParam(defaultValue = "0") int page
+    ) {
+        return ApiResponse.ok(productService.list(keyword, page));
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE')")
+    public ApiResponse<Product> create(@Valid @RequestBody ProductRequest request) {
+        return ApiResponse.ok(productService.create(request));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE')")
+    public ApiResponse<Product> update(
+        @PathVariable Long id,
+        @Valid @RequestBody ProductRequest request
+    ) {
+        return ApiResponse.ok(productService.update(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE')")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        productService.delete(id);
+        return ApiResponse.ok("deleted", null);
+    }
 }
