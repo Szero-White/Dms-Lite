@@ -1,7 +1,7 @@
 import { Card, Empty, Space, Table, Typography } from 'antd';
 import { PageHeader } from '../../components/common/PageHeader';
 import { QueryState } from '../../components/common/QueryState';
-import { SummaryCard } from '../../components/common/SummaryCard/SummaryCard';
+import { SummaryCard } from '../../components/common/SummaryCard';
 import {
   useCustomers,
   useDashboardData,
@@ -52,7 +52,7 @@ export function ReportsPage() {
       >
         {dashboardQuery.data ? (
           <>
-            <div className="section-block">
+            <div className={styles.sectionBlock}>
               <div className="metrics-grid metrics-grid-3">
                 <div>
                   <SummaryCard
@@ -78,18 +78,18 @@ export function ReportsPage() {
               </div>
             </div>
 
-            <div className="section-block">
+            <div className={styles.sectionBlock}>
               <div className={styles.chartGrid}>
                 <RevenueByOrderChart orders={ordersQuery.data ?? []} />
                 <OrderStatusChart orders={ordersQuery.data ?? []} />
               </div>
             </div>
 
-            <div className="section-block">
+            <div className={styles.sectionBlock}>
               <InventoryStockChart products={productsQuery.data ?? []} />
             </div>
 
-            <div className="section-block">
+            <div className={styles.sectionBlock}>
               <div className="insight-grid">
                 <Card title="Revenue by Sales Order" className="panel-card compact-panel-card">
                   <Table
@@ -150,7 +150,7 @@ export function ReportsPage() {
               </div>
             </div>
 
-            <div className="section-block">
+            <div className={styles.sectionBlock}>
               <Card title="Inventory Exposure" className="panel-card table-panel-card">
                 <Table
                   rowKey="id"

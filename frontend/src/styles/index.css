@@ -13,5 +13,4 @@
 @import './global.css';
 
 /* Temporary legacy imports */
-@import './layout.css';
 @import './components.css';

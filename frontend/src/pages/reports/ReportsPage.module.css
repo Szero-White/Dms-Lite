@@ -1,3 +1,13 @@
+.sectionBlock {
+  margin-top: 20px;
+  padding: 0;
+
+  border: none;
+  border-radius: 0;
+
+  background: transparent;
+}
+
 .chartGrid {
   display: grid;
   grid-template-columns:

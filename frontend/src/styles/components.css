@@ -2,8 +2,7 @@
    COMMON CARDS
    ========================================================= */
 
-.panel-card,
-.summary-card {
+.panel-card {
   overflow: hidden;
 
   border: 1px solid rgba(220, 229, 240, 0.82);
@@ -20,8 +19,7 @@
     border-color 0.2s ease;
 }
 
-.panel-card:hover,
-.summary-card:hover {
+.panel-card:hover {
   transform: translateY(-2px);
 
   border-color: rgba(31, 111, 235, 0.16);
@@ -53,45 +51,6 @@
   padding: 22px 24px 24px;
 }
 
-.summary-card .ant-card-body {
-  min-height: 148px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-
-  gap: 12px;
-
-  padding: 22px 24px;
-}
-
-.summary-card-title {
-  color: #718096;
-
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.4;
-}
-
-.summary-card-value.ant-typography {
-  margin: 4px 0 0 !important;
-
-  color: #111827;
-
-  font-size: 24px !important;
-  font-weight: 750 !important;
-  line-height: 1.15 !important;
-  letter-spacing: -0.035em;
-}
-
-.summary-card-note {
-  color: #8492a6;
-
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-
 /* =========================================================
    COMMON PANELS
    ========================================================= */
@@ -122,12 +81,6 @@
 /* =========================================================
    COMMON LAYOUT HELPERS
    ========================================================= */
-
-.state-block {
-  min-height: 220px;
-  display: grid;
-  place-items: center;
-}
 
 .flex-between {
   display: flex;
