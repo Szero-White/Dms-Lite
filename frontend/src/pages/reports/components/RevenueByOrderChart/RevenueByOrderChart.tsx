@@ -1,7 +1,8 @@
 import { Column } from '@ant-design/charts';
 import { Card, Empty } from 'antd';
-import type { SalesOrder } from '../../types';
-import { toNumber } from '../../lib/format';
+import { toNumber } from '../../../../lib/format';
+import type { SalesOrder } from '../../../../types';
+import styles from './RevenueByOrderChart.module.css';
 
 interface RevenueByOrderChartProps {
   orders: SalesOrder[];
@@ -22,7 +23,7 @@ export function RevenueByOrderChart({
   return (
     <Card
       title="Revenue by Sales Order"
-      className="panel-card report-chart-card"
+      className={`panel-card ${styles.card}`}
     >
       {chartData.length ? (
         <Column
@@ -66,7 +67,7 @@ export function RevenueByOrderChart({
           }}
         />
       ) : (
-        <div className="chart-empty">
+        <div className={styles.empty}>
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description="No sales data"

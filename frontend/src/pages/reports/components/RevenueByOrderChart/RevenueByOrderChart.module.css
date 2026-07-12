@@ -1,0 +1,38 @@
+.card {
+  min-height: 410px;
+  overflow: hidden;
+  transition:
+    transform var(--transition-default),
+    box-shadow var(--transition-default);
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.1);
+}
+
+.card :global(.ant-card-head) {
+  min-height: 58px;
+  border-bottom: 1px solid #edf1f7;
+}
+
+.card :global(.ant-card-body) {
+  padding: 18px 22px 22px;
+}
+
+.empty {
+  min-height: 310px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 600px) {
+  .card {
+    min-height: 360px;
+  }
+
+  .card :global(.ant-card-body) {
+    padding: 12px;
+  }
+}
