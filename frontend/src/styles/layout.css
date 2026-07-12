@@ -1,102 +1,11 @@
 /* =========================================================
-   LOGIN LAYOUT
-   ========================================================= */
-
-.login-shell {
-  min-height: 100vh;
-
-  display: grid;
-  grid-template-columns: 1.2fr 0.9fr;
-  align-items: center;
-  gap: 32px;
-
-  padding: 40px;
-
-  background:
-    linear-gradient(
-      140deg,
-      rgba(9, 23, 59, 0.98),
-      rgba(18, 54, 117, 0.92)
-    ),
-    linear-gradient(
-      180deg,
-      #0c1f49,
-      var(--color-primary)
-    );
-}
-
-.login-hero {
-  min-height: 720px;
-
-  display: flex;
-  align-items: center;
-
-  padding: 56px;
-
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 28px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.06),
-      rgba(255, 255, 255, 0.02)
-    );
-
-  backdrop-filter: blur(16px);
-}
-
-.login-hero-content {
-  width: 100%;
-  max-width: 920px;
-
-  margin: 0 auto;
-}
-
-.eyebrow {
-  display: inline-flex;
-
-  margin-bottom: 14px;
-  padding: 6px 12px;
-
-  border-radius: 999px;
-
-  color: #dbeafe;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.demo-card {
-  border-radius: var(--radius-medium);
-  background: rgba(255, 255, 255, 0.96);
-}
-
-.login-card {
-  min-height: 520px;
-
-  display: flex;
-  align-items: center;
-
-  padding: 20px;
-
-  border-radius: 28px;
-
-  box-shadow:
-    0 24px 70px rgba(6, 24, 44, 0.18);
-}
-
-.login-card .ant-card-body {
-  width: 100%;
-  padding: 32px 36px;
-}
-
-
-/* =========================================================
-   TEMPORARY SHARED PAGE SECTION
+   LEGACY NON-LAYOUT STYLES
    ========================================================= */
 
 /*
- * Tạm thời giữ lại vì ReportsPage vẫn đang sử dụng.
- * Sau khi ReportsPage chuyển sang CSS Module thì xóa đoạn này.
+ * File này vẫn còn được import vì hiện chứa CSS global
+ * của component ngoài Layout. Không dùng cho AppLayout,
+ * AppHeader hoặc AppSidebar nữa.
  */
 
 .section-block {
@@ -108,16 +17,6 @@
 
   background: transparent;
 }
-
-
-/* =========================================================
-   PAGE HEADER
-   ========================================================= */
-
-/*
- * Tạm thời giữ lại vì component PageHeader
- * chưa được chuyển sang CSS Module.
- */
 
 .page-header {
   display: flex;
@@ -149,30 +48,7 @@
   line-height: 1.6;
 }
 
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
 @media (max-width: 992px) {
-  .login-shell {
-    grid-template-columns: 1fr;
-    padding: 20px;
-  }
-
-  .login-hero {
-    min-height: auto;
-    padding: 28px;
-  }
-
-  .login-card {
-    min-height: auto;
-  }
-
-  .login-card .ant-card-body {
-    padding: 12px;
-  }
-
   .page-header {
     flex-direction: column;
     align-items: stretch;
