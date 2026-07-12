@@ -1,0 +1,20 @@
+.ant-typography {
+  color: #1f2937;
+}
+
+.ant-typography-secondary {
+  color: #7b8ba1 !important;
+}
+
+.ant-table-thead > tr > th {
+  background: #f5f8fc !important;
+  color: #5d6b82 !important;
+  font-size: 12px;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: #eef5ff !important;
+}

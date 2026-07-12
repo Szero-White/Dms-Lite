@@ -1,0 +1,23 @@
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.metrics-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-lg);
+}
+
+@media (max-width: 992px) {
+  .metrics-grid,
+  .metrics-grid-3,
+  .insight-grid {
+    grid-template-columns: 1fr;
+  }
+}

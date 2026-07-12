@@ -107,7 +107,7 @@ export function InventoryPage() {
         <Row gutter={[16, 16]} align="stretch">
           <Col xs={24} xl={15}>
             <Card
-              className="panel-card panel-card-stretch"
+              className="panel-card"
               title="Stock by Product"
             >
               <Table
@@ -154,7 +154,7 @@ export function InventoryPage() {
 
           <Col xs={24} xl={9}>
             <Card
-              className="panel-card panel-card-stretch"
+              className="panel-card"
               title="Low Stock Watchlist"
             >
               {lowStockItems.length ? (
