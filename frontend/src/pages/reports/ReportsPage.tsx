@@ -2,10 +2,10 @@ import { Card, Empty, Space, Table, Typography } from 'antd';
 import { PageHeader } from '../../components/common/PageHeader';
 import { QueryState } from '../../components/common/QueryState';
 import { SummaryCard } from '../../components/common/SummaryCard';
+import { useProducts } from '../../features/products';
 import {
   useCustomers,
   useDashboardData,
-  useProducts,
   useSalesOrders,
 } from '../../hooks/useAppQueries';
 import { formatCurrency, toNumber } from '../../lib/format';

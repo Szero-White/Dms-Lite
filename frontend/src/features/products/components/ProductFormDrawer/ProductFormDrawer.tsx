@@ -1,5 +1,5 @@
 import { Button, Drawer, Form, Input, InputNumber, Space } from 'antd';
-import { ProductFormValues, ProductRow } from '../../types';
+import { ProductFormValues, ProductRow } from '../../types/product.types';
 
 interface ProductFormDrawerProps {
   open: boolean;
@@ -9,7 +9,13 @@ interface ProductFormDrawerProps {
   submitting: boolean;
 }
 
-export function ProductFormDrawer({ open, product, onClose, onSubmit, submitting }: ProductFormDrawerProps) {
+export function ProductFormDrawer({
+  open,
+  product,
+  onClose,
+  onSubmit,
+  submitting,
+}: ProductFormDrawerProps) {
   const [form] = Form.useForm<ProductFormValues>();
 
   return (
@@ -43,17 +49,29 @@ export function ProductFormDrawer({ open, product, onClose, onSubmit, submitting
       extra={
         <Space>
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="primary" loading={submitting} onClick={() => form.submit()}>
+          <Button
+            type="primary"
+            loading={submitting}
+            onClick={() => form.submit()}
+          >
             Save
           </Button>
         </Space>
       }
     >
       <Form form={form} layout="vertical" onFinish={onSubmit}>
-        <Form.Item label="SKU" name="sku" rules={[{ required: true, message: 'SKU is required' }]}>
+        <Form.Item
+          label="SKU"
+          name="sku"
+          rules={[{ required: true, message: 'SKU is required' }]}
+        >
           <Input placeholder="Ex: WATER-24" />
         </Form.Item>
-        <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Name is required' }]}>
+        <Form.Item
+          label="Name"
+          name="name"
+          rules={[{ required: true, message: 'Name is required' }]}
+        >
           <Input placeholder="Product name" />
         </Form.Item>
         <Form.Item label="Barcode" name="barcode">
@@ -62,10 +80,18 @@ export function ProductFormDrawer({ open, product, onClose, onSubmit, submitting
         <Form.Item label="Cost Price" name="costPrice" rules={[{ required: true }]}>
           <InputNumber style={{ width: '100%' }} min={0} />
         </Form.Item>
-        <Form.Item label="Selling Price" name="sellingPrice" rules={[{ required: true }]}>
+        <Form.Item
+          label="Selling Price"
+          name="sellingPrice"
+          rules={[{ required: true }]}
+        >
           <InputNumber style={{ width: '100%' }} min={0} />
         </Form.Item>
-        <Form.Item label="Minimum Stock" name="minStock" rules={[{ required: true }]}>
+        <Form.Item
+          label="Minimum Stock"
+          name="minStock"
+          rules={[{ required: true }]}
+        >
           <InputNumber style={{ width: '100%' }} min={0} />
         </Form.Item>
       </Form>

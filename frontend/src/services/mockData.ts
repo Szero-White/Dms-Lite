@@ -7,10 +7,10 @@ import {
   DebtTransaction,
   InventoryTransaction,
   NotificationItem,
-  ProductRow,
   SalesOrder,
   TopSellingProduct,
 } from '../types';
+import { ProductRow } from '../features/products';
 import { toNumber } from '../lib/format';
 
 // Mock data only covers frontend demo gaps where backend APIs are not available yet.
