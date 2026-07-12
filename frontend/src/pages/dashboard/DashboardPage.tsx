@@ -21,7 +21,7 @@ import {
 
 import { PageHeader } from '../../components/common/PageHeader';
 import { QueryState } from '../../components/common/QueryState';
-import { SummaryCard } from '../../components/common/SummaryCard';
+import { SummaryCard } from '../../components/common/SummaryCard/SummaryCard';
 
 import {
   useDashboardData,

@@ -1,7 +1,7 @@
 import { App as AntApp, ConfigProvider, theme } from 'antd';
 import { Navigate, Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { Providers } from './providers';
-import { AppLayout } from '../components/layout/AppLayout';
+import { AppLayout } from '../components/layout/AppLayout/AppLayout';
 import { useAuth } from '../hooks/useAuth';
 import { LoginPage } from '../pages/login/LoginPage';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';

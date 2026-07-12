@@ -6,7 +6,7 @@ import { RevenueByOrderChart } from '../../components/charts/RevenueByOrderChart
 
 import { PageHeader } from '../../components/common/PageHeader';
 import { QueryState } from '../../components/common/QueryState';
-import { SummaryCard } from '../../components/common/SummaryCard';
+import { SummaryCard } from '../../components/common/SummaryCard/SummaryCard';
 import { useCustomers, useDashboardData, useProducts, useSalesOrders } from '../../hooks/useAppQueries';
 import { formatCurrency, toNumber } from '../../lib/format';
 

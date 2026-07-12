@@ -2,6 +2,7 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Card, Col, Form, Input, Row, Space, Typography } from 'antd';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import styles from './LoginPage.module.css';
 
 const demoAccounts = [
   { username: 'owner', password: '123456', role: 'Owner' },
@@ -16,10 +17,10 @@ export function LoginPage() {
   const [form] = Form.useForm();
 
   return (
-    <div className="login-shell">
-      <div className="login-hero">
-        <div className="login-hero-content">
-          <Typography.Text className="eyebrow">DMS Lite</Typography.Text>
+    <div className={styles.shell}>
+      <div className={styles.hero}>
+        <div className={styles.heroContent}>
+          <Typography.Text className={styles.eyebrow}>DMS Lite</Typography.Text>
           <Typography.Title style={{ color: '#fff', marginBottom: 12 }}>
             Sales, Inventory & Receivable Management
           </Typography.Title>
@@ -30,7 +31,7 @@ export function LoginPage() {
           <Row gutter={[16, 16]}>
             {demoAccounts.map((account) => (
               <Col xs={24} sm={12} key={account.username}>
-                <Card size="small" className="demo-card">
+                <Card size="small" className={styles.demoCard}>
                   <Space direction="vertical" size={2}>
                     <Typography.Text strong>{account.role}</Typography.Text>
                     <Typography.Text>{account.username} / {account.password}</Typography.Text>
@@ -42,7 +43,7 @@ export function LoginPage() {
         </div>
       </div>
 
-      <Card className="login-card">
+      <Card className={styles.loginCard}>
         <Space direction="vertical" size={20} style={{ width: '100%' }}>
           <div>
             <Typography.Title level={3} style={{ marginBottom: 4 }}>

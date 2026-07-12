@@ -1,0 +1,144 @@
+/**
+ * SummaryCard component styles.
+ *
+ * Scope:
+ * - Chỉ dùng cho SummaryCard.
+ * - Không chứa bố cục riêng của DashboardPage.
+ *
+ * Dependencies:
+ * - Ant Design Card và Typography.
+ * - Design tokens từ styles/foundations/tokens.css.
+ */
+
+.card {
+  position: relative;
+  min-height: 180px;
+  overflow: hidden;
+
+  border: 1px solid rgba(220, 229, 240, 0.82);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.96);
+
+  box-shadow: var(--shadow-card);
+
+  transition:
+    transform var(--transition-default),
+    box-shadow var(--transition-default),
+    border-color var(--transition-default);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(31, 111, 235, 0.2);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.card::after {
+  position: absolute;
+  top: -58px;
+  right: -48px;
+
+  width: 130px;
+  height: 130px;
+
+  border-radius: 50%;
+  opacity: 0.12;
+
+  content: '';
+}
+
+.card :global(.ant-card-body) {
+  position: relative;
+  z-index: 1;
+
+  min-height: 148px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 22px 24px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.title {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.value:global(.ant-typography) {
+  margin: 4px 0 0 !important;
+
+  color: var(--color-text-primary);
+
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 16px;
+
+  font-size: 22px;
+}
+
+.blue::after {
+  background: var(--color-primary);
+}
+
+.blue .icon {
+  color: var(--color-primary);
+  background: rgba(31, 111, 235, 0.1);
+}
+
+.green::after {
+  background: var(--color-success);
+}
+
+.green .icon {
+  color: var(--color-success);
+  background: rgba(56, 158, 13, 0.12);
+}
+
+.orange::after {
+  background: var(--color-warning);
+}
+
+.orange .icon {
+  color: var(--color-warning);
+  background: rgba(212, 107, 8, 0.12);
+}
+
+.purple::after {
+  background: var(--color-purple);
+}
+
+.purple .icon {
+  color: var(--color-purple);
+  background: rgba(114, 46, 209, 0.12);
+}
+
+.red::after {
+  background: var(--color-danger);
+}
+
+.red .icon {
+  color: var(--color-danger);
+  background: rgba(207, 19, 34, 0.12);
+}

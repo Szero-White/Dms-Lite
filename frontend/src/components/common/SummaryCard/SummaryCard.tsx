@@ -4,6 +4,7 @@ import {
 } from '@ant-design/icons';
 import { Card, Progress, Space, Typography } from 'antd';
 import type { ReactNode } from 'react';
+import styles from './SummaryCard.module.css';
 
 interface SummaryCardProps {
   title: string;
@@ -27,23 +28,23 @@ export function SummaryCard({
   const isPositive = trend !== undefined && trend >= 0;
 
   return (
-    <Card className={`summary-card summary-card-${variant}`}>
-      <div className="summary-card-header">
+    <Card className={`${styles.card} ${styles[variant]}`}>
+      <div className={styles.header}>
         <div>
-          <Typography.Text className="summary-card-title">
+          <Typography.Text className={styles.title}>
             {title}
           </Typography.Text>
 
           <Typography.Title
             level={2}
-            className="summary-card-value"
+            className={styles.value}
           >
             {value}
           </Typography.Title>
         </div>
 
         {icon ? (
-          <div className="summary-card-icon">
+          <div className={styles.icon}>
             {icon}
           </div>
         ) : null}
@@ -54,8 +55,8 @@ export function SummaryCard({
           <Typography.Text
             className={
               isPositive
-                ? 'summary-trend-positive'
-                : 'summary-trend-negative'
+                ? styles.trendPositive
+                : styles.trendNegative
             }
           >
             {isPositive ? (
@@ -63,6 +64,7 @@ export function SummaryCard({
             ) : (
               <ArrowDownOutlined />
             )}
+
             {' '}
             {Math.abs(trend)}%
           </Typography.Text>
@@ -81,7 +83,7 @@ export function SummaryCard({
         />
       ) : null}
 
-      <Typography.Text className="summary-card-note">
+      <Typography.Text className={styles.note}>
         {note}
       </Typography.Text>
     </Card>

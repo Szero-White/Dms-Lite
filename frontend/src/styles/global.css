@@ -1,4 +1,4 @@
-@import './variables.css';
+@import './foundations/tokens.css';
 
 * {
   box-sizing: border-box;
