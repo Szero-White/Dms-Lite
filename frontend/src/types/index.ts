@@ -1,6 +1,5 @@
 export type RoleCode = 'OWNER' | 'SALE_STAFF' | 'WAREHOUSE' | 'ACCOUNTANT' | string;
 export type SalesOrderStatus = 'DRAFT' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' | string;
-export type ProductStatus = 'ACTIVE' | 'INACTIVE';
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -31,26 +30,6 @@ export interface LoginPayload {
   password: string;
 }
 
-export interface Product {
-  id: number;
-  name: string;
-  sku: string;
-  barcode?: string;
-  costPrice: string | number;
-  sellingPrice: string | number;
-  minStock: number;
-  active: boolean;
-}
-
-export interface ProductFormValues {
-  name: string;
-  sku: string;
-  barcode?: string;
-  costPrice: number;
-  sellingPrice: number;
-  minStock: number;
-}
-
 export interface StockItem {
   id: number;
   warehouseId: number;
@@ -63,12 +42,6 @@ export interface ReceiveStockPayload {
   productId: number;
   quantity: number;
   note?: string;
-}
-
-export interface ProductRow extends Product {
-  stock: number;
-  status: ProductStatus;
-  isLowStock: boolean;
 }
 
 export interface Customer {

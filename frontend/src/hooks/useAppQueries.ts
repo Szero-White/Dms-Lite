@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { App } from 'antd';
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import { fetchProductRows } from '../features/products';
 import { queryKeys } from '../lib/queryKeys';
 import { getErrorMessage, toNumber } from '../lib/format';
 import { createCustomer, fetchCustomerDebtStatement, fetchCustomers } from '../services/customerService';
@@ -9,7 +10,6 @@ import {
   fetchInventoryStock,
   receiveStock,
 } from '../services/inventoryService';
-import { fetchProducts, createProduct, updateProduct } from '../services/productService';
 import { fetchDashboardSummary, normalizeDashboardSummary } from '../services/reportService';
 import { cancelSalesOrder, confirmSalesOrder, createSalesOrder, fetchSalesOrders } from '../services/salesService';
 import { recordCustomerPayment } from '../services/paymentService';
@@ -19,34 +19,8 @@ import { buildDashboardSnapshot, buildDerivedNotifications, enrichAuditLogs } fr
 import {
   CreateSalesOrderPayload,
   CustomerFormValues,
-  ProductFormValues,
-  ProductRow,
   ReceiveStockPayload,
 } from '../types';
-
-function mapProductsWithStock(productsPage: Awaited<ReturnType<typeof fetchProducts>>, stockItems: Awaited<ReturnType<typeof fetchInventoryStock>>): ProductRow[] {
-  const stockMap = new Map(stockItems.map((item) => [item.productId, item.quantityOnHand]));
-
-  return productsPage.content.map((product) => {
-    const stock = stockMap.get(product.id) ?? 0;
-    return {
-      ...product,
-      stock,
-      status: product.active ? 'ACTIVE' : 'INACTIVE',
-      isLowStock: stock <= product.minStock,
-    };
-  });
-}
-
-export function useProducts() {
-  return useQuery({
-    queryKey: queryKeys.products,
-    queryFn: async () => {
-      const [productsPage, stockItems] = await Promise.all([fetchProducts(), fetchInventoryStock()]);
-      return mapProductsWithStock(productsPage, stockItems);
-    },
-  });
-}
 
 export function useCustomers() {
   return useQuery({
@@ -95,10 +69,7 @@ export function useDashboardData() {
     queries: [
       { queryKey: queryKeys.dashboard, queryFn: fetchDashboardSummary },
       { queryKey: queryKeys.customers, queryFn: async () => (await fetchCustomers()).content },
-      { queryKey: queryKeys.products, queryFn: async () => {
-        const [productsPage, stockItems] = await Promise.all([fetchProducts(), fetchInventoryStock()]);
-        return mapProductsWithStock(productsPage, stockItems);
-      } },
+      { queryKey: queryKeys.products, queryFn: fetchProductRows },
       { queryKey: queryKeys.salesOrders, queryFn: async () => (await fetchSalesOrders()).content },
     ],
   });
@@ -139,7 +110,10 @@ export function useAuditLogs() {
 
 export function useNotifications() {
   const customersQuery = useCustomers();
-  const productsQuery = useProducts();
+  const productsQuery = useQuery({
+    queryKey: queryKeys.products,
+    queryFn: fetchProductRows,
+  });
   const inventoryHistoryQuery = useInventoryHistory();
   const apiNotificationsQuery = useQuery({
     queryKey: queryKeys.notifications,
@@ -205,34 +179,6 @@ function useMutationFeedback() {
     },
   };
 }
-
-export function useCreateProduct() {
-  const { queryClient, message, onError } = useMutationFeedback();
-  return useMutation({
-    mutationFn: (payload: ProductFormValues) => createProduct(payload),
-    onSuccess: async () => {
-      message.success('Product saved.');
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.products }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard }),
-      ]);
-    },
-    onError,
-  });
-}
-
-export function useUpdateProduct() {
-  const { queryClient, message, onError } = useMutationFeedback();
-  return useMutation({
-    mutationFn: ({ productId, payload }: { productId: number; payload: ProductFormValues }) => updateProduct(productId, payload),
-    onSuccess: async () => {
-      message.success('Product updated.');
-      await queryClient.invalidateQueries({ queryKey: queryKeys.products });
-    },
-    onError,
-  });
-}
-
 export function useCreateCustomer() {
   const { queryClient, message, onError } = useMutationFeedback();
   return useMutation({

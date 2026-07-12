@@ -1,11 +1,11 @@
 import { App as AntApp, ConfigProvider, theme } from 'antd';
 import { Navigate, Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { Providers } from './providers';
+import { ProductsPage } from '../features/products';
 import { AppLayout } from '../components/layout';
 import { useAuth } from '../hooks/useAuth';
 import { LoginPage } from '../pages/login/LoginPage';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';
-import { ProductsPage } from '../pages/products/ProductsPage';
 import { CustomersPage } from '../pages/customers/CustomersPage';
 import { CustomerDetailPage } from '../pages/customers/CustomerDetailPage';
 import { SalesOrdersPage } from '../pages/sales/SalesOrdersPage';

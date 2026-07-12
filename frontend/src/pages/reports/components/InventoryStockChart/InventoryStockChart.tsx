@@ -1,6 +1,6 @@
 import { Bar } from '@ant-design/charts';
 import { Card, Empty } from 'antd';
-import type { ProductRow } from '../../../../types';
+import type { ProductRow } from '../../../../features/products';
 import styles from './InventoryStockChart.module.css';
 
 interface InventoryStockChartProps {

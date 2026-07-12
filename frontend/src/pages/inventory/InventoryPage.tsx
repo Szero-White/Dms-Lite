@@ -18,9 +18,9 @@ import { PlusOutlined } from '@ant-design/icons';
 import { useMemo, useState } from 'react';
 import { PageHeader } from '../../components/common/PageHeader';
 import { QueryState } from '../../components/common/QueryState';
+import { useProducts } from '../../features/products';
 import {
   useInventoryHistory,
-  useProducts,
   useReceiveStock,
 } from '../../hooks/useAppQueries';
 import { formatDateTime } from '../../lib/format';

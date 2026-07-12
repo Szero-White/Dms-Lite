@@ -4,7 +4,8 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
 import { QueryState } from '../../components/common/QueryState';
-import { useConfirmSalesOrder, useCreateSalesOrder, useCustomers, useProducts } from '../../hooks/useAppQueries';
+import { useProducts } from '../../features/products';
+import { useConfirmSalesOrder, useCreateSalesOrder, useCustomers } from '../../hooks/useAppQueries';
 import { formatCurrency, toNumber } from '../../lib/format';
 
 interface OrderFormValues {
