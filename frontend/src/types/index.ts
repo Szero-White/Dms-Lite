@@ -58,6 +58,13 @@ export interface StockItem {
   quantityOnHand: number;
 }
 
+export interface ReceiveStockPayload {
+  warehouseId: number;
+  productId: number;
+  quantity: number;
+  note?: string;
+}
+
 export interface ProductRow extends Product {
   stock: number;
   status: ProductStatus;

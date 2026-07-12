@@ -66,11 +66,18 @@ public class InventoryService {
         String note
     ) {
         StockItem stockItem = stockItemRepository.lock(tenantId, warehouseId, productId)
-            .orElseThrow(() -> new BusinessException("Stock not found"));
+            .orElseThrow(() -> new BusinessException(
+                "Product " + productId +
+                " has not been stocked in warehouse " + warehouseId
+            ));
 
         int beforeQuantity = stockItem.getQuantityOnHand();
         if (beforeQuantity < quantity) {
-            throw new BusinessException("Insufficient stock for product " + productId);
+            throw new BusinessException(
+                "Insufficient stock for product " + productId +
+                ". Available: " + beforeQuantity +
+                ", required: " + quantity
+            );
         }
 
         stockItem.setQuantityOnHand(beforeQuantity - quantity);
