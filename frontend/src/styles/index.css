@@ -1,0 +1,19 @@
+/**
+ * Global stylesheet entry point.
+ *
+ * Import order:
+ * 1. Design tokens
+ * 2. Global/reset rules
+ * 3. Temporary legacy styles
+ *
+ * Page and component-specific styles should gradually move
+ * to CSS Modules beside their corresponding React files.
+ */
+
+@import './global.css';
+
+/* Temporary legacy imports */
+@import './layout.css';
+@import './components.css';
+@import './dashboard.css';
+@import './reports.css';
