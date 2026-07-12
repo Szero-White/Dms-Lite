@@ -142,8 +142,8 @@ public class SalesOrderService {
         notificationProducer.publish(
             tenantId,
             NOTIFICATION_TYPE_CONFIRMED,
-            "Đơn đã xác nhận",
-            "Đơn " + salesOrder.getCode() + " đã xác nhận"
+            "Order confirmed",
+            "Order " + salesOrder.getCode() + " has been confirmed"
         );
 
         return salesOrderMapper.toDetailResponse(salesOrder);
@@ -165,10 +165,9 @@ public class SalesOrderService {
         notificationProducer.publish(
             tenantId,
             NOTIFICATION_TYPE_CANCELLED,
-            "Don da huy",
-            "Don " + salesOrder.getCode() + " da huy"
+            "Order cancelled",
+            "Order " + salesOrder.getCode() + " has been cancelled"
         );
-
         return salesOrderMapper.toDetailResponse(salesOrder);
     }
 

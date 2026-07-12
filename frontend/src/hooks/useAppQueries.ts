@@ -4,7 +4,11 @@ import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/rea
 import { queryKeys } from '../lib/queryKeys';
 import { getErrorMessage, toNumber } from '../lib/format';
 import { createCustomer, fetchCustomerDebtStatement, fetchCustomers } from '../services/customerService';
-import { fetchInventoryHistory, fetchInventoryStock } from '../services/inventoryService';
+import {
+  fetchInventoryHistory,
+  fetchInventoryStock,
+  receiveStock,
+} from '../services/inventoryService';
 import { fetchProducts, createProduct, updateProduct } from '../services/productService';
 import { fetchDashboardSummary, normalizeDashboardSummary } from '../services/reportService';
 import { cancelSalesOrder, confirmSalesOrder, createSalesOrder, fetchSalesOrders } from '../services/salesService';
@@ -12,7 +16,13 @@ import { recordCustomerPayment } from '../services/paymentService';
 import { fetchAuditLogs } from '../services/auditService';
 import { fetchNotifications } from '../services/notificationService';
 import { buildDashboardSnapshot, buildDerivedNotifications, enrichAuditLogs } from '../services/mockData';
-import { CreateSalesOrderPayload, CustomerFormValues, ProductFormValues, ProductRow } from '../types';
+import {
+  CreateSalesOrderPayload,
+  CustomerFormValues,
+  ProductFormValues,
+  ProductRow,
+  ReceiveStockPayload,
+} from '../types';
 
 function mapProductsWithStock(productsPage: Awaited<ReturnType<typeof fetchProducts>>, stockItems: Awaited<ReturnType<typeof fetchInventoryStock>>): ProductRow[] {
   const stockMap = new Map(stockItems.map((item) => [item.productId, item.quantityOnHand]));
@@ -295,6 +305,39 @@ export function useRecordCustomerPayment() {
         queryClient.invalidateQueries({ queryKey: queryKeys.auditLogs }),
       ]);
     },
+    onError,
+  });
+}
+
+export function useReceiveStock() {
+  const { queryClient, message, onError } = useMutationFeedback();
+
+  return useMutation({
+    mutationFn: (payload: ReceiveStockPayload) =>
+      receiveStock(payload),
+
+    onSuccess: async () => {
+      message.success('Stock received successfully.');
+
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.products,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.inventoryStock,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.inventoryHistory,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.dashboard,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.notifications,
+        }),
+      ]);
+    },
+
     onError,
   });
 }

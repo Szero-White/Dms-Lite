@@ -1,0 +1,204 @@
+/* =========================================================
+   COMMON CARDS
+   ========================================================= */
+
+.panel-card,
+.summary-card {
+  overflow: hidden;
+
+  border: 1px solid rgba(220, 229, 240, 0.82);
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.055);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.panel-card:hover,
+.summary-card:hover {
+  transform: translateY(-2px);
+
+  border-color: rgba(31, 111, 235, 0.16);
+
+  box-shadow:
+    0 16px 38px rgba(15, 23, 42, 0.085);
+}
+
+.panel-card .ant-card-head {
+  min-height: 58px;
+  padding: 0 24px;
+
+  border-bottom:
+    1px solid rgba(230, 236, 245, 0.9);
+}
+
+.panel-card .ant-card-head-title {
+  padding: 16px 0;
+
+  color: #111827;
+
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+}
+
+.panel-card .ant-card-body {
+  padding: 22px 24px 24px;
+}
+
+.summary-card .ant-card-body {
+  min-height: 148px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  padding: 22px 24px;
+}
+
+.summary-card-title {
+  color: #718096;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.summary-card-value.ant-typography {
+  margin: 4px 0 0 !important;
+
+  color: #111827;
+
+  font-size: 24px !important;
+  font-weight: 750 !important;
+  line-height: 1.15 !important;
+  letter-spacing: -0.035em;
+}
+
+.summary-card-note {
+  color: #8492a6;
+
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   COMMON PANELS
+   ========================================================= */
+
+.table-panel-card .ant-table-wrapper,
+.compact-panel-card .ant-table-wrapper {
+  width: 100%;
+}
+
+.compact-panel-card {
+  min-height: 330px;
+}
+
+.compact-panel-card .ant-list-item {
+  padding: 16px 0;
+}
+
+.compact-panel-card .ant-empty {
+  margin-block: 0;
+}
+
+.line-item-card {
+  border-radius: var(--radius-medium);
+  background: #fbfdff;
+}
+
+
+/* =========================================================
+   COMMON LAYOUT HELPERS
+   ========================================================= */
+
+.state-block {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.alert-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.panel-empty {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted);
+}
+
+
+/* =========================================================
+   COMMON GRIDS
+   ========================================================= */
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.metrics-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-lg);
+}
+
+
+/* =========================================================
+   ANT DESIGN TABLE OVERRIDES
+   ========================================================= */
+
+.ant-table-thead > tr > th {
+  background: #f5f8fc !important;
+  color: #5d6b82 !important;
+  font-size: 12px;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: #eef5ff !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 992px) {
+  .metrics-grid,
+  .metrics-grid-3,
+  .insight-grid {
+    grid-template-columns: 1fr;
+  }
+}

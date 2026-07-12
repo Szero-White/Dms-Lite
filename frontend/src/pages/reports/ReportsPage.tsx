@@ -1,4 +1,9 @@
 import { Card, Empty, Space, Table, Typography } from 'antd';
+
+import { InventoryStockChart } from '../../components/charts/InventoryStockChart';
+import { OrderStatusChart } from '../../components/charts/OrderStatusChart';
+import { RevenueByOrderChart } from '../../components/charts/RevenueByOrderChart';
+
 import { PageHeader } from '../../components/common/PageHeader';
 import { QueryState } from '../../components/common/QueryState';
 import { SummaryCard } from '../../components/common/SummaryCard';
@@ -38,6 +43,32 @@ export function ReportsPage() {
                   <SummaryCard title="Inventory Report" value={`${productsQuery.data?.length || 0} SKUs`} note="Tracked products in stock visibility" />
                 </div>
               </div>
+            </div>
+            
+            {/* =====================================================
+                REPORT CHARTS
+                Biểu đồ doanh thu và trạng thái đơn hàng
+                ===================================================== */}
+            <div className="section-block">
+              <div className="report-chart-grid">
+                <RevenueByOrderChart
+                  orders={ordersQuery.data ?? []}
+                />
+
+                <OrderStatusChart
+                  orders={ordersQuery.data ?? []}
+                />
+              </div>
+            </div>
+
+            {/* =====================================================
+                INVENTORY CHART
+                Biểu đồ tồn kho theo sản phẩm
+                ===================================================== */}
+            <div className="section-block">
+              <InventoryStockChart
+                products={productsQuery.data ?? []}
+              />
             </div>
 
             <div className="section-block">

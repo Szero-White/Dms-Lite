@@ -35,7 +35,7 @@ export function buildDashboardSnapshot(
   orders
     .filter((order) => ['COMPLETED', 'CONFIRMED'].includes(order.status))
     .forEach((order) => {
-      order.items.forEach((item) => {
+      (order.items ?? []).forEach((item) => {
         const product = products.find((candidate) => candidate.id === item.productId);
         if (!product) {
           return;

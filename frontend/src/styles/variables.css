@@ -1,0 +1,57 @@
+:root {
+  /* =========================
+     Brand colors
+     ========================= */
+  --color-primary: #1f6feb;
+  --color-primary-light: #5b8def;
+
+  /* =========================
+     Text colors
+     ========================= */
+  --color-text-primary: #172033;
+  --color-text-secondary: #73839a;
+  --color-text-muted: #8a98aa;
+
+  /* =========================
+     Status colors
+     ========================= */
+  --color-success: #389e0d;
+  --color-warning: #d46b08;
+  --color-danger: #cf1322;
+  --color-purple: #722ed1;
+
+  /* =========================
+     Background colors
+     ========================= */
+  --color-page-background: #eef3f9;
+  --color-card-background: #ffffff;
+  --color-border: #e8eef7;
+
+  /* =========================
+     Border radius
+     ========================= */
+  --radius-small: 10px;
+  --radius-medium: 16px;
+  --radius-large: 24px;
+  --radius-section: 30px;
+
+  /* =========================
+     Shadows
+     ========================= */
+  --shadow-card: 0 18px 45px rgba(15, 23, 42, 0.05);
+  --shadow-card-hover: 0 22px 48px rgba(15, 23, 42, 0.12);
+
+  /* =========================
+     Spacing
+     ========================= */
+  --spacing-xs: 6px;
+  --spacing-sm: 10px;
+  --spacing-md: 16px;
+  --spacing-lg: 22px;
+  --spacing-xl: 28px;
+
+  /* =========================
+     Transition
+     ========================= */
+  --transition-default: 0.2s ease;
+}
