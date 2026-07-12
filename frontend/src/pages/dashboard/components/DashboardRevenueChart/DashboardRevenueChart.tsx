@@ -1,7 +1,8 @@
 import { Line } from '@ant-design/charts';
 import { Card, Empty } from 'antd';
-import type { SalesOrder } from '../../types';
-import { toNumber } from '../../lib/format';
+import { toNumber } from '../../../../lib/format';
+import type { SalesOrder } from '../../../../types';
+import styles from './DashboardRevenueChart.module.css';
 
 interface DashboardRevenueChartProps {
   orders: SalesOrder[];
@@ -72,7 +73,7 @@ export function DashboardRevenueChart({
   return (
     <Card
       title="Revenue Trend"
-      className="panel-card dashboard-chart-card"
+      className={`panel-card ${styles.card}`}
     >
       {hasRevenue ? (
         <Line
@@ -115,7 +116,7 @@ export function DashboardRevenueChart({
           }}
         />
       ) : (
-        <div className="dashboard-chart-empty">
+        <div className={styles.empty}>
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description="No confirmed revenue in the last 7 days"
