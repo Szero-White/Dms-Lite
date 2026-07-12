@@ -1,6 +1,7 @@
 import { Bar } from '@ant-design/charts';
 import { Card, Empty } from 'antd';
-import type { ProductRow } from '../../types';
+import type { ProductRow } from '../../../../types';
+import styles from './InventoryStockChart.module.css';
 
 interface InventoryStockChartProps {
   products: ProductRow[];
@@ -21,7 +22,7 @@ export function InventoryStockChart({
   return (
     <Card
       title="Inventory Stock Level"
-      className="panel-card report-chart-card"
+      className={`panel-card ${styles.card}`}
     >
       {chartData.length ? (
         <Bar
@@ -61,7 +62,7 @@ export function InventoryStockChart({
           }}
         />
       ) : (
-        <div className="chart-empty">
+        <div className={styles.empty}>
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description="No inventory data"
