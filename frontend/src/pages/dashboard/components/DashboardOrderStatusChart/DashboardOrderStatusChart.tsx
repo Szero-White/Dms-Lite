@@ -1,6 +1,7 @@
 import { Pie } from '@ant-design/charts';
 import { Card, Empty } from 'antd';
-import type { SalesOrder } from '../../types';
+import type { SalesOrder } from '../../../../types';
+import styles from './DashboardOrderStatusChart.module.css';
 
 interface DashboardOrderStatusChartProps {
   orders: SalesOrder[];
@@ -29,7 +30,7 @@ export function DashboardOrderStatusChart({
   return (
     <Card
       title="Order Status"
-      className="panel-card dashboard-chart-card"
+      className={`panel-card ${styles.card}`}
     >
       {chartData.length ? (
         <Pie
@@ -59,7 +60,7 @@ export function DashboardOrderStatusChart({
           }}
         />
       ) : (
-        <div className="dashboard-chart-empty">
+        <div className={styles.empty}>
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description="No sales orders"

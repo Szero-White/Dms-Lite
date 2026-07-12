@@ -1,0 +1,32 @@
+.card {
+  min-height: 340px;
+  overflow: hidden;
+  transition:
+    transform var(--transition-default),
+    box-shadow var(--transition-default);
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.card :global(.ant-card-body) {
+  padding: 18px 22px 22px;
+}
+
+.empty {
+  min-height: 250px;
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 600px) {
+  .card {
+    min-height: 350px;
+  }
+
+  .card :global(.ant-card-body) {
+    padding: 12px;
+  }
+}

@@ -14,14 +14,13 @@ import {
   Typography,
 } from 'antd';
 
-import {
-  DashboardOrderStatusChart,
-  DashboardRevenueChart,
-} from '../../components/charts';
-
 import { PageHeader } from '../../components/common/PageHeader';
 import { QueryState } from '../../components/common/QueryState';
 import { SummaryCard } from '../../components/common/SummaryCard/SummaryCard';
+import {
+  DashboardOrderStatusChart,
+  DashboardRevenueChart,
+} from './components';
 
 import {
   useDashboardData,
@@ -33,6 +32,8 @@ import {
   formatNumber,
   toNumber,
 } from '../../lib/format';
+
+import styles from './DashboardPage.module.css';
 
 export function DashboardPage() {
   const dashboardQuery = useDashboardData();
@@ -69,9 +70,6 @@ export function DashboardPage() {
       >
         {dashboardQuery.data ? (
           <>
-            {/* =================================================
-                KPI CARDS
-                ================================================= */}
             <div className="metrics-grid">
               <SummaryCard
                 title="Revenue Today"
@@ -86,8 +84,7 @@ export function DashboardPage() {
               <SummaryCard
                 title="Revenue This Month"
                 value={formatCurrency(
-                  dashboardQuery.data.summary
-                    .revenueThisMonth,
+                  dashboardQuery.data.summary.revenueThisMonth,
                 )}
                 note="Month-to-date recognized revenue"
                 icon={<ShoppingCartOutlined />}
@@ -97,8 +94,7 @@ export function DashboardPage() {
               <SummaryCard
                 title="Receivable Debt"
                 value={formatCurrency(
-                  dashboardQuery.data.summary
-                    .totalReceivable,
+                  dashboardQuery.data.summary.totalReceivable,
                 )}
                 note="Outstanding customer receivables"
                 icon={<WalletOutlined />}
@@ -118,16 +114,14 @@ export function DashboardPage() {
               <SummaryCard
                 title="Low Stock Items"
                 value={formatNumber(
-                  dashboardQuery.data.summary
-                    .lowStockItems,
+                  dashboardQuery.data.summary.lowStockItems,
                 )}
                 note="Products requiring replenishment"
                 icon={<WarningOutlined />}
                 progress={Math.min(
                   100,
                   toNumber(
-                    dashboardQuery.data.summary
-                      .lowStockItems,
+                    dashboardQuery.data.summary.lowStockItems,
                   ) * 20,
                 )}
                 variant="red"
@@ -144,10 +138,7 @@ export function DashboardPage() {
               />
             </div>
 
-            {/* =================================================
-                CHARTS
-                ================================================= */}
-            <div className="dashboard-chart-grid">
+            <div className={styles.chartGrid}>
               <DashboardRevenueChart
                 orders={ordersQuery.data ?? []}
               />
@@ -157,29 +148,24 @@ export function DashboardPage() {
               />
             </div>
 
-            {/* =================================================
-                RANKING PANELS
-                ================================================= */}
-            <div className="dashboard-insight-grid">
+            <div className={styles.insightGrid}>
               <Card
                 title="Top Customers by Debt"
-                className="panel-card dashboard-panel"
+                className={`panel-card ${styles.panel}`}
               >
-                {dashboardQuery.data.topCustomersByDebt
-                  .length ? (
+                {dashboardQuery.data.topCustomersByDebt.length ? (
                   <List
                     dataSource={
-                      dashboardQuery.data
-                        .topCustomersByDebt
+                      dashboardQuery.data.topCustomersByDebt
                     }
                     renderItem={(item, index) => (
                       <List.Item>
-                        <div className="dashboard-list-row">
-                          <div className="dashboard-rank">
+                        <div className={styles.listRow}>
+                          <div className={styles.rank}>
                             {index + 1}
                           </div>
 
-                          <div className="dashboard-list-content">
+                          <div className={styles.listContent}>
                             <Typography.Text strong>
                               {item.customerName}
                             </Typography.Text>
@@ -191,11 +177,9 @@ export function DashboardPage() {
 
                           <Typography.Text
                             strong
-                            className="dashboard-amount"
+                            className={styles.amount}
                           >
-                            {formatCurrency(
-                              item.debtBalance,
-                            )}
+                            {formatCurrency(item.debtBalance)}
                           </Typography.Text>
                         </div>
                       </List.Item>
@@ -204,9 +188,7 @@ export function DashboardPage() {
                 ) : (
                   <div className="panel-empty">
                     <Empty
-                      image={
-                        Empty.PRESENTED_IMAGE_SIMPLE
-                      }
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
                       description="No customer debt yet"
                     />
                   </div>
@@ -215,23 +197,21 @@ export function DashboardPage() {
 
               <Card
                 title="Top Selling Products"
-                className="panel-card dashboard-panel"
+                className={`panel-card ${styles.panel}`}
               >
-                {dashboardQuery.data.topSellingProducts
-                  .length ? (
+                {dashboardQuery.data.topSellingProducts.length ? (
                   <List
                     dataSource={
-                      dashboardQuery.data
-                        .topSellingProducts
+                      dashboardQuery.data.topSellingProducts
                     }
                     renderItem={(item, index) => (
                       <List.Item>
-                        <div className="dashboard-list-row">
-                          <div className="dashboard-rank">
+                        <div className={styles.listRow}>
+                          <div className={styles.rank}>
                             {index + 1}
                           </div>
 
-                          <div className="dashboard-list-content">
+                          <div className={styles.listContent}>
                             <Typography.Text strong>
                               {item.productName}
                             </Typography.Text>
@@ -251,9 +231,7 @@ export function DashboardPage() {
                 ) : (
                   <div className="panel-empty">
                     <Empty
-                      image={
-                        Empty.PRESENTED_IMAGE_SIMPLE
-                      }
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
                       description="No completed sales yet"
                     />
                   </div>
@@ -261,21 +239,19 @@ export function DashboardPage() {
               </Card>
             </div>
 
-            {/* =================================================
-                OPERATIONAL ALERTS
-                Thay cho Business Health bị lặp số liệu
-                ================================================= */}
             <Card
               title="Operational Alerts"
               className="panel-card"
             >
-              <div className="operational-alert-grid">
-                <div className="operational-alert-item">
-                  <div className="operational-alert-icon operational-alert-icon-warning">
+              <div className={styles.alertGrid}>
+                <div className={styles.alertItem}>
+                  <div
+                    className={`${styles.alertIcon} ${styles.alertIconWarning}`}
+                  >
                     <WalletOutlined />
                   </div>
 
-                  <div className="operational-alert-content">
+                  <div className={styles.alertContent}>
                     <Typography.Text type="secondary">
                       Receivable exposure
                     </Typography.Text>
@@ -291,12 +267,14 @@ export function DashboardPage() {
                   <Tag color="orange">Monitor</Tag>
                 </div>
 
-                <div className="operational-alert-item">
-                  <div className="operational-alert-icon operational-alert-icon-danger">
+                <div className={styles.alertItem}>
+                  <div
+                    className={`${styles.alertIcon} ${styles.alertIconDanger}`}
+                  >
                     <WarningOutlined />
                   </div>
 
-                  <div className="operational-alert-content">
+                  <div className={styles.alertContent}>
                     <Typography.Text type="secondary">
                       Inventory health
                     </Typography.Text>
@@ -321,28 +299,26 @@ export function DashboardPage() {
                     }
                   >
                     {toNumber(
-                      dashboardQuery.data.summary
-                        .lowStockItems,
+                      dashboardQuery.data.summary.lowStockItems,
                     ) > 0
                       ? 'Action needed'
                       : 'Healthy'}
                   </Tag>
                 </div>
 
-                <div className="operational-alert-item">
-                  <div className="operational-alert-icon">
+                <div className={styles.alertItem}>
+                  <div className={styles.alertIcon}>
                     <ShoppingCartOutlined />
                   </div>
 
-                  <div className="operational-alert-content">
+                  <div className={styles.alertContent}>
                     <Typography.Text type="secondary">
                       Product coverage
                     </Typography.Text>
 
                     <Typography.Title level={4}>
                       {formatNumber(
-                        dashboardQuery.data.summary
-                          .productCount,
+                        dashboardQuery.data.summary.productCount,
                       )}{' '}
                       active products
                     </Typography.Title>

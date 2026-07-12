@@ -142,3 +142,19 @@
   color: var(--color-danger);
   background: rgba(207, 19, 34, 0.12);
 }
+
+.trendPositive {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.trendNegative {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.note {
+  color: #8492a6;
+  font-size: 13px;
+  line-height: 1.55;
+}
