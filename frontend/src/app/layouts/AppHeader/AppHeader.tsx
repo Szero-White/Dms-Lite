@@ -9,8 +9,7 @@ import {
   Typography,
 } from 'antd';
 import { useNavigate } from 'react-router-dom';
-
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../../features/auth';
 import styles from './AppHeader.module.css';
 
 export function AppHeader() {

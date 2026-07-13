@@ -1,7 +1,6 @@
 import { Layout } from 'antd';
 import type { PropsWithChildren } from 'react';
 import { Outlet } from 'react-router-dom';
-
 import { AppHeader } from '../AppHeader';
 import { AppSidebar } from '../AppSidebar';
 import styles from './AppLayout.module.css';
