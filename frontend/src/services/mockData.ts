@@ -2,12 +2,12 @@ import {
   DashboardSnapshot,
   DashboardSummary,
   DebtLeader,
-  InventoryTransaction,
   SalesOrder,
   TopSellingProduct,
 } from '../types';
 import { AuditLog } from '../features/audit';
 import { Customer, DebtTransaction } from '../features/customers';
+import { InventoryTransaction } from '../features/inventory';
 import { NotificationItem } from '../features/notifications';
 import { ProductRow } from '../features/products';
 import { toNumber } from '../lib/format';
