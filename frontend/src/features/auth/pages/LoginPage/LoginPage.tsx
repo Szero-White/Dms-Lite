@@ -1,17 +1,5 @@
-import {
-  LockOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
-import {
-  Button,
-  Card,
-  Col,
-  Form,
-  Input,
-  Row,
-  Space,
-  Typography,
-} from 'antd';
+import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { Button, Form, Input } from 'antd';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import styles from './LoginPage.module.css';
@@ -29,40 +17,25 @@ export function LoginPage() {
   const [form] = Form.useForm();
 
   return (
-    <div className={styles.shell}>
-      <div className={styles.hero}>
-        <div className={styles.heroContent}>
-          <Typography.Text className={styles.eyebrow}>DMS Lite</Typography.Text>
-          <Typography.Title style={{ color: '#fff', marginBottom: 12 }}>
-            Sales, Inventory & Receivable Management
-          </Typography.Title>
-          <Typography.Paragraph style={{ color: 'rgba(255,255,255,0.75)', fontSize: 16, maxWidth: 560 }}>
-            Built for small distributors who need tighter visibility on stock, order execution, receivable debt,
-            and daily operating discipline.
-          </Typography.Paragraph>
-          <Row gutter={[16, 16]}>
-            {demoAccounts.map((account) => (
-              <Col xs={24} sm={12} key={account.username}>
-                <Card size="small" className={styles.demoCard}>
-                  <Space direction="vertical" size={2}>
-                    <Typography.Text strong>{account.role}</Typography.Text>
-                    <Typography.Text>{account.username} / {account.password}</Typography.Text>
-                  </Space>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </div>
-      </div>
-
-      <Card className={styles.loginCard}>
-        <Space direction="vertical" size={20} style={{ width: '100%' }}>
-          <div>
-            <Typography.Title level={3} style={{ marginBottom: 4 }}>
-              Welcome back
-            </Typography.Title>
-            <Typography.Text type="secondary">Sign in to continue managing orders, stock, and receivables.</Typography.Text>
+    <main className={styles.shell}>
+      <section className={styles.loginPane}>
+        <div className={styles.loginContent}>
+          <div className={styles.brand}>
+            <div className={styles.brandMark} aria-hidden="true">
+              D
+            </div>
+            <div>
+              <div className={styles.brandName}>DMS Lite</div>
+              <div className={styles.brandSubtitle}>
+                Distributor Operating System
+              </div>
+            </div>
           </div>
+
+          <header className={styles.formHeader}>
+            <h1>Welcome back</h1>
+            <p>Enter your credentials to access your workspace.</p>
+          </header>
 
           <Form
             form={form}
@@ -78,17 +51,58 @@ export function LoginPage() {
             }}
           >
             <Form.Item label="Username" name="username" rules={[{ required: true }]}>
-              <Input prefix={<UserOutlined />} size="large" />
+              <Input
+                autoComplete="username"
+                prefix={<UserOutlined />}
+                placeholder="Enter username"
+                size="large"
+              />
             </Form.Item>
-            <Form.Item label="Password" name="password" rules={[{ required: true }]}>
-              <Input.Password prefix={<LockOutlined />} size="large" />
+
+            <Form.Item
+              className={styles.passwordField}
+              label="Password"
+              name="password"
+              rules={[{ required: true }]}
+            >
+              <Input.Password
+                autoComplete="current-password"
+                prefix={<LockOutlined />}
+                placeholder="Enter password"
+                size="large"
+              />
             </Form.Item>
-            <Button block size="large" type="primary" htmlType="submit" loading={submitting}>
-              Login to DMS Lite
+
+            <Button
+              block
+              className={styles.submitButton}
+              size="large"
+              type="primary"
+              htmlType="submit"
+              loading={submitting}
+            >
+              Sign in
             </Button>
           </Form>
-        </Space>
-      </Card>
-    </div>
+
+          <details className={styles.demoAccounts}>
+            <summary>Use a demo account</summary>
+            <div className={styles.demoList}>
+              {demoAccounts.map((account) => (
+                <div className={styles.demoRow} key={account.username}>
+                  <span>{account.role}</span>
+                  <span aria-hidden="true">&mdash;</span>
+                  <span>
+                    {account.username} / {account.password}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <aside className={styles.visualPane} aria-hidden="true" />
+    </main>
   );
 }

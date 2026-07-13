@@ -13,7 +13,8 @@ interface SummaryCardProps {
   icon?: ReactNode;
   trend?: number;
   progress?: number;
-  variant?: 'blue' | 'green' | 'orange' | 'purple' | 'red';
+  variant?: 'blue' | 'green' | 'orange' | 'purple' | 'red' | 'cyan';
+  visual?: 'default' | 'dashboard';
 }
 
 export function SummaryCard({
@@ -24,16 +25,30 @@ export function SummaryCard({
   trend,
   progress,
   variant = 'blue',
+  visual = 'default',
 }: SummaryCardProps) {
   const isPositive = trend !== undefined && trend >= 0;
+  const isDashboard = visual === 'dashboard';
 
   return (
-    <Card className={`${styles.card} ${styles[variant]}`}>
-      <div className={styles.header}>
-        <div>
-          <Typography.Text className={styles.title}>
-            {title}
-          </Typography.Text>
+    <Card
+      className={`${styles.card} ${styles[variant]} ${
+        isDashboard ? styles.dashboard : ''
+      }`}
+    >
+      {isDashboard ? (
+        <>
+          <div className={styles.dashboardHeader}>
+            {icon ? (
+              <div className={styles.icon}>
+                {icon}
+              </div>
+            ) : null}
+
+            <Typography.Text className={styles.title}>
+              {title}
+            </Typography.Text>
+          </div>
 
           <Typography.Title
             level={2}
@@ -41,14 +56,29 @@ export function SummaryCard({
           >
             {value}
           </Typography.Title>
-        </div>
+        </>
+      ) : (
+        <div className={styles.header}>
+          <div>
+            <Typography.Text className={styles.title}>
+              {title}
+            </Typography.Text>
 
-        {icon ? (
-          <div className={styles.icon}>
-            {icon}
+            <Typography.Title
+              level={2}
+              className={styles.value}
+            >
+              {value}
+            </Typography.Title>
           </div>
-        ) : null}
-      </div>
+
+          {icon ? (
+            <div className={styles.icon}>
+              {icon}
+            </div>
+          ) : null}
+        </div>
+      )}
 
       {trend !== undefined ? (
         <Space size={6}>

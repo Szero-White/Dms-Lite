@@ -1,116 +1,311 @@
-/**
- * Login page presentation.
- *
- * Scope:
- * - Chỉ dùng cho LoginPage.
- * - Không dùng lại cho layout sau khi đăng nhập.
- */
-
 .shell {
   min-height: 100vh;
-
   display: grid;
-  grid-template-columns: 1.2fr 0.9fr;
-  align-items: center;
-  gap: 32px;
-
-  padding: 40px;
-
-  background:
-    linear-gradient(
-      140deg,
-      rgba(9, 23, 59, 0.98),
-      rgba(18, 54, 117, 0.92)
-    ),
-    linear-gradient(
-      180deg,
-      #0c1f49,
-      var(--color-primary)
-    );
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  background: #fdfdfd;
+  color: #2f3a4a;
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.hero {
-  min-height: 720px;
-
+.loginPane {
+  min-width: 0;
   display: flex;
   align-items: center;
-
-  padding: 56px;
-
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 28px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.06),
-      rgba(255, 255, 255, 0.02)
-    );
-
-  backdrop-filter: blur(16px);
+  justify-content: center;
+  padding: 48px 24px;
+  background: #fdfdfd;
 }
 
-.heroContent {
-  width: 100%;
-  max-width: 920px;
-  margin: 0 auto;
+.loginContent {
+  width: min(440px, calc(100% - 48px));
+  animation: formFadeIn 180ms ease-out both;
 }
 
-.eyebrow {
-  display: inline-flex;
-
-  margin-bottom: 14px;
-  padding: 6px 12px;
-
-  border-radius: 999px;
-
-  color: #dbeafe;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.demoCard {
-  border-radius: var(--radius-medium);
-  background: rgba(255, 255, 255, 0.96);
-}
-
-.loginCard {
-  min-height: 520px;
-
+.brand {
   display: flex;
   align-items: center;
-
-  padding: 20px;
-
-  border-radius: 28px;
-  box-shadow: 0 24px 70px rgba(6, 24, 44, 0.18);
+  gap: 10px;
+  margin-bottom: 48px;
 }
 
-.loginCard :global(.ant-card-body) {
-  width: 100%;
-  padding: 32px 36px;
+.brandMark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  background: #263243;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
 }
 
-@media (max-width: 992px) {
-  .shell {
-    grid-template-columns: 1fr;
+.brandName {
+  color: #2f3a4a;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.brandSubtitle {
+  color: #8a94a3;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.formHeader {
+  margin-bottom: 28px;
+}
+
+.formHeader h1 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.formHeader p {
+  margin: 8px 0 0;
+  color: #7a8496;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+}
+
+.loginContent :global(.ant-form-item) {
+  margin-bottom: 18px;
+}
+
+.loginContent :global(.ant-form-item-label) {
+  padding-bottom: 7px;
+}
+
+.loginContent :global(.ant-form-item-label > label) {
+  height: auto;
+  color: #3b4556;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.loginContent :global(.ant-form-item-required::before) {
+  color: #a85f5f !important;
+}
+
+.loginContent :global(.ant-input-affix-wrapper) {
+  min-height: 48px;
+  padding-inline: 14px;
+  border: 1px solid #dfe3e8;
+  border-radius: 9px;
+  background: #ffffff;
+  box-shadow: none;
+  font-size: 14px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.loginContent :global(.ant-input-affix-wrapper:hover) {
+  border-color: #b9c2cd;
+}
+
+.loginContent :global(.ant-input-affix-wrapper-focused) {
+  border-color: #2f6fed;
+  box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.1);
+}
+
+.loginContent :global(.ant-input) {
+  color: #2f3a4a;
+  font-size: 14px;
+}
+
+.loginContent :global(.ant-input::placeholder) {
+  color: #a3acb8;
+}
+
+.loginContent :global(.ant-input-prefix),
+.loginContent :global(.ant-input-password-icon) {
+  color: #9aa5b1;
+  font-size: 14px;
+}
+
+.loginContent :global(.ant-input-prefix) {
+  margin-inline-end: 10px;
+}
+
+.passwordField:global(.ant-form-item) {
+  margin-bottom: 22px;
+}
+
+.submitButton:global(.ant-btn) {
+  height: 48px;
+  border-color: #1f2937;
+  border-radius: 9px;
+  background: #1f2937;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: none;
+  transition: background-color 160ms ease, border-color 160ms ease,
+    transform 80ms ease;
+}
+
+.submitButton:global(.ant-btn:hover),
+.submitButton:global(.ant-btn:focus-visible) {
+  border-color: #2a2a2a !important;
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+}
+
+.submitButton:global(.ant-btn:active) {
+  transform: translateY(1px);
+}
+
+.demoAccounts {
+  margin-top: 18px;
+  padding: 0 12px;
+  border: 1px solid #e8ebef;
+  border-radius: 8px;
+  background: #f7f8fa;
+  color: #697386;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.demoAccounts summary {
+  padding: 11px 0;
+  color: #5e6879;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.demoAccounts summary:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid rgba(47, 111, 237, 0.3);
+  outline-offset: 2px;
+}
+
+.demoAccounts[open] summary {
+  padding-bottom: 8px;
+}
+
+.demoList {
+  display: grid;
+  gap: 4px;
+  padding: 0 0 11px;
+}
+
+.demoRow {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 76px 10px minmax(0, 1fr);
+  column-gap: 5px;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.demoRow span:first-child {
+  color: #4c5667;
+  font-weight: 500;
+}
+
+.visualPane {
+  position: relative;
+  min-width: 0;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 18% 7%, rgba(188, 202, 216, 0.55), transparent 48%),
+    radial-gradient(circle at 86% 96%, rgba(245, 218, 204, 0.5), transparent 52%),
+    linear-gradient(160deg, #dbe3ea 0%, #eef1f4 46%, #f5e3da 100%);
+}
+
+.visualPane::after {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(77, 89, 101, 0.22) 0.55px, transparent 0.7px);
+  background-size: 3px 3px;
+  content: '';
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+@keyframes formFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
   }
 
-  .hero {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1023px) {
+  .shell {
+    grid-template-columns: minmax(0, 55%) minmax(0, 45%);
+  }
+
+  .loginContent {
+    width: min(420px, 100%);
+  }
+}
+
+@media (max-width: 767px) {
+  .shell {
+    display: block;
+    min-height: 100vh;
+    overflow: auto;
+  }
+
+  .loginPane {
+    min-height: 100vh;
+    align-items: center;
+    padding: 24px;
+  }
+
+  .loginContent {
+    width: 100%;
+    max-width: 440px;
+  }
+
+  .brand {
+    margin-bottom: 40px;
+  }
+
+  .formHeader h1 {
+    font-size: 28px;
+  }
+
+  .visualPane {
     display: none;
   }
 }
 
-@media (max-width: 600px) {
-  .shell {
-    padding: 16px;
+@media (max-width: 420px) {
+  .loginPane {
+    align-items: flex-start;
+    padding: 32px 24px;
   }
 
-  .loginCard {
-    min-height: auto;
-    padding: 8px;
+  .brand {
+    margin-bottom: 36px;
   }
 
-  .loginCard :global(.ant-card-body) {
-    padding: 24px 20px;
+  .demoRow {
+    grid-template-columns: 72px 8px minmax(0, 1fr);
+    column-gap: 4px;
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loginContent {
+    animation: none;
   }
 }
