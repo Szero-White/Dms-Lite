@@ -1,3 +1,4 @@
+import { PlusOutlined } from '@ant-design/icons';
 import {
   Button,
   Card,
@@ -14,22 +15,19 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
 import { useMemo, useState } from 'react';
-import { PageHeader } from '../../components/common/PageHeader';
-import { QueryState } from '../../components/common/QueryState';
-import { useProducts } from '../../features/products';
+import { PageHeader } from '../../../../components/common/PageHeader';
+import { QueryState } from '../../../../components/common/QueryState';
+import { useProducts } from '../../../../features/products';
+import { formatDateTime } from '../../../../lib/format';
 import {
   useInventoryHistory,
   useReceiveStock,
-} from '../../hooks/useAppQueries';
-import { formatDateTime } from '../../lib/format';
-import { ReceiveStockPayload } from '../../types';
+} from '../../hooks/useInventoryQueries';
+import { ReceiveStockPayload } from '../../types/inventory.types';
 
 export function InventoryPage() {
-  const [isReceiveModalOpen, setIsReceiveModalOpen] =
-    useState(false);
-
+  const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
   const [form] = Form.useForm<ReceiveStockPayload>();
 
   const productsQuery = useProducts();
@@ -37,10 +35,7 @@ export function InventoryPage() {
   const receiveStockMutation = useReceiveStock();
 
   const lowStockItems = useMemo(
-    () =>
-      (productsQuery.data ?? []).filter(
-        (product) => product.isLowStock,
-      ),
+    () => (productsQuery.data ?? []).filter((product) => product.isLowStock),
     [productsQuery.data],
   );
 
@@ -70,11 +65,7 @@ export function InventoryPage() {
   };
 
   return (
-    <Space
-      direction="vertical"
-      size={24}
-      style={{ width: '100%' }}
-    >
+    <Space direction="vertical" size={24} style={{ width: '100%' }}>
       <PageHeader
         title="Inventory"
         subtitle="Monitor on-hand stock, low-stock warnings, and movement history."
@@ -90,60 +81,28 @@ export function InventoryPage() {
       />
 
       <QueryState
-        isLoading={
-          productsQuery.isLoading ||
-          historyQuery.isLoading
-        }
-        isError={
-          productsQuery.isError ||
-          historyQuery.isError
-        }
-        error={
-          productsQuery.error ||
-          historyQuery.error
-        }
+        isLoading={productsQuery.isLoading || historyQuery.isLoading}
+        isError={productsQuery.isError || historyQuery.isError}
+        error={productsQuery.error || historyQuery.error}
         hasData={Boolean(productsQuery.data?.length)}
       >
         <Row gutter={[16, 16]} align="stretch">
           <Col xs={24} xl={15}>
-            <Card
-              className="panel-card"
-              title="Stock by Product"
-            >
+            <Card className="panel-card" title="Stock by Product">
               <Table
                 rowKey="id"
                 dataSource={productsQuery.data ?? []}
                 pagination={false}
                 columns={[
-                  {
-                    title: 'SKU',
-                    dataIndex: 'sku',
-                  },
-                  {
-                    title: 'Product',
-                    dataIndex: 'name',
-                  },
-                  {
-                    title: 'On Hand',
-                    dataIndex: 'stock',
-                  },
-                  {
-                    title: 'Minimum',
-                    dataIndex: 'minStock',
-                  },
+                  { title: 'SKU', dataIndex: 'sku' },
+                  { title: 'Product', dataIndex: 'name' },
+                  { title: 'On Hand', dataIndex: 'stock' },
+                  { title: 'Minimum', dataIndex: 'minStock' },
                   {
                     title: 'Status',
                     render: (_, record) => (
-                      <Tag
-                        color={
-                          record.isLowStock
-                            ? 'warning'
-                            : 'success'
-                        }
-                      >
-                        {record.isLowStock
-                          ? 'LOW STOCK'
-                          : 'HEALTHY'}
+                      <Tag color={record.isLowStock ? 'warning' : 'success'}>
+                        {record.isLowStock ? 'LOW STOCK' : 'HEALTHY'}
                       </Tag>
                     ),
                   },
@@ -153,47 +112,31 @@ export function InventoryPage() {
           </Col>
 
           <Col xs={24} xl={9}>
-            <Card
-              className="panel-card"
-              title="Low Stock Watchlist"
-            >
+            <Card className="panel-card" title="Low Stock Watchlist">
               {lowStockItems.length ? (
-                <Space
-                  direction="vertical"
-                  style={{ width: '100%' }}
-                >
+                <Space direction="vertical" style={{ width: '100%' }}>
                   {lowStockItems.map((product) => (
-                    <div
-                      className="alert-row"
-                      key={product.id}
-                    >
+                    <div className="alert-row" key={product.id}>
                       <div>
-                        <Typography.Text strong>
-                          {product.name}
-                        </Typography.Text>
+                        <Typography.Text strong>{product.name}</Typography.Text>
 
                         <Typography.Paragraph
                           type="secondary"
                           style={{ marginBottom: 0 }}
                         >
-                          {product.sku} - On hand{' '}
-                          {product.stock} / Min{' '}
+                          {product.sku} - On hand {product.stock} / Min{' '}
                           {product.minStock}
                         </Typography.Paragraph>
                       </div>
 
-                      <Tag color="warning">
-                        Action needed
-                      </Tag>
+                      <Tag color="warning">Action needed</Tag>
                     </div>
                   ))}
                 </Space>
               ) : (
                 <div className="panel-empty">
                   <Empty
-                    image={
-                      Empty.PRESENTED_IMAGE_SIMPLE
-                    }
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
                     description="No low stock items"
                   />
                 </div>
@@ -202,10 +145,7 @@ export function InventoryPage() {
           </Col>
         </Row>
 
-        <Card
-          className="panel-card"
-          title="Inventory History"
-        >
+        <Card className="panel-card" title="Inventory History">
           <Table
             rowKey="id"
             dataSource={historyQuery.data ?? []}
@@ -213,37 +153,15 @@ export function InventoryPage() {
               {
                 title: 'Time',
                 dataIndex: 'createdAt',
-                render: (value) =>
-                  formatDateTime(value),
+                render: (value) => formatDateTime(value),
               },
-              {
-                title: 'Product ID',
-                dataIndex: 'productId',
-              },
-              {
-                title: 'Source',
-                dataIndex: 'sourceType',
-              },
-              {
-                title: 'Direction',
-                dataIndex: 'direction',
-              },
-              {
-                title: 'Qty',
-                dataIndex: 'quantity',
-              },
-              {
-                title: 'Before',
-                dataIndex: 'beforeQuantity',
-              },
-              {
-                title: 'After',
-                dataIndex: 'afterQuantity',
-              },
-              {
-                title: 'Note',
-                dataIndex: 'note',
-              },
+              { title: 'Product ID', dataIndex: 'productId' },
+              { title: 'Source', dataIndex: 'sourceType' },
+              { title: 'Direction', dataIndex: 'direction' },
+              { title: 'Qty', dataIndex: 'quantity' },
+              { title: 'Before', dataIndex: 'beforeQuantity' },
+              { title: 'After', dataIndex: 'afterQuantity' },
+              { title: 'Note', dataIndex: 'note' },
             ]}
           />
         </Card>
@@ -259,11 +177,7 @@ export function InventoryPage() {
         confirmLoading={receiveStockMutation.isPending}
         destroyOnClose
       >
-        <Form
-          form={form}
-          layout="vertical"
-          preserve={false}
-        >
+        <Form form={form} layout="vertical" preserve={false}>
           <Form.Item
             label="Warehouse"
             name="warehouseId"
@@ -298,12 +212,10 @@ export function InventoryPage() {
               showSearch
               placeholder="Select product"
               optionFilterProp="label"
-              options={(productsQuery.data ?? []).map(
-                (product) => ({
-                  value: product.id,
-                  label: `${product.sku} - ${product.name}`,
-                }),
-              )}
+              options={(productsQuery.data ?? []).map((product) => ({
+                value: product.id,
+                label: `${product.sku} - ${product.name}`,
+              }))}
             />
           </Form.Item>
 
@@ -317,17 +229,10 @@ export function InventoryPage() {
               },
             ]}
           >
-            <InputNumber
-              min={1}
-              precision={0}
-              style={{ width: '100%' }}
-            />
+            <InputNumber min={1} precision={0} style={{ width: '100%' }} />
           </Form.Item>
 
-          <Form.Item
-            label="Note"
-            name="note"
-          >
+          <Form.Item label="Note" name="note">
             <Input.TextArea
               rows={3}
               placeholder="Example: Initial stock receipt"

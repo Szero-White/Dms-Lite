@@ -4,9 +4,9 @@ import {
   fetchCustomerDebtStatement,
   fetchCustomersContent,
 } from '../../../features/customers';
+import { fetchInventoryHistory } from '../../../features/inventory';
 import { fetchProductRows } from '../../../features/products';
 import { queryKeys } from '../../../lib/queryKeys';
-import { fetchInventoryHistory } from '../../../services/inventoryService';
 import { buildDerivedNotifications } from '../../../services/mockData';
 import { fetchNotifications } from '../api/notificationService';
 

@@ -3,6 +3,7 @@ import { Navigate, Outlet, RouterProvider, createBrowserRouter } from 'react-rou
 import { AuditLogsPage } from '../features/audit';
 import { Providers } from './providers';
 import { CustomerDetailPage, CustomersPage } from '../features/customers';
+import { InventoryPage } from '../features/inventory';
 import { NotificationsPage } from '../features/notifications';
 import { PaymentsPage } from '../features/payments';
 import { ProductsPage } from '../features/products';
@@ -12,7 +13,6 @@ import { LoginPage } from '../pages/login/LoginPage';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';
 import { SalesOrdersPage } from '../pages/sales/SalesOrdersPage';
 import { CreateSalesOrderPage } from '../pages/sales/CreateSalesOrderPage';
-import { InventoryPage } from '../pages/inventory/InventoryPage';
 import { ReportsPage } from '../pages/reports/ReportsPage';
 
 function ProtectedRoute() {

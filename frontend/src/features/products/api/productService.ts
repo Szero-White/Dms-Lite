@@ -1,4 +1,4 @@
-import { fetchInventoryStock } from '../../../services/inventoryService';
+import { fetchInventoryStock } from '../../../features/inventory/api';
 import { apiClient, unwrapResponse } from '../../../services/apiClient';
 import { PageResponse } from '../../../types';
 import { Product, ProductFormValues, ProductRow } from '../types/product.types';

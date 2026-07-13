@@ -1,14 +1,12 @@
-import { apiClient, unwrapResponse } from './apiClient';
+import { apiClient, unwrapResponse } from '../../../services/apiClient';
 import {
   InventoryTransaction,
   ReceiveStockPayload,
   StockItem,
-} from '../types';
+} from '../types/inventory.types';
 
 export async function fetchInventoryStock() {
-  return unwrapResponse<StockItem[]>(
-    apiClient.get('/inventory/stock'),
-  );
+  return unwrapResponse<StockItem[]>(apiClient.get('/inventory/stock'));
 }
 
 export async function fetchInventoryHistory() {
