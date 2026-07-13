@@ -1,15 +1,14 @@
 import {
   AuditLog,
-  Customer,
   DashboardSnapshot,
   DashboardSummary,
   DebtLeader,
-  DebtTransaction,
   InventoryTransaction,
   NotificationItem,
   SalesOrder,
   TopSellingProduct,
 } from '../types';
+import { Customer, DebtTransaction } from '../features/customers';
 import { ProductRow } from '../features/products';
 import { toNumber } from '../lib/format';
 

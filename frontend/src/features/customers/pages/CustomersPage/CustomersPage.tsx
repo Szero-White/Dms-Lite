@@ -1,13 +1,26 @@
 import { EyeOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Card, Input, Modal, Form, Space, Table, Tag, Typography } from 'antd';
+import {
+  Button,
+  Card,
+  Form,
+  Input,
+  Modal,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from 'antd';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageHeader } from '../../components/common/PageHeader';
-import { QueryState } from '../../components/common/QueryState';
-import { CustomerDebtTag } from '../../components/common/StatusTag';
-import { useCreateCustomer, useCustomers } from '../../hooks/useAppQueries';
-import { formatCurrency, toNumber } from '../../lib/format';
-import { CustomerFormValues } from '../../types';
+import { PageHeader } from '../../../../components/common/PageHeader';
+import { QueryState } from '../../../../components/common/QueryState';
+import { CustomerDebtTag } from '../../../../components/common/StatusTag';
+import { formatCurrency, toNumber } from '../../../../lib/format';
+import {
+  useCreateCustomer,
+  useCustomers,
+} from '../../hooks/useCustomerQueries';
+import { CustomerFormValues } from '../../types/customer.types';
 
 export function CustomersPage() {
   const customersQuery = useCustomers();
@@ -20,7 +33,9 @@ export function CustomersPage() {
   const filteredCustomers = useMemo(
     () =>
       (customersQuery.data ?? []).filter((customer) =>
-        [customer.name, customer.phone, customer.address].some((value) => value?.toLowerCase().includes(keyword.toLowerCase())),
+        [customer.name, customer.phone, customer.address].some((value) =>
+          value?.toLowerCase().includes(keyword.toLowerCase()),
+        ),
       ),
     [customersQuery.data, keyword],
   );
@@ -31,7 +46,11 @@ export function CustomersPage() {
         title="Customers"
         subtitle="Track contact data, credit policy, and outstanding debt."
         extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpen(true)}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setOpen(true)}
+          >
             New Customer
           </Button>
         }
@@ -46,7 +65,12 @@ export function CustomersPage() {
           onChange={(event) => setKeyword(event.target.value)}
         />
 
-        <QueryState isLoading={customersQuery.isLoading} isError={customersQuery.isError} error={customersQuery.error} hasData={filteredCustomers.length > 0}>
+        <QueryState
+          isLoading={customersQuery.isLoading}
+          isError={customersQuery.isError}
+          error={customersQuery.error}
+          hasData={filteredCustomers.length > 0}
+        >
           <Table
             rowKey="id"
             dataSource={filteredCustomers}
@@ -56,19 +80,29 @@ export function CustomersPage() {
                 render: (_, record) => (
                   <Space direction="vertical" size={0}>
                     <Typography.Text strong>{record.name}</Typography.Text>
-                    <Tag color={record.active ? 'success' : 'default'}>{record.active ? 'ACTIVE' : 'INACTIVE'}</Tag>
+                    <Tag color={record.active ? 'success' : 'default'}>
+                      {record.active ? 'ACTIVE' : 'INACTIVE'}
+                    </Tag>
                   </Space>
                 ),
               },
               { title: 'Phone', dataIndex: 'phone' },
               { title: 'Address', dataIndex: 'address' },
-              { title: 'Credit Limit', dataIndex: 'creditLimit', render: (value) => formatCurrency(value) },
+              {
+                title: 'Credit Limit',
+                dataIndex: 'creditLimit',
+                render: (value) => formatCurrency(value),
+              },
               {
                 title: 'Debt Balance',
                 dataIndex: 'debtBalance',
                 render: (value) => (
                   <Space direction="vertical" size={0}>
-                    <Typography.Text style={{ color: toNumber(value) > 0 ? '#cf1322' : '#389e0d' }}>
+                    <Typography.Text
+                      style={{
+                        color: toNumber(value) > 0 ? '#cf1322' : '#389e0d',
+                      }}
+                    >
                       {formatCurrency(value)}
                     </Typography.Text>
                     <CustomerDebtTag amount={toNumber(value)} />
@@ -78,7 +112,10 @@ export function CustomersPage() {
               {
                 title: 'Action',
                 render: (_, record) => (
-                  <Button icon={<EyeOutlined />} onClick={() => navigate(`/customers/${record.id}`)}>
+                  <Button
+                    icon={<EyeOutlined />}
+                    onClick={() => navigate(`/customers/${record.id}`)}
+                  >
                     View Detail
                   </Button>
                 ),
@@ -105,7 +142,11 @@ export function CustomersPage() {
             setOpen(false);
           }}
         >
-          <Form.Item name="name" label="Customer Name" rules={[{ required: true }]}>
+          <Form.Item
+            name="name"
+            label="Customer Name"
+            rules={[{ required: true }]}
+          >
             <Input />
           </Form.Item>
           <Form.Item name="phone" label="Phone">

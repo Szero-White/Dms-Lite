@@ -1,11 +1,36 @@
 import { DollarOutlined, LeftOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Descriptions, Modal, Form, Input, InputNumber, Row, Space, Table, Typography } from 'antd';
+import {
+  Button,
+  Card,
+  Col,
+  Descriptions,
+  Form,
+  Input,
+  InputNumber,
+  Modal,
+  Row,
+  Space,
+  Table,
+  Typography,
+} from 'antd';
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { PageHeader } from '../../components/common/PageHeader';
-import { QueryState } from '../../components/common/QueryState';
-import { useCustomerDebtStatement, useCustomers, useRecordCustomerPayment, useSalesOrders } from '../../hooks/useAppQueries';
-import { formatCurrency, formatDate, formatDateTime, toNumber } from '../../lib/format';
+import { PageHeader } from '../../../../components/common/PageHeader';
+import { QueryState } from '../../../../components/common/QueryState';
+import {
+  formatCurrency,
+  formatDate,
+  formatDateTime,
+  toNumber,
+} from '../../../../lib/format';
+import {
+  useCustomers,
+  useCustomerDebtStatement,
+} from '../../hooks/useCustomerQueries';
+import {
+  useRecordCustomerPayment,
+  useSalesOrders,
+} from '../../../../hooks/useAppQueries';
 
 export function CustomerDetailPage() {
   const { customerId } = useParams();
@@ -22,7 +47,10 @@ export function CustomerDetailPage() {
     [customerId, customersQuery.data],
   );
   const orderHistory = useMemo(
-    () => (salesOrdersQuery.data ?? []).filter((order) => String(order.customerId) === customerId),
+    () =>
+      (salesOrdersQuery.data ?? []).filter(
+        (order) => String(order.customerId) === customerId,
+      ),
     [customerId, salesOrdersQuery.data],
   );
 
@@ -37,7 +65,12 @@ export function CustomerDetailPage() {
             <Button icon={<LeftOutlined />} onClick={() => navigate('/customers')}>
               Back
             </Button>
-            <Button type="primary" icon={<DollarOutlined />} onClick={() => setPaymentOpen(true)} disabled={!customer}>
+            <Button
+              type="primary"
+              icon={<DollarOutlined />}
+              onClick={() => setPaymentOpen(true)}
+              disabled={!customer}
+            >
               Record Payment
             </Button>
           </Space>
@@ -45,9 +78,21 @@ export function CustomerDetailPage() {
       />
 
       <QueryState
-        isLoading={customersQuery.isLoading || debtStatementQuery.isLoading || salesOrdersQuery.isLoading}
-        isError={customersQuery.isError || debtStatementQuery.isError || salesOrdersQuery.isError}
-        error={customersQuery.error || debtStatementQuery.error || salesOrdersQuery.error}
+        isLoading={
+          customersQuery.isLoading ||
+          debtStatementQuery.isLoading ||
+          salesOrdersQuery.isLoading
+        }
+        isError={
+          customersQuery.isError ||
+          debtStatementQuery.isError ||
+          salesOrdersQuery.isError
+        }
+        error={
+          customersQuery.error ||
+          debtStatementQuery.error ||
+          salesOrdersQuery.error
+        }
         hasData={Boolean(customer)}
       >
         {customer ? (
@@ -56,12 +101,27 @@ export function CustomerDetailPage() {
               <Col xs={24} xl={10}>
                 <Card className="panel-card" title="Customer Information">
                   <Descriptions column={1} size="small">
-                    <Descriptions.Item label="Phone">{customer.phone || '--'}</Descriptions.Item>
-                    <Descriptions.Item label="Address">{customer.address || '--'}</Descriptions.Item>
-                    <Descriptions.Item label="Credit Limit">{formatCurrency(customer.creditLimit)}</Descriptions.Item>
-                    <Descriptions.Item label="Payment Term">{customer.paymentTermDays} days</Descriptions.Item>
+                    <Descriptions.Item label="Phone">
+                      {customer.phone || '--'}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Address">
+                      {customer.address || '--'}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Credit Limit">
+                      {formatCurrency(customer.creditLimit)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Payment Term">
+                      {customer.paymentTermDays} days
+                    </Descriptions.Item>
                     <Descriptions.Item label="Current Debt">
-                      <Typography.Text style={{ color: toNumber(customer.debtBalance) > 0 ? '#cf1322' : '#389e0d' }}>
+                      <Typography.Text
+                        style={{
+                          color:
+                            toNumber(customer.debtBalance) > 0
+                              ? '#cf1322'
+                              : '#389e0d',
+                        }}
+                      >
                         {formatCurrency(customer.debtBalance)}
                       </Typography.Text>
                     </Descriptions.Item>
@@ -76,12 +136,28 @@ export function CustomerDetailPage() {
                     pagination={false}
                     dataSource={debtStatementQuery.data ?? []}
                     columns={[
-                      { title: 'Date', dataIndex: 'createdAt', render: (value) => formatDateTime(value) },
+                      {
+                        title: 'Date',
+                        dataIndex: 'createdAt',
+                        render: (value) => formatDateTime(value),
+                      },
                       { title: 'Type', dataIndex: 'sourceType' },
                       { title: 'Direction', dataIndex: 'direction' },
-                      { title: 'Amount', dataIndex: 'amount', render: (value) => formatCurrency(value) },
-                      { title: 'Remaining', dataIndex: 'remainingAmount', render: (value) => formatCurrency(value) },
-                      { title: 'Due Date', dataIndex: 'dueDate', render: (value) => formatDate(value) },
+                      {
+                        title: 'Amount',
+                        dataIndex: 'amount',
+                        render: (value) => formatCurrency(value),
+                      },
+                      {
+                        title: 'Remaining',
+                        dataIndex: 'remainingAmount',
+                        render: (value) => formatCurrency(value),
+                      },
+                      {
+                        title: 'Due Date',
+                        dataIndex: 'dueDate',
+                        render: (value) => formatDate(value),
+                      },
                       { title: 'Note', dataIndex: 'note' },
                     ]}
                   />
@@ -95,11 +171,27 @@ export function CustomerDetailPage() {
                 dataSource={orderHistory}
                 columns={[
                   { title: 'Code', dataIndex: 'code' },
-                  { title: 'Created At', dataIndex: 'createdAt', render: (value) => formatDateTime(value) },
+                  {
+                    title: 'Created At',
+                    dataIndex: 'createdAt',
+                    render: (value) => formatDateTime(value),
+                  },
                   { title: 'Status', dataIndex: 'status' },
-                  { title: 'Total', dataIndex: 'totalAmount', render: (value) => formatCurrency(value) },
-                  { title: 'Paid', dataIndex: 'paidAmount', render: (value) => formatCurrency(value) },
-                  { title: 'Debt', dataIndex: 'debtAmount', render: (value) => formatCurrency(value) },
+                  {
+                    title: 'Total',
+                    dataIndex: 'totalAmount',
+                    render: (value) => formatCurrency(value),
+                  },
+                  {
+                    title: 'Paid',
+                    dataIndex: 'paidAmount',
+                    render: (value) => formatCurrency(value),
+                  },
+                  {
+                    title: 'Debt',
+                    dataIndex: 'debtAmount',
+                    render: (value) => formatCurrency(value),
+                  },
                 ]}
               />
             </Card>
@@ -135,7 +227,11 @@ export function CustomerDetailPage() {
             <Input value={customer?.name} disabled />
           </Form.Item>
           <Form.Item name="amount" label="Amount" rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%' }} min={1} max={toNumber(customer?.debtBalance)} />
+            <InputNumber
+              style={{ width: '100%' }}
+              min={1}
+              max={toNumber(customer?.debtBalance)}
+            />
           </Form.Item>
           <Form.Item name="note" label="Note">
             <Input.TextArea rows={3} />

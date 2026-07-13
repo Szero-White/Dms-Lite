@@ -1,10 +1,13 @@
 import { useMemo } from 'react';
 import { App } from 'antd';
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  fetchCustomerDebtStatement,
+  fetchCustomersContent,
+} from '../features/customers';
 import { fetchProductRows } from '../features/products';
 import { queryKeys } from '../lib/queryKeys';
 import { getErrorMessage, toNumber } from '../lib/format';
-import { createCustomer, fetchCustomerDebtStatement, fetchCustomers } from '../services/customerService';
 import {
   fetchInventoryHistory,
   fetchInventoryStock,
@@ -18,19 +21,8 @@ import { fetchNotifications } from '../services/notificationService';
 import { buildDashboardSnapshot, buildDerivedNotifications, enrichAuditLogs } from '../services/mockData';
 import {
   CreateSalesOrderPayload,
-  CustomerFormValues,
   ReceiveStockPayload,
 } from '../types';
-
-export function useCustomers() {
-  return useQuery({
-    queryKey: queryKeys.customers,
-    queryFn: async () => {
-      const response = await fetchCustomers();
-      return response.content;
-    },
-  });
-}
 
 export function useSalesOrders() {
   return useQuery({
@@ -56,19 +48,11 @@ export function useInventoryHistory() {
   });
 }
 
-export function useCustomerDebtStatement(customerId?: number) {
-  return useQuery({
-    queryKey: queryKeys.customerDebt(customerId ?? 'missing'),
-    queryFn: () => fetchCustomerDebtStatement(customerId!),
-    enabled: Boolean(customerId),
-  });
-}
-
 export function useDashboardData() {
   const results = useQueries({
     queries: [
       { queryKey: queryKeys.dashboard, queryFn: fetchDashboardSummary },
-      { queryKey: queryKeys.customers, queryFn: async () => (await fetchCustomers()).content },
+      { queryKey: queryKeys.customers, queryFn: () => fetchCustomersContent() },
       { queryKey: queryKeys.products, queryFn: fetchProductRows },
       { queryKey: queryKeys.salesOrders, queryFn: async () => (await fetchSalesOrders()).content },
     ],
@@ -109,7 +93,10 @@ export function useAuditLogs() {
 }
 
 export function useNotifications() {
-  const customersQuery = useCustomers();
+  const customersQuery = useQuery({
+    queryKey: queryKeys.customers,
+    queryFn: () => fetchCustomersContent(),
+  });
   const productsQuery = useQuery({
     queryKey: queryKeys.products,
     queryFn: fetchProductRows,
@@ -174,21 +161,10 @@ function useMutationFeedback() {
   return {
     queryClient,
     message,
-    onError(error: any) {
+    onError(error: unknown) {
       message.error(getErrorMessage(error));
     },
   };
-}
-export function useCreateCustomer() {
-  const { queryClient, message, onError } = useMutationFeedback();
-  return useMutation({
-    mutationFn: (payload: CustomerFormValues) => createCustomer(payload),
-    onSuccess: async () => {
-      message.success('Customer created.');
-      await queryClient.invalidateQueries({ queryKey: queryKeys.customers });
-    },
-    onError,
-  });
 }
 
 export function useCreateSalesOrder() {
