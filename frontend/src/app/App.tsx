@@ -1,7 +1,10 @@
 import { App as AntApp, ConfigProvider, theme } from 'antd';
 import { Navigate, Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { AuditLogsPage } from '../features/audit';
 import { Providers } from './providers';
 import { CustomerDetailPage, CustomersPage } from '../features/customers';
+import { NotificationsPage } from '../features/notifications';
+import { PaymentsPage } from '../features/payments';
 import { ProductsPage } from '../features/products';
 import { AppLayout } from '../components/layout';
 import { useAuth } from '../hooks/useAuth';
@@ -10,10 +13,7 @@ import { DashboardPage } from '../pages/dashboard/DashboardPage';
 import { SalesOrdersPage } from '../pages/sales/SalesOrdersPage';
 import { CreateSalesOrderPage } from '../pages/sales/CreateSalesOrderPage';
 import { InventoryPage } from '../pages/inventory/InventoryPage';
-import { PaymentsPage } from '../pages/payments/PaymentsPage';
 import { ReportsPage } from '../pages/reports/ReportsPage';
-import { AuditLogsPage } from '../pages/audit/AuditLogsPage';
-import { NotificationsPage } from '../pages/notifications/NotificationsPage';
 
 function ProtectedRoute() {
   const { isAuthenticated } = useAuth();

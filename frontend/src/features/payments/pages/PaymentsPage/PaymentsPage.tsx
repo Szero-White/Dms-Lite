@@ -1,14 +1,27 @@
-import { Button, Card, Col, Form, Input, InputNumber, Row, Select, Space, Table, Typography } from 'antd';
-import { PageHeader } from '../../components/common/PageHeader';
-import { QueryState } from '../../components/common/QueryState';
-import { useCustomers } from '../../features/customers';
-import { useRecordCustomerPayment } from '../../hooks/useAppQueries';
-import { formatCurrency } from '../../lib/format';
+import {
+  Button,
+  Card,
+  Col,
+  Form,
+  Input,
+  InputNumber,
+  Row,
+  Select,
+  Space,
+  Table,
+  Typography,
+} from 'antd';
+import { PageHeader } from '../../../../components/common/PageHeader';
+import { QueryState } from '../../../../components/common/QueryState';
+import { useCustomers } from '../../../../features/customers';
+import { formatCurrency } from '../../../../lib/format';
+import { useRecordCustomerPayment } from '../../hooks/usePaymentQueries';
+import { RecordPaymentPayload } from '../../types/payment.types';
 
 export function PaymentsPage() {
   const customersQuery = useCustomers();
   const paymentMutation = useRecordCustomerPayment();
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<RecordPaymentPayload>();
 
   return (
     <Space direction="vertical" size={24} style={{ width: '100%' }}>

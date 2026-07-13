@@ -1,9 +1,9 @@
 import { Card, List, Space, Typography } from 'antd';
-import { NotificationTypeTag } from '../../components/common/StatusTag';
-import { PageHeader } from '../../components/common/PageHeader';
-import { QueryState } from '../../components/common/QueryState';
-import { useNotifications } from '../../hooks/useAppQueries';
-import { formatDateTime } from '../../lib/format';
+import { NotificationTypeTag } from '../../../../components/common/StatusTag';
+import { PageHeader } from '../../../../components/common/PageHeader';
+import { QueryState } from '../../../../components/common/QueryState';
+import { formatDateTime } from '../../../../lib/format';
+import { useNotifications } from '../../hooks/useNotificationQueries';
 
 export function NotificationsPage() {
   const notificationsQuery = useNotifications();
