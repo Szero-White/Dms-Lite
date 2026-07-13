@@ -32,6 +32,7 @@ import {
   useConfirmSalesOrder,
   useCreateSalesOrder,
 } from '../../hooks/useSalesQueries';
+import styles from './CreateSalesOrderPage.module.css';
 
 interface OrderFormValues {
   customerId: number;
@@ -77,7 +78,7 @@ export function CreateSalesOrderPage() {
   const debtAmount = Math.max(orderTotal - Number(paidAmount || 0), 0);
 
   return (
-    <Space direction="vertical" size={24} style={{ width: '100%' }}>
+    <div className={styles.page}>
       <PageHeader
         title="Create Sales Order"
         subtitle="Build a multi-line order, preview settlement, and confirm right after creation."
@@ -90,9 +91,9 @@ export function CreateSalesOrderPage() {
         error={customersQuery.error || productsQuery.error}
         hasData={Boolean(customersQuery.data?.length && productsQuery.data?.length)}
       >
-        <Row gutter={[16, 16]}>
+        <Row gutter={[16, 16]} className={styles.orderGrid}>
           <Col xs={24} xl={16}>
-            <Card className="panel-card">
+            <Card className={`panel-card ${styles.formCard}`} title="Order Details">
               <Form
                 form={form}
                 layout="vertical"
@@ -131,9 +132,13 @@ export function CreateSalesOrderPage() {
 
                 <Form.List name="items">
                   {(fields, { add, remove }) => (
-                    <Space direction="vertical" style={{ width: '100%' }} size={16}>
+                    <Space direction="vertical" className={styles.itemsStack} size={12}>
                       {fields.map((field) => (
-                        <Card key={field.key} size="small" className="line-item-card">
+                        <Card
+                          key={field.key}
+                          size="small"
+                          className={`line-item-card ${styles.lineItem}`}
+                        >
                           <Row gutter={12}>
                             <Col xs={24} md={10}>
                               <Form.Item
@@ -158,7 +163,7 @@ export function CreateSalesOrderPage() {
                                 label="Qty"
                                 rules={[{ required: true }]}
                               >
-                                <InputNumber style={{ width: '100%' }} min={1} />
+                                <InputNumber className={styles.fullWidth} min={1} />
                               </Form.Item>
                             </Col>
                             <Col xs={12} md={6}>
@@ -167,10 +172,10 @@ export function CreateSalesOrderPage() {
                                 name={[field.name, 'discountAmount']}
                                 label="Discount"
                               >
-                                <InputNumber style={{ width: '100%' }} min={0} />
+                                <InputNumber className={styles.fullWidth} min={0} />
                               </Form.Item>
                             </Col>
-                            <Col xs={24} md={4} style={{ display: 'flex', alignItems: 'end' }}>
+                            <Col xs={24} md={4} className={styles.removeColumn}>
                               <Button
                                 danger
                                 icon={<DeleteOutlined />}
@@ -190,8 +195,8 @@ export function CreateSalesOrderPage() {
                   )}
                 </Form.List>
 
-                <Form.Item name="paidAmount" label="Paid Amount" style={{ marginTop: 16 }}>
-                  <InputNumber style={{ width: '100%' }} min={0} />
+                <Form.Item name="paidAmount" label="Paid Amount" className={styles.paidField}>
+                  <InputNumber className={styles.fullWidth} min={0} />
                 </Form.Item>
 
                 <Space>
@@ -205,8 +210,9 @@ export function CreateSalesOrderPage() {
           </Col>
 
           <Col xs={24} xl={8}>
-            <Card className="panel-card" title="Order Summary">
-              <Space direction="vertical" size={12} style={{ width: '100%' }}>
+            <div className={styles.summaryColumn}>
+            <Card className={`panel-card ${styles.summaryCard}`} title="Order Summary">
+              <Space direction="vertical" size={10} className={styles.summaryList}>
                 <div className="flex-between">
                   <Typography.Text>Subtotal</Typography.Text>
                   <Typography.Text strong>{formatCurrency(subtotal)}</Typography.Text>
@@ -221,7 +227,10 @@ export function CreateSalesOrderPage() {
                 </div>
                 <div className="flex-between">
                   <Typography.Text>Debt Amount</Typography.Text>
-                  <Typography.Text strong style={{ color: debtAmount > 0 ? '#cf1322' : undefined }}>
+                  <Typography.Text
+                    strong
+                    className={debtAmount > 0 ? styles.debtAmount : undefined}
+                  >
                     {formatCurrency(debtAmount)}
                   </Typography.Text>
                 </div>
@@ -230,6 +239,7 @@ export function CreateSalesOrderPage() {
 
             {createdOrderId ? (
               <Alert
+                className={styles.successAlert}
                 type="success"
                 showIcon
                 message={`Order #${createdOrderId} created successfully`}
@@ -248,7 +258,7 @@ export function CreateSalesOrderPage() {
               />
             ) : null}
 
-            <Card className="panel-card" title="Preview Lines" style={{ marginTop: 16 }}>
+            <Card className="panel-card" title="Preview Lines">
               <Table
                 size="small"
                 pagination={false}
@@ -278,9 +288,10 @@ export function CreateSalesOrderPage() {
                 ]}
               />
             </Card>
+            </div>
           </Col>
         </Row>
       </QueryState>
-    </Space>
+    </div>
   );
 }

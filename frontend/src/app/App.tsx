@@ -8,16 +8,16 @@ function AppShell() {
       theme={{
         algorithm: theme.defaultAlgorithm,
         token: {
-          colorPrimary: '#2563eb',
-          colorPrimaryHover: '#1d4ed8',
-          colorBgLayout: '#f6f8fc',
+          colorPrimary: '#4f6bed',
+          colorPrimaryHover: '#4058c7',
+          colorBgLayout: '#f4f6fa',
           colorBgContainer: '#ffffff',
-          colorBorder: '#e6eaf0',
-          colorText: '#24324a',
+          colorBorder: '#e7eaf0',
+          colorText: '#20293a',
           colorTextSecondary: '#667085',
           colorTextTertiary: '#98a2b3',
-          borderRadius: 10,
-          borderRadiusLG: 14,
+          borderRadius: 8,
+          borderRadiusLG: 12,
           borderRadiusSM: 8,
           fontFamily: '"Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
           fontSize: 14,
@@ -27,23 +27,23 @@ function AppShell() {
           controlHeight: 40,
           controlHeightSM: 28,
           controlHeightLG: 44,
-          boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
+          boxShadow: '0 4px 16px rgba(15, 23, 42, 0.035)',
         },
         components: {
           Button: {
-            borderRadius: 10,
+            borderRadius: 8,
             controlHeight: 40,
             fontWeight: 500,
           },
           Card: {
-            borderRadiusLG: 16,
-            headerFontSize: 16,
+            borderRadiusLG: 12,
+            headerFontSize: 15,
           },
           Drawer: {
-            borderRadiusLG: 16,
+            borderRadiusLG: 12,
           },
           Form: {
-            labelFontSize: 14,
+            labelFontSize: 13,
           },
           Input: {
             controlHeight: 40,
@@ -52,19 +52,19 @@ function AppShell() {
             controlHeight: 40,
           },
           Modal: {
-            borderRadiusLG: 16,
+            borderRadiusLG: 12,
           },
           Pagination: {
             itemSize: 32,
-            borderRadius: 10,
+            borderRadius: 8,
           },
           Select: {
             controlHeight: 40,
           },
           Table: {
-            headerBg: '#f8fafc',
+            headerBg: '#f8f9fc',
             headerColor: '#667085',
-            rowHoverBg: '#f3f7ff',
+            rowHoverBg: '#f7f8fc',
           },
           Tag: {
             borderRadiusSM: 999,

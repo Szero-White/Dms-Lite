@@ -1,0 +1,74 @@
+.page {
+  width: 100%;
+}
+
+.orderGrid {
+  align-items: flex-start;
+}
+
+.formCard :global(.ant-card-body) {
+  padding-top: 16px;
+}
+
+.itemsStack,
+.summaryList {
+  width: 100%;
+}
+
+.lineItem :global(.ant-card-body) {
+  padding: 14px;
+}
+
+.lineItem :global(.ant-form-item) {
+  margin-bottom: 0;
+}
+
+.removeColumn {
+  display: flex;
+  align-items: flex-end;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.paidField {
+  margin-top: 16px;
+}
+
+.summaryColumn {
+  position: sticky;
+  top: 80px;
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.summaryCard :global(.flex-between) {
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.summaryCard :global(.flex-between:last-child) {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.debtAmount {
+  color: var(--color-danger);
+}
+
+.successAlert :global(.ant-alert-description) {
+  margin-top: 10px;
+}
+
+@media (max-width: 1199px) {
+  .summaryColumn {
+    position: static;
+  }
+}
+
+@media (max-width: 767px) {
+  .removeColumn {
+    align-items: center;
+  }
+}

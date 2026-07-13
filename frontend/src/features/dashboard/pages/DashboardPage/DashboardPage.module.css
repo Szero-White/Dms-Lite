@@ -1,124 +1,94 @@
+.dashboardPage {
+  width: 100%;
+}
+
 .dashboardPage :global(.metrics-grid) {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-2xl);
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
 }
 
 .dashboardPage :global(.metrics-grid) > :global(.ant-card) {
   height: 100%;
 }
 
-.dashboardPage > :global(.ant-space-item:first-child h2.ant-typography) {
-  color: #24324a !important;
-  font-size: 24px !important;
-  font-weight: var(--font-weight-heading) !important;
-  line-height: 32px !important;
-}
-
-.dashboardPage > :global(.ant-space-item:first-child .ant-typography-secondary) {
-  color: #667085 !important;
-}
-
 .chartGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(320px, 0.8fr);
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.85fr);
   align-items: stretch;
-  row-gap: var(--spacing-xl);
-  column-gap: var(--spacing-xl);
-  margin-bottom: var(--spacing-2xl);
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
 }
 
-.chartGrid :global(.panel-card) {
-  border-color: rgba(204, 216, 234, 0.94);
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.055);
-}
-
-.chartGrid :global(.ant-card-head-title),
-.insightGrid :global(.ant-card-head-title),
-.insightGrid + :global(.panel-card) :global(.ant-card-head-title) {
-  color: #1f2937;
-  font-size: 15px;
-  font-weight: var(--font-weight-heading);
-  line-height: var(--line-height-card-title);
+.chartGrid :global(.panel-card),
+.insightGrid :global(.panel-card),
+.insightGrid + :global(.panel-card) {
+  border-color: var(--color-border);
+  background: var(--color-card-background);
+  box-shadow: var(--shadow-card);
 }
 
 .insightGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  row-gap: var(--spacing-xl);
-  column-gap: var(--spacing-xl);
-  margin-bottom: var(--spacing-2xl);
-}
-
-.insightGrid :global(.panel-card),
-.insightGrid + :global(.panel-card) {
-  border-color: rgba(204, 216, 234, 0.94);
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.055);
-}
-
-.insightGrid + :global(.panel-card) {
-  margin-top: var(--spacing-xs);
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
 }
 
 .panel {
-  min-height: 216px;
+  min-height: 204px;
 }
 
 .panel :global(.panel-empty) {
-  min-height: 136px;
+  min-height: 126px;
 }
 
 .panel :global(.ant-list-item) {
-  padding: 12px 0;
+  padding: 10px 0;
 }
 
 .listRow {
   width: 100%;
-  min-height: 52px;
+  min-height: 44px;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 10px;
 }
 
 .rank {
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
-  border-radius: var(--radius-medium);
-  background: linear-gradient(
-    135deg,
-    rgba(31, 111, 235, 0.16),
-    rgba(91, 141, 239, 0.08)
-  );
+  flex: 0 0 auto;
+  border-radius: 8px;
+  background: var(--color-primary-light);
   color: var(--color-primary);
-  font-size: var(--font-size-meta);
+  font-size: 11px;
   font-weight: var(--font-weight-heading);
-  line-height: var(--line-height-meta);
+  line-height: 16px;
 }
 
 .listContent {
-  flex: 1;
+  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 3px;
+  gap: 1px;
 }
 
 .listContent strong {
-  color: #344054;
+  color: var(--color-text-primary);
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-label);
   line-height: var(--line-height-body);
 }
 
 .listContent :global(.ant-typography-secondary) {
-  color: #98a2b3 !important;
-  font-size: var(--font-size-secondary);
-  line-height: var(--line-height-secondary);
+  color: var(--color-text-muted) !important;
+  font-size: var(--font-size-meta);
+  line-height: var(--line-height-meta);
 }
 
 .amount {
@@ -131,80 +101,68 @@
 .alertGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  row-gap: var(--spacing-xl);
-  column-gap: var(--spacing-xl);
+  gap: var(--spacing-md);
 }
 
 .alertItem {
-  min-height: 88px;
+  min-height: 74px;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md);
+  gap: 10px;
+  padding: 12px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-large);
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.98),
-    rgba(245, 249, 255, 0.92)
-  );
-  transition:
-    transform var(--transition-default),
-    box-shadow var(--transition-default);
-}
-
-.alertItem:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-card-hover);
+  border-radius: var(--radius-small);
+  background: #fafbfc;
 }
 
 .alertIcon {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
-  border-radius: var(--radius-medium);
-  background: rgba(31, 111, 235, 0.1);
+  flex: 0 0 auto;
+  border-radius: 8px;
+  background: var(--color-primary-light);
   color: var(--color-primary);
-  font-size: 18px;
+  font-size: 15px;
 }
 
 .alertIconWarning {
-  background: rgba(250, 140, 22, 0.12);
+  background: #fff8e8;
   color: var(--color-warning);
 }
 
 .alertIconDanger {
-  background: rgba(255, 77, 79, 0.1);
+  background: #fff1f1;
   color: var(--color-danger);
 }
 
 .alertContent {
-  flex: 1;
+  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 5px;
+  gap: 1px;
 }
 
 .alertContent :global(.ant-typography) {
-  color: #344054;
   margin: 0;
+  color: var(--color-text-primary);
 }
 
 .alertContent :global(.ant-typography-secondary) {
-  color: #98a2b3 !important;
-  font-size: var(--font-size-secondary);
-  line-height: var(--line-height-secondary);
+  color: var(--color-text-muted) !important;
+  font-size: var(--font-size-meta);
+  line-height: var(--line-height-meta);
 }
 
 .alertContent :global(h4.ant-typography) {
-  margin-top: 3px !important;
-  color: #1f2937;
-  font-size: var(--font-size-card-title);
-  font-weight: 650;
-  line-height: var(--line-height-card-title);
-  letter-spacing: -0.01em;
+  margin: 0 !important;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-body);
+  letter-spacing: 0;
 }
 
 @media (max-width: 1100px) {
@@ -219,7 +177,7 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .dashboardPage :global(.metrics-grid) {
     grid-template-columns: 1fr;
   }

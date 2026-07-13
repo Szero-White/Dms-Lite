@@ -33,7 +33,7 @@ export function RevenueByOrderChart({
           data={chartData}
           xField="orderCode"
           yField="revenue"
-          height={320}
+          height={280}
           padding="auto"
           axis={{
             x: {

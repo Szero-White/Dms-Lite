@@ -1,64 +1,25 @@
-/**
- * SummaryCard component styles.
- *
- * Scope:
- * - Chỉ dùng cho SummaryCard.
- * - Không chứa bố cục riêng của DashboardPage.
- *
- * Dependencies:
- * - Ant Design Card và Typography.
- * - Design tokens từ styles/foundations/tokens.css.
- */
-
 .card {
-  position: relative;
-  min-height: 144px;
+  min-height: 128px;
   overflow: hidden;
-
   border: 1px solid var(--color-border);
   border-radius: var(--radius-large);
   background: var(--color-card-background);
-
   box-shadow: var(--shadow-card);
-
-  transition:
-    transform var(--transition-default),
-    box-shadow var(--transition-default),
-    border-color var(--transition-default);
+  transition: border-color var(--transition-default), box-shadow var(--transition-default);
 }
 
 .card:hover {
-  transform: translateY(-1px);
-  border-color: rgba(37, 99, 235, 0.18);
-  box-shadow: var(--shadow-card-hover);
-}
-
-.card::after {
-  position: absolute;
-  top: -58px;
-  right: -48px;
-
-  width: 104px;
-  height: 104px;
-
-  border-radius: 50%;
-  opacity: 0.08;
-
-  content: '';
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-card);
 }
 
 .card :global(.ant-card-body) {
-  position: relative;
-  z-index: 1;
-
-  min-height: 112px;
-
+  min-height: 126px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: var(--spacing-sm);
-
-  padding: 20px 22px;
+  gap: var(--spacing-xs);
+  padding: 18px;
 }
 
 .header {
@@ -77,219 +38,103 @@
 
 .value:global(.ant-typography) {
   margin: 4px 0 0 !important;
-
   color: var(--color-text-primary);
-
-  font-size: 30px;
+  font-size: 24px;
   font-weight: var(--font-weight-heading);
-  line-height: 36px;
+  line-height: 32px;
 }
 
 .icon {
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
-
-  border-radius: var(--radius-medium);
-
-  font-size: 18px;
-}
-
-.blue::after {
-  background: var(--color-primary);
+  flex: 0 0 auto;
+  border-radius: 8px;
+  font-size: 15px;
 }
 
 .blue .icon {
-  color: var(--color-primary);
-  background: rgba(37, 99, 235, 0.08);
-}
-
-.green::after {
-  background: var(--color-success);
+  color: #4f6bed;
+  background: #eef1ff;
 }
 
 .green .icon {
-  color: var(--color-success);
-  background: rgba(22, 163, 74, 0.09);
-}
-
-.orange::after {
-  background: var(--color-warning);
+  color: #22a06b;
+  background: #edf9f3;
 }
 
 .orange .icon {
-  color: var(--color-warning);
-  background: rgba(217, 119, 6, 0.09);
-}
-
-.purple::after {
-  background: var(--color-purple);
+  color: #c98200;
+  background: #fff8e8;
 }
 
 .purple .icon {
-  color: var(--color-purple);
-  background: rgba(124, 58, 237, 0.08);
-}
-
-.red::after {
-  background: var(--color-danger);
+  color: #7b61c8;
+  background: #f3f0ff;
 }
 
 .red .icon {
-  color: var(--color-danger);
-  background: rgba(220, 38, 38, 0.08);
+  color: #d64545;
+  background: #fff1f1;
+}
+
+.cyan .icon {
+  color: #278aa5;
+  background: #edf8fb;
+}
+
+.trendPositive,
+.trendNegative {
+  font-size: var(--font-size-meta);
+  font-weight: var(--font-weight-label);
+  line-height: var(--line-height-meta);
 }
 
 .trendPositive {
   color: var(--color-success);
-  font-weight: var(--font-weight-heading);
 }
 
 .trendNegative {
   color: var(--color-danger);
-  font-weight: var(--font-weight-heading);
 }
 
 .note {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-secondary);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-meta);
   font-weight: var(--font-weight-body);
-  line-height: var(--line-height-secondary);
+  line-height: var(--line-height-meta);
 }
 
 .dashboard {
-  min-height: 124px;
-
-  border-color: var(--color-border);
-  border-radius: 16px;
-  background: var(--color-card-background);
-
-  box-shadow: var(--shadow-card);
-}
-
-.dashboard::before {
-  position: absolute;
-  top: 0;
-  left: 0;
-
-  width: 100%;
-  height: 3px;
-
-  background: currentcolor;
-  opacity: 0.28;
-
-  content: '';
-}
-
-.dashboard::after {
-  display: none;
-}
-
-.dashboard:hover {
-  transform: translateY(-1px);
-  border-color: rgba(37, 99, 235, 0.18);
-  box-shadow: var(--shadow-card-hover);
+  min-height: 116px;
 }
 
 .dashboard :global(.ant-card-body) {
-  min-height: 122px;
-  gap: 6px;
-  padding: 18px 20px;
+  min-height: 114px;
+  gap: 5px;
+  padding: 16px 18px;
 }
 
 .dashboardHeader {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
 }
 
 .dashboard .title {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 20px;
+  font-size: var(--font-size-meta);
+  line-height: var(--line-height-meta);
 }
 
 .dashboard .value:global(.ant-typography) {
-  margin: 4px 0 0 !important;
-
-  color: var(--color-text-primary);
-
-  font-size: 26px;
-  font-weight: var(--font-weight-heading);
-  line-height: 32px;
+  margin: 2px 0 0 !important;
+  font-size: 24px;
+  line-height: 30px;
   text-decoration: none;
 }
 
-.dashboard .icon {
-  width: 36px;
-  height: 36px;
-
-  border-radius: 10px;
-
-  font-size: 17px;
-}
-
-.blue.dashboard {
-  color: #3b82f6;
-}
-
-.green.dashboard {
-  color: #22c55e;
-}
-
-.orange.dashboard {
-  color: #f59e0b;
-}
-
-.purple.dashboard {
-  color: #8b5cf6;
-}
-
-.red.dashboard {
-  color: #ef4444;
-}
-
-.cyan.dashboard {
-  color: #06b6d4;
-}
-
-.cyan .icon {
-  color: #06b6d4;
-  background: rgba(6, 182, 212, 0.08);
-}
-
-.dashboard.blue .icon {
-  color: #3b82f6;
-  background: rgba(59, 130, 246, 0.08);
-}
-
-.dashboard.green .icon {
-  color: #22c55e;
-  background: rgba(34, 197, 94, 0.08);
-}
-
-.dashboard.orange .icon {
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.09);
-}
-
-.dashboard.purple .icon {
-  color: #8b5cf6;
-  background: rgba(139, 92, 246, 0.08);
-}
-
-.dashboard.red .icon {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.08);
-}
-
 .dashboard .note {
-  color: var(--color-text-muted);
-  font-size: 13px;
-  font-weight: var(--font-weight-body);
-  line-height: 18px;
+  font-size: var(--font-size-meta);
+  line-height: var(--line-height-meta);
 }

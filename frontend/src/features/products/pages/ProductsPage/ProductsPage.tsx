@@ -12,6 +12,7 @@ import {
 } from '../../hooks/useProductQueries';
 import { ProductFormDrawer } from '../../components/ProductFormDrawer';
 import { ProductFormValues, ProductRow } from '../../types/product.types';
+import styles from './ProductsPage.module.css';
 
 export function ProductsPage() {
   const productsQuery = useProducts();
@@ -55,10 +56,10 @@ export function ProductsPage() {
   }
 
   return (
-    <Space direction="vertical" size={24} style={{ width: '100%' }}>
+    <div className={styles.page}>
       <PageHeader
         title="Products"
-        subtitle="Maintain catalog, selling price, and low-stock visibility."
+        subtitle="Manage catalog, pricing and product availability."
         extra={
           <Button
             type="primary"
@@ -73,19 +74,19 @@ export function ProductsPage() {
         }
       />
 
-      <Card className="panel-card">
-        <Space wrap style={{ marginBottom: 16 }}>
+      <Card className={`panel-card ${styles.tableCard}`}>
+        <div className={styles.toolbar}>
           <Input
             allowClear
+            className={styles.search}
             prefix={<SearchOutlined />}
             placeholder="Search SKU, name, barcode"
-            style={{ width: 300 }}
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
           />
           <Select
+            className={styles.filter}
             value={statusFilter}
-            style={{ width: 180 }}
             onChange={setStatusFilter}
             options={[
               { value: 'ALL', label: 'All status' },
@@ -93,7 +94,7 @@ export function ProductsPage() {
               { value: 'LOW_STOCK', label: 'Low stock only' },
             ]}
           />
-        </Space>
+        </div>
 
         <QueryState
           isLoading={productsQuery.isLoading}
@@ -174,6 +175,6 @@ export function ProductsPage() {
         onSubmit={handleSubmit}
         submitting={createProduct.isPending || updateProduct.isPending}
       />
-    </Space>
+    </div>
   );
 }

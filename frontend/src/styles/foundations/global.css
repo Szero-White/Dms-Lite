@@ -22,7 +22,7 @@ h5,
 h6 {
   color: var(--color-text-primary);
   font-weight: var(--font-weight-heading);
-  letter-spacing: -0.015em;
+  letter-spacing: 0;
 }
 
 #root {

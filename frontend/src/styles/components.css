@@ -12,40 +12,34 @@
 
   box-shadow: var(--shadow-card);
 
-  transition:
-    transform var(--transition-default),
-    box-shadow var(--transition-default),
-    border-color var(--transition-default);
+  transition: border-color var(--transition-default), box-shadow var(--transition-default);
 }
 
 .panel-card:hover {
-  transform: translateY(-1px);
-
-  border-color: rgba(37, 99, 235, 0.18);
-
-  box-shadow: var(--shadow-card-hover);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-card);
 }
 
 .panel-card .ant-card-head {
-  min-height: 52px;
-  padding: 0 var(--spacing-xl);
+  min-height: 50px;
+  padding: 0 18px;
 
   border-bottom: 1px solid var(--color-border);
 }
 
 .panel-card .ant-card-head-title {
-  padding: 14px 0;
+  padding: 13px 0;
 
   color: var(--color-text-primary);
 
   font-size: var(--font-size-card-title);
   font-weight: var(--font-weight-heading);
   line-height: var(--line-height-card-title);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .panel-card .ant-card-body {
-  padding: 20px var(--spacing-xl) var(--spacing-xl);
+  padding: 18px;
 }
 
 /* =========================================================
@@ -70,6 +64,7 @@
 }
 
 .line-item-card {
+  border-color: var(--color-border);
   border-radius: var(--radius-medium);
-  background: #f8fafc;
+  background: #f8f9fc;
 }

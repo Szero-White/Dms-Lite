@@ -27,6 +27,7 @@
 
 .ant-card {
   border-color: var(--color-border);
+  border-radius: var(--radius-large);
   box-shadow: var(--shadow-card);
 }
 
@@ -35,17 +36,18 @@
 }
 
 .ant-table-thead > tr > th {
-  background: #f8fafc !important;
+  padding-block: 10px !important;
+  background: #f8f9fc !important;
   color: var(--color-text-secondary) !important;
   font-size: var(--font-size-meta);
   font-weight: var(--font-weight-heading) !important;
   line-height: var(--line-height-meta);
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
 .ant-table-tbody > tr > td {
-  padding-block: 12px !important;
+  padding-block: 11px !important;
   color: var(--color-text-primary);
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-body);
@@ -53,11 +55,11 @@
 }
 
 .ant-table-tbody > tr:hover > td {
-  background: #f3f7ff !important;
+  background: #f7f8fc !important;
 }
 
 .ant-form-item-label > label {
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-secondary);
   font-weight: var(--font-weight-label);
   line-height: var(--line-height-body);
 }
@@ -81,14 +83,14 @@
 .ant-picker,
 .ant-select-selector {
   border-color: var(--color-border) !important;
-  border-radius: var(--radius-medium) !important;
+  border-radius: var(--radius-small) !important;
 }
 
 .ant-input:hover,
 .ant-input-number:hover,
 .ant-picker:hover,
 .ant-select:not(.ant-select-disabled):hover .ant-select-selector {
-  border-color: rgba(37, 99, 235, 0.42) !important;
+  border-color: rgba(79, 107, 237, 0.5) !important;
 }
 
 .ant-btn {
@@ -100,7 +102,7 @@
 
 .ant-btn-primary {
   background: var(--color-primary);
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.16);
+  box-shadow: none;
 }
 
 .ant-btn-primary:hover {
@@ -123,7 +125,7 @@
   font-size: var(--font-size-meta);
   font-weight: var(--font-weight-label);
   line-height: var(--line-height-meta);
-  padding: 1px 9px;
+  padding: 0 8px;
 }
 
 .ant-pagination {
@@ -145,8 +147,35 @@
   border-radius: var(--radius-large);
 }
 
+.ant-modal-header,
+.ant-drawer-header {
+  border-bottom-color: var(--color-border);
+}
+
+.ant-modal-title,
+.ant-drawer-title {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-card-title);
+}
+
+.ant-table-cell {
+  border-bottom-color: var(--color-border) !important;
+}
+
 .g2-tooltip {
   font-family: var(--font-family-base) !important;
   font-size: var(--font-size-secondary) !important;
   line-height: var(--line-height-secondary) !important;
+}
+
+@media (max-width: 767px) {
+  .ant-table-content {
+    overflow-x: auto !important;
+  }
+
+  .ant-table-content > table {
+    min-width: 720px;
+  }
 }

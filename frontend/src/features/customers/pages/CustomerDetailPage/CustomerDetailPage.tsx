@@ -29,6 +29,7 @@ import {
 } from '../../hooks/useCustomerQueries';
 import { useRecordCustomerPayment } from '../../../../features/payments';
 import { useSalesOrders } from '../../../../features/sales';
+import styles from './CustomerDetailPage.module.css';
 
 export function CustomerDetailPage() {
   const { customerId } = useParams();
@@ -53,13 +54,13 @@ export function CustomerDetailPage() {
   );
 
   return (
-    <Space direction="vertical" size={24} style={{ width: '100%' }}>
+    <div className={styles.page}>
       <PageHeader
         title={customer?.name || 'Customer Detail'}
         subtitle="Customer profile, debt statement, and order history."
         breadcrumb={['Customers', customer?.name || 'Detail']}
         extra={
-          <Space>
+          <Space wrap className={styles.headerActions}>
             <Button icon={<LeftOutlined />} onClick={() => navigate('/customers')}>
               Back
             </Button>
@@ -94,7 +95,7 @@ export function CustomerDetailPage() {
         hasData={Boolean(customer)}
       >
         {customer ? (
-          <>
+          <div className={styles.contentStack}>
             <Row gutter={[16, 16]}>
               <Col xs={24} xl={10}>
                 <Card className="panel-card" title="Customer Information">
@@ -113,12 +114,11 @@ export function CustomerDetailPage() {
                     </Descriptions.Item>
                     <Descriptions.Item label="Current Debt">
                       <Typography.Text
-                        style={{
-                          color:
-                            toNumber(customer.debtBalance) > 0
-                              ? '#cf1322'
-                              : '#389e0d',
-                        }}
+                        className={
+                          toNumber(customer.debtBalance) > 0
+                            ? styles.debtOutstanding
+                            : styles.debtClear
+                        }
                       >
                         {formatCurrency(customer.debtBalance)}
                       </Typography.Text>
@@ -165,6 +165,7 @@ export function CustomerDetailPage() {
 
             <Card className="panel-card" title="Sales Order History">
               <Table
+                size="small"
                 rowKey="id"
                 dataSource={orderHistory}
                 columns={[
@@ -193,11 +194,12 @@ export function CustomerDetailPage() {
                 ]}
               />
             </Card>
-          </>
+          </div>
         ) : null}
       </QueryState>
 
       <Modal
+        rootClassName={styles.modal}
         title="Record Payment"
         open={paymentOpen}
         confirmLoading={paymentMutation.isPending}
@@ -226,7 +228,7 @@ export function CustomerDetailPage() {
           </Form.Item>
           <Form.Item name="amount" label="Amount" rules={[{ required: true }]}>
             <InputNumber
-              style={{ width: '100%' }}
+              className={styles.fullWidth}
               min={1}
               max={toNumber(customer?.debtBalance)}
             />
@@ -236,6 +238,6 @@ export function CustomerDetailPage() {
           </Form.Item>
         </Form>
       </Modal>
-    </Space>
+    </div>
   );
 }

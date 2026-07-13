@@ -1,41 +1,42 @@
 .tag:global(.ant-tag) {
   display: inline-flex;
   align-items: center;
-  min-height: 22px;
+  min-height: 20px;
   margin-inline-end: 0;
   border-radius: 999px;
   font-size: var(--font-size-meta);
   font-weight: var(--font-weight-label);
   line-height: var(--line-height-meta);
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
+  padding: 0 7px;
 }
 
 .neutral:global(.ant-tag) {
-  border-color: #e2e8f0;
-  background: #f8fafc;
-  color: #475569;
+  border-color: #e5e9ef;
+  background: #f4f6f8;
+  color: #596579;
 }
 
 .info:global(.ant-tag) {
-  border-color: #bfdbfe;
-  background: #eff6ff;
-  color: #1d4ed8;
+  border-color: #dbe4ff;
+  background: #f0f4ff;
+  color: #4663d8;
 }
 
 .success:global(.ant-tag) {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
+  border-color: #ccebdd;
+  background: #edf9f3;
   color: var(--color-success);
 }
 
 .warning:global(.ant-tag) {
-  border-color: #fed7aa;
-  background: #fff7ed;
+  border-color: #f2dfb8;
+  background: #fff8e8;
   color: var(--color-warning);
 }
 
 .danger:global(.ant-tag) {
-  border-color: #fecaca;
-  background: #fef2f2;
+  border-color: #f1d0d0;
+  background: #fff1f1;
   color: var(--color-danger);
 }

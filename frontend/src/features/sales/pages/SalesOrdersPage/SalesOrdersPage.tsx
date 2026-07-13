@@ -19,6 +19,7 @@ import {
   formatCurrency,
   formatDateTime,
 } from '../../../../lib/format';
+import styles from './SalesOrdersPage.module.css';
 
 export function SalesOrdersPage() {
   const navigate = useNavigate();
@@ -32,10 +33,10 @@ export function SalesOrdersPage() {
   );
 
   return (
-    <Space direction="vertical" size={24} style={{ width: '100%' }}>
+    <div className={styles.page}>
       <PageHeader
         title="Sales Orders"
-        subtitle="Review draft orders, confirm shipments, and manage order execution."
+        subtitle="Track order progress, revenue and fulfillment."
         extra={(
           <Button
             type="primary"
@@ -47,7 +48,7 @@ export function SalesOrdersPage() {
         )}
       />
 
-      <Card className="panel-card">
+      <Card className={`panel-card ${styles.tableCard}`}>
         <QueryState
           isLoading={ordersQuery.isLoading || customersQuery.isLoading}
           isError={ordersQuery.isError || customersQuery.isError}
@@ -94,6 +95,7 @@ export function SalesOrdersPage() {
                 render: (_, record) => (
                   <Space>
                     <Button
+                      size="small"
                       type="primary"
                       disabled={record.status !== 'DRAFT'}
                       loading={confirmMutation.isPending}
@@ -102,6 +104,7 @@ export function SalesOrdersPage() {
                       Confirm
                     </Button>
                     <Button
+                      size="small"
                       danger
                       disabled={record.status !== 'DRAFT'}
                       loading={cancelMutation.isPending}
@@ -116,6 +119,6 @@ export function SalesOrdersPage() {
           />
         </QueryState>
       </Card>
-    </Space>
+    </div>
   );
 }
