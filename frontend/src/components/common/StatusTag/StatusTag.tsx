@@ -1,19 +1,31 @@
 import { Tag } from 'antd';
+import styles from './StatusTag.module.css';
 
-const SALES_STATUS_MAP: Record<string, string> = {
-  DRAFT: 'default',
-  CONFIRMED: 'processing',
+type StatusTone =
+  | 'neutral'
+  | 'info'
+  | 'success'
+  | 'warning'
+  | 'danger';
+
+const SALES_STATUS_MAP: Record<string, StatusTone> = {
+  DRAFT: 'neutral',
+  CONFIRMED: 'info',
   COMPLETED: 'success',
-  CANCELLED: 'error',
+  CANCELLED: 'danger',
 };
 
-const NOTIFICATION_STATUS_MAP: Record<string, string> = {
+const NOTIFICATION_STATUS_MAP: Record<string, StatusTone> = {
   LOW_STOCK: 'warning',
-  OVERDUE_DEBT: 'error',
-  PAYMENT_RECORDED: 'processing',
+  OVERDUE_DEBT: 'danger',
+  PAYMENT_RECORDED: 'info',
   SALES_ORDER_CONFIRMED: 'success',
-  SALES_ORDER_CANCELLED: 'default',
+  SALES_ORDER_CANCELLED: 'neutral',
 };
+
+function statusClass(tone: StatusTone) {
+  return `${styles.tag} ${styles[tone]}`;
+}
 
 export function SalesOrderStatusTag({
   status,
@@ -21,7 +33,7 @@ export function SalesOrderStatusTag({
   status: string;
 }) {
   return (
-    <Tag color={SALES_STATUS_MAP[status] || 'default'}>
+    <Tag className={statusClass(SALES_STATUS_MAP[status] || 'neutral')}>
       {status}
     </Tag>
   );
@@ -35,13 +47,17 @@ export function ProductStatusTag({
   active: boolean;
 }) {
   if (!active) {
-    return <Tag color="default">INACTIVE</Tag>;
+    return (
+      <Tag className={statusClass('neutral')}>
+        INACTIVE
+      </Tag>
+    );
   }
 
   return isLowStock ? (
-    <Tag color="warning">LOW STOCK</Tag>
+    <Tag className={statusClass('warning')}>LOW STOCK</Tag>
   ) : (
-    <Tag color="success">ACTIVE</Tag>
+    <Tag className={statusClass('success')}>ACTIVE</Tag>
   );
 }
 
@@ -51,7 +67,7 @@ export function CustomerDebtTag({
   amount: number;
 }) {
   return (
-    <Tag color={amount > 0 ? 'error' : 'success'}>
+    <Tag className={statusClass(amount > 0 ? 'danger' : 'success')}>
       {amount > 0 ? 'Outstanding' : 'Clear'}
     </Tag>
   );
@@ -63,7 +79,7 @@ export function NotificationTypeTag({
   type: string;
 }) {
   return (
-    <Tag color={NOTIFICATION_STATUS_MAP[type] || 'blue'}>
+    <Tag className={statusClass(NOTIFICATION_STATUS_MAP[type] || 'info')}>
       {type}
     </Tag>
   );

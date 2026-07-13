@@ -5,10 +5,10 @@
 .panel-card {
   overflow: hidden;
 
-  border: 1px solid rgba(220, 229, 240, 0.82);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-large);
 
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--color-card-background);
 
   box-shadow: var(--shadow-card);
 
@@ -21,7 +21,7 @@
 .panel-card:hover {
   transform: translateY(-1px);
 
-  border-color: rgba(31, 111, 235, 0.16);
+  border-color: rgba(37, 99, 235, 0.18);
 
   box-shadow: var(--shadow-card-hover);
 }
@@ -30,14 +30,13 @@
   min-height: 52px;
   padding: 0 var(--spacing-xl);
 
-  border-bottom:
-    1px solid rgba(230, 236, 245, 0.9);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .panel-card .ant-card-head-title {
   padding: 14px 0;
 
-  color: #111827;
+  color: var(--color-text-primary);
 
   font-size: var(--font-size-card-title);
   font-weight: var(--font-weight-heading);
@@ -72,5 +71,5 @@
 
 .line-item-card {
   border-radius: var(--radius-medium);
-  background: #fbfdff;
+  background: #f8fafc;
 }

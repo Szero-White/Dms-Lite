@@ -1,4 +1,4 @@
-import { Alert, Empty, Spin } from 'antd';
+import { Alert, Empty, Skeleton } from 'antd';
 import styles from './QueryState.module.css';
 
 interface QueryStateProps {
@@ -19,32 +19,40 @@ export function QueryState({
   if (isLoading) {
     return (
       <div className={styles.stateBlock}>
-        <Spin size="large" />
+        <Skeleton
+          active
+          paragraph={{ rows: 4 }}
+          title={{ width: '42%' }}
+        />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <Alert
-        type="error"
-        message="Unable to load data"
-        description={
-          error instanceof Error
-            ? error.message
-            : 'Please try again.'
-        }
-        showIcon
-      />
+      <div className={styles.feedbackBlock}>
+        <Alert
+          type="error"
+          message="Unable to load data"
+          description={
+            error instanceof Error
+              ? error.message
+              : 'Please try again.'
+          }
+          showIcon
+        />
+      </div>
     );
   }
 
   if (!hasData) {
     return (
-      <Empty
-        image={Empty.PRESENTED_IMAGE_SIMPLE}
-        description="No data yet"
-      />
+      <div className={styles.emptyBlock}>
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description="No data yet"
+        />
+      </div>
     );
   }
 

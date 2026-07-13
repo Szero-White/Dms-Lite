@@ -19,58 +19,84 @@ import styles from './AppSidebar.module.css';
 
 const menuItems = [
   {
-    key: '/dashboard',
-    icon: <DashboardOutlined />,
-    label: 'Dashboard',
+    type: 'group' as const,
+    label: 'Overview',
+    children: [
+      {
+        key: '/dashboard',
+        icon: <DashboardOutlined />,
+        label: 'Dashboard',
+      },
+    ],
   },
   {
-    key: '/sales-orders',
-    icon: <ShoppingCartOutlined />,
-    label: 'Sales Orders',
+    type: 'group' as const,
+    label: 'Sales',
+    children: [
+      {
+        key: '/sales-orders',
+        icon: <ShoppingCartOutlined />,
+        label: 'Sales Orders',
+      },
+      {
+        key: '/customers',
+        icon: <TeamOutlined />,
+        label: 'Customers',
+      },
+      {
+        key: '/payments',
+        icon: <DollarOutlined />,
+        label: 'Payments',
+      },
+    ],
   },
   {
-    key: '/products',
-    icon: <AppstoreOutlined />,
-    label: 'Products',
+    type: 'group' as const,
+    label: 'Operations',
+    children: [
+      {
+        key: '/products',
+        icon: <AppstoreOutlined />,
+        label: 'Products',
+      },
+      {
+        key: '/inventory',
+        icon: <InboxOutlined />,
+        label: 'Inventory',
+      },
+    ],
   },
   {
-    key: '/customers',
-    icon: <TeamOutlined />,
-    label: 'Customers',
-  },
-  {
-    key: '/inventory',
-    icon: <InboxOutlined />,
-    label: 'Inventory',
-  },
-  {
-    key: '/payments',
-    icon: <DollarOutlined />,
-    label: 'Payments',
-  },
-  {
-    key: '/reports',
-    icon: <BarChartOutlined />,
-    label: 'Reports',
-  },
-  {
-    key: '/audit-logs',
-    icon: <AuditOutlined />,
-    label: 'Audit Logs',
-  },
-  {
-    key: '/notifications',
-    icon: <BellOutlined />,
-    label: 'Notifications',
+    type: 'group' as const,
+    label: 'Insights',
+    children: [
+      {
+        key: '/reports',
+        icon: <BarChartOutlined />,
+        label: 'Reports',
+      },
+      {
+        key: '/notifications',
+        icon: <BellOutlined />,
+        label: 'Notifications',
+      },
+      {
+        key: '/audit-logs',
+        icon: <AuditOutlined />,
+        label: 'Audit Logs',
+      },
+    ],
   },
 ];
+
+const routeItems = menuItems.flatMap((group) => group.children);
 
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
 
   const selectedKey =
-    menuItems.find((item) =>
+    routeItems.find((item) =>
       location.pathname.startsWith(item.key),
     )?.key ?? '/dashboard';
 

@@ -49,6 +49,7 @@ export function DashboardPage() {
     <Space
       direction="vertical"
       size={28}
+      className={styles.dashboardPage}
       style={{ width: '100%' }}
     >
       <PageHeader
@@ -73,6 +74,7 @@ export function DashboardPage() {
                 note="Sales confirmed today"
                 icon={<DollarOutlined />}
                 variant="blue"
+                visual="dashboard"
               />
 
               <SummaryCard
@@ -83,6 +85,7 @@ export function DashboardPage() {
                 note="Month-to-date recognized revenue"
                 icon={<ShoppingCartOutlined />}
                 variant="green"
+                visual="dashboard"
               />
 
               <SummaryCard
@@ -93,6 +96,7 @@ export function DashboardPage() {
                 note="Outstanding customer receivables"
                 icon={<WalletOutlined />}
                 variant="orange"
+                visual="dashboard"
               />
 
               <SummaryCard
@@ -103,6 +107,7 @@ export function DashboardPage() {
                 note="Estimated supplier obligations"
                 icon={<InboxOutlined />}
                 variant="purple"
+                visual="dashboard"
               />
 
               <SummaryCard
@@ -112,13 +117,8 @@ export function DashboardPage() {
                 )}
                 note="Products requiring replenishment"
                 icon={<WarningOutlined />}
-                progress={Math.min(
-                  100,
-                  toNumber(
-                    dashboardQuery.data.summary.lowStockItems,
-                  ) * 20,
-                )}
                 variant="red"
+                visual="dashboard"
               />
 
               <SummaryCard
@@ -128,7 +128,8 @@ export function DashboardPage() {
                 )}
                 note="Active SKUs in catalog"
                 icon={<ShoppingCartOutlined />}
-                variant="blue"
+                variant="cyan"
+                visual="dashboard"
               />
             </div>
 

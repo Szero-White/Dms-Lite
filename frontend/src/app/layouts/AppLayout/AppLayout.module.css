@@ -15,6 +15,7 @@
 
 .layout {
   min-height: 100vh;
+  background: var(--color-page-background);
 }
 
 .sidebar {
@@ -25,14 +26,9 @@
   height: 100vh;
   overflow: auto;
 
-  border-right: 1px solid var(--color-border-strong, #dde7f3);
+  border-right: 1px solid var(--color-border-strong);
 
-  background:
-    linear-gradient(
-      180deg,
-      #f9fbff 0%,
-      #f1f6fc 100%
-    ) !important;
+  background: var(--color-card-background) !important;
 }
 
 .main {
@@ -42,7 +38,7 @@
 .header {
   height: auto !important;
 
-  padding: 16px var(--page-padding-desktop) 12px !important;
+  padding: var(--spacing-md) var(--page-padding-desktop) var(--spacing-sm) !important;
 
   line-height: normal !important;
 
@@ -50,7 +46,7 @@
 }
 
 .content {
-  padding: 8px var(--page-padding-desktop) 32px;
+  padding: var(--spacing-sm) var(--page-padding-desktop) var(--spacing-2xl);
 }
 
 .page {
