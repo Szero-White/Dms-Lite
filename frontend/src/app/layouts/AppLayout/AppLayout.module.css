@@ -26,7 +26,7 @@
   height: 100vh;
   overflow: auto;
 
-  border-right: 1px solid var(--color-border-strong);
+  border-right: 1px solid var(--color-border);
 
   background: var(--color-card-background) !important;
 }
@@ -36,17 +36,18 @@
 }
 
 .header {
-  height: auto !important;
-
-  padding: var(--spacing-md) var(--page-padding-desktop) var(--spacing-sm) !important;
-
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: 60px !important;
+  padding: 0 var(--page-padding-desktop) !important;
+  border-bottom: 1px solid var(--color-border);
   line-height: normal !important;
-
-  background: transparent !important;
+  background: rgba(255, 255, 255, 0.98) !important;
 }
 
 .content {
-  padding: var(--spacing-sm) var(--page-padding-desktop) var(--spacing-2xl);
+  padding: var(--spacing-lg) var(--page-padding-desktop) var(--spacing-2xl);
 }
 
 .page {
@@ -62,10 +63,11 @@
   }
 
   .header {
-    padding: 12px 16px !important;
+    height: 56px !important;
+    padding: 0 16px !important;
   }
 
   .content {
-    padding: 8px 16px 24px;
+    padding: 16px 16px 24px;
   }
 }

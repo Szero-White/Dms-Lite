@@ -1,0 +1,24 @@
+.page {
+  width: 100%;
+}
+
+.auditCard :global(.ant-card-body) {
+  padding-top: 16px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.filter {
+  width: 220px;
+}
+
+@media (max-width: 640px) {
+  .filter {
+    width: 100%;
+  }
+}

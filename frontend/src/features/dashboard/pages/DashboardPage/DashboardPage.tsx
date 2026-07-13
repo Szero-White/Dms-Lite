@@ -9,7 +9,6 @@ import {
   Card,
   Empty,
   List,
-  Space,
   Tag,
   Typography,
 } from 'antd';
@@ -46,14 +45,9 @@ export function DashboardPage() {
     ordersQuery.error;
 
   return (
-    <Space
-      direction="vertical"
-      size={28}
-      className={styles.dashboardPage}
-      style={{ width: '100%' }}
-    >
+    <div className={styles.dashboardPage}>
       <PageHeader
-        title="Business Dashboard"
+        title="Dashboard"
         subtitle="Daily operating snapshot for sales, stock health, and receivable exposure."
       />
 
@@ -326,6 +320,6 @@ export function DashboardPage() {
           </>
         ) : null}
       </QueryState>
-    </Space>
+    </div>
   );
 }

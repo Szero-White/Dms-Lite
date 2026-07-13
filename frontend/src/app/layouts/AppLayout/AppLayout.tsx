@@ -5,7 +5,7 @@ import { AppHeader } from '../AppHeader';
 import { AppSidebar } from '../AppSidebar';
 import styles from './AppLayout.module.css';
 
-const SIDEBAR_WIDTH = 228;
+const SIDEBAR_WIDTH = 224;
 
 export function AppLayout({
   children,

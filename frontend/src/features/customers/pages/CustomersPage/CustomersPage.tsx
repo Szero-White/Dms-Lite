@@ -21,6 +21,7 @@ import {
   useCustomers,
 } from '../../hooks/useCustomerQueries';
 import { CustomerFormValues } from '../../types/customer.types';
+import styles from './CustomersPage.module.css';
 
 export function CustomersPage() {
   const customersQuery = useCustomers();
@@ -41,10 +42,10 @@ export function CustomersPage() {
   );
 
   return (
-    <Space direction="vertical" size={24} style={{ width: '100%' }}>
+    <div className={styles.page}>
       <PageHeader
         title="Customers"
-        subtitle="Track contact data, credit policy, and outstanding debt."
+        subtitle="Manage customer profiles, credit limits and receivables."
         extra={
           <Button
             type="primary"
@@ -56,11 +57,11 @@ export function CustomersPage() {
         }
       />
 
-      <Card className="panel-card">
+      <Card className={`panel-card ${styles.tableCard}`}>
         <Input.Search
           allowClear
+          className={styles.search}
           placeholder="Search customer, phone, address"
-          style={{ width: 320, marginBottom: 16 }}
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
         />
@@ -80,7 +81,11 @@ export function CustomersPage() {
                 render: (_, record) => (
                   <Space direction="vertical" size={0}>
                     <Typography.Text strong>{record.name}</Typography.Text>
-                    <Tag color={record.active ? 'success' : 'default'}>
+                    <Tag
+                      className={`${styles.statusTag} ${
+                        record.active ? styles.active : styles.inactive
+                      }`}
+                    >
                       {record.active ? 'ACTIVE' : 'INACTIVE'}
                     </Tag>
                   </Space>
@@ -99,9 +104,11 @@ export function CustomersPage() {
                 render: (value) => (
                   <Space direction="vertical" size={0}>
                     <Typography.Text
-                      style={{
-                        color: toNumber(value) > 0 ? '#cf1322' : '#389e0d',
-                      }}
+                      className={
+                        toNumber(value) > 0
+                          ? styles.debtOutstanding
+                          : styles.debtClear
+                      }
                     >
                       {formatCurrency(value)}
                     </Typography.Text>
@@ -126,6 +133,7 @@ export function CustomersPage() {
       </Card>
 
       <Modal
+        rootClassName={styles.modal}
         open={open}
         title="Create Customer"
         confirmLoading={createCustomer.isPending}
@@ -163,6 +171,6 @@ export function CustomersPage() {
           </Form.Item>
         </Form>
       </Modal>
-    </Space>
+    </div>
   );
 }

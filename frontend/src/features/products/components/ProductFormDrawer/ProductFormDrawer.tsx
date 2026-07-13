@@ -1,5 +1,6 @@
-import { Button, Drawer, Form, Input, InputNumber, Space } from 'antd';
+import { Button, Drawer, Form, Input, InputNumber } from 'antd';
 import { ProductFormValues, ProductRow } from '../../types/product.types';
+import styles from './ProductFormDrawer.module.css';
 
 interface ProductFormDrawerProps {
   open: boolean;
@@ -22,6 +23,7 @@ export function ProductFormDrawer({
     <Drawer
       title={product ? 'Edit Product' : 'Create Product'}
       width={420}
+      rootClassName={styles.drawer}
       open={open}
       onClose={onClose}
       afterOpenChange={(visible) => {
@@ -46,8 +48,8 @@ export function ProductFormDrawer({
           form.resetFields();
         }
       }}
-      extra={
-        <Space>
+      footer={
+        <div className={styles.footer}>
           <Button onClick={onClose}>Cancel</Button>
           <Button
             type="primary"
@@ -56,7 +58,7 @@ export function ProductFormDrawer({
           >
             Save
           </Button>
-        </Space>
+        </div>
       }
     >
       <Form form={form} layout="vertical" onFinish={onSubmit}>
@@ -78,21 +80,21 @@ export function ProductFormDrawer({
           <Input placeholder="Optional barcode" />
         </Form.Item>
         <Form.Item label="Cost Price" name="costPrice" rules={[{ required: true }]}>
-          <InputNumber style={{ width: '100%' }} min={0} />
+          <InputNumber className={styles.fullWidth} min={0} />
         </Form.Item>
         <Form.Item
           label="Selling Price"
           name="sellingPrice"
           rules={[{ required: true }]}
         >
-          <InputNumber style={{ width: '100%' }} min={0} />
+          <InputNumber className={styles.fullWidth} min={0} />
         </Form.Item>
         <Form.Item
           label="Minimum Stock"
           name="minStock"
           rules={[{ required: true }]}
         >
-          <InputNumber style={{ width: '100%' }} min={0} />
+          <InputNumber className={styles.fullWidth} min={0} />
         </Form.Item>
       </Form>
     </Drawer>

@@ -32,7 +32,7 @@ export function InventoryStockChart({
           data={chartData}
           xField="productName"
           yField="stock"
-          height={360}
+          height={300}
           padding="auto"
           axis={{
             x: {

@@ -1,31 +1,31 @@
 .sidebar {
-  padding: 16px 12px 20px;
+  padding: 14px 10px 20px;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  margin-bottom: var(--spacing-sm);
-  padding: 0 var(--spacing-xs) var(--spacing-sm);
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 0 8px 14px;
   border-bottom: 1px solid var(--color-border);
 }
 
 .brandBadge {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--color-primary);
   color: #fff;
-  font-size: 16px;
-  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.16);
+  font-size: 15px;
+  box-shadow: none;
 }
 
 .brandTitle {
   color: var(--color-text-primary);
-  font-size: var(--font-size-card-title);
+  font-size: 15px;
   font-weight: var(--font-weight-heading);
   line-height: var(--line-height-body);
 }
@@ -42,7 +42,7 @@
 }
 
 .sidebar :global(.ant-menu-item-group-title) {
-  margin-top: var(--spacing-sm);
+  margin-top: 10px;
   padding: 0 var(--spacing-xs) var(--spacing-2xs);
   color: var(--color-text-muted);
   font-size: 11px;
@@ -55,12 +55,12 @@
 .sidebar :global(.ant-menu-item-group-list) {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2xs);
+  gap: 2px;
 }
 
 .sidebar :global(.ant-menu-item) {
-  height: 40px;
-  line-height: 40px;
+  height: 38px;
+  line-height: 38px;
   margin-inline: 0;
   margin-block: 0;
   border-radius: var(--radius-small);
@@ -69,11 +69,11 @@
 }
 
 .sidebar :global(.ant-menu-item .anticon) {
-  font-size: 17px;
+  font-size: 16px;
 }
 
 .sidebar :global(.ant-menu-item:hover) {
-  background: #eff6ff !important;
+  background: #f5f7ff !important;
 }
 
 .sidebar :global(.ant-menu-item-selected) {

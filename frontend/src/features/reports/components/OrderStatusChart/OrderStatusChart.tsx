@@ -38,7 +38,7 @@ export function OrderStatusChart({
           data={chartData}
           angleField="count"
           colorField="status"
-          height={320}
+          height={280}
           innerRadius={0.62}
           radius={0.9}
           legend={{
@@ -73,8 +73,9 @@ export function OrderStatusChart({
                 x: '50%',
                 y: '46%',
                 textAlign: 'center',
-                fontSize: 28,
-                fontWeight: 700,
+                fontSize: 24,
+                fontWeight: 600,
+                fill: '#20293a',
               },
             },
             {
@@ -85,7 +86,7 @@ export function OrderStatusChart({
                 y: '57%',
                 textAlign: 'center',
                 fontSize: 13,
-                fill: '#8c8c8c',
+                fill: '#98a2b3',
               },
             },
           ]}

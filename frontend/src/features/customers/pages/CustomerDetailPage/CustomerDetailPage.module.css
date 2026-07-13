@@ -1,0 +1,36 @@
+.page {
+  width: 100%;
+}
+
+.contentStack {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.headerActions {
+  justify-content: flex-end;
+}
+
+.debtOutstanding {
+  color: var(--color-danger);
+  font-weight: var(--font-weight-heading);
+}
+
+.debtClear {
+  color: var(--color-success);
+  font-weight: var(--font-weight-heading);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.modal :global(.ant-modal-body) {
+  padding-top: 8px;
+}
+
+@media (max-width: 992px) {
+  .headerActions {
+    justify-content: flex-start;
+  }
+}

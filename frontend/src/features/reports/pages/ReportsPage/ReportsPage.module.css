@@ -1,5 +1,14 @@
+.page {
+  width: 100%;
+}
+
+.reportContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
 .sectionBlock {
-  margin-top: var(--spacing-xl);
   padding: 0;
   border: none;
   border-radius: 0;
@@ -12,7 +21,21 @@
     minmax(0, 1.55fr)
     minmax(320px, 0.85fr);
   align-items: stretch;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-lg);
+}
+
+.lowStockStatus,
+.healthyStatus {
+  font-size: var(--font-size-secondary);
+  font-weight: var(--font-weight-label);
+}
+
+.lowStockStatus {
+  color: var(--color-warning);
+}
+
+.healthyStatus {
+  color: var(--color-success);
 }
 
 @media (max-width: 1100px) {

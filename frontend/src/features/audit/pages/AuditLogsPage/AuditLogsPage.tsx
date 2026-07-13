@@ -1,10 +1,11 @@
-import { Card, Select, Space, Table } from 'antd';
+import { Card, Select, Table } from 'antd';
 import { useMemo, useState } from 'react';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatDateTime } from '../../../../lib/format';
 import { useAuditLogs } from '../../hooks/useAuditQueries';
 import { AuditLogRow } from '../../types/audit.types';
+import styles from './AuditLogsPage.module.css';
 
 export function AuditLogsPage() {
   const auditQuery = useAuditLogs();
@@ -32,18 +33,29 @@ export function AuditLogsPage() {
   );
 
   return (
-    <Space direction="vertical" size={24} style={{ width: '100%' }}>
+    <div className={styles.page}>
       <PageHeader title="Audit Logs" subtitle="Trace who did what, to which entity, and when." />
 
-      <Card className="panel-card">
-        <Space wrap style={{ marginBottom: 16 }}>
-          <Select value={actionFilter} style={{ width: 220 }} onChange={setActionFilter} options={actionOptions} />
-          <Select value={entityFilter} style={{ width: 220 }} onChange={setEntityFilter} options={entityOptions} />
-        </Space>
+      <Card className={`panel-card table-panel-card ${styles.auditCard}`}>
+        <div className={styles.toolbar}>
+          <Select
+            className={styles.filter}
+            value={actionFilter}
+            onChange={setActionFilter}
+            options={actionOptions}
+          />
+          <Select
+            className={styles.filter}
+            value={entityFilter}
+            onChange={setEntityFilter}
+            options={entityOptions}
+          />
+        </div>
 
         <QueryState isLoading={auditQuery.isLoading} isError={auditQuery.isError} error={auditQuery.error} hasData={dataSource.length > 0}>
           <Table<AuditLogRow>
             rowKey="id"
+            size="small"
             dataSource={dataSource}
             columns={[
               { title: 'Actor', render: (_, record) => record.actorName },
@@ -55,6 +67,6 @@ export function AuditLogsPage() {
           />
         </QueryState>
       </Card>
-    </Space>
+    </div>
   );
 }

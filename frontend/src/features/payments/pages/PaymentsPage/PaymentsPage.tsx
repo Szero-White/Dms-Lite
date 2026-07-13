@@ -7,7 +7,6 @@ import {
   InputNumber,
   Row,
   Select,
-  Space,
   Table,
   Typography,
 } from 'antd';
@@ -17,6 +16,7 @@ import { useCustomers } from '../../../../features/customers';
 import { formatCurrency } from '../../../../lib/format';
 import { useRecordCustomerPayment } from '../../hooks/usePaymentQueries';
 import { RecordPaymentPayload } from '../../types/payment.types';
+import styles from './PaymentsPage.module.css';
 
 export function PaymentsPage() {
   const customersQuery = useCustomers();
@@ -24,16 +24,16 @@ export function PaymentsPage() {
   const [form] = Form.useForm<RecordPaymentPayload>();
 
   return (
-    <Space direction="vertical" size={24} style={{ width: '100%' }}>
+    <div className={styles.page}>
       <PageHeader
         title="Payments"
         subtitle="Record customer payments and immediately reflect lower outstanding debt."
       />
 
       <QueryState isLoading={customersQuery.isLoading} isError={customersQuery.isError} error={customersQuery.error} hasData={Boolean(customersQuery.data?.length)}>
-        <Row gutter={[16, 16]}>
+        <Row gutter={[16, 16]} align="stretch">
           <Col xs={24} xl={10}>
-            <Card className="panel-card" title="Record Payment">
+            <Card className={`panel-card ${styles.formCard}`} title="Record Payment">
               <Form
                 form={form}
                 layout="vertical"
@@ -47,12 +47,12 @@ export function PaymentsPage() {
                     placeholder="Choose customer"
                     options={(customersQuery.data ?? []).map((customer) => ({
                       value: customer.id,
-                      label: `${customer.name} • Debt ${formatCurrency(customer.debtBalance)}`,
+                      label: `${customer.name} - Debt ${formatCurrency(customer.debtBalance)}`,
                     }))}
                   />
                 </Form.Item>
                 <Form.Item label="Amount" name="amount" rules={[{ required: true }]}>
-                  <InputNumber style={{ width: '100%' }} min={1} />
+                  <InputNumber className={styles.fullWidth} min={1} />
                 </Form.Item>
                 <Form.Item label="Note" name="note">
                   <Input.TextArea rows={4} placeholder="Transfer note, receipt number, or collection comment" />
@@ -67,7 +67,7 @@ export function PaymentsPage() {
           </Col>
 
           <Col xs={24} xl={14}>
-            <Card className="panel-card" title="Receivable Watchlist">
+            <Card className={`panel-card ${styles.watchlistCard}`} title="Receivable Watchlist">
               <Table
                 rowKey="id"
                 pagination={false}
@@ -80,7 +80,13 @@ export function PaymentsPage() {
                     title: 'Debt Balance',
                     dataIndex: 'debtBalance',
                     render: (value) => (
-                      <Typography.Text style={{ color: Number(value) > 0 ? '#cf1322' : '#389e0d' }}>
+                      <Typography.Text
+                        className={
+                          Number(value) > 0
+                            ? styles.debtOutstanding
+                            : styles.debtClear
+                        }
+                      >
                         {formatCurrency(value)}
                       </Typography.Text>
                     ),
@@ -91,6 +97,6 @@ export function PaymentsPage() {
           </Col>
         </Row>
       </QueryState>
-    </Space>
+    </div>
   );
 }

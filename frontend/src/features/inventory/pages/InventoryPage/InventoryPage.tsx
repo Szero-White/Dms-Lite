@@ -25,6 +25,7 @@ import {
   useReceiveStock,
 } from '../../hooks/useInventoryQueries';
 import { ReceiveStockPayload } from '../../types/inventory.types';
+import styles from './InventoryPage.module.css';
 
 export function InventoryPage() {
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
@@ -65,7 +66,7 @@ export function InventoryPage() {
   };
 
   return (
-    <Space direction="vertical" size={24} style={{ width: '100%' }}>
+    <div className={styles.page}>
       <PageHeader
         title="Inventory"
         subtitle="Monitor on-hand stock, low-stock warnings, and movement history."
@@ -86,9 +87,10 @@ export function InventoryPage() {
         error={productsQuery.error || historyQuery.error}
         hasData={Boolean(productsQuery.data?.length)}
       >
+        <div className={styles.contentStack}>
         <Row gutter={[16, 16]} align="stretch">
-          <Col xs={24} xl={15}>
-            <Card className="panel-card" title="Stock by Product">
+          <Col xs={24} xl={16}>
+            <Card className={`panel-card ${styles.stockCard}`} title="Stock by Product">
               <Table
                 rowKey="id"
                 dataSource={productsQuery.data ?? []}
@@ -101,7 +103,11 @@ export function InventoryPage() {
                   {
                     title: 'Status',
                     render: (_, record) => (
-                      <Tag color={record.isLowStock ? 'warning' : 'success'}>
+                      <Tag
+                        className={`${styles.stockTag} ${
+                          record.isLowStock ? styles.lowStock : styles.healthy
+                        }`}
+                      >
                         {record.isLowStock ? 'LOW STOCK' : 'HEALTHY'}
                       </Tag>
                     ),
@@ -111,10 +117,10 @@ export function InventoryPage() {
             </Card>
           </Col>
 
-          <Col xs={24} xl={9}>
-            <Card className="panel-card" title="Low Stock Watchlist">
+          <Col xs={24} xl={8}>
+            <Card className={`panel-card ${styles.watchlistCard}`} title="Low Stock Watchlist">
               {lowStockItems.length ? (
-                <Space direction="vertical" style={{ width: '100%' }}>
+                <Space direction="vertical" className={styles.watchlist}>
                   {lowStockItems.map((product) => (
                     <div className="alert-row" key={product.id}>
                       <div>
@@ -122,14 +128,16 @@ export function InventoryPage() {
 
                         <Typography.Paragraph
                           type="secondary"
-                          style={{ marginBottom: 0 }}
+                          className={styles.watchlistMeta}
                         >
                           {product.sku} - On hand {product.stock} / Min{' '}
                           {product.minStock}
                         </Typography.Paragraph>
                       </div>
 
-                      <Tag color="warning">Action needed</Tag>
+                      <Tag className={`${styles.stockTag} ${styles.lowStock}`}>
+                        Action needed
+                      </Tag>
                     </div>
                   ))}
                 </Space>
@@ -145,7 +153,7 @@ export function InventoryPage() {
           </Col>
         </Row>
 
-        <Card className="panel-card" title="Inventory History">
+        <Card className={`panel-card ${styles.historyCard}`} title="Inventory History">
           <Table
             rowKey="id"
             dataSource={historyQuery.data ?? []}
@@ -165,9 +173,11 @@ export function InventoryPage() {
             ]}
           />
         </Card>
+        </div>
       </QueryState>
 
       <Modal
+        rootClassName={styles.modal}
         title="Receive Stock"
         open={isReceiveModalOpen}
         onCancel={handleCloseReceiveModal}
@@ -229,7 +239,7 @@ export function InventoryPage() {
               },
             ]}
           >
-            <InputNumber min={1} precision={0} style={{ width: '100%' }} />
+            <InputNumber className={styles.fullWidth} min={1} precision={0} />
           </Form.Item>
 
           <Form.Item label="Note" name="note">
@@ -240,6 +250,6 @@ export function InventoryPage() {
           </Form.Item>
         </Form>
       </Modal>
-    </Space>
+    </div>
   );
 }

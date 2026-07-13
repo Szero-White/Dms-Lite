@@ -1,9 +1,7 @@
 import {
   Card,
   Empty,
-  Space,
   Table,
-  Typography,
 } from 'antd';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
@@ -30,10 +28,10 @@ export function ReportsPage() {
   const ordersQuery = useSalesOrders();
 
   return (
-    <Space direction="vertical" size={24} style={{ width: '100%' }}>
+    <div className={styles.page}>
       <PageHeader
         title="Reports"
-        subtitle="Revenue, receivable, and inventory reporting in a SaaS-friendly layout."
+        subtitle="Analyze sales, inventory and receivable performance."
       />
 
       <QueryState
@@ -58,7 +56,7 @@ export function ReportsPage() {
         hasData={Boolean(dashboardQuery.data)}
       >
         {dashboardQuery.data ? (
-          <>
+          <div className={styles.reportContent}>
             <div className={styles.sectionBlock}>
               <div className="metrics-grid metrics-grid-3">
                 <div>
@@ -170,11 +168,15 @@ export function ReportsPage() {
                     {
                       title: 'Status',
                       render: (_, record) => (
-                        <Typography.Text
-                          style={{ color: record.isLowStock ? '#d46b08' : '#389e0d' }}
+                        <span
+                          className={
+                            record.isLowStock
+                              ? styles.lowStockStatus
+                              : styles.healthyStatus
+                          }
                         >
                           {record.isLowStock ? 'Low Stock' : 'Healthy'}
-                        </Typography.Text>
+                        </span>
                       ),
                     },
                   ]}
@@ -182,9 +184,9 @@ export function ReportsPage() {
                 />
               </Card>
             </div>
-          </>
+          </div>
         ) : null}
       </QueryState>
-    </Space>
+    </div>
   );
 }

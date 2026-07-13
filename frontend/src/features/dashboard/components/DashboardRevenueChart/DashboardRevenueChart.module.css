@@ -1,9 +1,9 @@
 .card {
-  min-height: 340px;
+  min-height: 322px;
 }
 
 .empty {
-  min-height: 226px;
+  min-height: 208px;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,0 +1,67 @@
+.page {
+  width: 100%;
+}
+
+.contentStack {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.stockCard,
+.watchlistCard {
+  height: 100%;
+}
+
+.stockTag:global(.ant-tag) {
+  min-height: 20px;
+  margin: 0;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: var(--font-size-meta);
+  font-weight: var(--font-weight-label);
+  line-height: var(--line-height-meta);
+}
+
+.healthy:global(.ant-tag) {
+  border-color: #ccebdd;
+  background: #edf9f3;
+  color: var(--color-success);
+}
+
+.lowStock:global(.ant-tag) {
+  border-color: #f2dfb8;
+  background: #fff8e8;
+  color: var(--color-warning);
+}
+
+.watchlist {
+  width: 100%;
+}
+
+.watchlistMeta:global(.ant-typography) {
+  margin-bottom: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-meta);
+  line-height: var(--line-height-meta);
+}
+
+.watchlistCard :global(.alert-row:first-child) {
+  padding-top: 0;
+}
+
+.watchlistCard :global(.alert-row:last-child) {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.historyCard :global(.ant-card-body) {
+  padding-top: 14px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.modal :global(.ant-modal-body) {
+  padding-top: 8px;
+}

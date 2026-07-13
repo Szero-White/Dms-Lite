@@ -8,8 +8,6 @@ import {
   Avatar,
   Button,
   Dropdown,
-  Space,
-  Tag,
   Typography,
 } from 'antd';
 import {
@@ -117,6 +115,7 @@ export function AppHeader() {
         <Button
           className={styles.iconButton}
           icon={<BellOutlined />}
+          aria-label="Notifications"
           onClick={() => navigate('/notifications')}
         />
 
@@ -144,18 +143,12 @@ export function AppHeader() {
                 {user?.fullName || user?.username}
               </Typography.Text>
 
-              <Space
-                size={6}
+              <Typography.Text
+                type="secondary"
                 className={styles.userMeta}
               >
-                <Typography.Text type="secondary">
-                  {user?.username}
-                </Typography.Text>
-
-                <Tag color="blue">
-                  {user?.roles?.[0] || 'USER'}
-                </Tag>
-              </Space>
+                {user?.roles?.[0] || 'USER'}
+              </Typography.Text>
             </div>
           </button>
         </Dropdown>

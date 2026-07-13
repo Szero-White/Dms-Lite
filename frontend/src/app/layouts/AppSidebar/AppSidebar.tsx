@@ -1,5 +1,4 @@
 import {
-  AlertOutlined,
   AppstoreOutlined,
   AuditOutlined,
   BarChartOutlined,
@@ -8,6 +7,7 @@ import {
   DollarOutlined,
   InboxOutlined,
   ShoppingCartOutlined,
+  ShopOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import { Menu } from 'antd';
@@ -104,7 +104,7 @@ export function AppSidebar() {
     <div className={styles.sidebar}>
       <div className={styles.brand}>
         <div className={styles.brandBadge}>
-          <AlertOutlined />
+          <ShopOutlined />
         </div>
 
         <div>
