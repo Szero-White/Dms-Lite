@@ -1,5 +1,5 @@
 import { apiClient, unwrapResponse } from './apiClient';
-import { DashboardSummary } from '../types';
+import type { DashboardSummary } from '../features/dashboard';
 
 export async function fetchDashboardSummary() {
   return unwrapResponse<{

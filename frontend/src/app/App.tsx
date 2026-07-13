@@ -7,6 +7,8 @@ import { InventoryPage } from '../features/inventory';
 import { NotificationsPage } from '../features/notifications';
 import { PaymentsPage } from '../features/payments';
 import { ProductsPage } from '../features/products';
+import { DashboardPage } from '../features/dashboard';
+import { ReportsPage } from '../features/reports';
 import {
   CreateSalesOrderPage,
   SalesOrdersPage,
@@ -14,8 +16,6 @@ import {
 import { AppLayout } from '../components/layout';
 import { useAuth } from '../hooks/useAuth';
 import { LoginPage } from '../pages/login/LoginPage';
-import { DashboardPage } from '../pages/dashboard/DashboardPage';
-import { ReportsPage } from '../pages/reports/ReportsPage';
 
 function ProtectedRoute() {
   const { isAuthenticated } = useAuth();

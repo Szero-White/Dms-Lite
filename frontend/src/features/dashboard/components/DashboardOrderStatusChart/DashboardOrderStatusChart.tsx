@@ -1,6 +1,9 @@
 import { Pie } from '@ant-design/charts';
-import { Card, Empty } from 'antd';
-import type { SalesOrder } from '../../../../features/sales';
+import {
+  Card,
+  Empty,
+} from 'antd';
+import type { SalesOrder } from '../../../sales';
 import styles from './DashboardOrderStatusChart.module.css';
 
 interface DashboardOrderStatusChartProps {

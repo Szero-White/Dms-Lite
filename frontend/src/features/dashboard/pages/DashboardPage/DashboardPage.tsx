@@ -13,26 +13,20 @@ import {
   Tag,
   Typography,
 } from 'antd';
-
-import { PageHeader } from '../../components/common/PageHeader';
-import { QueryState } from '../../components/common/QueryState';
-import { SummaryCard } from '../../components/common/SummaryCard/SummaryCard';
-import {
-  DashboardOrderStatusChart,
-  DashboardRevenueChart,
-} from './components';
-
-import {
-  useDashboardData,
-} from '../../hooks/useAppQueries';
-import { useSalesOrders } from '../../features/sales';
-
+import { PageHeader } from '../../../../components/common/PageHeader';
+import { QueryState } from '../../../../components/common/QueryState';
+import { SummaryCard } from '../../../../components/common/SummaryCard/SummaryCard';
 import {
   formatCurrency,
   formatNumber,
   toNumber,
-} from '../../lib/format';
-
+} from '../../../../lib/format';
+import { useSalesOrders } from '../../../sales';
+import {
+  DashboardOrderStatusChart,
+  DashboardRevenueChart,
+} from '../../components';
+import { useDashboardData } from '../../hooks/useDashboardQueries';
 import styles from './DashboardPage.module.css';
 
 export function DashboardPage() {

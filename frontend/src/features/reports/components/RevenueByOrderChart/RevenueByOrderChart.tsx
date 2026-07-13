@@ -1,7 +1,10 @@
 import { Column } from '@ant-design/charts';
-import { Card, Empty } from 'antd';
+import {
+  Card,
+  Empty,
+} from 'antd';
 import { toNumber } from '../../../../lib/format';
-import type { SalesOrder } from '../../../../features/sales';
+import type { SalesOrder } from '../../../sales';
 import styles from './RevenueByOrderChart.module.css';
 
 interface RevenueByOrderChartProps {
