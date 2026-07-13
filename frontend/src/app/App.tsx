@@ -15,6 +15,12 @@ function AppShell() {
           borderRadiusSM: 8,
           fontFamily: '"Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
           fontSize: 14,
+          fontSizeSM: 12,
+          fontSizeLG: 16,
+          lineHeight: 1.5715,
+          controlHeight: 36,
+          controlHeightSM: 28,
+          controlHeightLG: 40,
         },
       }}
     >

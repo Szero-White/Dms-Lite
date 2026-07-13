@@ -39,9 +39,9 @@
 
   color: #111827;
 
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.4;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-card-title);
   letter-spacing: -0.01em;
 }
 

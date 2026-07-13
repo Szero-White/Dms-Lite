@@ -75,7 +75,9 @@
     rgba(91, 141, 239, 0.08)
   );
   color: var(--color-primary);
-  font-weight: 700;
+  font-size: var(--font-size-meta);
+  font-weight: var(--font-weight-strong);
+  line-height: var(--line-height-meta);
 }
 
 .listContent {
@@ -87,18 +89,21 @@
 
 .listContent strong {
   color: #1f2937;
-  font-size: 14px;
-  font-weight: 650;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-body);
 }
 
 .listContent :global(.ant-typography-secondary) {
-  font-size: 13px;
+  font-size: var(--font-size-secondary);
+  line-height: var(--line-height-secondary);
 }
 
 .amount {
   color: var(--color-warning);
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-strong);
+  line-height: var(--line-height-body);
 }
 
 .alertGrid {
@@ -165,14 +170,16 @@
 }
 
 .alertContent :global(.ant-typography-secondary) {
-  font-size: 13px;
+  font-size: var(--font-size-secondary);
+  line-height: var(--line-height-secondary);
 }
 
 .alertContent :global(h4.ant-typography) {
   margin-top: 3px !important;
   color: #111827;
-  font-size: 17px;
-  font-weight: 700;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-strong);
+  line-height: var(--line-height-card-title);
   letter-spacing: -0.01em;
 }
 
