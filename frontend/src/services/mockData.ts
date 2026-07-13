@@ -1,14 +1,14 @@
 import {
-  AuditLog,
   DashboardSnapshot,
   DashboardSummary,
   DebtLeader,
   InventoryTransaction,
-  NotificationItem,
   SalesOrder,
   TopSellingProduct,
 } from '../types';
+import { AuditLog } from '../features/audit';
 import { Customer, DebtTransaction } from '../features/customers';
+import { NotificationItem } from '../features/notifications';
 import { ProductRow } from '../features/products';
 import { toNumber } from '../lib/format';
 

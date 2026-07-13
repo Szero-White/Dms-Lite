@@ -15,10 +15,7 @@ import {
 } from '../services/inventoryService';
 import { fetchDashboardSummary, normalizeDashboardSummary } from '../services/reportService';
 import { cancelSalesOrder, confirmSalesOrder, createSalesOrder, fetchSalesOrders } from '../services/salesService';
-import { recordCustomerPayment } from '../services/paymentService';
-import { fetchAuditLogs } from '../services/auditService';
-import { fetchNotifications } from '../services/notificationService';
-import { buildDashboardSnapshot, buildDerivedNotifications, enrichAuditLogs } from '../services/mockData';
+import { buildDashboardSnapshot } from '../services/mockData';
 import {
   CreateSalesOrderPayload,
   ReceiveStockPayload,
@@ -82,78 +79,6 @@ export function useDashboardData() {
   };
 }
 
-export function useAuditLogs() {
-  return useQuery({
-    queryKey: queryKeys.auditLogs,
-    queryFn: async () => {
-      const page = await fetchAuditLogs();
-      return enrichAuditLogs(page.content);
-    },
-  });
-}
-
-export function useNotifications() {
-  const customersQuery = useQuery({
-    queryKey: queryKeys.customers,
-    queryFn: () => fetchCustomersContent(),
-  });
-  const productsQuery = useQuery({
-    queryKey: queryKeys.products,
-    queryFn: fetchProductRows,
-  });
-  const inventoryHistoryQuery = useInventoryHistory();
-  const apiNotificationsQuery = useQuery({
-    queryKey: queryKeys.notifications,
-    queryFn: fetchNotifications,
-  });
-
-  const debtQueries = useQueries({
-    queries: (customersQuery.data ?? []).map((customer) => ({
-      queryKey: queryKeys.customerDebt(customer.id),
-      queryFn: () => fetchCustomerDebtStatement(customer.id),
-      enabled: Boolean(customersQuery.data?.length),
-    })),
-  });
-
-  const debtTransactions = debtQueries.flatMap((query) => query.data ?? []);
-
-  const data = useMemo(() => {
-    if (!customersQuery.data || !productsQuery.data || !inventoryHistoryQuery.data || !apiNotificationsQuery.data) {
-      return undefined;
-    }
-
-    const apiNotifications = apiNotificationsQuery.data.map((item) => ({
-      ...item,
-      source: 'api' as const,
-    }));
-
-    return [...apiNotifications, ...buildDerivedNotifications(customersQuery.data, productsQuery.data, debtTransactions, inventoryHistoryQuery.data)]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [apiNotificationsQuery.data, customersQuery.data, debtTransactions, inventoryHistoryQuery.data, productsQuery.data]);
-
-  return {
-    data,
-    isLoading:
-      customersQuery.isLoading ||
-      productsQuery.isLoading ||
-      inventoryHistoryQuery.isLoading ||
-      apiNotificationsQuery.isLoading ||
-      debtQueries.some((query) => query.isLoading),
-    isError:
-      customersQuery.isError ||
-      productsQuery.isError ||
-      inventoryHistoryQuery.isError ||
-      apiNotificationsQuery.isError ||
-      debtQueries.some((query) => query.isError),
-    error:
-      customersQuery.error ||
-      productsQuery.error ||
-      inventoryHistoryQuery.error ||
-      apiNotificationsQuery.error ||
-      debtQueries.find((query) => query.error)?.error,
-  };
-}
-
 function useMutationFeedback() {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
@@ -207,24 +132,6 @@ export function useCancelSalesOrder() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders }),
         queryClient.invalidateQueries({ queryKey: queryKeys.notifications }),
-      ]);
-    },
-    onError,
-  });
-}
-
-export function useRecordCustomerPayment() {
-  const { queryClient, message, onError } = useMutationFeedback();
-  return useMutation({
-    mutationFn: recordCustomerPayment,
-    onSuccess: async (payment) => {
-      message.success(`Payment of ${toNumber(payment.amount).toLocaleString('en-US')} VND recorded.`);
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.customers }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.notifications }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.auditLogs }),
       ]);
     },
     onError,

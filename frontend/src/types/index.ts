@@ -93,20 +93,6 @@ export interface InventoryTransaction {
   createdAt: string;
 }
 
-export interface RecordPaymentPayload {
-  customerId: number;
-  amount: number;
-  note?: string;
-}
-
-export interface PaymentRecord {
-  id: number;
-  customerId: number;
-  amount: string | number;
-  note?: string;
-  createdAt: string;
-}
-
 export interface DashboardSummary {
   revenueToday: string | number;
   revenueThisMonth: string | number;
@@ -133,24 +119,4 @@ export interface DashboardSnapshot {
   summary: DashboardSummary;
   topCustomersByDebt: DebtLeader[];
   topSellingProducts: TopSellingProduct[];
-}
-
-export interface AuditLog {
-  id: number;
-  actorId?: number;
-  action: string;
-  entityType: string;
-  entityId?: number;
-  newValue?: string;
-  createdAt: string;
-}
-
-export interface NotificationItem {
-  id: number | string;
-  type: string;
-  title: string;
-  message: string;
-  readFlag?: boolean;
-  createdAt: string;
-  source: 'api' | 'derived';
 }

@@ -1,9 +1,10 @@
 import { Card, Select, Space, Table } from 'antd';
 import { useMemo, useState } from 'react';
-import { PageHeader } from '../../components/common/PageHeader';
-import { QueryState } from '../../components/common/QueryState';
-import { useAuditLogs } from '../../hooks/useAppQueries';
-import { formatDateTime } from '../../lib/format';
+import { PageHeader } from '../../../../components/common/PageHeader';
+import { QueryState } from '../../../../components/common/QueryState';
+import { formatDateTime } from '../../../../lib/format';
+import { useAuditLogs } from '../../hooks/useAuditQueries';
+import { AuditLogRow } from '../../types/audit.types';
 
 export function AuditLogsPage() {
   const auditQuery = useAuditLogs();
@@ -41,11 +42,11 @@ export function AuditLogsPage() {
         </Space>
 
         <QueryState isLoading={auditQuery.isLoading} isError={auditQuery.isError} error={auditQuery.error} hasData={dataSource.length > 0}>
-          <Table
+          <Table<AuditLogRow>
             rowKey="id"
             dataSource={dataSource}
             columns={[
-              { title: 'Actor', render: (_, record: any) => record.actorName },
+              { title: 'Actor', render: (_, record) => record.actorName },
               { title: 'Action', dataIndex: 'action' },
               { title: 'Entity', dataIndex: 'entityType' },
               { title: 'Entity ID', dataIndex: 'entityId' },
