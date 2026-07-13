@@ -6,49 +6,47 @@
   overflow: hidden;
 
   border: 1px solid rgba(220, 229, 240, 0.82);
-  border-radius: 20px;
+  border-radius: var(--radius-large);
 
   background: rgba(255, 255, 255, 0.96);
 
-  box-shadow:
-    0 10px 30px rgba(15, 23, 42, 0.055);
+  box-shadow: var(--shadow-card);
 
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
+    transform var(--transition-default),
+    box-shadow var(--transition-default),
+    border-color var(--transition-default);
 }
 
 .panel-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 
   border-color: rgba(31, 111, 235, 0.16);
 
-  box-shadow:
-    0 16px 38px rgba(15, 23, 42, 0.085);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .panel-card .ant-card-head {
-  min-height: 58px;
-  padding: 0 24px;
+  min-height: 52px;
+  padding: 0 var(--spacing-xl);
 
   border-bottom:
     1px solid rgba(230, 236, 245, 0.9);
 }
 
 .panel-card .ant-card-head-title {
-  padding: 16px 0;
+  padding: 14px 0;
 
   color: #111827;
 
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.4;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
 }
 
 .panel-card .ant-card-body {
-  padding: 22px 24px 24px;
+  padding: 20px var(--spacing-xl) var(--spacing-xl);
 }
 
 /* =========================================================
@@ -61,11 +59,11 @@
 }
 
 .compact-panel-card {
-  min-height: 330px;
+  min-height: 300px;
 }
 
 .compact-panel-card .ant-list-item {
-  padding: 16px 0;
+  padding: var(--spacing-md) 0;
 }
 
 .compact-panel-card .ant-empty {

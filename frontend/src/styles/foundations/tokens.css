@@ -1,4 +1,6 @@
 :root {
+  --font-family-base: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
   /* =========================
      Brand colors
      ========================= */
@@ -26,29 +28,39 @@
   --color-page-background: #eef3f9;
   --color-card-background: #ffffff;
   --color-border: #e8eef7;
+  --color-border-strong: #dce6f2;
 
   /* =========================
      Border radius
      ========================= */
-  --radius-small: 10px;
-  --radius-medium: 16px;
-  --radius-large: 24px;
-  --radius-section: 30px;
+  --radius-small: 8px;
+  --radius-medium: 12px;
+  --radius-large: 16px;
+  --radius-section: 16px;
 
   /* =========================
      Shadows
      ========================= */
-  --shadow-card: 0 18px 45px rgba(15, 23, 42, 0.05);
-  --shadow-card-hover: 0 22px 48px rgba(15, 23, 42, 0.12);
+  --shadow-card: 0 10px 28px rgba(15, 23, 42, 0.055);
+  --shadow-card-hover: 0 14px 34px rgba(15, 23, 42, 0.09);
 
   /* =========================
      Spacing
      ========================= */
-  --spacing-xs: 6px;
-  --spacing-sm: 10px;
+  --spacing-2xs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
   --spacing-md: 16px;
-  --spacing-lg: 22px;
-  --spacing-xl: 28px;
+  --spacing-lg: 20px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+
+  /* =========================
+     Layout
+     ========================= */
+  --sidebar-width: 240px;
+  --content-max-width: 1440px;
+  --page-padding-desktop: 24px;
 
   /* =========================
      Transition

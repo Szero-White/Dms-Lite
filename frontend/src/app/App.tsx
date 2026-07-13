@@ -10,8 +10,11 @@ function AppShell() {
         token: {
           colorPrimary: '#1f6feb',
           colorBgLayout: '#f4f7fb',
-          borderRadius: 14,
-          fontFamily: '"Segoe UI", "Helvetica Neue", sans-serif',
+          borderRadius: 8,
+          borderRadiusLG: 12,
+          borderRadiusSM: 8,
+          fontFamily: '"Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+          fontSize: 14,
         },
       }}
     >

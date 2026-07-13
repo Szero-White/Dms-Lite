@@ -42,7 +42,7 @@
 .header {
   height: auto !important;
 
-  padding: 20px 24px !important;
+  padding: 16px var(--page-padding-desktop) 12px !important;
 
   line-height: normal !important;
 
@@ -50,12 +50,12 @@
 }
 
 .content {
-  padding: 8px 24px 32px;
+  padding: 8px var(--page-padding-desktop) 32px;
 }
 
 .page {
   width: 100%;
-  max-width: var(--content-max-width, 1360px);
+  max-width: var(--content-max-width);
 
   margin: 0 auto;
 }
