@@ -1,8 +1,17 @@
 import { App } from 'antd';
-import { PropsWithChildren, createContext, useContext, useMemo, useState } from 'react';
-import { login as loginRequest } from '../services/authService';
-import { AuthUser, LoginPayload } from '../types';
-import { getErrorMessage } from '../lib/format';
+import {
+  PropsWithChildren,
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
+import { getErrorMessage } from '../../../lib/format';
+import { login as loginRequest } from '../api/authService';
+import type {
+  AuthUser,
+  LoginPayload,
+} from '../types/auth.types';
 
 const STORAGE_KEY = 'dms-lite-auth';
 
