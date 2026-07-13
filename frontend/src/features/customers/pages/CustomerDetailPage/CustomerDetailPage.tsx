@@ -27,10 +27,8 @@ import {
   useCustomers,
   useCustomerDebtStatement,
 } from '../../hooks/useCustomerQueries';
-import {
-  useSalesOrders,
-} from '../../../../hooks/useAppQueries';
 import { useRecordCustomerPayment } from '../../../../features/payments';
+import { useSalesOrders } from '../../../../features/sales';
 
 export function CustomerDetailPage() {
   const { customerId } = useParams();

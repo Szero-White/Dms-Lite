@@ -1,5 +1,9 @@
-import { apiClient, unwrapResponse } from './apiClient';
-import { CreateSalesOrderPayload, PageResponse, SalesOrder } from '../types';
+import { apiClient, unwrapResponse } from '../../../services/apiClient';
+import type { PageResponse } from '../../../types';
+import type {
+  CreateSalesOrderPayload,
+  SalesOrder,
+} from '../types/sales.types';
 
 export async function fetchSalesOrders() {
   return unwrapResponse<PageResponse<SalesOrder>>(apiClient.get('/sales-orders'));

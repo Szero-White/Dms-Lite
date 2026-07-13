@@ -7,12 +7,14 @@ import { InventoryPage } from '../features/inventory';
 import { NotificationsPage } from '../features/notifications';
 import { PaymentsPage } from '../features/payments';
 import { ProductsPage } from '../features/products';
+import {
+  CreateSalesOrderPage,
+  SalesOrdersPage,
+} from '../features/sales';
 import { AppLayout } from '../components/layout';
 import { useAuth } from '../hooks/useAuth';
 import { LoginPage } from '../pages/login/LoginPage';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';
-import { SalesOrdersPage } from '../pages/sales/SalesOrdersPage';
-import { CreateSalesOrderPage } from '../pages/sales/CreateSalesOrderPage';
 import { ReportsPage } from '../pages/reports/ReportsPage';
 
 function ProtectedRoute() {

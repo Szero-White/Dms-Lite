@@ -1,6 +1,6 @@
 import { Pie } from '@ant-design/charts';
 import { Card, Empty } from 'antd';
-import type { SalesOrder } from '../../../../types';
+import type { SalesOrder } from '../../../../features/sales';
 import styles from './OrderStatusChart.module.css';
 
 interface OrderStatusChartProps {
