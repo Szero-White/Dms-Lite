@@ -4,9 +4,9 @@ import { QueryState } from '../../components/common/QueryState';
 import { SummaryCard } from '../../components/common/SummaryCard';
 import { useCustomers } from '../../features/customers';
 import { useProducts } from '../../features/products';
+import { useSalesOrders } from '../../features/sales';
 import {
   useDashboardData,
-  useSalesOrders,
 } from '../../hooks/useAppQueries';
 import { formatCurrency, toNumber } from '../../lib/format';
 import {

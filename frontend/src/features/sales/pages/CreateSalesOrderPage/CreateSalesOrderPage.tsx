@@ -1,13 +1,37 @@
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Col, Form, InputNumber, Row, Select, Space, Table, Typography } from 'antd';
-import { useMemo, useState } from 'react';
+import {
+  DeleteOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
+import {
+  Alert,
+  Button,
+  Card,
+  Col,
+  Form,
+  InputNumber,
+  Row,
+  Select,
+  Space,
+  Table,
+  Typography,
+} from 'antd';
+import {
+  useMemo,
+  useState,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageHeader } from '../../components/common/PageHeader';
-import { QueryState } from '../../components/common/QueryState';
-import { useCustomers } from '../../features/customers';
-import { useProducts } from '../../features/products';
-import { useConfirmSalesOrder, useCreateSalesOrder } from '../../hooks/useAppQueries';
-import { formatCurrency, toNumber } from '../../lib/format';
+import { PageHeader } from '../../../../components/common/PageHeader';
+import { QueryState } from '../../../../components/common/QueryState';
+import { useCustomers } from '../../../customers';
+import { useProducts } from '../../../products';
+import {
+  formatCurrency,
+  toNumber,
+} from '../../../../lib/format';
+import {
+  useConfirmSalesOrder,
+  useCreateSalesOrder,
+} from '../../hooks/useSalesQueries';
 
 interface OrderFormValues {
   customerId: number;
@@ -30,22 +54,25 @@ export function CreateSalesOrderPage() {
 
   const watchedItems = Form.useWatch('items', form) || [];
   const paidAmount = Form.useWatch('paidAmount', form) || 0;
-  const subtotal = useMemo(
-    () =>
-      watchedItems.reduce((sum, item) => {
-        const product = productsQuery.data?.find((candidate) => candidate.id === item?.productId);
-        if (!product) {
-          return sum;
-        }
 
-        return sum + toNumber(product.sellingPrice) * Number(item.quantity || 0);
-      }, 0),
+  const subtotal = useMemo(
+    () => watchedItems.reduce((sum, item) => {
+      const product = productsQuery.data?.find((candidate) => candidate.id === item?.productId);
+
+      if (!product) {
+        return sum;
+      }
+
+      return sum + toNumber(product.sellingPrice) * Number(item.quantity || 0);
+    }, 0),
     [productsQuery.data, watchedItems],
   );
+
   const discountTotal = useMemo(
     () => watchedItems.reduce((sum, item) => sum + Number(item?.discountAmount || 0), 0),
     [watchedItems],
   );
+
   const orderTotal = subtotal - discountTotal;
   const debtAmount = Math.max(orderTotal - Number(paidAmount || 0), 0);
 
@@ -57,14 +84,22 @@ export function CreateSalesOrderPage() {
         breadcrumb={['Sales Orders', 'Create']}
       />
 
-      <QueryState isLoading={customersQuery.isLoading || productsQuery.isLoading} isError={customersQuery.isError || productsQuery.isError} error={customersQuery.error || productsQuery.error} hasData={Boolean(customersQuery.data?.length && productsQuery.data?.length)}>
+      <QueryState
+        isLoading={customersQuery.isLoading || productsQuery.isLoading}
+        isError={customersQuery.isError || productsQuery.isError}
+        error={customersQuery.error || productsQuery.error}
+        hasData={Boolean(customersQuery.data?.length && productsQuery.data?.length)}
+      >
         <Row gutter={[16, 16]}>
           <Col xs={24} xl={16}>
             <Card className="panel-card">
               <Form
                 form={form}
                 layout="vertical"
-                initialValues={{ items: [{ quantity: 1, discountAmount: 0 }], paidAmount: 0 }}
+                initialValues={{
+                  items: [{ quantity: 1, discountAmount: 0 }],
+                  paidAmount: 0,
+                }}
                 onFinish={async (values) => {
                   const order = await createOrder.mutateAsync({
                     customerId: values.customerId,
@@ -76,15 +111,20 @@ export function CreateSalesOrderPage() {
                       discountAmount: Number(item.discountAmount || 0),
                     })),
                   });
+
                   setCreatedOrderId(order.id);
                 }}
               >
-                <Form.Item name="customerId" label="Customer" rules={[{ required: true }]}>
+                <Form.Item
+                  name="customerId"
+                  label="Customer"
+                  rules={[{ required: true }]}
+                >
                   <Select
                     placeholder="Select customer"
                     options={(customersQuery.data ?? []).map((customer) => ({
                       value: customer.id,
-                      label: `${customer.name} • Debt ${formatCurrency(customer.debtBalance)}`,
+                      label: `${customer.name} \u2022 Debt ${formatCurrency(customer.debtBalance)}`,
                     }))}
                   />
                 </Form.Item>
@@ -96,28 +136,47 @@ export function CreateSalesOrderPage() {
                         <Card key={field.key} size="small" className="line-item-card">
                           <Row gutter={12}>
                             <Col xs={24} md={10}>
-                              <Form.Item {...field} name={[field.name, 'productId']} label="Product" rules={[{ required: true }]}>
+                              <Form.Item
+                                {...field}
+                                name={[field.name, 'productId']}
+                                label="Product"
+                                rules={[{ required: true }]}
+                              >
                                 <Select
                                   placeholder="Choose product"
                                   options={(productsQuery.data ?? []).map((product) => ({
                                     value: product.id,
-                                    label: `${product.name} • ${formatCurrency(product.sellingPrice)} • Stock ${product.stock}`,
+                                    label: `${product.name} \u2022 ${formatCurrency(product.sellingPrice)} \u2022 Stock ${product.stock}`,
                                   }))}
                                 />
                               </Form.Item>
                             </Col>
                             <Col xs={12} md={4}>
-                              <Form.Item {...field} name={[field.name, 'quantity']} label="Qty" rules={[{ required: true }]}>
+                              <Form.Item
+                                {...field}
+                                name={[field.name, 'quantity']}
+                                label="Qty"
+                                rules={[{ required: true }]}
+                              >
                                 <InputNumber style={{ width: '100%' }} min={1} />
                               </Form.Item>
                             </Col>
                             <Col xs={12} md={6}>
-                              <Form.Item {...field} name={[field.name, 'discountAmount']} label="Discount">
+                              <Form.Item
+                                {...field}
+                                name={[field.name, 'discountAmount']}
+                                label="Discount"
+                              >
                                 <InputNumber style={{ width: '100%' }} min={0} />
                               </Form.Item>
                             </Col>
                             <Col xs={24} md={4} style={{ display: 'flex', alignItems: 'end' }}>
-                              <Button danger icon={<DeleteOutlined />} onClick={() => remove(field.name)} disabled={fields.length === 1}>
+                              <Button
+                                danger
+                                icon={<DeleteOutlined />}
+                                onClick={() => remove(field.name)}
+                                disabled={fields.length === 1}
+                              >
                                 Remove
                               </Button>
                             </Col>
@@ -148,10 +207,24 @@ export function CreateSalesOrderPage() {
           <Col xs={24} xl={8}>
             <Card className="panel-card" title="Order Summary">
               <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                <div className="flex-between"><Typography.Text>Subtotal</Typography.Text><Typography.Text strong>{formatCurrency(subtotal)}</Typography.Text></div>
-                <div className="flex-between"><Typography.Text>Discount</Typography.Text><Typography.Text strong>{formatCurrency(discountTotal)}</Typography.Text></div>
-                <div className="flex-between"><Typography.Text>Paid Amount</Typography.Text><Typography.Text strong>{formatCurrency(paidAmount)}</Typography.Text></div>
-                <div className="flex-between"><Typography.Text>Debt Amount</Typography.Text><Typography.Text strong style={{ color: debtAmount > 0 ? '#cf1322' : undefined }}>{formatCurrency(debtAmount)}</Typography.Text></div>
+                <div className="flex-between">
+                  <Typography.Text>Subtotal</Typography.Text>
+                  <Typography.Text strong>{formatCurrency(subtotal)}</Typography.Text>
+                </div>
+                <div className="flex-between">
+                  <Typography.Text>Discount</Typography.Text>
+                  <Typography.Text strong>{formatCurrency(discountTotal)}</Typography.Text>
+                </div>
+                <div className="flex-between">
+                  <Typography.Text>Paid Amount</Typography.Text>
+                  <Typography.Text strong>{formatCurrency(paidAmount)}</Typography.Text>
+                </div>
+                <div className="flex-between">
+                  <Typography.Text>Debt Amount</Typography.Text>
+                  <Typography.Text strong style={{ color: debtAmount > 0 ? '#cf1322' : undefined }}>
+                    {formatCurrency(debtAmount)}
+                  </Typography.Text>
+                </div>
               </Space>
             </Card>
 
@@ -160,14 +233,18 @@ export function CreateSalesOrderPage() {
                 type="success"
                 showIcon
                 message={`Order #${createdOrderId} created successfully`}
-                description={
+                description={(
                   <Space direction="vertical">
-                    <Button type="primary" loading={confirmOrder.isPending} onClick={() => confirmOrder.mutate(createdOrderId)}>
+                    <Button
+                      type="primary"
+                      loading={confirmOrder.isPending}
+                      onClick={() => confirmOrder.mutate(createdOrderId)}
+                    >
                       Confirm Order Now
                     </Button>
                     <Button onClick={() => navigate('/sales-orders')}>Back to Orders</Button>
                   </Space>
-                }
+                )}
               />
             ) : null}
 
@@ -180,14 +257,21 @@ export function CreateSalesOrderPage() {
                 columns={[
                   {
                     title: 'Product',
-                    render: (_, record) => productsQuery.data?.find((product) => product.id === record.productId)?.name || '--',
+                    render: (_, record) => (
+                      productsQuery.data?.find((product) => product.id === record.productId)?.name || '--'
+                    ),
                   },
                   { title: 'Qty', dataIndex: 'quantity' },
                   {
                     title: 'Line Total',
                     render: (_, record) => {
-                      const product = productsQuery.data?.find((candidate) => candidate.id === record.productId);
-                      const total = toNumber(product?.sellingPrice) * Number(record.quantity || 0) - Number(record.discountAmount || 0);
+                      const product = productsQuery.data?.find(
+                        (candidate) => candidate.id === record.productId,
+                      );
+                      const total =
+                        toNumber(product?.sellingPrice) * Number(record.quantity || 0) -
+                        Number(record.discountAmount || 0);
+
                       return formatCurrency(total);
                     },
                   },

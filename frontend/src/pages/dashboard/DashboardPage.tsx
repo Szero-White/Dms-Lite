@@ -24,8 +24,8 @@ import {
 
 import {
   useDashboardData,
-  useSalesOrders,
 } from '../../hooks/useAppQueries';
+import { useSalesOrders } from '../../features/sales';
 
 import {
   formatCurrency,

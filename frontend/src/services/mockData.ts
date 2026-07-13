@@ -2,7 +2,6 @@ import {
   DashboardSnapshot,
   DashboardSummary,
   DebtLeader,
-  SalesOrder,
   TopSellingProduct,
 } from '../types';
 import { AuditLog } from '../features/audit';
@@ -10,6 +9,7 @@ import { Customer, DebtTransaction } from '../features/customers';
 import { InventoryTransaction } from '../features/inventory';
 import { NotificationItem } from '../features/notifications';
 import { ProductRow } from '../features/products';
+import { SalesOrder } from '../features/sales';
 import { toNumber } from '../lib/format';
 
 // Mock data only covers frontend demo gaps where backend APIs are not available yet.
