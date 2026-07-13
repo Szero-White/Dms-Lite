@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
 import { QueryState } from '../../components/common/QueryState';
 import { SalesOrderStatusTag } from '../../components/common/StatusTag';
-import { useCancelSalesOrder, useConfirmSalesOrder, useCustomers, useSalesOrders } from '../../hooks/useAppQueries';
+import { useCustomers } from '../../features/customers';
+import { useCancelSalesOrder, useConfirmSalesOrder, useSalesOrders } from '../../hooks/useAppQueries';
 import { formatCurrency, formatDateTime } from '../../lib/format';
 
 export function SalesOrdersPage() {

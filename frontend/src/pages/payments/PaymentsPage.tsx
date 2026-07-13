@@ -1,7 +1,8 @@
 import { Button, Card, Col, Form, Input, InputNumber, Row, Select, Space, Table, Typography } from 'antd';
 import { PageHeader } from '../../components/common/PageHeader';
 import { QueryState } from '../../components/common/QueryState';
-import { useCustomers, useRecordCustomerPayment } from '../../hooks/useAppQueries';
+import { useCustomers } from '../../features/customers';
+import { useRecordCustomerPayment } from '../../hooks/useAppQueries';
 import { formatCurrency } from '../../lib/format';
 
 export function PaymentsPage() {
