@@ -9,29 +9,86 @@
 .ant-card,
 .ant-statistic {
   font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
 }
 
 .ant-typography {
   color: #1f2937;
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
 }
 
 .ant-typography-secondary {
   color: #7b8ba1 !important;
+  font-size: var(--font-size-secondary);
+  line-height: var(--line-height-secondary);
 }
 
 .ant-table-thead > tr > th {
   background: #f5f8fc !important;
   color: #5d6b82 !important;
-  font-size: 12px;
-  font-weight: 700 !important;
+  font-size: var(--font-size-meta);
+  font-weight: var(--font-weight-heading) !important;
+  line-height: var(--line-height-meta);
   letter-spacing: 0.03em;
   text-transform: uppercase;
+}
+
+.ant-table-tbody > tr > td {
+  padding-block: 12px !important;
+  color: #172033;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-body);
 }
 
 .ant-table-tbody > tr:hover > td {
   background: #eef5ff !important;
 }
 
+.ant-form-item-label > label {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-label);
+  line-height: var(--line-height-body);
+}
+
+.ant-input,
+.ant-input-number,
+.ant-input-number-input,
+.ant-select,
+.ant-select-selection-item,
+.ant-select-selection-placeholder,
+.ant-picker,
+.ant-picker-input > input,
+.ant-input::placeholder,
+.ant-input-number-input::placeholder {
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+}
+
+.ant-btn {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-label);
+}
+
+.ant-form-item-explain,
+.ant-form-item-extra {
+  font-size: var(--font-size-meta);
+  line-height: var(--line-height-meta);
+}
+
+.ant-tag {
+  font-size: var(--font-size-meta);
+  line-height: var(--line-height-meta);
+}
+
+.ant-pagination {
+  font-size: var(--font-size-body);
+}
+
 .g2-tooltip {
   font-family: var(--font-family-base) !important;
+  font-size: var(--font-size-secondary) !important;
+  line-height: var(--line-height-secondary) !important;
 }

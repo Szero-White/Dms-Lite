@@ -19,16 +19,16 @@
 .title:global(.ant-typography) {
   margin: 0 0 6px !important;
 
-  font-size: 30px !important;
-  font-weight: 750 !important;
-  line-height: 1.15 !important;
+  font-size: var(--font-size-page-title) !important;
+  font-weight: var(--font-weight-strong) !important;
+  line-height: var(--line-height-page-title) !important;
   letter-spacing: -0.02em;
 }
 
 .subtitle:global(.ant-typography) {
   margin-bottom: 0;
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
 }
 
 .extra {

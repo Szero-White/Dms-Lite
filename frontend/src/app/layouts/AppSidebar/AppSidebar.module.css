@@ -25,13 +25,15 @@
 
 .brandTitle {
   color: #0f172a;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: var(--font-weight-strong);
+  line-height: var(--line-height-card-title);
 }
 
 .brandSubtitle {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--font-size-meta);
+  line-height: var(--line-height-meta);
 }
 
 .sidebar :global(.ant-menu) {
@@ -45,6 +47,6 @@
   margin-inline: 0;
   margin-block: 4px;
   border-radius: var(--radius-medium);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-label);
 }

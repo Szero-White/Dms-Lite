@@ -2,6 +2,28 @@
   --font-family-base: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* =========================
+     Typography
+     ========================= */
+  --font-size-meta: 12px;
+  --font-size-secondary: 13px;
+  --font-size-body: 14px;
+  --font-size-card-title: 16px;
+  --font-size-section-title: 20px;
+  --font-size-page-title: 28px;
+
+  --line-height-meta: 18px;
+  --line-height-secondary: 20px;
+  --line-height-body: 22px;
+  --line-height-card-title: 24px;
+  --line-height-section-title: 28px;
+  --line-height-page-title: 36px;
+
+  --font-weight-body: 400;
+  --font-weight-label: 500;
+  --font-weight-heading: 600;
+  --font-weight-strong: 700;
+
+  /* =========================
      Brand colors
      ========================= */
   --color-primary: #1f6feb;
