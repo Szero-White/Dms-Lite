@@ -1,0 +1,10 @@
+.card {
+  min-height: 428px;
+}
+
+.empty {
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

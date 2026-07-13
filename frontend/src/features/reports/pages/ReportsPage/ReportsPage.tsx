@@ -1,19 +1,26 @@
-import { Card, Empty, Space, Table, Typography } from 'antd';
-import { PageHeader } from '../../components/common/PageHeader';
-import { QueryState } from '../../components/common/QueryState';
-import { SummaryCard } from '../../components/common/SummaryCard';
-import { useCustomers } from '../../features/customers';
-import { useProducts } from '../../features/products';
-import { useSalesOrders } from '../../features/sales';
 import {
-  useDashboardData,
-} from '../../hooks/useAppQueries';
-import { formatCurrency, toNumber } from '../../lib/format';
+  Card,
+  Empty,
+  Space,
+  Table,
+  Typography,
+} from 'antd';
+import { PageHeader } from '../../../../components/common/PageHeader';
+import { QueryState } from '../../../../components/common/QueryState';
+import { SummaryCard } from '../../../../components/common/SummaryCard';
+import { useCustomers } from '../../../customers';
+import { useDashboardData } from '../../../dashboard';
+import { useProducts } from '../../../products';
+import { useSalesOrders } from '../../../sales';
+import {
+  formatCurrency,
+  toNumber,
+} from '../../../../lib/format';
 import {
   InventoryStockChart,
   OrderStatusChart,
   RevenueByOrderChart,
-} from './components';
+} from '../../components';
 import styles from './ReportsPage.module.css';
 
 export function ReportsPage() {

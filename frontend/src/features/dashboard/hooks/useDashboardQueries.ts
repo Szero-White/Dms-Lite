@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
+import { fetchCustomersContent } from '../../customers';
+import { fetchProductRows } from '../../products';
+import { fetchSalesOrders } from '../../sales';
+import { queryKeys } from '../../../lib/queryKeys';
 import {
-  fetchCustomersContent,
-} from '../features/customers';
-import { fetchProductRows } from '../features/products';
-import { fetchSalesOrders } from '../features/sales';
-import { queryKeys } from '../lib/queryKeys';
-import { fetchDashboardSummary, normalizeDashboardSummary } from '../services/reportService';
-import { buildDashboardSnapshot } from '../services/mockData';
+  fetchDashboardSummary,
+  normalizeDashboardSummary,
+} from '../../../services/reportService';
+import { buildDashboardSnapshot } from '../../../services/mockData';
 
 export function useDashboardData() {
   const results = useQueries({
@@ -15,7 +16,10 @@ export function useDashboardData() {
       { queryKey: queryKeys.dashboard, queryFn: fetchDashboardSummary },
       { queryKey: queryKeys.customers, queryFn: () => fetchCustomersContent() },
       { queryKey: queryKeys.products, queryFn: fetchProductRows },
-      { queryKey: queryKeys.salesOrders, queryFn: async () => (await fetchSalesOrders()).content },
+      {
+        queryKey: queryKeys.salesOrders,
+        queryFn: async () => (await fetchSalesOrders()).content,
+      },
     ],
   });
 

@@ -3,7 +3,7 @@ import {
   DashboardSummary,
   DebtLeader,
   TopSellingProduct,
-} from '../types';
+} from '../features/dashboard';
 import { AuditLog } from '../features/audit';
 import { Customer, DebtTransaction } from '../features/customers';
 import { InventoryTransaction } from '../features/inventory';
