@@ -1,9 +1,4 @@
-export {
-  cancelSalesOrder,
-  confirmSalesOrder,
-  createSalesOrder,
-  fetchSalesOrders,
-} from './api/salesService';
+export { fetchSalesOrders } from './api/salesService';
 export {
   useCancelSalesOrder,
   useConfirmSalesOrder,

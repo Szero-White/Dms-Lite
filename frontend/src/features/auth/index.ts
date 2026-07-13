@@ -1,4 +1,3 @@
-export { login } from './api/authService';
 export {
   AuthProvider,
   useAuth,
