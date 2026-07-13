@@ -11,9 +11,11 @@ The goal is to keep each business domain owned in one place, reduce cross-domain
 ```text
 frontend/src/
 ├── app/
+│   ├── layouts/
+│   ├── providers/
+│   └── router/
 ├── components/
-│   ├── common/
-│   └── layout/
+│   └── common/
 ├── features/
 │   ├── auth/
 │   ├── products/
@@ -80,7 +82,8 @@ The naming may differ slightly where frontend routes use plural form, but owners
 
 - Code that belongs to only one feature must live inside that feature.
 - Truly shared UI components belong in `src/components/common`.
-- Application shell and navigation components belong in `src/components/layout`.
+- Application shell, navigation, route guards, and provider composition belong in `src/app`.
+- App-level layouts belong in `src/app/layouts`.
 - Shared utilities such as `apiClient`, formatters, and reusable helpers belong in `src/lib`.
 - CSS Modules must sit next to the component that owns them.
 - Global CSS must stay inside `src/styles`.
@@ -123,6 +126,7 @@ The naming may differ slightly where frontend routes use plural form, but owners
 - `types/index.ts` acting as one global dumping ground for all domains.
 - One feature split across `pages`, `hooks`, `services`, and `types` at app root with no clear ownership.
 - Shared folders containing components used by only one page.
+- Keeping legacy app shell code in `src/components/layout` after it has moved to `src/app/layouts`.
 - Creating empty folders for appearance only.
 - Creating abstractions only to make structure look more advanced.
 - Over-engineering architecture before the code needs it.
