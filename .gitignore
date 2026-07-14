@@ -1,10 +1,14 @@
 # Node dependencies / build / cache
 frontend/node_modules/
 frontend/dist/
-frontend/.vite/
-frontend/.cache/
+frontend/.vite
+frontend/.cache
+frontend/coverage
 node_modules/
 dist/
+coverage/
+.vite/
+.cache/
 *.tsbuildinfo
 
 # Java / Maven build output
@@ -17,7 +21,8 @@ target/
 
 # IDE / editor
 .idea/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 *.iml
 
 # OS files
@@ -30,6 +35,24 @@ desktop.ini
 logs/
 *.tmp
 *.temp
+*.pid
+*.hprof
+hs_err_pid*
+replay_pid*
+*.bak
+*.backup
+*.orig
+*~
+.runtime-*
+runtime-auth.html
+browser-test-*
+screenshots/
+*.screenshot.png
+*.tmp.zip
+*-backup.zip
+*.dump
+*.sql.gz
+*.sql.bak
 
 # Secrets / env
 .env
