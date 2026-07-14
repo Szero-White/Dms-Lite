@@ -203,7 +203,7 @@ The project models business operations through dedicated tables and flows instea
 
 ## Local Development
 
-Detailed step-by-step notes are also available in [RUN_LOCAL.md](/D:/Study/Java/B2B Sales, Inventory And Receivable Management SaaS/RUN_LOCAL.md).
+Detailed step-by-step notes are also available in [RUN_LOCAL.md](RUN_LOCAL.md).
 
 ### Prerequisites
 

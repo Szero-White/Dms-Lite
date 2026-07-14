@@ -1,0 +1,20 @@
+{
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/target": true,
+    "**/.vite": true,
+    "**/.cache": true,
+    "**/coverage": true,
+    "**/*.tsbuildinfo": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/target": true,
+    "**/.vite": true,
+    "**/.cache": true,
+    "**/coverage": true,
+    "**/*.tsbuildinfo": true
+  }
+}
