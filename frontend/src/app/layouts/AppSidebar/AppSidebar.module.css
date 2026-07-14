@@ -1,31 +1,42 @@
 .sidebar {
-  padding: 14px 10px 20px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 10px 12px;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 8px;
+  min-height: 54px;
+  margin-bottom: 6px;
   padding: 0 8px 14px;
   border-bottom: 1px solid var(--color-border);
 }
 
 .brandBadge {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--color-primary);
   color: #fff;
   font-size: 15px;
   box-shadow: none;
 }
 
+.brandCopy {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: opacity var(--transition-default), width var(--transition-default);
+}
+
 .brandTitle {
   color: var(--color-text-primary);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: var(--font-weight-heading);
   line-height: var(--line-height-body);
 }
@@ -37,6 +48,8 @@
 }
 
 .sidebar :global(.ant-menu) {
+  flex: 1;
+  overflow-y: auto;
   border-inline-end: none !important;
   background: transparent;
 }
@@ -59,6 +72,7 @@
 }
 
 .sidebar :global(.ant-menu-item) {
+  position: relative;
   height: 38px;
   line-height: 38px;
   margin-inline: 0;
@@ -79,4 +93,119 @@
 .sidebar :global(.ant-menu-item-selected) {
   background: var(--color-primary-light) !important;
   color: var(--color-primary) !important;
+}
+
+.sidebar :global(.ant-menu-item-selected::before) {
+  position: absolute;
+  top: 9px;
+  left: 0;
+  width: 3px;
+  height: 20px;
+  border-radius: 0 4px 4px 0;
+  background: var(--color-primary);
+  content: '';
+}
+
+.sidebarFooter {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.userSummary {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+}
+
+.userCopy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.userCopy span {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-secondary);
+  font-weight: var(--font-weight-label);
+  line-height: var(--line-height-secondary);
+  text-overflow: ellipsis;
+}
+
+.userCopy small {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+}
+
+.collapseButton {
+  width: 100%;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-card-background);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-secondary);
+  transition: border-color var(--transition-default), color var(--transition-default),
+    background var(--transition-default);
+}
+
+.collapseButton:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-muted);
+  color: var(--color-primary);
+}
+
+.collapsed {
+  padding-inline: 8px;
+}
+
+.collapsed .brand {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.collapsed .brandCopy,
+.collapsed .userCopy,
+.collapsed .collapseButton span {
+  display: none;
+}
+
+.collapsed .userSummary {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.collapsed :global(.ant-menu-item-group-title) {
+  height: 8px;
+  overflow: hidden;
+  padding: 0;
+  color: transparent;
+  font-size: 0;
+}
+
+.collapsed :global(.ant-menu-inline-collapsed) {
+  width: 100%;
+}
+
+.collapsed :global(.ant-menu-inline-collapsed > .ant-menu-item) {
+  width: 40px;
+  margin-inline: auto;
+  padding-inline: calc(50% - 8px) !important;
 }

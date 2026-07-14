@@ -2,6 +2,13 @@
   width: 100%;
 }
 
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
 .tableCard :global(.ant-card-body) {
   padding-top: 16px;
 }
@@ -9,9 +16,18 @@
 .toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 8px;
   margin-bottom: 16px;
+}
+
+.filterControls {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .search {
@@ -20,6 +36,65 @@
 
 .filter {
   width: 180px;
+}
+
+.sort {
+  width: 200px;
+}
+
+.productCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.productCell :global(.ant-avatar) {
+  flex: 0 0 auto;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: var(--font-weight-heading);
+}
+
+.productCell > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sku {
+  color: var(--color-text-secondary);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: var(--font-size-secondary);
+}
+
+.money {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.stockCell {
+  min-width: 120px;
+}
+
+.stockCell > div {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stockCell span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-meta);
+}
+
+.lowStockRow > :global(.ant-table-cell) {
+  background: #fffbf2;
+}
+
+.lowStockRow:hover > :global(.ant-table-cell) {
+  background: #fff8e8 !important;
 }
 
 .tableCard :global(.ant-typography-secondary) {
@@ -32,9 +107,28 @@
   padding-inline: 6px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 1200px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .toolbar {
+    flex-direction: column;
+  }
+
+  .filterControls,
   .search,
-  .filter {
+  .filter,
+  .sort,
+  .toolbar > :global(.ant-btn) {
     width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
   }
 }

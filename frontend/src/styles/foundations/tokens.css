@@ -10,7 +10,7 @@
   --text-md: 15px;
   --text-lg: 20px;
   --text-xl: 24px;
-  --text-2xl: 24px;
+  --text-2xl: 28px;
 
   --leading-xs: 18px;
   --leading-sm: 20px;
@@ -18,7 +18,7 @@
   --leading-md: 22px;
   --leading-lg: 28px;
   --leading-xl: 32px;
-  --leading-2xl: 32px;
+  --leading-2xl: 36px;
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;
@@ -47,14 +47,14 @@
   /* =========================
      Brand colors
      ========================= */
-  --color-primary: #4f6bed;
-  --color-primary-hover: #4058c7;
-  --color-primary-light: #eef1ff;
+  --color-primary: #3156d3;
+  --color-primary-hover: #2848b8;
+  --color-primary-light: #eef2ff;
 
   /* =========================
      Text colors
      ========================= */
-  --color-text-primary: #20293a;
+  --color-text-primary: #172033;
   --color-text-secondary: #667085;
   --color-text-muted: #98a2b3;
 
@@ -69,8 +69,9 @@
   /* =========================
      Background colors
      ========================= */
-  --color-page-background: #f4f6fa;
+  --color-page-background: #f5f7fb;
   --color-card-background: #ffffff;
+  --color-surface-muted: #f8faff;
   --color-border: #e7eaf0;
   --color-border-strong: #dde2ea;
 
@@ -79,14 +80,14 @@
      ========================= */
   --radius-small: 8px;
   --radius-medium: 10px;
-  --radius-large: 12px;
-  --radius-section: 12px;
+  --radius-large: 14px;
+  --radius-section: 14px;
 
   /* =========================
      Shadows
      ========================= */
-  --shadow-card: 0 4px 16px rgba(15, 23, 42, 0.035);
-  --shadow-card-hover: 0 6px 18px rgba(15, 23, 42, 0.05);
+  --shadow-card: 0 5px 18px rgba(30, 41, 59, 0.045);
+  --shadow-card-hover: 0 8px 24px rgba(30, 41, 59, 0.065);
 
   /* =========================
      Spacing
@@ -102,8 +103,10 @@
   /* =========================
      Layout
      ========================= */
-  --sidebar-width: 224px;
-  --content-max-width: 1440px;
+  --sidebar-width: 232px;
+  --sidebar-collapsed-width: 72px;
+  --header-height: 64px;
+  --content-max-width: 1520px;
   --page-padding-desktop: 24px;
 
   /* =========================

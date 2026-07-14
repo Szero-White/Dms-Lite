@@ -3,30 +3,31 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-md);
-  min-height: 59px;
+  min-height: calc(var(--header-height) - 1px);
   padding: 0;
   background: transparent;
 }
 
-.brandInfo {
+.headerStart {
   min-width: 0;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--spacing-sm);
 }
 
-.title {
-  margin: 0 !important;
-  color: var(--color-text-primary) !important;
-  font-size: 15px !important;
-  font-weight: var(--font-weight-heading) !important;
-  line-height: var(--line-height-card-title) !important;
+.search {
+  width: min(360px, 100%);
 }
 
-.eyebrow {
-  color: var(--color-text-muted) !important;
-  font-size: 11px;
-  font-weight: var(--font-weight-label);
-  line-height: 16px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.search :global(.ant-input-affix-wrapper) {
+  background: var(--color-surface-muted);
+}
+
+.menuButton {
+  display: none;
+  width: 38px;
+  padding-inline: 0;
 }
 
 .actions {
@@ -53,9 +54,14 @@
 }
 
 .iconButton {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   padding-inline: 0;
+}
+
+.avatar {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
 .userButton {
@@ -82,11 +88,29 @@
     min-height: 55px;
   }
 
+  .menuButton {
+    display: inline-flex;
+  }
+
+  .search {
+    width: min(240px, 100%);
+  }
+
   .userMeta {
     display: none;
   }
 
   .actions :global(.ant-btn-primary) {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .search {
+    display: none;
+  }
+
+  .user {
     display: none;
   }
 }

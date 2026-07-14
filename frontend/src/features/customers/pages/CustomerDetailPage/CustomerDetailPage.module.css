@@ -4,7 +4,7 @@
 
 .contentStack {
   display: grid;
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
 }
 
 .headerActions {
@@ -21,6 +21,104 @@
   font-weight: var(--font-weight-heading);
 }
 
+.profileCard :global(.ant-card-body) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-lg);
+}
+
+.profileMain {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.profileAvatar {
+  flex: 0 0 auto;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 20px;
+  font-weight: var(--font-weight-heading);
+}
+
+.profileCopy,
+.profileCopy :global(.ant-typography) {
+  min-width: 0;
+}
+
+.profileTitleRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-bottom: 6px;
+}
+
+.profileTitleRow :global(.ant-typography) {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+}
+
+.profileMeta {
+  color: var(--color-text-secondary);
+}
+
+.profileMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.creditPanel {
+  width: min(360px, 100%);
+  flex: 0 0 auto;
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-muted);
+}
+
+.creditPanel > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: 4px;
+}
+
+.creditPanel > :global(.ant-typography) {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--font-size-meta);
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-md);
+}
+
+.increaseTag:global(.ant-tag),
+.decreaseTag:global(.ant-tag) {
+  margin: 0;
+  border: 0;
+  font-weight: var(--font-weight-label);
+}
+
+.increaseTag:global(.ant-tag) {
+  background: #fff1f0;
+  color: var(--color-danger);
+}
+
+.decreaseTag:global(.ant-tag) {
+  background: #edf9f3;
+  color: var(--color-success);
+}
+
 .fullWidth {
   width: 100%;
 }
@@ -32,5 +130,34 @@
 @media (max-width: 992px) {
   .headerActions {
     justify-content: flex-start;
+  }
+
+  .profileCard :global(.ant-card-body) {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .creditPanel {
+    width: 100%;
+  }
+
+  .metricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .profileMain {
+    align-items: flex-start;
+  }
+
+  .profileAvatar {
+    width: 48px !important;
+    height: 48px !important;
+    line-height: 48px !important;
+  }
+
+  .metricsGrid {
+    grid-template-columns: 1fr;
   }
 }

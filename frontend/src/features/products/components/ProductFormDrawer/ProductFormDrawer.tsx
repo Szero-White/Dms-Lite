@@ -1,4 +1,4 @@
-import { Button, Drawer, Form, Input, InputNumber } from 'antd';
+import { Button, Drawer, Form, Input, InputNumber, Typography } from 'antd';
 import { ProductFormValues, ProductRow } from '../../types/product.types';
 import styles from './ProductFormDrawer.module.css';
 
@@ -62,6 +62,10 @@ export function ProductFormDrawer({
       }
     >
       <Form form={form} layout="vertical" onFinish={onSubmit}>
+        <div className={styles.sectionHeading}>
+          <Typography.Text strong>Product Identity</Typography.Text>
+          <Typography.Text type="secondary">Catalog code and customer-facing information</Typography.Text>
+        </div>
         <Form.Item
           label="SKU"
           name="sku"
@@ -79,20 +83,29 @@ export function ProductFormDrawer({
         <Form.Item label="Barcode" name="barcode">
           <Input placeholder="Optional barcode" />
         </Form.Item>
-        <Form.Item label="Cost Price" name="costPrice" rules={[{ required: true }]}>
+
+        <div className={styles.sectionHeading}>
+          <Typography.Text strong>Pricing & Stock Policy</Typography.Text>
+          <Typography.Text type="secondary">Commercial value and replenishment threshold</Typography.Text>
+        </div>
+        <Form.Item
+          label="Cost Price"
+          name="costPrice"
+          rules={[{ required: true, message: 'Cost price is required' }]}
+        >
           <InputNumber className={styles.fullWidth} min={0} />
         </Form.Item>
         <Form.Item
           label="Selling Price"
           name="sellingPrice"
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: 'Selling price is required' }]}
         >
           <InputNumber className={styles.fullWidth} min={0} />
         </Form.Item>
         <Form.Item
           label="Minimum Stock"
           name="minStock"
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: 'Minimum stock is required' }]}
         >
           <InputNumber className={styles.fullWidth} min={0} />
         </Form.Item>

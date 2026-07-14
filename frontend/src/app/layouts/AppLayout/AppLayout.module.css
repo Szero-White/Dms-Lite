@@ -29,6 +29,9 @@
   border-right: 1px solid var(--color-border);
 
   background: var(--color-card-background) !important;
+
+  transition: width var(--transition-default), min-width var(--transition-default),
+    max-width var(--transition-default), flex-basis var(--transition-default) !important;
 }
 
 .main {
@@ -39,11 +42,12 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  height: 60px !important;
+  height: var(--header-height) !important;
   padding: 0 var(--page-padding-desktop) !important;
   border-bottom: 1px solid var(--color-border);
   line-height: normal !important;
-  background: rgba(255, 255, 255, 0.98) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(12px);
 }
 
 .content {
@@ -55,6 +59,15 @@
   max-width: var(--content-max-width);
 
   margin: 0 auto;
+}
+
+.mobileDrawer :global(.ant-drawer-content-wrapper) {
+  max-width: calc(100vw - 32px);
+}
+
+.mobileDrawer :global(.ant-drawer-body) {
+  padding: 0;
+  background: var(--color-card-background);
 }
 
 @media (max-width: 768px) {

@@ -8,16 +8,16 @@ function AppShell() {
       theme={{
         algorithm: theme.defaultAlgorithm,
         token: {
-          colorPrimary: '#4f6bed',
-          colorPrimaryHover: '#4058c7',
-          colorBgLayout: '#f4f6fa',
+          colorPrimary: '#3156d3',
+          colorPrimaryHover: '#2848b8',
+          colorBgLayout: '#f5f7fb',
           colorBgContainer: '#ffffff',
           colorBorder: '#e7eaf0',
-          colorText: '#20293a',
+          colorText: '#172033',
           colorTextSecondary: '#667085',
           colorTextTertiary: '#98a2b3',
           borderRadius: 8,
-          borderRadiusLG: 12,
+          borderRadiusLG: 14,
           borderRadiusSM: 8,
           fontFamily: '"Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
           fontSize: 14,
@@ -27,7 +27,7 @@ function AppShell() {
           controlHeight: 40,
           controlHeightSM: 28,
           controlHeightLG: 44,
-          boxShadow: '0 4px 16px rgba(15, 23, 42, 0.035)',
+          boxShadow: '0 5px 18px rgba(30, 41, 59, 0.045)',
         },
         components: {
           Button: {
@@ -36,11 +36,11 @@ function AppShell() {
             fontWeight: 500,
           },
           Card: {
-            borderRadiusLG: 12,
+            borderRadiusLG: 14,
             headerFontSize: 15,
           },
           Drawer: {
-            borderRadiusLG: 12,
+            borderRadiusLG: 14,
           },
           Form: {
             labelFontSize: 13,
@@ -52,7 +52,7 @@ function AppShell() {
             controlHeight: 40,
           },
           Modal: {
-            borderRadiusLG: 12,
+            borderRadiusLG: 14,
           },
           Pagination: {
             itemSize: 32,

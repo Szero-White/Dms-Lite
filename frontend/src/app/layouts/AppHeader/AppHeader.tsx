@@ -1,84 +1,51 @@
 import {
   BellOutlined,
+  DownOutlined,
   LogoutOutlined,
+  MenuOutlined,
   PlusOutlined,
+  SearchOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import {
+  AutoComplete,
   Avatar,
+  Badge,
   Button,
   Dropdown,
+  Input,
   Typography,
 } from 'antd';
-import {
-  useLocation,
-  useNavigate,
-} from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../features/auth';
+import { useNotifications } from '../../../features/notifications';
 import styles from './AppHeader.module.css';
 
-const pageTitles = [
-  {
-    path: '/sales-orders/new',
-    title: 'Create Sales Order',
-    eyebrow: 'Sales',
-  },
-  {
-    path: '/sales-orders',
-    title: 'Sales Orders',
-    eyebrow: 'Sales',
-  },
-  {
-    path: '/customers',
-    title: 'Customers',
-    eyebrow: 'Sales',
-  },
-  {
-    path: '/payments',
-    title: 'Payments',
-    eyebrow: 'Sales',
-  },
-  {
-    path: '/products',
-    title: 'Products',
-    eyebrow: 'Operations',
-  },
-  {
-    path: '/inventory',
-    title: 'Inventory',
-    eyebrow: 'Operations',
-  },
-  {
-    path: '/reports',
-    title: 'Reports',
-    eyebrow: 'Insights',
-  },
-  {
-    path: '/notifications',
-    title: 'Notifications',
-    eyebrow: 'Insights',
-  },
-  {
-    path: '/audit-logs',
-    title: 'Audit Logs',
-    eyebrow: 'Insights',
-  },
-  {
-    path: '/dashboard',
-    title: 'Dashboard',
-    eyebrow: 'Overview',
-  },
+const navigationOptions = [
+  { value: '/dashboard', label: 'Dashboard' },
+  { value: '/sales-orders', label: 'Sales Orders' },
+  { value: '/products', label: 'Products' },
+  { value: '/customers', label: 'Customers' },
+  { value: '/inventory', label: 'Inventory' },
+  { value: '/payments', label: 'Payments' },
+  { value: '/reports', label: 'Reports' },
+  { value: '/notifications', label: 'Notifications' },
+  { value: '/audit-logs', label: 'Audit Logs' },
 ];
 
-export function AppHeader() {
+interface AppHeaderProps {
+  onOpenNavigation?: () => void;
+}
+
+export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const currentPage =
-    pageTitles.find((page) =>
-      location.pathname.startsWith(page.path),
-    ) ?? pageTitles[pageTitles.length - 1];
+  const notificationsQuery = useNotifications();
+  const [searchValue, setSearchValue] = useState('');
+  const unreadCount = (notificationsQuery.data ?? []).filter(
+    (notification) => notification.readFlag === false,
+  ).length;
 
   function handleLogout() {
     logout();
@@ -87,37 +54,68 @@ export function AppHeader() {
 
   return (
     <div className={styles.header}>
-      <div className={styles.brandInfo}>
-        <Typography.Text
-          type="secondary"
-          className={styles.eyebrow}
-        >
-          {currentPage.eyebrow}
-        </Typography.Text>
+      <div className={styles.headerStart}>
+        <Button
+          className={styles.menuButton}
+          icon={<MenuOutlined />}
+          aria-label="Open navigation"
+          onClick={onOpenNavigation}
+        />
 
-        <Typography.Title
-          level={4}
-          className={styles.title}
+        <AutoComplete
+          className={styles.search}
+          value={searchValue}
+          options={navigationOptions}
+          filterOption={(inputValue, option) =>
+            String(option?.label ?? '')
+              .toLowerCase()
+              .includes(inputValue.toLowerCase())
+          }
+          onChange={setSearchValue}
+          onSelect={(path: string) => {
+            navigate(path);
+            setSearchValue('');
+          }}
         >
-          {currentPage.title}
-        </Typography.Title>
+          <Input
+            allowClear
+            prefix={<SearchOutlined />}
+            placeholder="Search pages..."
+            aria-label="Search application pages"
+          />
+        </AutoComplete>
       </div>
 
       <div className={styles.actions}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => navigate('/sales-orders/new')}
+        <Dropdown
+          trigger={['click']}
+          menu={{
+            onClick: ({ key }) => navigate(key),
+            items: [
+              { key: '/sales-orders/new', label: 'Create sales order' },
+              { key: '/inventory', label: 'Receive stock' },
+              { key: '/payments', label: 'Record payment' },
+              { key: '/customers', label: 'Manage customers' },
+            ],
+          }}
         >
-          New sales order
-        </Button>
+          <Button type="primary" icon={<PlusOutlined />}>
+            Quick create <DownOutlined />
+          </Button>
+        </Dropdown>
 
-        <Button
-          className={styles.iconButton}
-          icon={<BellOutlined />}
-          aria-label="Notifications"
-          onClick={() => navigate('/notifications')}
-        />
+        <Badge count={unreadCount} size="small" overflowCount={99}>
+          <Button
+            className={styles.iconButton}
+            icon={<BellOutlined />}
+            aria-label={
+              unreadCount
+                ? `${unreadCount} unread notifications`
+                : 'Notifications'
+            }
+            onClick={() => navigate('/notifications')}
+          />
+        </Badge>
 
         <Dropdown
           trigger={['click']}
@@ -136,7 +134,7 @@ export function AppHeader() {
             type="button"
             className={styles.userButton}
           >
-            <Avatar icon={<UserOutlined />} />
+            <Avatar icon={<UserOutlined />} className={styles.avatar} />
 
             <div className={styles.user}>
               <Typography.Text strong>

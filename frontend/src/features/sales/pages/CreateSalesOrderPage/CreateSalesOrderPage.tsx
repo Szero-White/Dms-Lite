@@ -76,6 +76,16 @@ export function CreateSalesOrderPage() {
 
   const orderTotal = subtotal - discountTotal;
   const debtAmount = Math.max(orderTotal - Number(paidAmount || 0), 0);
+  const stockWarnings = watchedItems.flatMap((item) => {
+    const product = productsQuery.data?.find(
+      (candidate) => candidate.id === item?.productId,
+    );
+    const quantity = Number(item?.quantity || 0);
+
+    return product && quantity > product.stock
+      ? [`${product.name}: requested ${quantity}, available ${product.stock}`]
+      : [];
+  });
 
   return (
     <div className={styles.page}>
@@ -90,6 +100,12 @@ export function CreateSalesOrderPage() {
         isError={customersQuery.isError || productsQuery.isError}
         error={customersQuery.error || productsQuery.error}
         hasData={Boolean(customersQuery.data?.length && productsQuery.data?.length)}
+        emptyTitle="Customer and product data required"
+        emptyDescription="Create at least one customer and one active product before building a sales order."
+        onRetry={() => {
+          customersQuery.refetch();
+          productsQuery.refetch();
+        }}
       >
         <Row gutter={[16, 16]} className={styles.orderGrid}>
           <Col xs={24} xl={16}>
@@ -116,6 +132,13 @@ export function CreateSalesOrderPage() {
                   setCreatedOrderId(order.id);
                 }}
               >
+                <div className={styles.formSectionHeading}>
+                  <Typography.Text strong>Customer & Warehouse</Typography.Text>
+                  <Typography.Text type="secondary">
+                    Select the customer and review the fulfillment location.
+                  </Typography.Text>
+                </div>
+
                 <Form.Item
                   name="customerId"
                   label="Customer"
@@ -129,6 +152,21 @@ export function CreateSalesOrderPage() {
                     }))}
                   />
                 </Form.Item>
+
+                <Form.Item label="Warehouse">
+                  <Select
+                    disabled
+                    value={1}
+                    options={[{ value: 1, label: 'Main Warehouse' }]}
+                  />
+                </Form.Item>
+
+                <div className={styles.formSectionHeading}>
+                  <Typography.Text strong>Order Items</Typography.Text>
+                  <Typography.Text type="secondary">
+                    Add products, quantities and line-level discounts.
+                  </Typography.Text>
+                </div>
 
                 <Form.List name="items">
                   {(fields, { add, remove }) => (
@@ -195,6 +233,23 @@ export function CreateSalesOrderPage() {
                   )}
                 </Form.List>
 
+                {stockWarnings.length ? (
+                  <Alert
+                    className={styles.stockAlert}
+                    type="warning"
+                    showIcon
+                    message="Requested quantity exceeds current stock"
+                    description={stockWarnings.join('; ')}
+                  />
+                ) : null}
+
+                <div className={styles.formSectionHeading}>
+                  <Typography.Text strong>Payment</Typography.Text>
+                  <Typography.Text type="secondary">
+                    Record the amount received now; the balance becomes debt.
+                  </Typography.Text>
+                </div>
+
                 <Form.Item name="paidAmount" label="Paid Amount" className={styles.paidField}>
                   <InputNumber className={styles.fullWidth} min={0} />
                 </Form.Item>
@@ -220,6 +275,10 @@ export function CreateSalesOrderPage() {
                 <div className="flex-between">
                   <Typography.Text>Discount</Typography.Text>
                   <Typography.Text strong>{formatCurrency(discountTotal)}</Typography.Text>
+                </div>
+                <div className={`${styles.summaryTotal} flex-between`}>
+                  <Typography.Text>Order Total</Typography.Text>
+                  <Typography.Text strong>{formatCurrency(orderTotal)}</Typography.Text>
                 </div>
                 <div className="flex-between">
                   <Typography.Text>Paid Amount</Typography.Text>

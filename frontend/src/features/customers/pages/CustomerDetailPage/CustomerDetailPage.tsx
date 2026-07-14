@@ -1,22 +1,35 @@
-import { DollarOutlined, LeftOutlined } from '@ant-design/icons';
 import {
+  ArrowDownOutlined,
+  ArrowUpOutlined,
+  CalendarOutlined,
+  CheckCircleOutlined,
+  DollarOutlined,
+  EnvironmentOutlined,
+  LeftOutlined,
+  PhoneOutlined,
+  SafetyCertificateOutlined,
+  WalletOutlined,
+} from '@ant-design/icons';
+import {
+  Avatar,
   Button,
   Card,
-  Col,
-  Descriptions,
   Form,
   Input,
   InputNumber,
   Modal,
-  Row,
+  Progress,
   Space,
   Table,
+  Tag,
   Typography,
 } from 'antd';
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
+import { SummaryCard } from '../../../../components/common/SummaryCard';
+import { SalesOrderStatusTag } from '../../../../components/common/StatusTag';
 import {
   formatCurrency,
   formatDate,
@@ -52,6 +65,10 @@ export function CustomerDetailPage() {
       ),
     [customerId, salesOrdersQuery.data],
   );
+  const debt = toNumber(customer?.debtBalance);
+  const creditLimit = toNumber(customer?.creditLimit);
+  const availableCredit = Math.max(creditLimit - debt, 0);
+  const creditUsage = creditLimit > 0 ? Math.round((debt / creditLimit) * 100) : 0;
 
   return (
     <div className={styles.page}>
@@ -93,80 +110,157 @@ export function CustomerDetailPage() {
           salesOrdersQuery.error
         }
         hasData={Boolean(customer)}
+        emptyTitle="Customer not found"
+        emptyDescription="This customer may no longer be available in the current dataset."
+        emptyAction={<Button onClick={() => navigate('/customers')}>Back to customers</Button>}
+        onRetry={() => {
+          void Promise.all([
+            customersQuery.refetch(),
+            debtStatementQuery.refetch(),
+            salesOrdersQuery.refetch(),
+          ]);
+        }}
       >
         {customer ? (
           <div className={styles.contentStack}>
-            <Row gutter={[16, 16]}>
-              <Col xs={24} xl={10}>
-                <Card className="panel-card" title="Customer Information">
-                  <Descriptions column={1} size="small">
-                    <Descriptions.Item label="Phone">
-                      {customer.phone || '--'}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Address">
-                      {customer.address || '--'}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Credit Limit">
-                      {formatCurrency(customer.creditLimit)}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Payment Term">
-                      {customer.paymentTermDays} days
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Current Debt">
-                      <Typography.Text
-                        className={
-                          toNumber(customer.debtBalance) > 0
-                            ? styles.debtOutstanding
-                            : styles.debtClear
-                        }
+            <Card className={`panel-card ${styles.profileCard}`}>
+              <div className={styles.profileMain}>
+                <Avatar className={styles.profileAvatar} size={64}>
+                  {customer.name.slice(0, 2).toUpperCase()}
+                </Avatar>
+                <div className={styles.profileCopy}>
+                  <div className={styles.profileTitleRow}>
+                    <Typography.Title level={2}>{customer.name}</Typography.Title>
+                    <Tag color={customer.active ? 'success' : 'default'}>
+                      {customer.active ? 'ACTIVE' : 'INACTIVE'}
+                    </Tag>
+                  </div>
+                  <Space wrap size={[20, 6]} className={styles.profileMeta}>
+                    <span><PhoneOutlined /> {customer.phone || '--'}</span>
+                    <span><EnvironmentOutlined /> {customer.address || '--'}</span>
+                  </Space>
+                </div>
+              </div>
+              <div className={styles.creditPanel}>
+                <div>
+                  <Typography.Text>Credit utilization</Typography.Text>
+                  <Typography.Text strong>
+                    {creditLimit > 0 ? `${creditUsage}%` : 'No credit limit'}
+                  </Typography.Text>
+                </div>
+                <Progress
+                  percent={Math.min(creditUsage, 100)}
+                  showInfo={false}
+                  status={creditUsage >= 100 ? 'exception' : creditUsage >= 80 ? 'normal' : 'success'}
+                />
+                <Typography.Text type="secondary">
+                  {formatCurrency(debt)} of {formatCurrency(creditLimit)} used
+                </Typography.Text>
+              </div>
+            </Card>
+
+            <div className={styles.metricsGrid}>
+              <SummaryCard
+                title="Current Debt"
+                value={formatCurrency(debt)}
+                note={debt > 0 ? 'Outstanding receivable balance' : 'Customer balance is clear'}
+                icon={<WalletOutlined />}
+                variant={debt > 0 ? 'red' : 'green'}
+                visual="dashboard"
+              />
+              <SummaryCard
+                title="Credit Limit"
+                value={formatCurrency(creditLimit)}
+                note="Approved customer credit exposure"
+                icon={<SafetyCertificateOutlined />}
+                variant="blue"
+                visual="dashboard"
+              />
+              <SummaryCard
+                title="Available Credit"
+                value={formatCurrency(availableCredit)}
+                note="Remaining credit before the limit"
+                icon={<CheckCircleOutlined />}
+                variant="green"
+                visual="dashboard"
+              />
+              <SummaryCard
+                title="Payment Term"
+                value={`${customer.paymentTermDays} days`}
+                note="Configured settlement period"
+                icon={<CalendarOutlined />}
+                variant="orange"
+                visual="dashboard"
+              />
+            </div>
+
+            <Card className="panel-card" title="Debt Statement">
+              <Table
+                size="small"
+                rowKey="id"
+                sticky
+                scroll={{ x: 940 }}
+                locale={{ emptyText: 'No debt transactions recorded for this customer' }}
+                dataSource={debtStatementQuery.data ?? []}
+                columns={[
+                  {
+                    title: 'Date',
+                    dataIndex: 'createdAt',
+                    width: 170,
+                    render: (value) => formatDateTime(value),
+                  },
+                  { title: 'Type', dataIndex: 'sourceType', width: 130 },
+                  {
+                    title: 'Direction',
+                    dataIndex: 'direction',
+                    width: 135,
+                    render: (value: string) => {
+                      const isIncrease = value === 'INCREASE';
+
+                      return (
+                        <Tag className={isIncrease ? styles.increaseTag : styles.decreaseTag}>
+                          {isIncrease ? <ArrowUpOutlined /> : <ArrowDownOutlined />} {value}
+                        </Tag>
+                      );
+                    },
+                  },
+                  {
+                    title: 'Amount',
+                    dataIndex: 'amount',
+                    align: 'right',
+                    render: (value, record) => (
+                      <Typography.Text className={record.direction === 'INCREASE'
+                        ? styles.debtOutstanding
+                        : styles.debtClear}
                       >
-                        {formatCurrency(customer.debtBalance)}
+                        {formatCurrency(value)}
                       </Typography.Text>
-                    </Descriptions.Item>
-                  </Descriptions>
-                </Card>
-              </Col>
-              <Col xs={24} xl={14}>
-                <Card className="panel-card" title="Debt Statement">
-                  <Table
-                    size="small"
-                    rowKey="id"
-                    pagination={false}
-                    dataSource={debtStatementQuery.data ?? []}
-                    columns={[
-                      {
-                        title: 'Date',
-                        dataIndex: 'createdAt',
-                        render: (value) => formatDateTime(value),
-                      },
-                      { title: 'Type', dataIndex: 'sourceType' },
-                      { title: 'Direction', dataIndex: 'direction' },
-                      {
-                        title: 'Amount',
-                        dataIndex: 'amount',
-                        render: (value) => formatCurrency(value),
-                      },
-                      {
-                        title: 'Remaining',
-                        dataIndex: 'remainingAmount',
-                        render: (value) => formatCurrency(value),
-                      },
-                      {
-                        title: 'Due Date',
-                        dataIndex: 'dueDate',
-                        render: (value) => formatDate(value),
-                      },
-                      { title: 'Note', dataIndex: 'note' },
-                    ]}
-                  />
-                </Card>
-              </Col>
-            </Row>
+                    ),
+                  },
+                  {
+                    title: 'Remaining',
+                    dataIndex: 'remainingAmount',
+                    align: 'right',
+                    render: (value) => formatCurrency(value),
+                  },
+                  {
+                    title: 'Due Date',
+                    dataIndex: 'dueDate',
+                    width: 130,
+                    render: (value) => value ? formatDate(value) : '--',
+                  },
+                  { title: 'Note', dataIndex: 'note', width: 200, ellipsis: true },
+                ]}
+              />
+            </Card>
 
             <Card className="panel-card" title="Sales Order History">
               <Table
                 size="small"
                 rowKey="id"
+                sticky
+                scroll={{ x: 800 }}
+                locale={{ emptyText: 'No sales orders recorded for this customer' }}
                 dataSource={orderHistory}
                 columns={[
                   { title: 'Code', dataIndex: 'code' },
@@ -175,7 +269,11 @@ export function CustomerDetailPage() {
                     dataIndex: 'createdAt',
                     render: (value) => formatDateTime(value),
                   },
-                  { title: 'Status', dataIndex: 'status' },
+                  {
+                    title: 'Status',
+                    dataIndex: 'status',
+                    render: (value) => <SalesOrderStatusTag status={value} />,
+                  },
                   {
                     title: 'Total',
                     dataIndex: 'totalAmount',

@@ -102,7 +102,60 @@ export function LoginPage() {
         </div>
       </section>
 
-      <aside className={styles.visualPane} aria-hidden="true" />
+      <aside className={styles.visualPane}>
+        <div className={styles.visualContent}>
+          <div className={styles.productPreview} aria-hidden="true">
+            <div className={styles.previewTopbar}>
+              <span className={styles.previewLogo}>D</span>
+              <span className={styles.previewLine} />
+              <span className={styles.previewAvatar} />
+            </div>
+            <div className={styles.previewBody}>
+              <div className={styles.previewSidebar}>
+                <span className={styles.previewNavActive} />
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className={styles.previewWorkspace}>
+                <div className={styles.previewHeading}>
+                  <span />
+                  <span />
+                </div>
+                <div className={styles.previewMetrics}>
+                  <div><span>Sales</span><i /></div>
+                  <div><span>Inventory</span><i /></div>
+                  <div><span>Receivables</span><i /></div>
+                </div>
+                <div className={styles.previewAnalytics}>
+                  <div className={styles.previewChart}>
+                    <span /><span /><span /><span /><span /><span />
+                  </div>
+                  <div className={styles.previewStatus}>
+                    <div />
+                    <span /><span /><span />
+                  </div>
+                </div>
+                <div className={styles.previewTable}>
+                  <span /><span /><span /><span />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.visualCopy}>
+            <span className={styles.eyebrow}>DISTRIBUTION, SIMPLIFIED</span>
+            <h2>One workspace for daily commercial operations.</h2>
+            <p>Keep every order, stock movement, and customer balance visible to the right team.</p>
+            <ul>
+              <li><span aria-hidden="true">&#10003;</span> Manage sales</li>
+              <li><span aria-hidden="true">&#10003;</span> Control inventory</li>
+              <li><span aria-hidden="true">&#10003;</span> Track receivables</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
     </main>
   );
 }

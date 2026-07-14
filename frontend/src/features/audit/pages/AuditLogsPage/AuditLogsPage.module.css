@@ -2,23 +2,87 @@
   width: 100%;
 }
 
-.auditCard :global(.ant-card-body) {
-  padding-top: 16px;
-}
-
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
 }
 
+.auditCard :global(.ant-card-body) {
+  padding-top: 16px;
+}
+
+.toolbar,
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.toolbar {
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-lg);
+}
+
+.filters {
+  min-width: 0;
+  flex: 1;
+}
+
 .filter {
-  width: 220px;
+  width: 180px;
+}
+
+.dateFilter {
+  width: 260px;
+}
+
+.changePreview {
+  display: block;
+  max-width: 240px;
+  color: var(--color-text-secondary);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: var(--font-size-meta);
+}
+
+.detailContent {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.detailContent :global(.ant-typography) {
+  margin: 0 0 var(--spacing-xs);
+}
+
+.changeDetail {
+  max-height: 420px;
+  margin: 0;
+  padding: var(--spacing-md);
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: var(--font-size-meta);
+  line-height: var(--line-height-secondary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
-  .filter {
+  .filter,
+  .dateFilter,
+  .filters,
+  .toolbar > :global(.ant-btn) {
     width: 100%;
   }
 }

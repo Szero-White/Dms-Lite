@@ -9,6 +9,7 @@ import styles from './DashboardRevenueChart.module.css';
 
 interface DashboardRevenueChartProps {
   orders: SalesOrder[];
+  rangeDays?: number;
 }
 
 interface RevenueChartItem {
@@ -19,16 +20,17 @@ interface RevenueChartItem {
 
 export function DashboardRevenueChart({
   orders,
+  rangeDays = 7,
 }: DashboardRevenueChartProps) {
   const today = new Date();
 
   const chartData: RevenueChartItem[] = Array.from(
-    { length: 7 },
+    { length: rangeDays },
     (_, index) => {
       const date = new Date(today);
 
       date.setHours(0, 0, 0, 0);
-      date.setDate(today.getDate() - (6 - index));
+      date.setDate(today.getDate() - (rangeDays - 1 - index));
 
       return {
         dateKey: date.toISOString().slice(0, 10),
@@ -122,7 +124,7 @@ export function DashboardRevenueChart({
         <div className={styles.empty}>
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="No confirmed revenue in the last 7 days"
+            description={`No confirmed revenue in the last ${rangeDays} day${rangeDays === 1 ? '' : 's'}`}
           />
         </div>
       )}

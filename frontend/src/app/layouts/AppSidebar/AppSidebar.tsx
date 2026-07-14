@@ -3,18 +3,22 @@ import {
   AuditOutlined,
   BarChartOutlined,
   BellOutlined,
+  DoubleLeftOutlined,
+  DoubleRightOutlined,
   DashboardOutlined,
   DollarOutlined,
   InboxOutlined,
   ShoppingCartOutlined,
   ShopOutlined,
   TeamOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
-import { Menu } from 'antd';
+import { Avatar, Menu } from 'antd';
 import {
   useLocation,
   useNavigate,
 } from 'react-router-dom';
+import { useAuth } from '../../../features/auth';
 import styles from './AppSidebar.module.css';
 
 const menuItems = [
@@ -43,16 +47,11 @@ const menuItems = [
         icon: <TeamOutlined />,
         label: 'Customers',
       },
-      {
-        key: '/payments',
-        icon: <DollarOutlined />,
-        label: 'Payments',
-      },
     ],
   },
   {
     type: 'group' as const,
-    label: 'Operations',
+    label: 'Catalog & Inventory',
     children: [
       {
         key: '/products',
@@ -63,6 +62,17 @@ const menuItems = [
         key: '/inventory',
         icon: <InboxOutlined />,
         label: 'Inventory',
+      },
+    ],
+  },
+  {
+    type: 'group' as const,
+    label: 'Finance',
+    children: [
+      {
+        key: '/payments',
+        icon: <DollarOutlined />,
+        label: 'Payments',
       },
     ],
   },
@@ -80,6 +90,12 @@ const menuItems = [
         icon: <BellOutlined />,
         label: 'Notifications',
       },
+    ],
+  },
+  {
+    type: 'group' as const,
+    label: 'Administration',
+    children: [
       {
         key: '/audit-logs',
         icon: <AuditOutlined />,
@@ -91,9 +107,20 @@ const menuItems = [
 
 const routeItems = menuItems.flatMap((group) => group.children);
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+  onNavigate?: () => void;
+}
+
+export function AppSidebar({
+  collapsed = false,
+  onToggleCollapse,
+  onNavigate,
+}: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const selectedKey =
     routeItems.find((item) =>
@@ -101,29 +128,55 @@ export function AppSidebar() {
     )?.key ?? '/dashboard';
 
   return (
-    <div className={styles.sidebar}>
+    <div className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
       <div className={styles.brand}>
         <div className={styles.brandBadge}>
           <ShopOutlined />
         </div>
 
-        <div>
+        <div className={styles.brandCopy}>
           <div className={styles.brandTitle}>
             DMS Lite
           </div>
 
           <div className={styles.brandSubtitle}>
-            Distributor OS
+            Distribution workspace
           </div>
         </div>
       </div>
 
       <Menu
         mode="inline"
+        inlineCollapsed={collapsed}
         selectedKeys={[selectedKey]}
         items={menuItems}
-        onClick={(event) => navigate(event.key)}
+        onClick={(event) => {
+          navigate(event.key);
+          onNavigate?.();
+        }}
       />
+
+      <div className={styles.sidebarFooter}>
+        <div className={styles.userSummary}>
+          <Avatar size={32} icon={<UserOutlined />} />
+          <div className={styles.userCopy}>
+            <span>{user?.fullName || user?.username}</span>
+            <small>{user?.roles?.[0] || 'USER'}</small>
+          </div>
+        </div>
+
+        {onToggleCollapse ? (
+          <button
+            type="button"
+            className={styles.collapseButton}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            onClick={onToggleCollapse}
+          >
+            {collapsed ? <DoubleRightOutlined /> : <DoubleLeftOutlined />}
+            <span>Collapse</span>
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
