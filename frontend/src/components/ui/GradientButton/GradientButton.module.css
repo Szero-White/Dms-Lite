@@ -1,0 +1,61 @@
+.gradientButton {
+  border: none !important;
+  color: white !important;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.gradientButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gradientButton:hover::before {
+  opacity: 1;
+}
+
+.gradientButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+}
+
+.primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+}
+
+.primary:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+}
+
+.secondary {
+  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%) !important;
+}
+
+.secondary:hover {
+  background: linear-gradient(135deg, #0891b2 0%, #2563eb 100%) !important;
+}
+
+.success {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%) !important;
+}
+
+.success:hover {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+}
+
+.danger {
+  background: linear-gradient(135deg, #ef4444 0%, #f87171 100%) !important;
+}
+
+.danger:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
+}

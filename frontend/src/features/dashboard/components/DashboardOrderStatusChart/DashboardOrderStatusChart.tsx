@@ -40,17 +40,40 @@ export function DashboardOrderStatusChart({
           data={chartData}
           angleField="count"
           colorField="status"
-          height={250}
-          innerRadius={0.62}
-          radius={0.9}
+          height={280}
+          innerRadius={0.65}
+          radius={0.85}
+          color={['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']}
           legend={{
             color: {
               position: 'bottom',
+              rowPadding: 8,
             },
           }}
           label={{
             text: 'count',
             position: 'outside',
+            style: {
+              fontSize: 12,
+              fontWeight: 500,
+            },
+          }}
+          statistic={{
+            title: {
+              style: {
+                fontSize: 14,
+                color: '#64748b',
+              },
+              content: 'Total Orders',
+            },
+            content: {
+              style: {
+                fontSize: 24,
+                fontWeight: 700,
+                color: '#0f172a',
+              },
+              content: orders.length.toString(),
+            },
           }}
           tooltip={{
             title: 'status',
@@ -60,6 +83,15 @@ export function DashboardOrderStatusChart({
                 name: 'Orders',
               },
             ],
+          }}
+          pieStyle={{
+            lineWidth: 0,
+          }}
+          animation={{
+            appear: {
+              animation: 'fade-in',
+              duration: 1000,
+            },
           }}
         />
       ) : (

@@ -1,16 +1,17 @@
 .card {
   min-height: 128px;
   overflow: hidden;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-large);
   background: var(--color-card-background);
-  box-shadow: var(--shadow-card);
-  transition: border-color var(--transition-default), box-shadow var(--transition-default);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all var(--transition-default);
 }
 
 .card:hover {
-  border-color: var(--color-border-strong);
-  box-shadow: var(--shadow-card);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  transform: translateY(-2px);
 }
 
 .card :global(.ant-card-body) {
@@ -55,33 +56,33 @@
 }
 
 .blue .icon {
-  color: #4f6bed;
-  background: #eef1ff;
+  color: #6366f1;
+  background: #eef2ff;
 }
 
 .green .icon {
-  color: #22a06b;
-  background: #edf9f3;
+  color: #10b981;
+  background: #ecfdf5;
 }
 
 .orange .icon {
-  color: #c98200;
-  background: #fff8e8;
+  color: #f59e0b;
+  background: #fffbeb;
 }
 
 .purple .icon {
-  color: #7b61c8;
-  background: #f3f0ff;
+  color: #8b5cf6;
+  background: #f5f3ff;
 }
 
 .red .icon {
-  color: #d64545;
-  background: #fff1f1;
+  color: #ef4444;
+  background: #fef2f2;
 }
 
 .cyan .icon {
-  color: #278aa5;
-  background: #edf8fb;
+  color: #06b6d4;
+  background: #ecfeff;
 }
 
 .trendPositive,

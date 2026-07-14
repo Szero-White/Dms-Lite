@@ -85,15 +85,45 @@ export function DashboardRevenueChart({
           data={chartData}
           xField="dateLabel"
           yField="revenue"
-          height={250}
+          height={280}
           smooth
+          color="#6366f1"
           point={{
-            size: 5,
+            size: 6,
             shape: 'circle',
+            style: {
+              fill: '#6366f1',
+              stroke: '#fff',
+              lineWidth: 2,
+            },
+          }}
+          line={{
+            style: {
+              stroke: '#6366f1',
+              lineWidth: 3,
+              shadowColor: 'rgba(99, 102, 241, 0.3)',
+              shadowBlur: 10,
+            },
+          }}
+          area={{
+            style: {
+              fill: 'l(270) 0:#ffffff 0.5:#eef2ff 1:#6366f1',
+              fillOpacity: 0.3,
+            },
           }}
           axis={{
             x: {
               title: false,
+              line: {
+                style: {
+                  stroke: '#e2e8f0',
+                },
+              },
+              tickLine: {
+                style: {
+                  stroke: '#e2e8f0',
+                },
+              },
             },
             y: {
               title: 'Revenue',
@@ -102,6 +132,19 @@ export function DashboardRevenueChart({
                   notation: 'compact',
                   maximumFractionDigits: 1,
                 }).format(value),
+              line: {
+                style: {
+                  stroke: '#e2e8f0',
+                },
+              },
+              grid: {
+                line: {
+                  style: {
+                    stroke: '#f1f5f9',
+                    lineDash: [4, 4],
+                  },
+                },
+              },
             },
           }}
           tooltip={{
@@ -118,6 +161,12 @@ export function DashboardRevenueChart({
                   }).format(value),
               },
             ],
+          }}
+          animation={{
+            appear: {
+              animation: 'path-in',
+              duration: 1000,
+            },
           }}
         />
       ) : (

@@ -22,6 +22,15 @@
 
 .search :global(.ant-input-affix-wrapper) {
   background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 10px;
+  transition: all var(--transition-default);
+}
+
+.search :global(.ant-input-affix-wrapper:hover),
+.search :global(.ant-input-affix-wrapper:focus-within) {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .menuButton {
@@ -54,33 +63,46 @@
 }
 
 .iconButton {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   padding-inline: 0;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-muted);
+  transition: all var(--transition-default);
+}
+
+.iconButton:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
 .avatar {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
+  background: var(--color-primary-gradient);
+  color: #fff;
+  border: 2px solid var(--color-border-subtle);
 }
 
 .userButton {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 3px 6px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  background: transparent;
+  gap: 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  background: var(--color-surface-muted);
   color: inherit;
   cursor: pointer;
   font: inherit;
+  transition: all var(--transition-default);
 }
 
 .userButton:hover {
-  border-color: var(--color-border);
-  background: var(--color-page-background);
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
 }
 
 @media (max-width: 768px) {
