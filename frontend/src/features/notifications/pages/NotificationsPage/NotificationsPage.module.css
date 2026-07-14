@@ -6,6 +6,24 @@
   padding: 0;
 }
 
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.segmented {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.search {
+  width: min(300px, 100%);
+}
+
 .activityList {
   width: 100%;
 }
@@ -22,6 +40,10 @@
   border-block-end: 0;
 }
 
+.unread:global(.ant-list-item) {
+  background: #f7f9ff;
+}
+
 .activityIcon {
   display: flex;
   flex: 0 0 32px;
@@ -34,6 +56,26 @@
   background: var(--color-primary-light);
   color: var(--color-primary);
   font-size: 15px;
+}
+
+.inventory {
+  background: #fff8e8;
+  color: var(--color-warning);
+}
+
+.receivables {
+  background: #fff1f0;
+  color: var(--color-danger);
+}
+
+.orders {
+  background: #edf9f3;
+  color: var(--color-success);
+}
+
+.defaultIcon {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
 .activityContent {
@@ -53,6 +95,11 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--spacing-sm);
+}
+
+.titleGroup :global(.ant-badge-status-text) {
+  color: var(--color-primary);
+  font-size: var(--font-size-meta);
 }
 
 .title:global(.ant-typography) {
@@ -81,6 +128,16 @@
 }
 
 @media (max-width: 640px) {
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    padding: var(--spacing-md);
+  }
+
+  .search {
+    width: 100%;
+  }
+
   .activityItem:global(.ant-list-item) {
     padding: var(--spacing-md);
   }

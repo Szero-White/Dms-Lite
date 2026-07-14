@@ -20,7 +20,7 @@
   margin: 0 0 4px !important;
 
   color: var(--color-text-primary) !important;
-  font-size: var(--text-xl) !important;
+  font-size: var(--font-size-page-title) !important;
   font-weight: var(--font-weight-heading) !important;
   line-height: var(--leading-xl) !important;
   letter-spacing: 0;
@@ -46,5 +46,12 @@
 
   .extra {
     width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .title:global(.ant-typography) {
+    font-size: var(--text-xl) !important;
+    line-height: var(--leading-xl) !important;
   }
 }

@@ -19,3 +19,26 @@
 .emptyBlock :global(.ant-empty) {
   margin: var(--spacing-md) 0;
 }
+
+.emptyContent {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.emptyContent strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-heading);
+}
+
+.emptyContent span {
+  max-width: 440px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-secondary);
+  line-height: var(--line-height-secondary);
+}
+
+.emptyAction {
+  margin-top: var(--spacing-xs);
+}

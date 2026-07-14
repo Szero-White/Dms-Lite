@@ -13,6 +13,21 @@
   gap: 8px;
 }
 
+.sectionHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 4px 0 14px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--color-primary);
+  border-radius: 0 var(--radius-small) var(--radius-small) 0;
+  background: var(--color-surface-muted);
+}
+
+.sectionHeading :global(.ant-typography-secondary) {
+  font-size: var(--font-size-secondary);
+}
+
 .fullWidth {
   width: 100%;
 }

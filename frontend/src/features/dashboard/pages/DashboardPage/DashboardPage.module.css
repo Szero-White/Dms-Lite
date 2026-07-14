@@ -2,28 +2,97 @@
   width: 100%;
 }
 
-.dashboardPage :global(.metrics-grid) {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xl);
+.headerActions {
+  justify-content: flex-end;
 }
 
-.dashboardPage :global(.metrics-grid) > :global(.ant-card) {
-  height: 100%;
+.welcomePanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xl);
+  padding: 24px 28px;
+  border: 1px solid #dfe5fb;
+  border-radius: var(--radius-section);
+  background: #f0f3ff;
+}
+
+.welcomeEyebrow:global(.ant-typography) {
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: var(--font-weight-heading);
+  line-height: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.welcomeTitle:global(.ant-typography) {
+  margin: 4px 0 !important;
+  color: var(--color-text-primary);
+  font-size: 24px;
+  font-weight: var(--font-weight-heading);
+  line-height: 32px;
+}
+
+.welcomeDescription:global(.ant-typography) {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+}
+
+.quickActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--spacing-xs);
+}
+
+.section {
+  margin-top: 28px;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: 14px;
+}
+
+.sectionHeading :global(h3.ant-typography) {
+  margin: 0 !important;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: var(--font-weight-heading);
+  line-height: 26px;
+}
+
+.sectionHeading :global(.ant-typography-secondary) {
+  font-size: var(--font-size-secondary);
+}
+
+.primaryMetrics,
+.secondaryMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-md);
+}
+
+.secondaryMetrics {
+  margin-top: var(--spacing-md);
 }
 
 .chartGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.85fr);
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.8fr);
   align-items: stretch;
   gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xl);
 }
 
 .chartGrid :global(.panel-card),
 .insightGrid :global(.panel-card),
-.insightGrid + :global(.panel-card) {
+.actionGrid :global(.panel-card) {
   border-color: var(--color-border);
   background: var(--color-card-background);
   box-shadow: var(--shadow-card);
@@ -33,7 +102,6 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xl);
 }
 
 .panel {
@@ -98,91 +166,147 @@
   line-height: var(--line-height-body);
 }
 
-.alertGrid {
+.actionGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--spacing-md);
 }
 
-.alertItem {
-  min-height: 74px;
+.actionCard {
+  height: 100%;
+}
+
+.actionCard :global(.ant-card-body) {
+  min-height: 250px;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-small);
-  background: #fafbfc;
-}
-
-.alertIcon {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border-radius: 8px;
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  font-size: 15px;
-}
-
-.alertIconWarning {
-  background: #fff8e8;
-  color: var(--color-warning);
-}
-
-.alertIconDanger {
-  background: #fff1f1;
-  color: var(--color-danger);
-}
-
-.alertContent {
-  min-width: 0;
-  display: flex;
-  flex: 1;
   flex-direction: column;
+}
+
+.actionCard :global(.ant-list) {
+  flex: 1;
+}
+
+.actionCard :global(.ant-list-empty-text) {
+  padding: 24px 8px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-secondary);
+}
+
+.actionCard :global(.ant-btn-link) {
+  align-self: flex-start;
+  height: auto;
+  margin-top: var(--spacing-xs);
+  padding: 0;
+}
+
+.healthSummary {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: 8px;
+}
+
+.healthSummary div {
+  min-width: 0;
+  display: grid;
   gap: 1px;
 }
 
-.alertContent :global(.ant-typography) {
-  margin: 0;
-  color: var(--color-text-primary);
-}
-
-.alertContent :global(.ant-typography-secondary) {
-  color: var(--color-text-muted) !important;
+.healthSummary span {
+  color: var(--color-text-muted);
   font-size: var(--font-size-meta);
   line-height: var(--line-height-meta);
 }
 
-.alertContent :global(h4.ant-typography) {
-  margin: 0 !important;
+.healthSummary strong {
   color: var(--color-text-primary);
-  font-size: var(--font-size-body);
+  font-size: 18px;
   font-weight: var(--font-weight-heading);
-  line-height: var(--line-height-body);
-  letter-spacing: 0;
+  line-height: 26px;
 }
 
-@media (max-width: 1100px) {
-  .dashboardPage :global(.metrics-grid) {
+.compactRow {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.compactRow > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.compactRow strong {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-secondary);
+  font-weight: var(--font-weight-label);
+  line-height: var(--line-height-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compactRow span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-meta);
+  line-height: var(--line-height-meta);
+}
+
+@media (max-width: 1200px) {
+  .primaryMetrics,
+  .secondaryMetrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .chartGrid,
   .insightGrid,
-  .alertGrid {
+  .actionGrid {
     grid-template-columns: 1fr;
   }
 }
 
+@media (max-width: 992px) {
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .welcomePanel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .quickActions {
+    justify-content: flex-start;
+  }
+}
+
 @media (max-width: 640px) {
-  .dashboardPage :global(.metrics-grid) {
+  .primaryMetrics,
+  .secondaryMetrics {
     grid-template-columns: 1fr;
   }
 
-  .alertItem {
+  .welcomePanel {
+    padding: 20px;
+  }
+
+  .quickActions,
+  .quickActions :global(.ant-btn) {
+    width: 100%;
+  }
+
+  .headerActions :global(.ant-segmented) {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .sectionHeading {
     align-items: flex-start;
+    flex-direction: column;
   }
 }

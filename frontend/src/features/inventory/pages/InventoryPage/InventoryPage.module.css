@@ -4,12 +4,50 @@
 
 .contentStack {
   display: grid;
+  gap: var(--spacing-lg);
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--spacing-md);
 }
 
 .stockCard,
 .watchlistCard {
   height: 100%;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+}
+
+.search {
+  width: min(300px, 100%);
+}
+
+.filter {
+  width: 180px;
+}
+
+.stockLevel {
+  width: 90px;
+}
+
+.stockLevel :global(.ant-progress) {
+  display: block;
+  margin-top: 2px;
+}
+
+.lowStockRow > :global(.ant-table-cell) {
+  background: #fffbf2;
+}
+
+.lowStockRow:hover > :global(.ant-table-cell) {
+  background: #fff8e8 !important;
 }
 
 .stockTag:global(.ant-tag) {
@@ -58,10 +96,65 @@
   padding-top: 14px;
 }
 
+.movementTag:global(.ant-tag) {
+  min-width: 38px;
+  margin: 0;
+  border: 0;
+  text-align: center;
+  font-weight: var(--font-weight-heading);
+}
+
+.movementIn:global(.ant-tag) {
+  background: #edf9f3;
+  color: var(--color-success);
+}
+
+.movementOut:global(.ant-tag) {
+  background: #fff1f0;
+  color: var(--color-danger);
+}
+
+.stockProjection {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-muted);
+}
+
+.stockProjection > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .fullWidth {
   width: 100%;
 }
 
 .modal :global(.ant-modal-body) {
   padding-top: 8px;
+}
+
+@media (max-width: 1200px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .metricsGrid,
+  .stockProjection {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar,
+  .search,
+  .filter,
+  .toolbar > :global(.ant-btn) {
+    width: 100%;
+  }
 }

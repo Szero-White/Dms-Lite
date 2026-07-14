@@ -10,6 +10,21 @@
   padding-top: 16px;
 }
 
+.formSectionHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 4px 0 12px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--color-primary);
+  border-radius: 0 var(--radius-small) var(--radius-small) 0;
+  background: var(--color-surface-muted);
+}
+
+.formSectionHeading :global(.ant-typography-secondary) {
+  font-size: var(--font-size-secondary);
+}
+
 .itemsStack,
 .summaryList {
   width: 100%;
@@ -36,6 +51,10 @@
   margin-top: 16px;
 }
 
+.stockAlert {
+  margin-top: var(--spacing-md);
+}
+
 .summaryColumn {
   position: sticky;
   top: 80px;
@@ -51,6 +70,16 @@
 .summaryCard :global(.flex-between:last-child) {
   padding-bottom: 0;
   border-bottom: 0;
+}
+
+.summaryTotal {
+  padding-block: 10px !important;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-card-title);
+}
+
+.summaryTotal :global(.ant-typography) {
+  font-size: var(--font-size-card-title);
 }
 
 .debtAmount {

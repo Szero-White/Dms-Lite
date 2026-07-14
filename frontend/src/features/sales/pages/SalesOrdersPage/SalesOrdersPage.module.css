@@ -2,16 +2,141 @@
   width: 100%;
 }
 
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
 .tableCard :global(.ant-card-body) {
   padding-top: 14px;
 }
 
-.tableCard :global(.ant-btn-sm) {
-  height: 30px;
-  padding-inline: 10px;
+.toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.filterControls {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.search {
+  width: min(280px, 100%);
+}
+
+.filter {
+  width: 150px;
+}
+
+.customerFilter {
+  width: 210px;
+}
+
+.dateFilter {
+  width: 240px;
+}
+
+.filterChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.orderLink {
+  height: auto;
+  padding: 0;
+  font-weight: var(--font-weight-heading);
+}
+
+.customerCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.customerCell :global(.ant-avatar) {
+  flex: 0 0 auto;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: var(--font-weight-heading);
+}
+
+.customerCell > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.customerCell strong,
+.customerCell span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customerCell strong {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-label);
+}
+
+.customerCell span {
+  color: var(--color-text-muted);
   font-size: var(--font-size-meta);
 }
 
-.tableCard :global(.ant-table-cell:last-child) {
+.money {
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.debt {
+  color: var(--color-danger);
+  font-weight: var(--font-weight-label);
+}
+
+.drawerContent {
+  display: grid;
+  gap: var(--spacing-xl);
+}
+
+.drawerContent :global(h5.ant-typography) {
+  margin: 0 0 var(--spacing-sm) !important;
+}
+
+@media (max-width: 1200px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+  }
+
+  .filterControls,
+  .search,
+  .filter,
+  .customerFilter,
+  .dateFilter,
+  .toolbar > :global(.ant-btn) {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
 }
