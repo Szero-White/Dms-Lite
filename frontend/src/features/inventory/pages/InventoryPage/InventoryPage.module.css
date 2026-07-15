@@ -203,7 +203,8 @@
   background: rgba(255,255,255,0.05);
 }
 
-.szLabel {
+.szLabel,
+.stockZoneLabel {
   font-size: 10.5px;
   font-weight: 700;
   color: rgba(255,255,255,0.5);
@@ -212,7 +213,8 @@
   margin-bottom: 10px;
 }
 
-.szBigNum {
+.szBigNum,
+.stockBigNum {
   font-size: 44px;
   font-weight: 800;
   color: #fff;
@@ -221,27 +223,32 @@
   margin-bottom: 4px;
 }
 
-.szSubLbl {
+.szSubLbl,
+.stockBigLabel {
   font-size: 12px;
   color: rgba(255,255,255,0.5);
   margin-bottom: 20px;
 }
 
-.szDivider {
+.szDivider,
+.stockDivider {
   height: 1px;
   background: rgba(255,255,255,0.1);
   margin-bottom: 14px;
 }
 
-.szRow {
+.szRow,
+.stockValueRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
 }
 
-.szRowLbl { font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 500; }
-.szRowVal { font-size: 13.5px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+.szRowLbl,
+.stockValueLabel { font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 500; }
+.szRowVal,
+.stockValueNum { font-size: 13.5px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
 
 /* Zone 2 — Health donut */
 .stockZoneHealth {
@@ -263,7 +270,8 @@
 
 .healthRing { width: 110px; height: 110px; }
 
-.healthCenter {
+.healthCenter,
+.healthRingCenter {
   position: absolute;
   inset: 0;
   display: flex;
@@ -273,6 +281,7 @@
 }
 
 .healthPct { font-size: 22px; font-weight: 800; color: var(--color-text-primary); line-height: 1; }
+.healthPctLabel { font-size: 10px; color: var(--color-text-muted); font-weight: 500; }
 .healthLbl { font-size: 10px; color: var(--color-text-muted); font-weight: 500; }
 
 .healthLegend { display: flex; flex-direction: column; gap: 6px; }
@@ -282,7 +291,8 @@
 /* Zone 3 — Alerts */
 .stockZoneAlerts { padding: 20px 22px; }
 
-.alertTitle {
+.alertTitle,
+.alertZoneTitle {
   display: flex;
   align-items: center;
   gap: 7px;
