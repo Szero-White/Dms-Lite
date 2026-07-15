@@ -17,11 +17,11 @@
   justify-content: space-between;
   gap: var(--spacing-xl);
   padding: 36px 40px;
-  border-radius: 20px;
+  border-radius: 22px;
   background: var(--gradient-primary);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 10px 40px rgba(99, 102, 241, 0.35);
 }
 
 /* Decorative blobs */
@@ -30,32 +30,39 @@
   position: absolute;
   top: -40%;
   right: -15%;
-  width: 320px;
-  height: 320px;
+  width: 340px;
+  height: 340px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.1);
   pointer-events: none;
+  animation: blobPulse 5s ease-in-out infinite alternate;
 }
 
 .welcomePanel::after {
   content: '';
   position: absolute;
   bottom: -50%;
-  left: 30%;
-  width: 240px;
-  height: 240px;
+  left: 25%;
+  width: 260px;
+  height: 260px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.06);
   pointer-events: none;
+  animation: blobPulse 7s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes blobPulse {
+  from { transform: scale(1) translate(0, 0); }
+  to { transform: scale(1.15) translate(10px, -10px); }
 }
 
 .welcomeEyebrow:global(.ant-typography) {
   display: block;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.78);
   font-size: 11px;
   font-weight: 700;
   line-height: 16px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   position: relative;
   z-index: 1;
@@ -75,7 +82,7 @@
 
 .welcomeDescription:global(.ant-typography) {
   margin: 0;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 14px;
   line-height: 22px;
   position: relative;
@@ -94,19 +101,20 @@
 
 .quickActions :global(.ant-btn) {
   background: rgba(255, 255, 255, 0.15) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
   color: white !important;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
   font-weight: 500;
   height: 38px;
+  border-radius: 10px !important;
   transition: all 0.25s ease;
 }
 
 .quickActions :global(.ant-btn:hover) {
-  background: rgba(255, 255, 255, 0.25) !important;
-  border-color: rgba(255, 255, 255, 0.4) !important;
+  background: rgba(255, 255, 255, 0.26) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
 .quickActions :global(.ant-btn-primary) {
@@ -114,12 +122,12 @@
   color: var(--color-primary) !important;
   border-color: transparent !important;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
 }
 
 .quickActions :global(.ant-btn-primary:hover) {
   background: #ffffff !important;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
 }
 
 /* ===================================================
@@ -135,6 +143,9 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--spacing-md);
+  padding-left: 14px;
+  border-left: 4px solid var(--color-primary, #6366f1);
+  border-radius: 0 4px 4px 0;
 }
 
 .sectionHeading :global(h3.ant-typography) {
@@ -194,6 +205,7 @@
 .chartGrid :global(.panel-card),
 .insightGrid :global(.panel-card),
 .actionGrid :global(.panel-card) {
+  border-radius: 16px !important;
   transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
 }
 
@@ -201,8 +213,8 @@
 .insightGrid :global(.panel-card:hover),
 .actionGrid :global(.panel-card:hover) {
   transform: translateY(-3px);
-  box-shadow: 0 8px 28px rgba(99, 102, 241, 0.12);
-  border-color: rgba(99, 102, 241, 0.2) !important;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.13);
+  border-color: rgba(99, 102, 241, 0.22) !important;
 }
 
 /* ===================================================
@@ -221,13 +233,21 @@
 .panel :global(.ant-list-item) {
   padding: 10px 0;
   border-bottom: 1px solid var(--color-border-subtle) !important;
+  transition: background 0.15s ease;
 }
 
 .panel :global(.ant-list-item:last-child) {
   border-bottom: none !important;
 }
 
-/* rank badge */
+.panel :global(.ant-list-item:hover) {
+  background: rgba(99, 102, 241, 0.035);
+  border-radius: 8px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+/* rank badge — gold / silver / bronze + gradient */
 .listRow {
   width: 100%;
   min-height: 44px;
@@ -243,11 +263,26 @@
   place-items: center;
   flex: 0 0 auto;
   border-radius: 8px;
-  background: var(--color-primary-light);
-  color: var(--color-primary);
   font-size: 12px;
   font-weight: 800;
   line-height: 1;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+
+/* Gold for #1, silver for #2, bronze for #3 */
+.listRow:has(.rank:first-child:nth-last-child(1)):nth-child(1) .rank,
+.panel :global(.ant-list-item:nth-child(1)) .rank {
+  background: linear-gradient(135deg, #f59e0b, #fb923c);
+}
+
+.panel :global(.ant-list-item:nth-child(2)) .rank {
+  background: linear-gradient(135deg, #94a3b8, #cbd5e1);
+  color: #1e293b;
+}
+
+.panel :global(.ant-list-item:nth-child(3)) .rank {
+  background: linear-gradient(135deg, #b45309, #d97706);
 }
 
 .listContent {
@@ -280,6 +315,10 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* ===================================================
@@ -308,10 +347,18 @@
 .actionCard :global(.ant-list-item) {
   padding: 10px 0;
   border-bottom: 1px solid var(--color-border-subtle) !important;
+  transition: background 0.15s ease, padding 0.15s ease;
 }
 
 .actionCard :global(.ant-list-item:last-child) {
   border-bottom: none !important;
+}
+
+.actionCard :global(.ant-list-item:hover) {
+  background: rgba(99, 102, 241, 0.04);
+  border-radius: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
 .actionCard :global(.ant-list-empty-text) {
@@ -330,36 +377,76 @@
   font-weight: 600;
 }
 
-/* Health summary */
+/* Health summary — three colorful stat tiles */
 .healthSummary {
   display: flex;
   justify-content: space-between;
   gap: var(--spacing-sm);
-  margin-bottom: 10px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  background: var(--color-surface-muted);
+  margin-bottom: 12px;
+  padding: 0;
 }
 
 .healthSummary div {
+  flex: 1;
   min-width: 0;
-  display: grid;
-  gap: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: 1.5px solid #e8ecf2;
+  background: #fff;
   text-align: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.healthSummary div:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+
+/* Healthy — green */
+.healthSummary div:nth-child(1) {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.healthSummary div:nth-child(1) strong {
+  color: #059669;
+}
+
+/* Low stock — amber */
+.healthSummary div:nth-child(2) {
+  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.healthSummary div:nth-child(2) strong {
+  color: #d97706;
+}
+
+/* Out of stock — red */
+.healthSummary div:nth-child(3) {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.healthSummary div:nth-child(3) strong {
+  color: #dc2626;
 }
 
 .healthSummary span {
   color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 10.5px;
+  font-weight: 600;
   line-height: var(--line-height-meta);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 .healthSummary strong {
-  color: var(--color-text-primary);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.5px;
@@ -443,70 +530,156 @@
 }
 
 /* ══════════════════════════════════════════
-   KPI TICKER STRIP
+   KPI MINI PANEL
    ══════════════════════════════════════════ */
-.kpiTicker {
+.kpiMiniPanel {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.kpiMiniCard {
+  position: relative;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 20px 18px;
   border-radius: 16px;
   border: 1.5px solid var(--color-border-subtle);
   background: #fff;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+  cursor: default;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  box-shadow: var(--shadow-card);
 }
 
-.kpiItem {
-  flex: 1;
+/* Subtle diagonal gradient tint in background */
+.kpiMiniCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--kpi-color, #6366f1) 4%, transparent) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.kpiMiniCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 32px rgba(0,0,0,0.09), 0 0 0 2px color-mix(in srgb, var(--kpi-color, #6366f1) 20%, transparent);
+  border-color: var(--kpi-color, var(--color-primary)) !important;
+}
+
+.kpiMiniTop {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 18px 22px;
-  transition: background 0.18s ease;
-  cursor: default;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
 
-.kpiItem:hover { background: var(--color-surface-muted); }
-
-.kpiIcon {
-  font-size: 20px;
+.kpiMiniIconWrap {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 18px;
   flex-shrink: 0;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--kpi-color, #6366f1) 20%, transparent);
 }
 
-.kpiItem:hover .kpiIcon { transform: scale(1.15); }
+.kpiMiniCard:hover .kpiMiniIconWrap {
+  transform: scale(1.12);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--kpi-color, #6366f1) 30%, transparent);
+}
 
-.kpiVal {
-  font-size: 17px;
+/* SVG gauge */
+.miniGaugeSvg {
+  flex-shrink: 0;
+  animation: fadeInUp 0.7s ease-out both;
+}
+
+/* Spark bar (for non-gauge cards) */
+.kpiMiniSparkBar {
+  width: 56px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-border-subtle);
+  overflow: hidden;
+  position: relative;
+}
+
+.kpiMiniSparkFill {
+  position: absolute;
+  inset: 0;
+  width: 80%;
+  border-radius: 999px;
+  animation: growBar 0.9s ease-out both;
+}
+
+@keyframes growBar {
+  from { width: 0; }
+  to { width: 80%; }
+}
+
+.kpiMiniValue {
+  font-size: 18px;
   font-weight: 800;
   color: var(--color-text-primary);
-  letter-spacing: -0.3px;
+  letter-spacing: -0.4px;
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.kpiLbl {
+.kpiMiniLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  line-height: 1.3;
+}
+
+.kpiMiniSub {
   font-size: 11px;
-  font-weight: 500;
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 500;
   margin-top: 2px;
 }
 
-.kpiDiv {
-  width: 1px;
-  height: 40px;
-  background: var(--color-border-subtle);
-  flex-shrink: 0;
+/* Colored left accent bar */
+.kpiMiniAccent {
+  position: absolute;
+  left: 0;
+  top: 18%;
+  bottom: 18%;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+  opacity: 0.8;
+  transition: opacity 0.2s ease, top 0.2s ease, bottom 0.2s ease, width 0.2s ease;
+}
+
+.kpiMiniCard:hover .kpiMiniAccent {
+  top: 8%;
+  bottom: 8%;
+  width: 4px;
+  opacity: 1;
 }
 
 @media (max-width: 1200px) {
-  .kpiTicker { flex-wrap: wrap; }
-  .kpiItem { min-width: calc(50% - 1px); }
-  .kpiDiv { display: none; }
+  .kpiMiniPanel {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
-@media (max-width: 560px) {
-  .kpiItem { min-width: 100%; border-bottom: 1px solid var(--color-border-subtle); }
-  .kpiItem:last-child { border-bottom: none; }
+@media (max-width: 768px) {
+  .kpiMiniPanel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .kpiMiniPanel {
+    grid-template-columns: 1fr;
+  }
 }

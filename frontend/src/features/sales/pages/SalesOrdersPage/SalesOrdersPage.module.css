@@ -1,116 +1,249 @@
 .page { width: 100%; }
 
 /* ══════════════════════════════════════════
-   PIPELINE STRIP  – kanban-style status bar
+   PIPELINE STRIP  – premium gradient cards
    ══════════════════════════════════════════ */
 .pipeline {
   display: grid;
   grid-template-columns: repeat(4, 1fr) auto;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 24px;
   align-items: stretch;
 }
 
+/* ── Individual status card ── */
 .pipelineCard {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-  border: 1.5px solid var(--color-border-subtle);
-  border-radius: 16px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0;
+  padding: 22px 22px 18px;
+  border: none;
+  border-radius: 20px;
   background: #fff;
   cursor: pointer;
   text-align: left;
   font: inherit;
-  transition: all 0.22s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06), 0 6px 24px rgba(0,0,0,0.04);
+  min-height: 148px;
+}
+
+/* Full gradient wash behind content */
+.pipelineCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--card-gradient, linear-gradient(135deg, #6366f120 0%, #6366f108 100%));
+  transition: opacity 0.25s ease;
+  opacity: 0.9;
+}
+
+/* Decorative circle blob — top right */
+.pipelineCard::after {
+  content: '';
+  position: absolute;
+  top: -28px;
+  right: -28px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: var(--card-glow, rgba(99,102,241,0.12));
+  pointer-events: none;
+  transition: transform 0.35s ease;
 }
 
 .pipelineCard:hover {
-  border-color: var(--color-primary-mid);
-  box-shadow: 0 4px 16px rgba(99,102,241,0.12);
-  transform: translateY(-2px);
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.1), 0 0 0 2px var(--card-border, rgba(99,102,241,0.25));
+  filter: brightness(1.01);
 }
 
+.pipelineCard:hover::after {
+  transform: scale(1.25) translate(-4px, 4px);
+}
+
+/* Active / selected state */
 .pipelineActive {
-  border-color: var(--color-primary) !important;
-  background: var(--color-primary-light) !important;
-  box-shadow: 0 4px 16px rgba(99,102,241,0.18) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 0 0 2.5px var(--card-border, #6366f1) !important;
+  transform: translateY(-3px) !important;
 }
 
+.pipelineActive::before {
+  opacity: 1;
+}
+
+/* ── Top row: icon + sparkline fill pill ── */
+.pipelineCardTop {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+/* Icon bubble */
 .pipelineIcon {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 14px;
   color: #fff;
-  font-size: 17px;
+  font-size: 19px;
   flex-shrink: 0;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.14);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
 
+.pipelineCard:hover .pipelineIcon {
+  transform: scale(1.1) rotate(-6deg);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.22);
+}
+
+/* Mini bar pill top-right */
+.pipelineBarPill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(6px);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--card-text, #6366f1);
+  border: 1px solid rgba(255,255,255,0.9);
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.pipelineBarPill span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--card-dot, #6366f1);
+  flex-shrink: 0;
+}
+
+/* ── Body: big number + label ── */
 .pipelineBody {
-  flex: 1;
-  min-width: 0;
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .pipelineCount {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--color-text-primary);
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--card-count, #0f172a);
   line-height: 1;
-  letter-spacing: -0.5px;
+  letter-spacing: -1.5px;
+  font-variant-numeric: tabular-nums;
 }
 
 .pipelineLabel {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-text-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--card-label, #64748b);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 6px;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
 }
 
+/* ── Bottom accent bar ── */
 .pipelineBar {
-  height: 4px;
-  border-radius: 999px;
-  background: var(--color-surface-muted);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(0,0,0,0.06);
   overflow: hidden;
 }
 
 .pipelineBarFill {
   height: 100%;
   border-radius: 999px;
-  transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  min-width: 8%;
 }
 
-/* Revenue + Debt summary */
+/* ═════════════════════════════════════════
+   Revenue + Debt summary card (5th card)
+   ═════════════════════════════════════════ */
 .pipelineSummary {
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 0;
-  padding: 16px 22px;
-  border: 1.5px solid var(--color-border-subtle);
-  border-radius: 16px;
-  background: linear-gradient(135deg, #fafbff 0%, #f0f4ff 100%);
-  min-width: 200px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  padding: 22px 24px;
+  border-radius: 20px;
+  min-width: 210px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, #1e1b4b 0%, #312e81 55%, #4f46e5 100%);
+  box-shadow: 0 6px 28px rgba(79,70,229,0.35);
+}
+
+/* Glow blob */
+.pipelineSummary::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(167,139,250,0.18);
+  pointer-events: none;
+}
+
+.pipelineSummary::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 10px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(99,102,241,0.12);
+  pointer-events: none;
 }
 
 .pipelineSummaryItem {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
-.pipelineSummaryIcon {
-  font-size: 18px;
+.pipelineSummaryIconWrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
+  font-size: 16px;
+}
+
+.pipelineSummaryIconWrap.revenue {
+  background: rgba(167,139,250,0.2);
+  color: #a78bfa;
+}
+
+.pipelineSummaryIconWrap.debt {
+  background: rgba(251,113,133,0.2);
+  color: #fb7185;
 }
 
 .pipelineSummaryItem div {
@@ -122,21 +255,29 @@
 .pipelineSummaryVal {
   font-size: 15px;
   font-weight: 800;
-  color: var(--color-text-primary);
   letter-spacing: -0.3px;
   font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+
+.pipelineSummaryVal.debtVal {
+  color: #fb7185;
 }
 
 .pipelineSummaryLbl {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  font-weight: 500;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .pipelineSummaryDivider {
   height: 1px;
-  background: var(--color-border-subtle);
-  margin: 10px 0;
+  background: rgba(255,255,255,0.1);
+  margin: 12px 0;
+  position: relative;
+  z-index: 1;
 }
 
 /* ══════════════════════════════════════════
@@ -219,12 +360,15 @@
    DRAWER
    ══════════════════════════════════════════ */
 .drawerContent { display: grid; gap: 24px; }
-
 .drawerContent :global(h5.ant-typography) { margin: 0 0 10px !important; font-weight: 700; }
 
 /* ══════════════════════════════════════════
    RESPONSIVE
    ══════════════════════════════════════════ */
+@media (max-width: 1200px) {
+  .pipeline { grid-template-columns: repeat(2, 1fr) auto; }
+}
+
 @media (max-width: 1100px) {
   .pipeline { grid-template-columns: repeat(2, 1fr); }
   .pipelineSummary { display: none; }

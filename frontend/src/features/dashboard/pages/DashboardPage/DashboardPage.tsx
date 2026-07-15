@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {
   AppstoreOutlined,
   CalendarOutlined,
@@ -186,48 +187,85 @@ export function DashboardPage() {
                 <SummaryCard title="Low-stock Products" value={formatNumber(lowStockProducts.length)} note="Products requiring replenishment" icon={<WarningOutlined />} variant="red" />
               </div>
 
-              {/* KPI ticker — replaces secondary 4-card row */}
-              <div className={styles.kpiTicker}>
-                <div className={styles.kpiItem}>
-                  <DollarOutlined className={styles.kpiIcon} style={{ color: '#6366f1' }} />
-                  <div>
-                    <div className={styles.kpiVal}>{formatCurrency(dashboardQuery.data.summary.revenueToday)}</div>
-                    <div className={styles.kpiLbl}>Revenue today</div>
+              {/* KPI mini-visual panel */}
+              {(() => {
+                const totalOrders = filteredOrders.length || 1;
+                const confirmedPct = Math.round((confirmedOrders.length / totalOrders) * 100);
+                const healthyPct   = products.length ? Math.round(((products.length - lowStockProducts.length) / products.length) * 100) : 100;
+                const r = 18; const circ = 2 * Math.PI * r;
+                function MiniGauge({ pct, color }: { pct: number; color: string }) {
+                  return (
+                    <svg width="48" height="48" viewBox="0 0 48 48" className={styles.miniGaugeSvg}>
+                      <defs>
+                        <linearGradient id={`grad-${color.replace('#','')}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor={color} stopOpacity="0.3"/>
+                          <stop offset="100%" stopColor={color} stopOpacity="0.08"/>
+                        </linearGradient>
+                      </defs>
+                      <circle cx="24" cy="24" r={r} fill={`url(#grad-${color.replace('#','')})`} stroke="none"/>
+                      <circle cx="24" cy="24" r={r} fill="none" stroke={`${color}22`} strokeWidth="4"/>
+                      <circle
+                        cx="24" cy="24" r={r} fill="none" stroke={color} strokeWidth="4"
+                        strokeDasharray={`${(pct / 100) * circ} ${circ}`}
+                        strokeDashoffset={circ * 0.25}
+                        strokeLinecap="round"
+                      />
+                      <text x="24" y="28" textAnchor="middle" fontSize="10" fontWeight="800" fill={color}>{pct}%</text>
+                    </svg>
+                  );
+                }
+                const kpis = [
+                  {
+                    label: 'Revenue Today', value: formatCurrency(dashboardQuery.data.summary.revenueToday),
+                    color: '#6366f1', icon: <DollarOutlined />, showGauge: false,
+                    subLabel: 'vs. this month',
+                  },
+                  {
+                    label: 'Active SKUs', value: String(formatNumber(dashboardQuery.data.summary.productCount)),
+                    color: '#06b6d4', icon: <AppstoreOutlined />, showGauge: false,
+                    subLabel: `${lowStockProducts.length} low stock`,
+                  },
+                  {
+                    label: 'Payable Debt', value: formatCurrency(dashboardQuery.data.summary.payableDebt),
+                    color: '#8b5cf6', icon: <InboxOutlined />, showGauge: false,
+                    subLabel: 'supplier obligations',
+                  },
+                  {
+                    label: 'Active Customers', value: String(formatNumber(activeCustomers)),
+                    color: '#10b981', icon: <TeamOutlined />, showGauge: true, pct: healthyPct,
+                    subLabel: `${healthyPct}% inventory healthy`,
+                  },
+                  {
+                    label: 'Orders Need Action', value: String(formatNumber(attentionOrders.length)),
+                    color: '#f59e0b', icon: <ShoppingCartOutlined />, showGauge: true, pct: confirmedPct,
+                    subLabel: `${confirmedPct}% confirmed`,
+                  },
+                ];
+                return (
+                  <div className={styles.kpiMiniPanel}>
+                    {kpis.map((k, i) => (
+                      <div key={i} className={styles.kpiMiniCard} style={{ '--kpi-color': k.color } as React.CSSProperties}>
+                        <div className={styles.kpiMiniTop}>
+                          <div className={styles.kpiMiniIconWrap} style={{ background: `${k.color}18`, color: k.color }}>
+                            {k.icon}
+                          </div>
+                          {(k.showGauge && k.pct !== undefined) ? (
+                            <MiniGauge pct={k.pct} color={k.color} />
+                          ) : (
+                            <div className={styles.kpiMiniSparkBar}>
+                              <div className={styles.kpiMiniSparkFill} style={{ background: `linear-gradient(90deg, ${k.color}55, ${k.color}cc)` }} />
+                            </div>
+                          )}
+                        </div>
+                        <div className={styles.kpiMiniValue}>{k.value}</div>
+                        <div className={styles.kpiMiniLabel}>{k.label}</div>
+                        <div className={styles.kpiMiniSub}>{k.subLabel}</div>
+                        <div className={styles.kpiMiniAccent} style={{ background: `linear-gradient(90deg, ${k.color}, ${k.color}00)` }} />
+                      </div>
+                    ))}
                   </div>
-                </div>
-                <div className={styles.kpiDiv} />
-                <div className={styles.kpiItem}>
-                  <AppstoreOutlined className={styles.kpiIcon} style={{ color: '#06b6d4' }} />
-                  <div>
-                    <div className={styles.kpiVal}>{formatNumber(dashboardQuery.data.summary.productCount)}</div>
-                    <div className={styles.kpiLbl}>Active SKUs</div>
-                  </div>
-                </div>
-                <div className={styles.kpiDiv} />
-                <div className={styles.kpiItem}>
-                  <InboxOutlined className={styles.kpiIcon} style={{ color: '#8b5cf6' }} />
-                  <div>
-                    <div className={styles.kpiVal}>{formatCurrency(dashboardQuery.data.summary.payableDebt)}</div>
-                    <div className={styles.kpiLbl}>Payable debt</div>
-                  </div>
-                </div>
-                <div className={styles.kpiDiv} />
-                <div className={styles.kpiItem}>
-                  <TeamOutlined className={styles.kpiIcon} style={{ color: '#10b981' }} />
-                  <div>
-                    <div className={styles.kpiVal}>{formatNumber(activeCustomers)}</div>
-                    <div className={styles.kpiLbl}>Active customers</div>
-                  </div>
-                </div>
-                <div className={styles.kpiDiv} />
-                <div className={styles.kpiItem}>
-                  <ShoppingCartOutlined className={styles.kpiIcon} style={{ color: '#f59e0b' }} />
-                  <div>
-                    <div className={styles.kpiVal}>{formatNumber(attentionOrders.length)}</div>
-                    <div className={styles.kpiLbl}>Orders need action</div>
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
             </section>
 
             {/* ── Sales analytics ── */}

@@ -1,8 +1,4 @@
-import {
-  ArrowDownOutlined,
-  ArrowUpOutlined,
-} from '@ant-design/icons';
-import { Card, Progress, Space, Typography } from 'antd';
+import * as React from 'react';
 import type { ReactNode } from 'react';
 import styles from './SummaryCard.module.css';
 
@@ -17,105 +13,54 @@ interface SummaryCardProps {
   visual?: 'default' | 'dashboard';
 }
 
+const variantConfig: Record<string, { accent: string; iconBg: string; iconColor: string }> = {
+  blue:   { accent: '#6366f1', iconBg: '#eef2ff', iconColor: '#4f46e5' },
+  green:  { accent: '#10b981', iconBg: '#ecfdf5', iconColor: '#059669' },
+  orange: { accent: '#f59e0b', iconBg: '#fffbeb', iconColor: '#d97706' },
+  purple: { accent: '#8b5cf6', iconBg: '#f5f3ff', iconColor: '#7c3aed' },
+  red:    { accent: '#ef4444', iconBg: '#fef2f2', iconColor: '#dc2626' },
+  cyan:   { accent: '#06b6d4', iconBg: '#ecfeff', iconColor: '#0891b2' },
+};
+
 export function SummaryCard({
   title,
   value,
   note,
   icon,
   trend,
-  progress,
   variant = 'blue',
-  visual = 'default',
 }: SummaryCardProps) {
+  const cfg = variantConfig[variant];
   const isPositive = trend !== undefined && trend >= 0;
-  const isDashboard = visual === 'dashboard';
 
   return (
-    <Card
-      className={`${styles.card} ${styles[variant]} ${
-        isDashboard ? styles.dashboard : ''
-      }`}
+    <div
+      className={styles.card}
+      style={{ '--accent': cfg.accent, '--icon-bg': cfg.iconBg, '--icon-color': cfg.iconColor } as React.CSSProperties}
     >
-      {isDashboard ? (
-        <>
-          <div className={styles.dashboardHeader}>
-            {icon ? (
-              <div className={styles.icon}>
-                {icon}
-              </div>
-            ) : null}
+      {/* Left accent bar */}
+      <div className={styles.accentBar} />
 
-            <Typography.Text className={styles.title}>
-              {title}
-            </Typography.Text>
-          </div>
+      {/* Header row: title + icon */}
+      <div className={styles.header}>
+        <span className={styles.title}>{title}</span>
+        {icon && <div className={styles.icon}>{icon}</div>}
+      </div>
 
-          <Typography.Title
-            level={2}
-            className={styles.value}
-          >
-            {value}
-          </Typography.Title>
-        </>
-      ) : (
-        <div className={styles.header}>
-          <div>
-            <Typography.Text className={styles.title}>
-              {title}
-            </Typography.Text>
+      {/* Big value */}
+      <div className={styles.value}>{value}</div>
 
-            <Typography.Title
-              level={2}
-              className={styles.value}
-            >
-              {value}
-            </Typography.Title>
-          </div>
-
-          {icon ? (
-            <div className={styles.icon}>
-              {icon}
-            </div>
-          ) : null}
-        </div>
-      )}
-
-      {trend !== undefined ? (
-        <Space size={6}>
-          <Typography.Text
-            className={
-              isPositive
-                ? styles.trendPositive
-                : styles.trendNegative
-            }
-          >
-            {isPositive ? (
-              <ArrowUpOutlined />
-            ) : (
-              <ArrowDownOutlined />
-            )}
-
-            {' '}
-            {Math.abs(trend)}%
-          </Typography.Text>
-
-          <Typography.Text type="secondary">
-            vs previous period
-          </Typography.Text>
-        </Space>
-      ) : null}
-
-      {progress !== undefined ? (
-        <Progress
-          percent={progress}
-          showInfo={false}
-          size="small"
-        />
-      ) : null}
-
-      <Typography.Text className={styles.note}>
-        {note}
-      </Typography.Text>
-    </Card>
+      {/* Footer: note or trend */}
+      <div className={styles.footer}>
+        {trend !== undefined ? (
+          <span className={isPositive ? styles.trendUp : styles.trendDown}>
+            {isPositive ? '▲' : '▼'} {Math.abs(trend)}%
+            <span className={styles.trendLabel}>&nbsp;vs prev. period</span>
+          </span>
+        ) : (
+          <span className={styles.note}>{note}</span>
+        )}
+      </div>
+    </div>
   );
 }
