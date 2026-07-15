@@ -1,12 +1,9 @@
 import {
-  CheckCircleOutlined,
   EyeOutlined,
   MoreOutlined,
   PlusOutlined,
   SearchOutlined,
-  TeamOutlined,
-  WarningOutlined,
-  WalletOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import {
   Avatar,
@@ -27,7 +24,6 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
-import { SummaryCard } from '../../../../components/common/SummaryCard';
 import { CustomerDebtTag } from '../../../../components/common/StatusTag';
 import { formatCurrency, toNumber } from '../../../../lib/format';
 import {
@@ -81,6 +77,14 @@ export function CustomersPage() {
 
     return limit > 0 && toNumber(customer.debtBalance) / limit >= 0.8;
   }).length;
+  const activeCount    = customers.filter((c) => c.active).length;
+  const debtorCount    = customers.filter((c) => toNumber(c.debtBalance) > 0).length;
+  const clearCount     = customers.filter((c) => c.active && toNumber(c.debtBalance) === 0).length;
+  const overLimitCount = customers.filter((c) => {
+    const lim = toNumber(c.creditLimit);
+    return lim > 0 && toNumber(c.debtBalance) / lim >= 1;
+  }).length;
+
   const hasFilters = Boolean(
     keyword || activeFilter !== 'ALL' || debtFilter !== 'ALL' || creditFilter !== 'ALL',
   );
@@ -108,39 +112,92 @@ export function CustomersPage() {
         }
       />
 
-      <div className={styles.metricsGrid}>
-        <SummaryCard
-          title="Total Customers"
-          value={customers.length}
-          note="Customer profiles in the current dataset"
-          icon={<TeamOutlined />}
-          variant="blue"
-          visual="dashboard"
-        />
-        <SummaryCard
-          title="Active Customers"
-          value={customers.filter((customer) => customer.active).length}
-          note="Customers available for transactions"
-          icon={<CheckCircleOutlined />}
-          variant="green"
-          visual="dashboard"
-        />
-        <SummaryCard
-          title="Total Receivables"
-          value={formatCurrency(totalReceivables)}
-          note="Outstanding balance across customers"
-          icon={<WalletOutlined />}
-          variant="orange"
-          visual="dashboard"
-        />
-        <SummaryCard
-          title="Credit Threshold Alerts"
-          value={thresholdCustomers}
-          note="Customers using at least 80% of credit"
-          icon={<WarningOutlined />}
-          variant="red"
-          visual="dashboard"
-        />
+      {/* ── Customer Pulse Bar ── */}
+      <div className={styles.pulseBar}>
+        {/* Total + Active ring */}
+        <div className={styles.pulseHero}>
+          <div className={styles.pulseRingWrap}>
+            <svg viewBox="0 0 80 80" className={styles.pulseRing}>
+              <circle cx="40" cy="40" r="32" fill="none" stroke="#f1f5f9" strokeWidth="8"/>
+              <circle cx="40" cy="40" r="32" fill="none"
+                stroke="url(#custGrad)" strokeWidth="8"
+                strokeDasharray={`${customers.length > 0 ? (activeCount / customers.length) * 201 : 0} 201`}
+                strokeDashoffset="50"
+                strokeLinecap="round"
+              />
+              <defs>
+                <linearGradient id="custGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#6366f1"/>
+                  <stop offset="100%" stopColor="#8b5cf6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div className={styles.pulseRingCenter}>
+              <span className={styles.pulseRingNum}>{customers.length}</span>
+              <span className={styles.pulseRingLbl}>total</span>
+            </div>
+          </div>
+          <div className={styles.pulseHeroText}>
+            <div className={styles.pulseHeroTitle}>Customer Base</div>
+            <div className={styles.pulseHeroSub}>{activeCount} active · {customers.length - activeCount} inactive</div>
+          </div>
+        </div>
+
+        <div className={styles.pulseDivider}/>
+
+        {/* Tier breakdown */}
+        <div className={styles.pulseTiers}>
+          <div className={styles.tierTitle}>Account Health</div>
+          <div className={styles.tierRow}>
+            <div className={styles.tierDot} style={{ background: '#10b981' }} />
+            <span className={styles.tierLbl}>Clear balance</span>
+            <div className={styles.tierBar}>
+              <div className={styles.tierFill} style={{
+                width: `${customers.length ? (clearCount / customers.length) * 100 : 0}%`,
+                background: '#10b981',
+              }}/>
+            </div>
+            <span className={styles.tierCount}>{clearCount}</span>
+          </div>
+          <div className={styles.tierRow}>
+            <div className={styles.tierDot} style={{ background: '#f59e0b' }} />
+            <span className={styles.tierLbl}>Has debt</span>
+            <div className={styles.tierBar}>
+              <div className={styles.tierFill} style={{
+                width: `${customers.length ? (debtorCount / customers.length) * 100 : 0}%`,
+                background: 'linear-gradient(90deg,#f59e0b,#fbbf24)',
+              }}/>
+            </div>
+            <span className={styles.tierCount}>{debtorCount}</span>
+          </div>
+          <div className={styles.tierRow}>
+            <div className={styles.tierDot} style={{ background: '#ef4444' }} />
+            <span className={styles.tierLbl}>Over limit</span>
+            <div className={styles.tierBar}>
+              <div className={styles.tierFill} style={{
+                width: `${customers.length ? (overLimitCount / customers.length) * 100 : 0}%`,
+                background: 'linear-gradient(90deg,#ef4444,#f87171)',
+              }}/>
+            </div>
+            <span className={styles.tierCount}>{overLimitCount}</span>
+          </div>
+        </div>
+
+        <div className={styles.pulseDivider}/>
+
+        {/* Receivables */}
+        <div className={styles.pulseReceivables}>
+          <div className={styles.prLabel}>Total Receivables</div>
+          <div className={styles.prAmount}>{formatCurrency(totalReceivables)}</div>
+          <div className={styles.prSub}>across {debtorCount} debtor{debtorCount !== 1 ? 's' : ''}</div>
+          <div className={styles.prAlerts}>
+            {thresholdCustomers > 0 && (
+              <span className={styles.prAlertTag}>
+                ⚠ {thresholdCustomers} near limit
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
       <Card className={`panel-card ${styles.tableCard}`}>

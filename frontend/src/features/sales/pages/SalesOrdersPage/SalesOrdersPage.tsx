@@ -5,8 +5,8 @@ import {
   MoreOutlined,
   PlusOutlined,
   SearchOutlined,
-  ShoppingCartOutlined,
   StopOutlined,
+  TrophyOutlined,
 } from '@ant-design/icons';
 import {
   App,
@@ -29,7 +29,6 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
-import { SummaryCard } from '../../../../components/common/SummaryCard';
 import { SalesOrderStatusTag } from '../../../../components/common/StatusTag';
 import { useCustomers } from '../../../customers';
 import { useProducts } from '../../../products';
@@ -56,6 +55,13 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
+const STATUS_CONFIG = {
+  DRAFT:     { label: 'Draft',     color: '#f59e0b', bg: 'linear-gradient(135deg,#f59e0b,#fbbf24)', icon: <ClockCircleOutlined /> },
+  CONFIRMED: { label: 'Confirmed', color: '#6366f1', bg: 'linear-gradient(135deg,#6366f1,#818cf8)', icon: <CheckCircleOutlined /> },
+  COMPLETED: { label: 'Completed', color: '#10b981', bg: 'linear-gradient(135deg,#10b981,#34d399)', icon: <TrophyOutlined /> },
+  CANCELLED: { label: 'Cancelled', color: '#ef4444', bg: 'linear-gradient(135deg,#ef4444,#f87171)', icon: <StopOutlined /> },
+} as const;
+
 export function SalesOrdersPage() {
   const { modal } = App.useApp();
   const navigate = useNavigate();
@@ -74,47 +80,56 @@ export function SalesOrdersPage() {
   const customers = customersQuery.data ?? [];
   const products = productsQuery.data ?? [];
   const customersMap = useMemo(
-    () => new Map(customers.map((customer) => [customer.id, customer])),
+    () => new Map(customers.map((c) => [c.id, c])),
     [customers],
   );
   const productsMap = useMemo(
-    () => new Map(products.map((product) => [product.id, product])),
+    () => new Map(products.map((p) => [p.id, p])),
     [products],
   );
   const orders = ordersQuery.data ?? [];
-  const filteredOrders = useMemo(() => {
-    const normalizedKeyword = keyword.trim().toLowerCase();
 
+  const statusCounts = useMemo(() => ({
+    DRAFT:     orders.filter((o) => o.status === 'DRAFT').length,
+    CONFIRMED: orders.filter((o) => o.status === 'CONFIRMED').length,
+    COMPLETED: orders.filter((o) => o.status === 'COMPLETED').length,
+    CANCELLED: orders.filter((o) => o.status === 'CANCELLED').length,
+  }), [orders]);
+
+  const totalRevenue = useMemo(
+    () => orders.filter((o) => o.status !== 'CANCELLED')
+      .reduce((s, o) => s + toNumber(o.totalAmount), 0),
+    [orders],
+  );
+  const outstandingDebt = useMemo(
+    () => orders.reduce((s, o) => s + toNumber(o.debtAmount), 0),
+    [orders],
+  );
+
+  const filteredOrders = useMemo(() => {
+    const kw = keyword.trim().toLowerCase();
     return orders.filter((order) => {
-      const customerName = customersMap.get(order.customerId)?.name ?? '';
-      const matchesKeyword = !normalizedKeyword ||
-        order.code.toLowerCase().includes(normalizedKeyword) ||
-        customerName.toLowerCase().includes(normalizedKeyword);
+      const cName = customersMap.get(order.customerId)?.name ?? '';
+      const matchesKeyword = !kw || order.code.toLowerCase().includes(kw) || cName.toLowerCase().includes(kw);
       const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
       const matchesCustomer = customerFilter === 'ALL' || order.customerId === customerFilter;
-      const createdAt = new Date(order.createdAt).getTime();
+      const ts = new Date(order.createdAt).getTime();
       const matchesDate = !dateRange || (
-        createdAt >= new Date(`${dateRange[0]}T00:00:00`).getTime() &&
-        createdAt <= new Date(`${dateRange[1]}T23:59:59`).getTime()
+        ts >= new Date(`${dateRange[0]}T00:00:00`).getTime() &&
+        ts <= new Date(`${dateRange[1]}T23:59:59`).getTime()
       );
-
       return matchesKeyword && matchesStatus && matchesCustomer && matchesDate;
     });
   }, [customerFilter, customersMap, dateRange, keyword, orders, statusFilter]);
-  const outstandingDebt = orders.reduce(
-    (total, order) => total + toNumber(order.debtAmount),
-    0,
-  );
-  const hasFilters = Boolean(
-    keyword || statusFilter !== 'ALL' || customerFilter !== 'ALL' || dateRange,
-  );
+
+  const hasFilters = Boolean(keyword || statusFilter !== 'ALL' || customerFilter !== 'ALL' || dateRange);
 
   function clearFilters() {
     setKeyword('');
     setStatusFilter('ALL');
     setCustomerFilter('ALL');
     setDateRange(null);
-    setDatePickerKey((current) => current + 1);
+    setDatePickerKey((c) => c + 1);
   }
 
   function confirmOrder(order: SalesOrder) {
@@ -136,57 +151,72 @@ export function SalesOrdersPage() {
     });
   }
 
+  const maxCount = Math.max(...Object.values(statusCounts), 1);
+
   return (
     <div className={styles.page}>
       <PageHeader
         title="Sales Orders"
         subtitle="Track order progress, revenue and fulfillment."
         extra={(
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => navigate('/sales-orders/new')}
-          >
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/sales-orders/new')}>
             Create Order
           </Button>
         )}
       />
 
-      <div className={styles.metricsGrid}>
-        <SummaryCard
-          title="Total Orders"
-          value={orders.length}
-          note="All sales orders in the current dataset"
-          icon={<ShoppingCartOutlined />}
-          variant="blue"
-          visual="dashboard"
-        />
-        <SummaryCard
-          title="Draft Orders"
-          value={orders.filter((order) => order.status === 'DRAFT').length}
-          note="Orders awaiting confirmation or cancellation"
-          icon={<ClockCircleOutlined />}
-          variant="orange"
-          visual="dashboard"
-        />
-        <SummaryCard
-          title="Confirmed Orders"
-          value={orders.filter((order) => order.status === 'CONFIRMED').length}
-          note="Orders currently confirmed"
-          icon={<CheckCircleOutlined />}
-          variant="green"
-          visual="dashboard"
-        />
-        <SummaryCard
-          title="Outstanding Debt"
-          value={formatCurrency(outstandingDebt)}
-          note="Open debt across all orders"
-          icon={<DollarOutlined />}
-          variant="red"
-          visual="dashboard"
-        />
+      {/* ── Pipeline strip ── */}
+      <div className={styles.pipeline}>
+        {(Object.entries(STATUS_CONFIG) as [keyof typeof STATUS_CONFIG, typeof STATUS_CONFIG[keyof typeof STATUS_CONFIG]][]).map(([status, cfg]) => {
+          const count = statusCounts[status];
+          const barPct = Math.round((count / maxCount) * 100);
+          return (
+            <button
+              key={status}
+              type="button"
+              className={`${styles.pipelineCard} ${statusFilter === status ? styles.pipelineActive : ''}`}
+              onClick={() => setStatusFilter(statusFilter === status ? 'ALL' : status)}
+            >
+              <div className={styles.pipelineIcon} style={{ background: cfg.bg }}>
+                {cfg.icon}
+              </div>
+              <div className={styles.pipelineBody}>
+                <span className={styles.pipelineCount}>{count}</span>
+                <span className={styles.pipelineLabel}>{cfg.label}</span>
+                <div className={styles.pipelineBar}>
+                  <div
+                    className={styles.pipelineBarFill}
+                    style={{ width: `${barPct}%`, background: cfg.bg }}
+                  />
+                </div>
+              </div>
+            </button>
+          );
+        })}
+
+        {/* Revenue + debt summary */}
+        <div className={styles.pipelineSummary}>
+          <div className={styles.pipelineSummaryItem}>
+            <DollarOutlined className={styles.pipelineSummaryIcon} style={{ color: '#6366f1' }} />
+            <div>
+              <span className={styles.pipelineSummaryVal}>{formatCurrency(totalRevenue)}</span>
+              <span className={styles.pipelineSummaryLbl}>Total revenue</span>
+            </div>
+          </div>
+          <div className={styles.pipelineSummaryDivider} />
+          <div className={styles.pipelineSummaryItem}>
+            <DollarOutlined className={styles.pipelineSummaryIcon} style={{ color: '#ef4444' }} />
+            <div>
+              <span className={styles.pipelineSummaryVal} style={{ color: '#ef4444' }}>
+                {formatCurrency(outstandingDebt)}
+              </span>
+              <span className={styles.pipelineSummaryLbl}>Outstanding debt</span>
+            </div>
+          </div>
+        </div>
       </div>
 
+      {/* ── Table card ── */}
       <Card className={`panel-card ${styles.tableCard}`}>
         <div className={styles.toolbar}>
           <div className={styles.filterControls}>
@@ -196,7 +226,7 @@ export function SalesOrdersPage() {
               prefix={<SearchOutlined />}
               placeholder="Search order code or customer"
               value={keyword}
-              onChange={(event) => setKeyword(event.target.value)}
+              onChange={(e) => setKeyword(e.target.value)}
             />
             <Select
               className={styles.filter}
@@ -218,48 +248,35 @@ export function SalesOrdersPage() {
               onChange={setCustomerFilter}
               options={[
                 { value: 'ALL', label: 'All customers' },
-                ...customers.map((customer) => ({
-                  value: customer.id,
-                  label: customer.name,
-                })),
+                ...customers.map((c) => ({ value: c.id, label: c.name })),
               ]}
             />
             <DatePicker.RangePicker
               key={datePickerKey}
               className={styles.dateFilter}
               format="YYYY-MM-DD"
-              onChange={(dates, dateStrings) =>
-                setDateRange(dates ? [dateStrings[0], dateStrings[1]] : null)
-              }
+              onChange={(dates, strs) => setDateRange(dates ? [strs[0], strs[1]] : null)}
             />
           </div>
           <Button disabled={!hasFilters} onClick={clearFilters}>Clear filters</Button>
         </div>
 
-        {hasFilters ? (
-          <div className={styles.filterChips} aria-label="Active filters">
-            {keyword ? <Tag closable onClose={() => setKeyword('')}>Search: {keyword}</Tag> : null}
-            {statusFilter !== 'ALL' ? (
-              <Tag closable onClose={() => setStatusFilter('ALL')}>Status: {statusFilter}</Tag>
-            ) : null}
-            {customerFilter !== 'ALL' ? (
+        {hasFilters && (
+          <div className={styles.filterChips}>
+            {keyword && <Tag closable onClose={() => setKeyword('')}>Search: {keyword}</Tag>}
+            {statusFilter !== 'ALL' && <Tag closable onClose={() => setStatusFilter('ALL')}>Status: {statusFilter}</Tag>}
+            {customerFilter !== 'ALL' && (
               <Tag closable onClose={() => setCustomerFilter('ALL')}>
                 Customer: {customersMap.get(customerFilter)?.name || customerFilter}
               </Tag>
-            ) : null}
-            {dateRange ? (
-              <Tag
-                closable
-                onClose={() => {
-                  setDateRange(null);
-                  setDatePickerKey((current) => current + 1);
-                }}
-              >
-                Date: {dateRange[0]} - {dateRange[1]}
+            )}
+            {dateRange && (
+              <Tag closable onClose={() => { setDateRange(null); setDatePickerKey((c) => c + 1); }}>
+                Date: {dateRange[0]} – {dateRange[1]}
               </Tag>
-            ) : null}
+            )}
           </div>
-        ) : null}
+        )}
 
         <QueryState
           isLoading={ordersQuery.isLoading || customersQuery.isLoading || productsQuery.isLoading}
@@ -267,19 +284,11 @@ export function SalesOrdersPage() {
           error={ordersQuery.error || customersQuery.error || productsQuery.error}
           hasData={filteredOrders.length > 0}
           emptyTitle={hasFilters ? 'No orders match these filters' : 'No sales orders yet'}
-          emptyDescription={hasFilters
-            ? 'Clear or adjust the active filters to view more orders.'
-            : 'Create the first sales order to begin order processing.'}
-          emptyAction={hasFilters ? (
-            <Button onClick={clearFilters}>Clear filters</Button>
-          ) : (
-            <Button type="primary" onClick={() => navigate('/sales-orders/new')}>Create Order</Button>
-          )}
-          onRetry={() => {
-            ordersQuery.refetch();
-            customersQuery.refetch();
-            productsQuery.refetch();
-          }}
+          emptyDescription={hasFilters ? 'Clear or adjust filters.' : 'Create the first sales order.'}
+          emptyAction={hasFilters
+            ? <Button onClick={clearFilters}>Clear filters</Button>
+            : <Button type="primary" onClick={() => navigate('/sales-orders/new')}>Create Order</Button>}
+          onRetry={() => { ordersQuery.refetch(); customersQuery.refetch(); productsQuery.refetch(); }}
         >
           <Table
             rowKey="id"
@@ -303,79 +312,42 @@ export function SalesOrdersPage() {
                 width: 220,
                 render: (_, record) => (
                   <div className={styles.customerCell}>
-                    <Avatar size={30}>
-                      {getInitials(customersMap.get(record.customerId)?.name || 'Customer')}
+                    <Avatar size={30} style={{ background: 'var(--gradient-primary)', color: '#fff', fontWeight: 700 }}>
+                      {getInitials(customersMap.get(record.customerId)?.name || 'C')}
                     </Avatar>
                     <div>
-                      <strong>{customersMap.get(record.customerId)?.name || `Customer #${record.customerId}`}</strong>
-                      <span>Customer #{record.customerId}</span>
+                      <strong>{customersMap.get(record.customerId)?.name || `#${record.customerId}`}</strong>
+                      <span>ID #{record.customerId}</span>
                     </div>
                   </div>
                 ),
               },
+              { title: 'Created', dataIndex: 'createdAt', width: 160, render: (v) => formatDateTime(v) },
+              { title: 'Status', width: 130, render: (_, r) => <SalesOrderStatusTag status={r.status} /> },
+              { title: 'Total', dataIndex: 'totalAmount', align: 'right', width: 150, render: (v) => <span className={styles.money}>{formatCurrency(v)}</span> },
+              { title: 'Paid',  dataIndex: 'paidAmount',  align: 'right', width: 150, render: (v) => <span className={styles.money}>{formatCurrency(v)}</span> },
               {
-                title: 'Created At',
-                dataIndex: 'createdAt',
-                width: 170,
-                render: (value) => formatDateTime(value),
+                title: 'Debt', dataIndex: 'debtAmount', align: 'right', width: 150,
+                render: (v) => <span className={`${styles.money} ${toNumber(v) > 0 ? styles.debt : ''}`}>{formatCurrency(v)}</span>,
               },
               {
-                title: 'Status',
-                width: 120,
-                render: (_, record) => <SalesOrderStatusTag status={record.status} />,
-              },
-              {
-                title: 'Total',
-                dataIndex: 'totalAmount',
-                align: 'right',
-                width: 150,
-                render: (value) => <span className={styles.money}>{formatCurrency(value)}</span>,
-              },
-              {
-                title: 'Paid',
-                dataIndex: 'paidAmount',
-                align: 'right',
-                width: 150,
-                render: (value) => <span className={styles.money}>{formatCurrency(value)}</span>,
-              },
-              {
-                title: 'Debt',
-                dataIndex: 'debtAmount',
-                align: 'right',
-                width: 150,
-                render: (value) => (
-                  <span className={`${styles.money} ${toNumber(value) > 0 ? styles.debt : ''}`}>
-                    {formatCurrency(value)}
-                  </span>
-                ),
-              },
-              {
-                title: '',
-                fixed: 'right',
-                width: 64,
+                title: '', fixed: 'right', width: 56,
                 render: (_, record) => (
-                  <Dropdown
-                    trigger={['click']}
-                    menu={{
-                      items: [
-                        { key: 'view', label: 'View details' },
-                        ...(record.status === 'DRAFT' ? [
-                          { key: 'confirm', label: 'Confirm order', icon: <CheckCircleOutlined /> },
-                          { key: 'cancel', label: 'Cancel order', icon: <StopOutlined />, danger: true },
-                        ] : []),
-                      ],
-                      onClick: ({ key }) => {
-                        if (key === 'view') setSelectedOrder(record);
-                        if (key === 'confirm') confirmOrder(record);
-                        if (key === 'cancel') cancelOrder(record);
-                      },
-                    }}
-                  >
-                    <Button
-                      type="text"
-                      icon={<MoreOutlined />}
-                      aria-label={`Actions for ${record.code}`}
-                    />
+                  <Dropdown trigger={['click']} menu={{
+                    items: [
+                      { key: 'view', label: 'View details' },
+                      ...(record.status === 'DRAFT' ? [
+                        { key: 'confirm', label: 'Confirm order', icon: <CheckCircleOutlined /> },
+                        { key: 'cancel', label: 'Cancel order', icon: <StopOutlined />, danger: true },
+                      ] : []),
+                    ],
+                    onClick: ({ key }) => {
+                      if (key === 'view') setSelectedOrder(record);
+                      if (key === 'confirm') confirmOrder(record);
+                      if (key === 'cancel') cancelOrder(record);
+                    },
+                  }}>
+                    <Button type="text" icon={<MoreOutlined />} aria-label={`Actions for ${record.code}`} />
                   </Dropdown>
                 ),
               },
@@ -384,39 +356,32 @@ export function SalesOrdersPage() {
         </QueryState>
       </Card>
 
+      {/* ── Detail drawer ── */}
       <Drawer
         title={selectedOrder ? `Order ${selectedOrder.code}` : 'Order Details'}
         width={720}
         open={Boolean(selectedOrder)}
         onClose={() => setSelectedOrder(null)}
       >
-        {selectedOrder ? (
+        {selectedOrder && (
           <div className={styles.drawerContent}>
             <Descriptions bordered size="small" column={{ xs: 1, sm: 2 }}>
               <Descriptions.Item label="Customer">
-                {customersMap.get(selectedOrder.customerId)?.name || `Customer #${selectedOrder.customerId}`}
+                {customersMap.get(selectedOrder.customerId)?.name || `#${selectedOrder.customerId}`}
               </Descriptions.Item>
-              <Descriptions.Item label="Status">
-                <SalesOrderStatusTag status={selectedOrder.status} />
-              </Descriptions.Item>
+              <Descriptions.Item label="Status"><SalesOrderStatusTag status={selectedOrder.status} /></Descriptions.Item>
               <Descriptions.Item label="Total">{formatCurrency(selectedOrder.totalAmount)}</Descriptions.Item>
               <Descriptions.Item label="Paid">{formatCurrency(selectedOrder.paidAmount)}</Descriptions.Item>
               <Descriptions.Item label="Debt">{formatCurrency(selectedOrder.debtAmount)}</Descriptions.Item>
               <Descriptions.Item label="Warehouse">#{selectedOrder.warehouseId}</Descriptions.Item>
             </Descriptions>
-
             <div>
               <Typography.Title level={5}>Order Items</Typography.Title>
-              <Table
-                size="small"
-                pagination={false}
-                rowKey={(item, index) => item.id ?? `${item.productId}-${index}`}
+              <Table size="small" pagination={false}
+                rowKey={(item, i) => item.id ?? `${item.productId}-${i}`}
                 dataSource={selectedOrder.items ?? []}
                 columns={[
-                  {
-                    title: 'Product',
-                    render: (_, item) => productsMap.get(item.productId)?.name || `Product #${item.productId}`,
-                  },
+                  { title: 'Product', render: (_, item) => productsMap.get(item.productId)?.name || `#${item.productId}` },
                   { title: 'Qty', dataIndex: 'quantity', align: 'right' },
                   { title: 'Unit Price', dataIndex: 'unitPrice', align: 'right', render: formatCurrency },
                   { title: 'Discount', dataIndex: 'discountAmount', align: 'right', render: formatCurrency },
@@ -424,40 +389,22 @@ export function SalesOrdersPage() {
                 ]}
               />
             </div>
-
             <div>
-              <Typography.Title level={5}>Status Summary</Typography.Title>
-              <Timeline
-                items={[
-                  { color: 'blue', children: `Created ${formatDateTime(selectedOrder.createdAt)}` },
-                  ...(selectedOrder.confirmedAt
-                    ? [{ color: 'green', children: `Confirmed ${formatDateTime(selectedOrder.confirmedAt)}` }]
-                    : []),
-                  { color: selectedOrder.status === 'CANCELLED' ? 'red' : 'gray', children: `Current status: ${selectedOrder.status}` },
-                ]}
-              />
+              <Typography.Title level={5}>Timeline</Typography.Title>
+              <Timeline items={[
+                { color: 'blue', children: `Created ${formatDateTime(selectedOrder.createdAt)}` },
+                ...(selectedOrder.confirmedAt ? [{ color: 'green', children: `Confirmed ${formatDateTime(selectedOrder.confirmedAt)}` }] : []),
+                { color: selectedOrder.status === 'CANCELLED' ? 'red' : 'gray', children: `Status: ${selectedOrder.status}` },
+              ]} />
             </div>
-
-            {selectedOrder.status === 'DRAFT' ? (
+            {selectedOrder.status === 'DRAFT' && (
               <Space>
-                <Button
-                  type="primary"
-                  loading={confirmMutation.isPending}
-                  onClick={() => confirmOrder(selectedOrder)}
-                >
-                  Confirm Order
-                </Button>
-                <Button
-                  danger
-                  loading={cancelMutation.isPending}
-                  onClick={() => cancelOrder(selectedOrder)}
-                >
-                  Cancel Order
-                </Button>
+                <Button type="primary" loading={confirmMutation.isPending} onClick={() => confirmOrder(selectedOrder)}>Confirm Order</Button>
+                <Button danger loading={cancelMutation.isPending} onClick={() => cancelOrder(selectedOrder)}>Cancel Order</Button>
               </Space>
-            ) : null}
+            )}
           </div>
-        ) : null}
+        )}
       </Drawer>
     </div>
   );

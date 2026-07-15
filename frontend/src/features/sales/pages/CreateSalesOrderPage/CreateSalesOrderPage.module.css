@@ -1,103 +1,117 @@
-.page {
-  width: 100%;
-}
+.page { width: 100%; }
 
-.orderGrid {
-  align-items: flex-start;
-}
+.orderGrid { align-items: flex-start; }
 
-.formCard :global(.ant-card-body) {
-  padding-top: 16px;
-}
+/* ===== Form card ===== */
+.formCard :global(.ant-card-body) { padding-top: 18px !important; }
 
+/* ===== Section headings inside form ===== */
 .formSectionHeading {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  margin: 4px 0 12px;
-  padding: 10px 12px;
+  gap: 2px;
+  margin: 6px 0 16px;
+  padding: 12px 14px;
   border-left: 3px solid var(--color-primary);
-  border-radius: 0 var(--radius-small) var(--radius-small) 0;
-  background: var(--color-surface-muted);
+  border-radius: 0 10px 10px 0;
+  background: linear-gradient(to right, rgba(99,102,241,0.06), transparent);
+}
+
+.formSectionHeading :global(.ant-typography:first-child) {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
 }
 
 .formSectionHeading :global(.ant-typography-secondary) {
-  font-size: var(--font-size-secondary);
+  font-size: 12.5px;
 }
 
+/* ===== Items ===== */
 .itemsStack,
-.summaryList {
-  width: 100%;
+.summaryList { width: 100%; }
+
+.lineItem {
+  border-radius: 12px !important;
+  border: 1px solid var(--color-border-subtle) !important;
+  background: var(--color-surface-muted) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.lineItem :global(.ant-card-body) {
-  padding: 14px;
+.lineItem:hover {
+  border-color: rgba(99,102,241,0.25) !important;
+  box-shadow: 0 2px 12px rgba(99,102,241,0.08);
 }
 
-.lineItem :global(.ant-form-item) {
-  margin-bottom: 0;
-}
+.lineItem :global(.ant-card-body) { padding: 14px 16px !important; }
+
+.lineItem :global(.ant-form-item) { margin-bottom: 0; }
 
 .removeColumn {
   display: flex;
   align-items: flex-end;
+  padding-bottom: 0;
 }
 
-.fullWidth {
-  width: 100%;
-}
+.fullWidth { width: 100%; }
 
-.paidField {
-  margin-top: 16px;
-}
+.paidField { margin-top: 18px; }
 
 .stockAlert {
-  margin-top: var(--spacing-md);
+  margin-top: 16px;
+  border-radius: 10px !important;
 }
 
+/* ===== Summary column ===== */
 .summaryColumn {
   position: sticky;
   top: 80px;
   display: grid;
-  gap: var(--spacing-md);
+  gap: 16px;
 }
 
+/* Summary line items */
+.summaryCard :global(.ant-card-body) { padding: 20px !important; }
+
 .summaryCard :global(.flex-between) {
-  padding-bottom: 9px;
-  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .summaryCard :global(.flex-between:last-child) {
   padding-bottom: 0;
-  border-bottom: 0;
+  border-bottom: none;
 }
 
 .summaryTotal {
-  padding-block: 10px !important;
-  color: var(--color-text-primary);
-  font-size: var(--font-size-card-title);
+  padding-block: 14px !important;
+  margin-block: 4px !important;
 }
 
 .summaryTotal :global(.ant-typography) {
-  font-size: var(--font-size-card-title);
+  font-size: 16px !important;
+  font-weight: 800 !important;
 }
 
 .debtAmount {
-  color: var(--color-danger);
+  color: var(--color-danger) !important;
+  font-weight: 700 !important;
+}
+
+/* ===== Success alert ===== */
+.successAlert {
+  border-radius: 12px !important;
 }
 
 .successAlert :global(.ant-alert-description) {
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
+/* ===== Responsive ===== */
 @media (max-width: 1199px) {
-  .summaryColumn {
-    position: static;
-  }
+  .summaryColumn { position: static; }
 }
 
 @media (max-width: 767px) {
-  .removeColumn {
-    align-items: center;
-  }
+  .removeColumn { align-items: center; }
 }

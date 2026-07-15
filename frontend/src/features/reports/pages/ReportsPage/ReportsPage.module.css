@@ -1,94 +1,216 @@
-.page {
-  width: 100%;
-}
+.page { width: 100%; }
 
-.reportContent,
-.tabContent {
-  display: grid;
-  gap: var(--spacing-lg);
-}
+.reportContent { display: grid; gap: 0; }
 
-.toolbarCard :global(.ant-card-body) {
-  padding: var(--spacing-md) var(--spacing-lg);
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-lg);
-}
-
-.toolbar > div:first-child {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 2px;
-}
-
+/* ══════════════════════════════════════════
+   TABS – styled navigation
+   ══════════════════════════════════════════ */
 .reportTabs :global(.ant-tabs-nav) {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 0;
+  padding: 0 2px;
+}
+
+.reportTabs :global(.ant-tabs-nav::before) {
+  border-bottom-color: var(--color-border-subtle) !important;
 }
 
 .reportTabs :global(.ant-tabs-tab) {
-  padding: var(--spacing-sm) var(--spacing-xs);
+  padding: 12px 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s ease;
 }
 
-.metricsGrid {
+.reportTabs :global(.ant-tabs-tab + .ant-tabs-tab) {
+  margin-left: 24px;
+}
+
+.reportTabs :global(.ant-tabs-content-holder) {
+  padding-top: 22px;
+}
+
+.tabLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tabContent { display: grid; gap: 20px; }
+
+/* ══════════════════════════════════════════
+   STAT STRIP  – replaces 4 boring cards
+   ══════════════════════════════════════════ */
+.statStrip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--spacing-md);
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-radius: 16px;
+  border: 1.5px solid var(--color-border-subtle);
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
 }
 
+.statStripItem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 24px;
+  border-right: 1px solid var(--color-border-subtle);
+  transition: background 0.2s ease;
+}
+
+.statStripItem:last-child { border-right: none; }
+
+.statStripItem:hover { background: var(--color-surface-muted); }
+
+.statStripIcon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-size: 18px;
+  background: var(--color-surface-muted);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.statStripItem:hover .statStripIcon { transform: scale(1.1); }
+
+.statStripVal {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.statStripLbl {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+/* ══════════════════════════════════════════
+   CHART GRID
+   ══════════════════════════════════════════ */
 .chartGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.85fr);
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.85fr);
   align-items: stretch;
-  gap: var(--spacing-lg);
+  gap: 16px;
 }
 
+/* ══════════════════════════════════════════
+   DEBT BAR LIST  (receivables tab)
+   ══════════════════════════════════════════ */
+.debtBarList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.debtBarRow { display: flex; flex-direction: column; gap: 5px; }
+
+.debtBarMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.debtBarRank {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.debtBarName {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.debtBarTerm {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.debtBarAmt {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #dc2626;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.debtBarTrack {
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  overflow: hidden;
+}
+
+.debtBarFill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ══════════════════════════════════════════
+   CREDIT USAGE (table cell)
+   ══════════════════════════════════════════ */
 .creditUsage {
   display: grid;
-  grid-template-columns: minmax(100px, 1fr) auto;
+  grid-template-columns: minmax(80px, 1fr) auto;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 8px;
 }
 
 .creditUsage :global(.ant-tag) {
-  min-width: 58px;
+  min-width: 54px;
   margin: 0;
   text-align: center;
+  font-size: 11.5px;
+  font-weight: 600;
 }
 
-@media (max-width: 1200px) {
-  .metricsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
+/* ══════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════ */
 @media (max-width: 1100px) {
-  .chartGrid {
-    grid-template-columns: 1fr;
-  }
+  .chartGrid { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 760px) {
-  .toolbar {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .toolbar > :global(.ant-space) {
-    width: 100%;
-  }
-
-  .toolbar :global(.ant-picker) {
-    width: 100%;
-  }
+@media (max-width: 900px) {
+  .statStrip { grid-template-columns: repeat(2, 1fr); }
+  .statStripItem:nth-child(2) { border-right: none; }
+  .statStripItem:nth-child(1),
+  .statStripItem:nth-child(2) { border-bottom: 1px solid var(--color-border-subtle); }
 }
 
 @media (max-width: 560px) {
-  .metricsGrid {
-    grid-template-columns: 1fr;
-  }
+  .statStrip { grid-template-columns: 1fr; }
+  .statStripItem { border-right: none !important; border-bottom: 1px solid var(--color-border-subtle); }
+  .statStripItem:last-child { border-bottom: none; }
 }

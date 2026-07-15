@@ -6,7 +6,6 @@ import {
   WarningOutlined,
 } from '@ant-design/icons';
 import {
-  Badge,
   Card,
   Input,
   List,
@@ -156,7 +155,7 @@ export function NotificationsPage() {
                       <Typography.Text className={styles.title}>
                         {item.title}
                       </Typography.Text>
-                      {item.readFlag === false ? <Badge status="processing" text="Unread" /> : null}
+                      {item.readFlag === false && <span className={styles.unreadDot} aria-label="Unread" />}
                       <NotificationTypeTag type={item.type} />
                     </div>
                     <Typography.Text

@@ -1,44 +1,50 @@
 .stateBlock {
   min-height: 200px;
-  padding: var(--spacing-lg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-large);
+  padding: var(--spacing-xl);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
   background: var(--color-card-background);
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
 .feedbackBlock,
 .emptyBlock {
-  padding: var(--spacing-lg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-large);
+  padding: var(--spacing-xl);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
   background: var(--color-card-background);
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.feedbackBlock :global(.ant-alert) {
+  border-radius: 12px;
 }
 
 .emptyBlock :global(.ant-empty) {
-  margin: var(--spacing-md) 0;
+  margin: var(--spacing-lg) 0;
 }
 
 .emptyContent {
   display: grid;
   justify-items: center;
-  gap: 4px;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 .emptyContent strong {
   color: var(--color-text-primary);
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-heading);
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .emptyContent span {
   max-width: 440px;
   color: var(--color-text-secondary);
-  font-size: var(--font-size-secondary);
-  line-height: var(--line-height-secondary);
+  font-size: 13.5px;
+  line-height: 1.6;
+  text-align: center;
 }
 
 .emptyAction {
-  margin-top: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
 }

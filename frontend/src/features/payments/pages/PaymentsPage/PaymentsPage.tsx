@@ -1,10 +1,6 @@
 import {
-  CheckCircleOutlined,
-  DollarOutlined,
   PlusOutlined,
   SearchOutlined,
-  TeamOutlined,
-  WalletOutlined,
 } from '@ant-design/icons';
 import {
   Avatar,
@@ -23,7 +19,6 @@ import {
 import { useMemo, useState } from 'react';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
-import { SummaryCard } from '../../../../components/common/SummaryCard';
 import { CustomerDebtTag } from '../../../../components/common/StatusTag';
 import { useCustomers } from '../../../../features/customers';
 import { formatCurrency, toNumber } from '../../../../lib/format';
@@ -62,6 +57,11 @@ export function PaymentsPage() {
     ),
     0,
   );
+  const debtorRatio = customers.length > 0
+    ? customers.filter((c) => toNumber(c.debtBalance) > 0).length / customers.length
+    : 0;
+  const topDebtors = debtors.slice(0, 5);
+  const maxDebt = topDebtors.length > 0 ? toNumber(topDebtors[0].debtBalance) : 0;
 
   function openPaymentDrawer(customerId?: number) {
     form.resetFields();
@@ -98,39 +98,105 @@ export function PaymentsPage() {
         onRetry={() => customersQuery.refetch()}
       >
         <div className={styles.contentStack}>
-          <div className={styles.metricsGrid}>
-            <SummaryCard
-              title="Total Receivables"
-              value={formatCurrency(totalReceivables)}
-              note="Outstanding balance across customers"
-              icon={<WalletOutlined />}
-              variant="red"
-              visual="dashboard"
-            />
-            <SummaryCard
-              title="Debtor Accounts"
-              value={customers.filter((customer) => toNumber(customer.debtBalance) > 0).length}
-              note="Customers with an outstanding balance"
-              icon={<TeamOutlined />}
-              variant="orange"
-              visual="dashboard"
-            />
-            <SummaryCard
-              title="Available Credit"
-              value={formatCurrency(availableCredit)}
-              note="Unused customer credit capacity"
-              icon={<CheckCircleOutlined />}
-              variant="green"
-              visual="dashboard"
-            />
-            <SummaryCard
-              title="Active Accounts"
-              value={customers.filter((customer) => customer.active).length}
-              note="Customer accounts available for payment"
-              icon={<DollarOutlined />}
-              variant="blue"
-              visual="dashboard"
-            />
+          <div className={styles.heroRow}>
+            {/* LEFT: Receivables Overview */}
+            <div className={styles.heroLeft}>
+              <div className={styles.heroCard}>
+                <div className={styles.heroCardInner}>
+                  {/* SVG ring */}
+                  <div className={styles.ringWrap}>
+                    <svg viewBox="0 0 120 120" className={styles.ring}>
+                      <circle cx="60" cy="60" r="50" fill="none" stroke="#f1f5f9" strokeWidth="10"/>
+                      <circle
+                        cx="60" cy="60" r="50" fill="none"
+                        stroke="url(#rg)" strokeWidth="10"
+                        strokeDasharray={`${debtorRatio * 314} 314`}
+                        strokeLinecap="round"
+                        transform="rotate(-90 60 60)"
+                      />
+                      <defs>
+                        <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#ef4444"/>
+                          <stop offset="100%" stopColor="#f97316"/>
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div className={styles.ringCenter}>
+                      <span className={styles.ringPct}>{Math.round(debtorRatio * 100)}%</span>
+                      <span className={styles.ringLabel}>have debt</span>
+                    </div>
+                  </div>
+
+                  <div className={styles.heroMain}>
+                    <div className={styles.heroEyebrow}>Total Receivables</div>
+                    <div className={styles.heroAmount}>{formatCurrency(totalReceivables)}</div>
+                    <div className={styles.heroMiniStats}>
+                      <div className={styles.miniStat}>
+                        <span className={`${styles.miniDot} ${styles.red}`}/>
+                        <div>
+                          <strong>{debtors.length}</strong>
+                          <span>Debtors</span>
+                        </div>
+                      </div>
+                      <div className={styles.miniStat}>
+                        <span className={`${styles.miniDot} ${styles.green}`}/>
+                        <div>
+                          <strong>{formatCurrency(availableCredit)}</strong>
+                          <span>Available credit</span>
+                        </div>
+                      </div>
+                      <div className={styles.miniStat}>
+                        <span className={`${styles.miniDot} ${styles.blue}`}/>
+                        <div>
+                          <strong>{customers.filter((c) => c.active).length}</strong>
+                          <span>Active accounts</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT: Top debtors bar chart */}
+            <div className={styles.heroRight}>
+              <div className={styles.topDebtorsCard}>
+                <div className={styles.topDebtorsHeader}>
+                  <span>Top Debtors</span>
+                  <span className={styles.topDebtorsCount}>{debtors.length} accounts</span>
+                </div>
+                <div className={styles.barList}>
+                  {topDebtors.map((d, i) => {
+                    const pct = maxDebt > 0 ? (toNumber(d.debtBalance) / maxDebt) * 100 : 0;
+                    return (
+                      <div key={d.id} className={styles.barRow}>
+                        <div className={styles.barMeta}>
+                          <span className={styles.barRank}>{i + 1}</span>
+                          <span className={styles.barName}>{d.name}</span>
+                          <span className={styles.barAmt}>{formatCurrency(d.debtBalance)}</span>
+                        </div>
+                        <div className={styles.barTrack}>
+                          <div
+                            className={styles.barFill}
+                            style={{
+                              width: `${pct}%`,
+                              background: i === 0
+                                ? 'linear-gradient(90deg,#ef4444,#f97316)'
+                                : i === 1
+                                  ? 'linear-gradient(90deg,#f97316,#fbbf24)'
+                                  : 'linear-gradient(90deg,#6366f1,#8b5cf6)',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {debtors.length === 0 && (
+                    <div className={styles.barEmpty}>No outstanding debts 🎉</div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
           <Card className={`panel-card ${styles.watchlistCard}`} title="Receivable Watchlist">
