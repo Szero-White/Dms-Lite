@@ -1,78 +1,90 @@
-/**
- * AppLayout styles.
- *
- * Scope:
- * - Chỉ quản lý bố cục tổng thể sau khi người dùng đăng nhập.
- *
- * Responsibilities:
- * - Sidebar cố định bên trái.
- * - Header phía trên.
- * - Vùng hiển thị nội dung trang.
- *
- * Dependencies:
- * - Ant Design Layout.
- */
-
+/* ============================================================
+   LAYOUT SHELL
+   ============================================================ */
 .layout {
   min-height: 100vh;
   background: var(--color-page-background);
 }
 
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
 .sidebar {
   position: sticky !important;
   top: 0;
   left: 0;
-
   height: 100vh;
-  overflow: auto;
-
-  border-right: 1px solid var(--color-border-subtle);
-
-  background: var(--color-card-background) !important;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
-
-  transition: width var(--transition-default), min-width var(--transition-default),
-    max-width var(--transition-default), flex-basis var(--transition-default) !important;
+  overflow: hidden;
+  border-right: 1px solid var(--color-border-subtle) !important;
+  background: #ffffff !important;
+  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.04);
+  transition:
+    width var(--transition-smooth),
+    min-width var(--transition-smooth),
+    max-width var(--transition-smooth),
+    flex-basis var(--transition-smooth) !important;
 }
 
+.sidebar:hover {
+  overflow-y: auto;
+}
+
+/* ============================================================
+   MAIN
+   ============================================================ */
 .main {
   min-width: 0;
+  background: var(--color-page-background);
 }
 
+/* ============================================================
+   HEADER
+   ============================================================ */
 .header {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 100;
   height: var(--header-height) !important;
   padding: 0 var(--page-padding-desktop) !important;
-  border-bottom: 1px solid var(--color-border-subtle);
   line-height: normal !important;
-  background: rgba(255, 255, 255, 0.8) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+
+  /* Frosted glass effect */
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
 }
 
+/* ============================================================
+   CONTENT
+   ============================================================ */
 .content {
-  padding: var(--spacing-lg) var(--page-padding-desktop) var(--spacing-2xl);
+  padding: 24px var(--page-padding-desktop) 40px;
   background: var(--color-page-background);
+  min-height: calc(100vh - var(--header-height));
 }
 
 .page {
   width: 100%;
   max-width: var(--content-max-width);
-
   margin: 0 auto;
 }
 
+/* ============================================================
+   MOBILE DRAWER
+   ============================================================ */
 .mobileDrawer :global(.ant-drawer-content-wrapper) {
   max-width: calc(100vw - 32px);
 }
 
 .mobileDrawer :global(.ant-drawer-body) {
   padding: 0;
-  background: var(--color-card-background);
+  background: #ffffff;
 }
 
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 768px) {
   .sidebar {
     display: none;
@@ -84,6 +96,6 @@
   }
 
   .content {
-    padding: 16px 16px 24px;
+    padding: 16px 16px 28px;
   }
 }

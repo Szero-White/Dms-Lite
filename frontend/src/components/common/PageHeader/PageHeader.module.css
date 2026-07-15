@@ -3,8 +3,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--spacing-lg);
-
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: 28px;
   padding: 0;
 }
 
@@ -18,12 +17,11 @@
 
 .title:global(.ant-typography) {
   margin: 0 0 4px !important;
-
   color: var(--color-text-primary) !important;
-  font-size: var(--font-size-page-title) !important;
-  font-weight: var(--font-weight-heading) !important;
-  line-height: var(--leading-xl) !important;
-  letter-spacing: 0;
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  line-height: 34px !important;
+  letter-spacing: -0.3px;
 }
 
 .subtitle:global(.ant-typography) {
@@ -36,6 +34,9 @@
 
 .extra {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
 
 @media (max-width: 992px) {
@@ -46,6 +47,7 @@
 
   .extra {
     width: 100%;
+    justify-content: flex-start;
   }
 }
 
