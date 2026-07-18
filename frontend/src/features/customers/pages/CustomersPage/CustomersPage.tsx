@@ -272,7 +272,8 @@ export function CustomersPage() {
               {
                 title: 'Customer',
                 fixed: 'left',
-                width: 260,
+                width: 300,
+                ellipsis: true,
                 render: (_, record) => (
                   <div className={styles.customerCell}>
                     <Avatar>{record.name.slice(0, 2).toUpperCase()}</Avatar>
@@ -289,17 +290,17 @@ export function CustomersPage() {
                   </div>
                 ),
               },
-              { title: 'Phone', dataIndex: 'phone', width: 150 },
-              { title: 'Address', dataIndex: 'address', width: 220, ellipsis: true },
+              { title: 'Phone', dataIndex: 'phone', width: 170, ellipsis: true },
+              { title: 'Address', dataIndex: 'address', width: 260, ellipsis: true },
               {
                 title: 'Payment Term',
                 dataIndex: 'paymentTermDays',
-                width: 130,
+                width: 150,
                 render: (value) => `${value} days`,
               },
               {
                 title: 'Credit Usage',
-                width: 210,
+                width: 240,
                 render: (_, record) => {
                   const debt = toNumber(record.debtBalance);
                   const limit = toNumber(record.creditLimit);
@@ -324,6 +325,7 @@ export function CustomersPage() {
               {
                 title: 'Debt Balance',
                 dataIndex: 'debtBalance',
+                width: 190,
                 render: (value) => (
                   <Space direction="vertical" size={0}>
                     <Typography.Text

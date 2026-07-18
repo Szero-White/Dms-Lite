@@ -186,6 +186,19 @@
    ══════════════════════════════════════════ */
 .tableCard :global(.ant-card-body) { padding-top: 16px !important; }
 
+.tableCard :global(.ant-table-thead > tr > th) {
+  padding-top: 15px !important;
+  padding-bottom: 15px !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.tableCard :global(.ant-table-tbody > tr > td) {
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+  vertical-align: middle;
+}
+
 .toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -211,7 +224,8 @@
 .productCell {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .productCell :global(.ant-avatar) {
@@ -228,12 +242,19 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 4px;
+}
+
+.productCell :global(.ant-typography) {
+  display: block;
 }
 
 .productCell :global(.ant-typography-secondary) { font-size: 11.5px !important; }
 
 .sku {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
   color: var(--color-text-secondary);
   font-family: var(--font-family-mono);
   font-size: 12px;
@@ -244,12 +265,32 @@
   white-space: nowrap;
 }
 
-.money { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 500; }
+.money {
+  display: inline-block;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-weight: 600;
+}
 
-.stockCell { min-width: 110px; }
-.stockCell > div { display: flex; gap: 3px; margin-bottom: 3px; font-size: 13px; }
+.stockCell {
+  min-width: 150px;
+}
+
+.stockCell > div {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
 .stockCell strong { font-weight: 700; }
 .stockCell span { color: var(--color-text-muted); font-size: 11.5px; }
+
+.stockCell :global(.ant-progress) {
+  margin: 0;
+}
 
 .lowStockRow > :global(.ant-table-cell) { background: #fffbf2 !important; }
 .lowStockRow:hover > :global(.ant-table-cell) { background: #fff3cd !important; }
