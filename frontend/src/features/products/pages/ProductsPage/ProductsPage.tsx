@@ -299,7 +299,8 @@ export function ProductsPage() {
               {
                 title: 'Product',
                 fixed: 'left',
-                width: 280,
+                width: 320,
+                ellipsis: true,
                 render: (_, record) => (
                   <div className={styles.productCell}>
                     <Avatar shape="square">{record.name.slice(0, 2).toUpperCase()}</Avatar>
@@ -313,26 +314,26 @@ export function ProductsPage() {
               {
                 title: 'SKU',
                 dataIndex: 'sku',
-                width: 150,
+                width: 170,
                 render: (value) => <span className={styles.sku}>{value}</span>,
               },
               {
                 title: 'Cost Price',
                 dataIndex: 'costPrice',
                 align: 'right',
-                width: 150,
+                width: 160,
                 render: (value) => <span className={styles.money}>{formatCurrency(value)}</span>,
               },
               {
                 title: 'Selling Price',
                 dataIndex: 'sellingPrice',
                 align: 'right',
-                width: 150,
+                width: 170,
                 render: (value) => <span className={styles.money}>{formatCurrency(value)}</span>,
               },
               {
                 title: 'Margin',
-                width: 100,
+                width: 110,
                 align: 'right',
                 render: (_, record) => {
                   const sellingPrice = toNumber(record.sellingPrice);
@@ -345,7 +346,7 @@ export function ProductsPage() {
               },
               {
                 title: 'Stock Health',
-                width: 180,
+                width: 210,
                 render: (_, record) => {
                   const stockPercent = record.minStock > 0
                     ? Math.min(Math.round((record.stock / record.minStock) * 100), 100)
@@ -366,6 +367,7 @@ export function ProductsPage() {
               },
               {
                 title: 'Status',
+                width: 150,
                 render: (_, record) => (
                   <ProductStatusTag
                     isLowStock={record.isLowStock}

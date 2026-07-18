@@ -15,6 +15,19 @@
   padding-top: 16px !important;
 }
 
+.tableCard :global(.ant-table-thead > tr > th) {
+  padding-top: 15px !important;
+  padding-bottom: 15px !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.tableCard :global(.ant-table-tbody > tr > td) {
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+  vertical-align: middle;
+}
+
 /* ===== Toolbar ===== */
 .toolbar {
   display: flex;
@@ -44,7 +57,8 @@
 .customerCell {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .customerCell :global(.ant-avatar) {
@@ -60,7 +74,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
 }
 
 /* ===== Status tag ===== */
@@ -100,19 +114,22 @@
 
 /* ===== Credit usage ===== */
 .creditUsage {
-  min-width: 160px;
+  min-width: 180px;
 }
 
 .creditUsage > div {
   display: flex;
   justify-content: space-between;
-  gap: 6px;
-  margin-bottom: 4px;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
   font-size: var(--font-size-meta);
 }
 
 .creditUsage > div span:last-child {
   color: var(--color-text-muted);
+  text-align: right;
+  white-space: nowrap;
 }
 
 /* ===== Credit warning row ===== */
@@ -205,10 +222,10 @@
 /* Tier breakdown */
 .pulseTiers {
   flex: 1.5;
-  padding: 20px 24px;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   justify-content: center;
 }
 
@@ -218,13 +235,15 @@
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .tierRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: 10px 108px minmax(0, 1fr) 32px;
   align-items: center;
-  gap: 8px;
+  column-gap: 12px;
+  min-height: 24px;
 }
 
 .tierDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -233,8 +252,7 @@
   font-size: 12.5px;
   font-weight: 500;
   color: var(--color-text-secondary);
-  width: 80px;
-  flex-shrink: 0;
+  line-height: 1.35;
 }
 
 .tierBar {
@@ -255,9 +273,8 @@
   font-size: 13px;
   font-weight: 700;
   color: var(--color-text-primary);
-  width: 28px;
   text-align: right;
-  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Receivables */
