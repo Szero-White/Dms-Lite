@@ -1,0 +1,136 @@
+.tableCard :global(.ant-card-body) {
+  padding-top: 16px !important;
+}
+
+.tableCard :global(.ant-table-thead > tr > th) {
+  padding-top: 15px !important;
+  padding-bottom: 15px !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.tableCard :global(.ant-table-tbody > tr > td) {
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+  vertical-align: middle;
+}
+
+.toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.filterControls {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.search {
+  width: min(300px, 100%);
+}
+
+.filter {
+  width: 170px;
+}
+
+.customerCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.customerCell :global(.ant-avatar) {
+  flex: 0 0 auto;
+  background: var(--gradient-primary) !important;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(99,102,241,0.2);
+}
+
+.customerCell > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.statusTag:global(.ant-tag) {
+  min-height: 20px;
+  margin: 0;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+}
+
+.active:global(.ant-tag) {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0 !important;
+}
+
+.inactive:global(.ant-tag) {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-subtle) !important;
+}
+
+.debtOutstanding {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.debtClear {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.creditUsage {
+  min-width: 180px;
+}
+
+.creditUsage > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: var(--font-size-meta);
+}
+
+.creditUsage > div span:last-child {
+  color: var(--color-text-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.creditWarningRow > :global(.ant-table-cell) {
+  background: linear-gradient(to right, #fffbf2, #fff8e8) !important;
+}
+
+.creditWarningRow:hover > :global(.ant-table-cell) {
+  background: #fff3cd !important;
+}
+
+@media (max-width: 760px) {
+  .toolbar {
+    flex-direction: column;
+  }
+
+  .filterControls,
+  .search,
+  .filter,
+  .toolbar > :global(.ant-btn) {
+    width: 100%;
+  }
+}
