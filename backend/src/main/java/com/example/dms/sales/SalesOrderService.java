@@ -63,34 +63,24 @@ public class SalesOrderService {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         for (SalesOrderItemRequest itemRequest : request.items()) {
-            Product product = findProduct(itemRequest.productId(), tenantId);
-            BigDecimal discountAmount = defaultIfNull(itemRequest.discountAmount());
-            BigDecimal lineTotal = product.getSellingPrice()
-                .multiply(BigDecimal.valueOf(itemRequest.quantity()))
-                .subtract(discountAmount);
-
-            SalesOrderItem salesOrderItem = SalesOrderItem.builder()
-                .order(salesOrder)
-                .productId(product.getId())
-                .quantity(itemRequest.quantity())
-                .unitPrice(product.getSellingPrice())
-                .discountAmount(discountAmount)
-                .lineTotal(lineTotal)
-                .build();
-
+            SalesOrderItem salesOrderItem = buildSalesOrderItem(
+                salesOrder,
+                itemRequest,
+                tenantId
+            );
             salesOrder.getItems().add(salesOrderItem);
-            totalAmount = totalAmount.add(lineTotal);
+            totalAmount = totalAmount.add(salesOrderItem.getLineTotal());
         }
 
-        if (salesOrder.getPaidAmount().compareTo(totalAmount) > 0) {
-            throw new BusinessException("Paid exceeds total");
-        }
-
-        salesOrder.setTotalAmount(totalAmount);
-        salesOrder.setDebtAmount(totalAmount.subtract(salesOrder.getPaidAmount()));
+        applyOrderAmounts(salesOrder, totalAmount);
 
         SalesOrder savedSalesOrder = salesOrderRepository.save(salesOrder);
-        auditService.log("SALES_ORDER_CREATED", SALES_ORDER_ENTITY, savedSalesOrder.getId(), savedSalesOrder.getCode());
+        auditService.log(
+            "SALES_ORDER_CREATED",
+            SALES_ORDER_ENTITY,
+            savedSalesOrder.getId(),
+            savedSalesOrder.getCode()
+        );
 
         return salesOrderMapper.toDetailResponse(savedSalesOrder);
     }
@@ -121,21 +111,7 @@ public class SalesOrderService {
         salesOrder.setConfirmedAt(Instant.now());
 
         if (salesOrder.getDebtAmount().signum() > 0) {
-            Customer customer = findCustomer(salesOrder.getCustomerId(), tenantId);
-            customerDebtRepository.save(
-                CustomerDebtTransaction.builder()
-                    .tenantId(tenantId)
-                    .customerId(customer.getId())
-                    .sourceType(SALES_ORDER_SOURCE)
-                    .sourceId(salesOrder.getId())
-                    .direction(DEBT_DIRECTION_INCREASE)
-                    .amount(salesOrder.getDebtAmount())
-                    .remainingAmount(salesOrder.getDebtAmount())
-                    .dueDate(LocalDate.now().plusDays(customer.getPaymentTermDays()))
-                    .note(salesOrder.getCode())
-                    .createdBy(TenantContext.userOrZero())
-                    .build()
-            );
+            customerDebtRepository.save(buildDebtTransaction(salesOrder, tenantId));
         }
 
         auditService.log("SALES_ORDER_CONFIRMED", SALES_ORDER_ENTITY, salesOrder.getId(), salesOrder.getCode());
@@ -182,6 +158,53 @@ public class SalesOrderService {
             .totalAmount(BigDecimal.ZERO)
             .debtAmount(BigDecimal.ZERO)
             .items(new ArrayList<>())
+            .build();
+    }
+
+    private SalesOrderItem buildSalesOrderItem(
+        SalesOrder salesOrder,
+        SalesOrderItemRequest itemRequest,
+        Long tenantId
+    ) {
+        Product product = findProduct(itemRequest.productId(), tenantId);
+        BigDecimal discountAmount = defaultIfNull(itemRequest.discountAmount());
+        BigDecimal lineTotal = product.getSellingPrice()
+            .multiply(BigDecimal.valueOf(itemRequest.quantity()))
+            .subtract(discountAmount);
+
+        return SalesOrderItem.builder()
+            .order(salesOrder)
+            .productId(product.getId())
+            .quantity(itemRequest.quantity())
+            .unitPrice(product.getSellingPrice())
+            .discountAmount(discountAmount)
+            .lineTotal(lineTotal)
+            .build();
+    }
+
+    private void applyOrderAmounts(SalesOrder salesOrder, BigDecimal totalAmount) {
+        if (salesOrder.getPaidAmount().compareTo(totalAmount) > 0) {
+            throw new BusinessException("Paid exceeds total");
+        }
+
+        salesOrder.setTotalAmount(totalAmount);
+        salesOrder.setDebtAmount(totalAmount.subtract(salesOrder.getPaidAmount()));
+    }
+
+    private CustomerDebtTransaction buildDebtTransaction(SalesOrder salesOrder, Long tenantId) {
+        Customer customer = findCustomer(salesOrder.getCustomerId(), tenantId);
+
+        return CustomerDebtTransaction.builder()
+            .tenantId(tenantId)
+            .customerId(customer.getId())
+            .sourceType(SALES_ORDER_SOURCE)
+            .sourceId(salesOrder.getId())
+            .direction(DEBT_DIRECTION_INCREASE)
+            .amount(salesOrder.getDebtAmount())
+            .remainingAmount(salesOrder.getDebtAmount())
+            .dueDate(LocalDate.now().plusDays(customer.getPaymentTermDays()))
+            .note(salesOrder.getCode())
+            .createdBy(TenantContext.userOrZero())
             .build();
     }
 
