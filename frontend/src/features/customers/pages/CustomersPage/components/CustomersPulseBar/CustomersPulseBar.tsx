@@ -1,3 +1,4 @@
+import { TeamOutlined, DollarOutlined, CheckCircleOutlined, AlertOutlined } from '@ant-design/icons';
 import type { Customer } from '../../../../types/customer.types';
 import { formatCurrency } from '../../../../../../lib/format';
 import styles from './CustomersPulseBar.module.css';
@@ -24,8 +25,37 @@ export function CustomersPulseBar({
   const totalCustomers = customers.length;
   const activeArc = totalCustomers > 0 ? (activeCount / totalCustomers) * 201 : 0;
 
+  // Metrics with colors from Report page style
+  const metrics = [
+    {
+      icon: <TeamOutlined />,
+      label: 'Total Customers',
+      value: totalCustomers,
+      color: '#6366f1',
+    },
+    {
+      icon: <CheckCircleOutlined />,
+      label: 'Active',
+      value: activeCount,
+      color: '#10b981',
+    },
+    {
+      icon: <DollarOutlined />,
+      label: 'Total Receivables',
+      value: formatCurrency(totalReceivables),
+      color: '#8b5cf6',
+    },
+    {
+      icon: <AlertOutlined />,
+      label: 'Near Limit',
+      value: thresholdCustomers,
+      color: thresholdCustomers > 0 ? '#f59e0b' : '#10b981',
+    },
+  ];
+
   return (
     <div className={styles.pulseBar}>
+      {/* Hero Section with Ring */}
       <div className={styles.pulseHero}>
         <div className={styles.pulseRingWrap}>
           <svg viewBox="0 0 80 80" className={styles.pulseRing}>
@@ -63,6 +93,7 @@ export function CustomersPulseBar({
 
       <div className={styles.pulseDivider} />
 
+      {/* Account Health Tiers */}
       <div className={styles.pulseTiers}>
         <div className={styles.tierTitle}>Account Health</div>
         <div className={styles.tierRow}>
@@ -73,11 +104,11 @@ export function CustomersPulseBar({
               className={styles.tierFill}
               style={{
                 width: `${totalCustomers ? (clearCount / totalCustomers) * 100 : 0}%`,
-                background: '#10b981',
+                background: 'linear-gradient(90deg, #10b981, #34d399)',
               }}
             />
           </div>
-          <span className={styles.tierCount}>{clearCount}</span>
+          <span className={styles.tierCount} style={{ color: '#10b981' }}>{clearCount}</span>
         </div>
         <div className={styles.tierRow}>
           <div className={styles.tierDot} style={{ background: '#f59e0b' }} />
@@ -87,11 +118,11 @@ export function CustomersPulseBar({
               className={styles.tierFill}
               style={{
                 width: `${totalCustomers ? (debtorCount / totalCustomers) * 100 : 0}%`,
-                background: 'linear-gradient(90deg,#f59e0b,#fbbf24)',
+                background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
               }}
             />
           </div>
-          <span className={styles.tierCount}>{debtorCount}</span>
+          <span className={styles.tierCount} style={{ color: '#f59e0b' }}>{debtorCount}</span>
         </div>
         <div className={styles.tierRow}>
           <div className={styles.tierDot} style={{ background: '#ef4444' }} />
@@ -101,19 +132,20 @@ export function CustomersPulseBar({
               className={styles.tierFill}
               style={{
                 width: `${totalCustomers ? (overLimitCount / totalCustomers) * 100 : 0}%`,
-                background: 'linear-gradient(90deg,#ef4444,#f87171)',
+                background: 'linear-gradient(90deg, #ef4444, #f87171)',
               }}
             />
           </div>
-          <span className={styles.tierCount}>{overLimitCount}</span>
+          <span className={styles.tierCount} style={{ color: '#ef4444' }}>{overLimitCount}</span>
         </div>
       </div>
 
       <div className={styles.pulseDivider} />
 
+      {/* Receivables Section */}
       <div className={styles.pulseReceivables}>
         <div className={styles.prLabel}>Total Receivables</div>
-        <div className={styles.prAmount}>{formatCurrency(totalReceivables)}</div>
+        <div className={styles.prAmount} style={{ color: '#8b5cf6' }}>{formatCurrency(totalReceivables)}</div>
         <div className={styles.prSub}>
           across {debtorCount} debtor{debtorCount !== 1 ? 's' : ''}
         </div>

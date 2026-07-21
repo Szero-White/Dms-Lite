@@ -3,10 +3,16 @@
   align-items: stretch;
   border-radius: 18px;
   border: 1.5px solid var(--color-border-subtle);
-  background: #fff;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   overflow: hidden;
   margin-bottom: 20px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pulseBar:hover {
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.3);
 }
 
 .pulseDivider {
@@ -100,6 +106,14 @@
   align-items: center;
   column-gap: 12px;
   min-height: 24px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.tierRow:hover {
+  background: var(--color-surface-muted);
+  transform: translateX(4px);
 }
 
 .tierDot {
@@ -187,6 +201,18 @@
   border: 1px solid #fde68a;
   font-size: 11.5px;
   font-weight: 600;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
 }
 
 @media (max-width: 1024px) {
