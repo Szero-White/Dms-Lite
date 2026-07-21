@@ -56,10 +56,50 @@ function getInitials(name: string) {
 }
 
 const STATUS_CONFIG = {
-  DRAFT:     { label: 'Draft',     color: '#f59e0b', bg: 'linear-gradient(135deg,#f59e0b,#fbbf24)', gradient: 'linear-gradient(135deg,#fff7ed 0%,#fef3c7 100%)', glow: 'rgba(245,158,11,0.18)', border: 'rgba(245,158,11,0.35)', countColor: '#92400e', labelColor: '#b45309', icon: <ClockCircleOutlined /> },
-  CONFIRMED: { label: 'Confirmed', color: '#6366f1', bg: 'linear-gradient(135deg,#6366f1,#818cf8)', gradient: 'linear-gradient(135deg,#eef2ff 0%,#e0e7ff 100%)', glow: 'rgba(99,102,241,0.16)', border: 'rgba(99,102,241,0.35)', countColor: '#3730a3', labelColor: '#4f46e5', icon: <CheckCircleOutlined /> },
-  COMPLETED: { label: 'Completed', color: '#10b981', bg: 'linear-gradient(135deg,#10b981,#34d399)', gradient: 'linear-gradient(135deg,#ecfdf5 0%,#d1fae5 100%)', glow: 'rgba(16,185,129,0.16)', border: 'rgba(16,185,129,0.35)', countColor: '#065f46', labelColor: '#059669', icon: <TrophyOutlined /> },
-  CANCELLED: { label: 'Cancelled', color: '#ef4444', bg: 'linear-gradient(135deg,#ef4444,#f87171)', gradient: 'linear-gradient(135deg,#fff1f2 0%,#ffe4e6 100%)', glow: 'rgba(239,68,68,0.14)', border: 'rgba(239,68,68,0.32)', countColor: '#991b1b', labelColor: '#dc2626', icon: <StopOutlined /> },
+  DRAFT: {
+    label: 'Draft',
+    color: '#b45309',
+    bg: '#f59e0b',
+    gradient: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(255,255,255,0.92))',
+    glow: 'rgba(245,158,11,0.14)',
+    border: 'rgba(245,158,11,0.32)',
+    countColor: '#78350f',
+    labelColor: '#92400e',
+    icon: <ClockCircleOutlined />,
+  },
+  CONFIRMED: {
+    label: 'Confirmed',
+    color: '#4f46e5',
+    bg: '#6366f1',
+    gradient: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(255,255,255,0.92))',
+    glow: 'rgba(99,102,241,0.14)',
+    border: 'rgba(99,102,241,0.30)',
+    countColor: '#312e81',
+    labelColor: '#4338ca',
+    icon: <CheckCircleOutlined />,
+  },
+  COMPLETED: {
+    label: 'Completed',
+    color: '#047857',
+    bg: '#10b981',
+    gradient: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(255,255,255,0.92))',
+    glow: 'rgba(16,185,129,0.14)',
+    border: 'rgba(16,185,129,0.30)',
+    countColor: '#064e3b',
+    labelColor: '#047857',
+    icon: <TrophyOutlined />,
+  },
+  CANCELLED: {
+    label: 'Cancelled',
+    color: '#dc2626',
+    bg: '#ef4444',
+    gradient: 'linear-gradient(135deg, rgba(239,68,68,0.11), rgba(255,255,255,0.92))',
+    glow: 'rgba(239,68,68,0.13)',
+    border: 'rgba(239,68,68,0.28)',
+    countColor: '#7f1d1d',
+    labelColor: '#b91c1c',
+    icon: <StopOutlined />,
+  },
 } as const;
 
 export function SalesOrdersPage() {
@@ -165,7 +205,7 @@ export function SalesOrdersPage() {
         )}
       />
 
-      {/* ── Pipeline strip ── */}
+      {/* â”€â”€ Pipeline strip â”€â”€ */}
       <div className={styles.pipeline}>
         {(Object.entries(STATUS_CONFIG) as [keyof typeof STATUS_CONFIG, typeof STATUS_CONFIG[keyof typeof STATUS_CONFIG]][]).map(([status, cfg]) => {
           const count = statusCounts[status];
@@ -215,7 +255,7 @@ export function SalesOrdersPage() {
           );
         })}
 
-        {/* Revenue + debt summary — dark indigo premium card */}
+        {/* Revenue + debt summary â€” dark indigo premium card */}
         <div className={styles.pipelineSummary}>
           <div className={styles.pipelineSummaryItem}>
             <div className={`${styles.pipelineSummaryIconWrap} ${styles.revenue}`}>
@@ -241,7 +281,7 @@ export function SalesOrdersPage() {
         </div>
       </div>
 
-      {/* ── Table card ── */}
+      {/* â”€â”€ Table card â”€â”€ */}
       <Card className={`panel-card ${styles.tableCard}`}>
         <div className={styles.toolbar}>
           <div className={styles.filterControls}>
@@ -297,7 +337,7 @@ export function SalesOrdersPage() {
             )}
             {dateRange && (
               <Tag closable onClose={() => { setDateRange(null); setDatePickerKey((c) => c + 1); }}>
-                Date: {dateRange[0]} – {dateRange[1]}
+                Date: {dateRange[0]} â€“ {dateRange[1]}
               </Tag>
             )}
           </div>
@@ -381,7 +421,7 @@ export function SalesOrdersPage() {
         </QueryState>
       </Card>
 
-      {/* ── Detail drawer ── */}
+      {/* â”€â”€ Detail drawer â”€â”€ */}
       <Drawer
         title={selectedOrder ? `Order ${selectedOrder.code}` : 'Order Details'}
         width={720}

@@ -105,8 +105,9 @@ export function InventoryStockTable({
       </div>
       <Table
         rowKey="id"
+        className={styles.stockTable}
         sticky
-        scroll={{ x: 820 }}
+        scroll={{ x: 820, y: 520 }}
         locale={{
           emptyText: hasFilters ? 'No inventory matches these filters' : 'No stock data',
         }}

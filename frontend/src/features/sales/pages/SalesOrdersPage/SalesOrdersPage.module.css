@@ -1,289 +1,272 @@
 .page { width: 100%; }
 
-/* ══════════════════════════════════════════
-   PIPELINE STRIP  – premium gradient cards
-   ══════════════════════════════════════════ */
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+   PIPELINE STRIP  Ã¢â‚¬â€œ premium gradient cards
+   Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 .pipeline {
   display: grid;
-  grid-template-columns: repeat(4, 1fr) auto;
-  gap: 14px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(4, minmax(170px, 1fr)) minmax(230px, 0.78fr);
+  gap: 12px;
   align-items: stretch;
+  margin-bottom: 22px;
 }
 
-/* ── Individual status card ── */
 .pipelineCard {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 0;
-  padding: 22px 22px 18px;
-  border: none;
-  border-radius: 20px;
-  background: #fff;
+  min-height: 136px;
+  padding: 16px 16px 14px 18px;
+  border: 1px solid rgba(148,163,184,0.22);
+  border-left: 4px solid var(--card-dot, #6366f1);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,250,252,0.96)),
+    var(--card-gradient, #fff);
+  box-shadow: 0 10px 26px rgba(15,23,42,0.07);
   cursor: pointer;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 12px;
+  overflow: hidden;
   text-align: left;
   font: inherit;
-  overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.06), 0 6px 24px rgba(0,0,0,0.04);
-  min-height: 148px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
 
-/* Full gradient wash behind content */
 .pipelineCard::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: var(--card-gradient, linear-gradient(135deg, #6366f120 0%, #6366f108 100%));
-  transition: opacity 0.25s ease;
-  opacity: 0.9;
+  inset: 0 0 auto 0;
+  height: 42px;
+  background: var(--card-gradient, transparent);
+  opacity: 0.72;
+  pointer-events: none;
 }
 
-/* Decorative circle blob — top right */
 .pipelineCard::after {
   content: '';
   position: absolute;
-  top: -28px;
-  right: -28px;
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  background: var(--card-glow, rgba(99,102,241,0.12));
+  right: 14px;
+  top: 14px;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--card-border, rgba(99,102,241,0.22));
+  border-radius: 12px;
+  transform: rotate(45deg);
+  opacity: 0.16;
   pointer-events: none;
-  transition: transform 0.35s ease;
 }
 
 .pipelineCard:hover {
-  transform: translateY(-5px) scale(1.01);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.1), 0 0 0 2px var(--card-border, rgba(99,102,241,0.25));
-  filter: brightness(1.01);
+  transform: translateY(-2px);
+  border-color: var(--card-border, rgba(99,102,241,0.32));
+  border-left-color: var(--card-dot, #6366f1);
+  box-shadow: 0 14px 34px rgba(15,23,42,0.1);
 }
 
-.pipelineCard:hover::after {
-  transform: scale(1.25) translate(-4px, 4px);
-}
-
-/* Active / selected state */
 .pipelineActive {
-  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 0 0 2.5px var(--card-border, #6366f1) !important;
-  transform: translateY(-3px) !important;
+  border-color: var(--card-border, rgba(99,102,241,0.38));
+  border-left-color: var(--card-dot, #6366f1);
+  box-shadow: 0 16px 34px var(--card-glow, rgba(99,102,241,0.14));
 }
 
 .pipelineActive::before {
   opacity: 1;
 }
 
-/* ── Top row: icon + sparkline fill pill ── */
 .pipelineCardTop {
   position: relative;
   z-index: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 12px;
 }
 
-/* Icon bubble */
 .pipelineIcon {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
-  border-radius: 14px;
+  flex: 0 0 auto;
   color: #fff;
-  font-size: 19px;
-  flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  font-size: 17px;
+  box-shadow: inset 0 -1px 0 rgba(15,23,42,0.14), 0 8px 16px var(--card-glow, rgba(15,23,42,0.1));
 }
 
-.pipelineCard:hover .pipelineIcon {
-  transform: scale(1.1) rotate(-6deg);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.22);
-}
-
-/* Mini bar pill top-right */
 .pipelineBarPill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
+  min-width: 48px;
+  height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--card-border, rgba(99,102,241,0.2));
   border-radius: 999px;
-  background: rgba(255,255,255,0.7);
-  backdrop-filter: blur(6px);
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--card-text, #6366f1);
-  border: 1px solid rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.82);
+  color: var(--card-text, #475569);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
 .pipelineBarPill span {
-  display: inline-block;
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: 999px;
   background: var(--card-dot, #6366f1);
-  flex-shrink: 0;
 }
 
-/* ── Body: big number + label ── */
 .pipelineBody {
   position: relative;
   z-index: 1;
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .pipelineCount {
-  font-size: 36px;
-  font-weight: 900;
   color: var(--card-count, #0f172a);
-  line-height: 1;
-  letter-spacing: -1.5px;
+  font-size: 34px;
+  font-weight: 850;
+  line-height: 0.95;
   font-variant-numeric: tabular-nums;
 }
 
 .pipelineLabel {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--card-label, #64748b);
+  color: var(--card-label, #475569);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-align: right;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-top: 4px;
+  white-space: nowrap;
 }
 
-/* ── Bottom accent bar ── */
 .pipelineBar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: rgba(0,0,0,0.06);
+  position: relative;
+  z-index: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(148,163,184,0.16);
   overflow: hidden;
 }
 
 .pipelineBarFill {
   height: 100%;
-  border-radius: 999px;
-  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
   min-width: 8%;
+  border-radius: inherit;
+  transition: width 0.35s ease;
 }
 
-/* ═════════════════════════════════════════
-   Revenue + Debt summary card (5th card)
-   ═════════════════════════════════════════ */
 .pipelineSummary {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0;
-  padding: 22px 24px;
-  border-radius: 20px;
-  min-width: 210px;
   position: relative;
+  min-width: 230px;
+  padding: 14px;
+  border: 1px solid rgba(79,70,229,0.22);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(30,27,75,0.98), rgba(49,46,129,0.96)),
+    #312e81;
+  box-shadow: 0 14px 34px rgba(49,46,129,0.22);
+  display: grid;
+  gap: 10px;
   overflow: hidden;
-  background: linear-gradient(145deg, #1e1b4b 0%, #312e81 55%, #4f46e5 100%);
-  box-shadow: 0 6px 28px rgba(79,70,229,0.35);
 }
 
-/* Glow blob */
 .pipelineSummary::before {
   content: '';
   position: absolute;
-  top: -30px;
-  right: -30px;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: rgba(167,139,250,0.18);
+  inset: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
   pointer-events: none;
 }
 
 .pipelineSummary::after {
   content: '';
   position: absolute;
-  bottom: -20px;
-  left: 10px;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: rgba(99,102,241,0.12);
+  right: 18px;
+  top: 18px;
+  width: 44px;
+  height: 70%;
+  border-right: 1px solid rgba(255,255,255,0.12);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  transform: skewX(-16deg);
   pointer-events: none;
 }
 
 .pipelineSummaryItem {
   position: relative;
   z-index: 1;
-  display: flex;
+  display: grid;
+  grid-template-columns: 34px 1fr;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
 }
 
 .pipelineSummaryIconWrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
   display: grid;
   place-items: center;
-  flex-shrink: 0;
-  font-size: 16px;
+  font-size: 15px;
+  border: 1px solid rgba(255,255,255,0.12);
 }
 
 .pipelineSummaryIconWrap.revenue {
-  background: rgba(167,139,250,0.2);
-  color: #a78bfa;
+  background: rgba(167,139,250,0.18);
+  color: #c4b5fd;
 }
 
 .pipelineSummaryIconWrap.debt {
-  background: rgba(251,113,133,0.2);
-  color: #fb7185;
+  background: rgba(248,113,113,0.16);
+  color: #fca5a5;
 }
 
-.pipelineSummaryItem div {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+.pipelineSummaryItem div:last-child {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
 }
 
 .pipelineSummaryVal {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  font-variant-numeric: tabular-nums;
   color: #fff;
+  font-size: 17px;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+  white-space: nowrap;
 }
 
 .pipelineSummaryVal.debtVal {
-  color: #fb7185;
+  color: #fecaca;
 }
 
 .pipelineSummaryLbl {
+  color: rgba(255,255,255,0.58);
   font-size: 10.5px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.55);
-  text-transform: uppercase;
+  font-weight: 750;
   letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .pipelineSummaryDivider {
-  height: 1px;
-  background: rgba(255,255,255,0.1);
-  margin: 12px 0;
   position: relative;
   z-index: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.11);
 }
-
-/* ══════════════════════════════════════════
-   TABLE CARD
-   ══════════════════════════════════════════ */
-.tableCard :global(.ant-card-body) { padding-top: 16px !important; }
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+   DRAWER
+   Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+.tableCard :global(.ant-card-body) {
+  padding-top: 16px !important;
+}
 
 .toolbar {
   display: flex;
@@ -301,10 +284,21 @@
   gap: 8px;
 }
 
-.search         { width: min(270px, 100%); }
-.filter         { width: 148px; }
-.customerFilter { width: 205px; }
-.dateFilter     { width: 238px; }
+.search {
+  width: min(270px, 100%);
+}
+
+.filter {
+  width: 148px;
+}
+
+.customerFilter {
+  width: 205px;
+}
+
+.dateFilter {
+  width: 238px;
+}
 
 .filterChips {
   display: flex;
@@ -323,9 +317,9 @@
 .orderLink {
   height: auto;
   padding: 0;
-  font-weight: 800;
-  font-size: 13.5px;
   color: var(--color-primary) !important;
+  font-size: 13.5px;
+  font-weight: 800;
 }
 
 .customerCell {
@@ -341,30 +335,34 @@
 }
 
 .customerCell strong {
+  overflow: hidden;
   font-size: 13.5px;
   font-weight: 600;
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .customerCell span {
-  font-size: 11.5px;
   color: var(--color-text-muted);
+  font-size: 11.5px;
 }
 
-.money { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 500; }
-.debt  { color: #dc2626 !important; font-weight: 700 !important; }
+.money {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  white-space: nowrap;
+}
 
-/* ══════════════════════════════════════════
-   DRAWER
-   ══════════════════════════════════════════ */
+.debt {
+  color: #dc2626 !important;
+  font-weight: 700 !important;
+}
 .drawerContent { display: grid; gap: 24px; }
 .drawerContent :global(h5.ant-typography) { margin: 0 0 10px !important; font-weight: 700; }
 
-/* ══════════════════════════════════════════
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    RESPONSIVE
-   ══════════════════════════════════════════ */
+   Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 @media (max-width: 1200px) {
   .pipeline { grid-template-columns: repeat(2, 1fr) auto; }
 }
