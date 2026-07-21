@@ -7,9 +7,11 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,6 +37,22 @@ public class CustomerController {
     @PreAuthorize("hasAuthority('CUSTOMER_MANAGE')")
     public ApiResponse<Customer> create(@Valid @RequestBody CustomerRequest request) {
         return ApiResponse.ok(customerService.create(request));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('CUSTOMER_MANAGE')")
+    public ApiResponse<Customer> update(
+        @PathVariable Long id,
+        @Valid @RequestBody CustomerRequest request
+    ) {
+        return ApiResponse.ok(customerService.update(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('CUSTOMER_MANAGE')")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        customerService.delete(id);
+        return ApiResponse.ok(null);
     }
 
     @GetMapping("/{id}/debt-statement")

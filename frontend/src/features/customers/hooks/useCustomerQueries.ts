@@ -4,8 +4,10 @@ import { queryKeys } from '../../../lib/queryKeys';
 import { getErrorMessage } from '../../../lib/format';
 import {
   createCustomer,
+  deleteCustomer,
   fetchCustomerDebtStatement,
   fetchCustomersContent,
+  updateCustomer,
 } from '../api/customerService';
 import { CustomerFormValues } from '../types/customer.types';
 
@@ -44,6 +46,38 @@ export function useCreateCustomer() {
     mutationFn: (payload: CustomerFormValues) => createCustomer(payload),
     onSuccess: async () => {
       message.success('Customer created.');
+      await queryClient.invalidateQueries({ queryKey: queryKeys.customers });
+    },
+    onError,
+  });
+}
+
+export function useUpdateCustomer() {
+  const { queryClient, message, onError } = useMutationFeedback();
+
+  return useMutation({
+    mutationFn: ({
+      customerId,
+      payload,
+    }: {
+      customerId: number;
+      payload: CustomerFormValues;
+    }) => updateCustomer(customerId, payload),
+    onSuccess: async () => {
+      message.success('Customer updated.');
+      await queryClient.invalidateQueries({ queryKey: queryKeys.customers });
+    },
+    onError,
+  });
+}
+
+export function useDeleteCustomer() {
+  const { queryClient, message, onError } = useMutationFeedback();
+
+  return useMutation({
+    mutationFn: (customerId: number) => deleteCustomer(customerId),
+    onSuccess: async () => {
+      message.success('Customer deleted.');
       await queryClient.invalidateQueries({ queryKey: queryKeys.customers });
     },
     onError,
