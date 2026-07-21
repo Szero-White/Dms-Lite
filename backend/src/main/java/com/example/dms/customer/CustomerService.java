@@ -6,6 +6,7 @@ import com.example.dms.common.TenantContext;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -46,14 +47,10 @@ public class CustomerService {
         Customer savedCustomer = customerRepository.save(
             Customer.builder()
                 .tenantId(TenantContext.tenantRequired())
-                .name(request.name())
-                .phone(request.phone())
-                .address(request.address())
-                .creditLimit(request.creditLimit() == null ? BigDecimal.ZERO : request.creditLimit())
-                .paymentTermDays(request.paymentTermDays() == null ? 14 : request.paymentTermDays())
                 .active(true)
                 .build()
         );
+        applyCustomerRequest(savedCustomer, request);
 
         auditService.log(
             "CUSTOMER_CREATED",
@@ -62,6 +59,43 @@ public class CustomerService {
             savedCustomer.getName()
         );
         return savedCustomer;
+    }
+
+    @Transactional
+    public Customer update(Long customerId, CustomerRequest request) {
+        Customer customer = find(customerId);
+        applyCustomerRequest(customer, request);
+
+        auditService.log(
+            "CUSTOMER_UPDATED",
+            "Customer",
+            customer.getId(),
+            customer.getName()
+        );
+        return customer;
+    }
+
+    @Transactional
+    public void delete(Long customerId) {
+        Customer customer = find(customerId);
+        BigDecimal debtBalance = customerDebtRepository.balance(
+            TenantContext.tenantRequired(),
+            customer.getId()
+        );
+
+        if (debtBalance.signum() > 0) {
+            throw new BusinessException("Cannot delete customer with outstanding debt");
+        }
+
+        customer.setActive(false);
+        customer.setDeletedAt(Instant.now());
+
+        auditService.log(
+            "CUSTOMER_DELETED",
+            "Customer",
+            customer.getId(),
+            customer.getName()
+        );
     }
 
     public List<CustomerDebtTransaction> statement(Long customerId) {
@@ -76,5 +110,17 @@ public class CustomerService {
             customerId,
             TenantContext.tenantRequired()
         ).orElseThrow(() -> new BusinessException("Customer not found"));
+    }
+
+    private void applyCustomerRequest(Customer customer, CustomerRequest request) {
+        customer.setName(request.name());
+        customer.setPhone(request.phone());
+        customer.setAddress(request.address());
+        customer.setCreditLimit(
+            request.creditLimit() == null ? BigDecimal.ZERO : request.creditLimit()
+        );
+        customer.setPaymentTermDays(
+            request.paymentTermDays() == null ? 14 : request.paymentTermDays()
+        );
     }
 }
