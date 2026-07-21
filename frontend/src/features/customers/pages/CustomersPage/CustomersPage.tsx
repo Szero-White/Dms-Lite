@@ -6,8 +6,10 @@ import { toNumber } from '../../../../lib/format';
 import {
   useCreateCustomer,
   useCustomers,
+  useDeleteCustomer,
+  useUpdateCustomer,
 } from '../../hooks/useCustomerQueries';
-import type { CustomerFormValues } from '../../types/customer.types';
+import type { Customer, CustomerFormValues } from '../../types/customer.types';
 import { CustomersPulseBar } from './components/CustomersPulseBar/CustomersPulseBar';
 import { CustomersTableCard } from './components/CustomersTableCard/CustomersTableCard';
 import styles from './CustomersPage.module.css';
@@ -15,11 +17,14 @@ import styles from './CustomersPage.module.css';
 export function CustomersPage() {
   const customersQuery = useCustomers();
   const createCustomer = useCreateCustomer();
+  const updateCustomer = useUpdateCustomer();
+  const deleteCustomer = useDeleteCustomer();
   const [keyword, setKeyword] = useState('');
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
   const [debtFilter, setDebtFilter] = useState<'ALL' | 'WITH_DEBT' | 'CLEAR'>('ALL');
   const [creditFilter, setCreditFilter] = useState<'ALL' | 'NEAR_LIMIT' | 'OVER_LIMIT'>('ALL');
   const [open, setOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [form] = Form.useForm<CustomerFormValues>();
 
   const filteredCustomers = useMemo(
@@ -81,13 +86,51 @@ export function CustomersPage() {
     setCreditFilter('ALL');
   }
 
+  function openCreateCustomer() {
+    setSelectedCustomer(null);
+    form.resetFields();
+    form.setFieldsValue({ paymentTermDays: 14, creditLimit: 0 });
+    setOpen(true);
+  }
+
+  function openEditCustomer(customer: Customer) {
+    setSelectedCustomer(customer);
+    form.setFieldsValue({
+      name: customer.name,
+      phone: customer.phone,
+      address: customer.address,
+      creditLimit: toNumber(customer.creditLimit),
+      paymentTermDays: customer.paymentTermDays,
+    });
+    setOpen(true);
+  }
+
+  function closeCustomerForm() {
+    setOpen(false);
+    setSelectedCustomer(null);
+    form.resetFields();
+  }
+
+  async function handleSubmit(values: CustomerFormValues) {
+    if (selectedCustomer) {
+      await updateCustomer.mutateAsync({
+        customerId: selectedCustomer.id,
+        payload: values,
+      });
+    } else {
+      await createCustomer.mutateAsync(values);
+    }
+
+    closeCustomerForm();
+  }
+
   return (
     <div className={styles.page}>
       <PageHeader
         title="Customers"
         subtitle="Manage customer profiles, credit limits and receivables."
         extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpen(true)}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={openCreateCustomer}>
             New Customer
           </Button>
         }
@@ -107,6 +150,7 @@ export function CustomersPage() {
         activeFilter={activeFilter}
         creditFilter={creditFilter}
         debtFilter={debtFilter}
+        deletingCustomerId={deleteCustomer.isPending ? deleteCustomer.variables : undefined}
         filteredCustomers={filteredCustomers}
         hasFilters={hasFilters}
         isError={customersQuery.isError}
@@ -115,7 +159,9 @@ export function CustomersPage() {
         onActiveFilterChange={setActiveFilter}
         onClearFilters={clearFilters}
         onCreditFilterChange={setCreditFilter}
+        onDeleteCustomer={(customerId) => deleteCustomer.mutate(customerId)}
         onDebtFilterChange={setDebtFilter}
+        onEditCustomer={openEditCustomer}
         onKeywordChange={setKeyword}
         onRetry={() => {
           void customersQuery.refetch();
@@ -126,20 +172,16 @@ export function CustomersPage() {
       <Modal
         rootClassName={styles.modal}
         open={open}
-        title="Create Customer"
-        confirmLoading={createCustomer.isPending}
-        onCancel={() => setOpen(false)}
+        title={selectedCustomer ? 'Edit Customer' : 'Create Customer'}
+        confirmLoading={createCustomer.isPending || updateCustomer.isPending}
+        onCancel={closeCustomerForm}
         onOk={() => form.submit()}
       >
         <Form
           form={form}
           layout="vertical"
           initialValues={{ paymentTermDays: 14, creditLimit: 0 }}
-          onFinish={async (values) => {
-            await createCustomer.mutateAsync(values);
-            form.resetFields();
-            setOpen(false);
-          }}
+          onFinish={handleSubmit}
         >
           <Form.Item name="name" label="Customer Name" rules={[{ required: true }]}>
             <Input />

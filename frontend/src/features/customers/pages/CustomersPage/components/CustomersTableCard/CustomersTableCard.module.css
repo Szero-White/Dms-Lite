@@ -114,6 +114,15 @@
   white-space: nowrap;
 }
 
+.rowActions {
+  min-width: 108px;
+}
+
+.rowActions :global(.ant-btn) {
+  width: 32px;
+  height: 32px;
+}
+
 .creditWarningRow > :global(.ant-table-cell) {
   background: linear-gradient(to right, #fffbf2, #fff8e8) !important;
 }

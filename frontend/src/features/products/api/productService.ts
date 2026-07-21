@@ -41,3 +41,7 @@ export async function updateProduct(
 ) {
   return unwrapResponse<Product>(apiClient.put(`/products/${productId}`, payload));
 }
+
+export async function deleteProduct(productId: number) {
+  return unwrapResponse<void>(apiClient.delete(`/products/${productId}`));
+}
