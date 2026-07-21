@@ -4,6 +4,7 @@ import { queryKeys } from '../../../lib/queryKeys';
 import { getErrorMessage } from '../../../lib/format';
 import {
   createProduct,
+  deleteProduct,
   fetchProductRows,
   updateProduct,
 } from '../api/productService';
@@ -59,6 +60,22 @@ export function useUpdateProduct() {
     onSuccess: async () => {
       message.success('Product updated.');
       await queryClient.invalidateQueries({ queryKey: queryKeys.products });
+    },
+    onError,
+  });
+}
+
+export function useDeleteProduct() {
+  const { queryClient, message, onError } = useMutationFeedback();
+
+  return useMutation({
+    mutationFn: (productId: number) => deleteProduct(productId),
+    onSuccess: async () => {
+      message.success('Product deleted.');
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.products }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard }),
+      ]);
     },
     onError,
   });

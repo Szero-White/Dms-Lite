@@ -123,6 +123,15 @@
   margin: 0;
 }
 
+.rowActions {
+  min-width: 108px;
+}
+
+.rowActions :global(.ant-btn) {
+  width: 32px;
+  height: 32px;
+}
+
 .lowStockRow > :global(.ant-table-cell) {
   background: #fffbf2 !important;
 }

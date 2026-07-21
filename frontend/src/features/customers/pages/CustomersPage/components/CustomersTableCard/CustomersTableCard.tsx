@@ -1,15 +1,23 @@
-import { EyeOutlined, MoreOutlined, SearchOutlined } from '@ant-design/icons';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  EyeOutlined,
+  MoreOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
 import {
   Avatar,
   Button,
   Card,
   Dropdown,
   Input,
+  Popconfirm,
   Progress,
   Select,
   Space,
   Table,
   Tag,
+  Tooltip,
   Typography,
 } from 'antd';
 import { useNavigate } from 'react-router-dom';
@@ -23,6 +31,7 @@ interface CustomersTableCardProps {
   activeFilter: 'ALL' | 'ACTIVE' | 'INACTIVE';
   creditFilter: 'ALL' | 'NEAR_LIMIT' | 'OVER_LIMIT';
   debtFilter: 'ALL' | 'WITH_DEBT' | 'CLEAR';
+  deletingCustomerId?: number;
   filteredCustomers: Customer[];
   hasFilters: boolean;
   isError: boolean;
@@ -31,7 +40,9 @@ interface CustomersTableCardProps {
   onActiveFilterChange: (value: 'ALL' | 'ACTIVE' | 'INACTIVE') => void;
   onClearFilters: () => void;
   onCreditFilterChange: (value: 'ALL' | 'NEAR_LIMIT' | 'OVER_LIMIT') => void;
+  onDeleteCustomer: (customerId: number) => void;
   onDebtFilterChange: (value: 'ALL' | 'WITH_DEBT' | 'CLEAR') => void;
+  onEditCustomer: (customer: Customer) => void;
   onKeywordChange: (value: string) => void;
   onRetry: () => void;
   queryError: unknown;
@@ -41,6 +52,7 @@ export function CustomersTableCard({
   activeFilter,
   creditFilter,
   debtFilter,
+  deletingCustomerId,
   filteredCustomers,
   hasFilters,
   isError,
@@ -49,7 +61,9 @@ export function CustomersTableCard({
   onActiveFilterChange,
   onClearFilters,
   onCreditFilterChange,
+  onDeleteCustomer,
   onDebtFilterChange,
+  onEditCustomer,
   onKeywordChange,
   onRetry,
   queryError,
@@ -121,7 +135,7 @@ export function CustomersTableCard({
         <Table
           rowKey="id"
           sticky
-          scroll={{ x: 1160 }}
+          scroll={{ x: 1240 }}
           dataSource={filteredCustomers}
           rowClassName={(record) => {
             const limit = toNumber(record.creditLimit);
@@ -201,23 +215,68 @@ export function CustomersTableCard({
               ),
             },
             {
-              title: '',
+              title: 'Actions',
               fixed: 'right',
-              width: 64,
+              width: 136,
               render: (_, record) => (
-                <Dropdown
-                  trigger={['click']}
-                  menu={{
-                    items: [{ key: 'view', icon: <EyeOutlined />, label: 'View detail' }],
-                    onClick: () => navigate(`/customers/${record.id}`),
-                  }}
-                >
-                  <Button
-                    type="text"
-                    icon={<MoreOutlined />}
-                    aria-label={`Actions for ${record.name}`}
-                  />
-                </Dropdown>
+                <Space size={4} className={styles.rowActions}>
+                  <Tooltip title="View customer">
+                    <Button
+                      type="text"
+                      icon={<EyeOutlined />}
+                      aria-label={`View ${record.name}`}
+                      onClick={() => navigate(`/customers/${record.id}`)}
+                    />
+                  </Tooltip>
+                  <Tooltip title="Edit customer">
+                    <Button
+                      type="text"
+                      icon={<EditOutlined />}
+                      aria-label={`Edit ${record.name}`}
+                      onClick={() => onEditCustomer(record)}
+                    />
+                  </Tooltip>
+                  <Popconfirm
+                    title="Delete customer?"
+                    description="Customers with outstanding debt cannot be deleted."
+                    okText="Delete"
+                    okButtonProps={{ danger: true }}
+                    onConfirm={() => onDeleteCustomer(record.id)}
+                  >
+                    <Tooltip title="Delete customer">
+                      <Button
+                        danger
+                        type="text"
+                        icon={<DeleteOutlined />}
+                        loading={deletingCustomerId === record.id}
+                        aria-label={`Delete ${record.name}`}
+                      />
+                    </Tooltip>
+                  </Popconfirm>
+                  <Dropdown
+                    trigger={['click']}
+                    menu={{
+                      items: [
+                        { key: 'view', icon: <EyeOutlined />, label: 'View detail' },
+                        { key: 'edit', icon: <EditOutlined />, label: 'Edit customer' },
+                      ],
+                      onClick: ({ key }) => {
+                        if (key === 'edit') {
+                          onEditCustomer(record);
+                          return;
+                        }
+
+                        navigate(`/customers/${record.id}`);
+                      },
+                    }}
+                  >
+                    <Button
+                      type="text"
+                      icon={<MoreOutlined />}
+                      aria-label={`More actions for ${record.name}`}
+                    />
+                  </Dropdown>
+                </Space>
               ),
             },
           ]}

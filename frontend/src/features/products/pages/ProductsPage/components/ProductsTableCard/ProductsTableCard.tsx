@@ -1,13 +1,19 @@
-import { MoreOutlined, SearchOutlined } from '@ant-design/icons';
+﻿import {
+  DeleteOutlined,
+  EditOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
 import {
   Avatar,
   Button,
   Card,
-  Dropdown,
   Input,
+  Popconfirm,
   Progress,
   Select,
+  Space,
   Table,
+  Tooltip,
   Typography,
 } from 'antd';
 import { QueryState } from '../../../../../../components/common/QueryState';
@@ -17,12 +23,14 @@ import type { ProductRow } from '../../../../types/product.types';
 import styles from './ProductsTableCard.module.css';
 
 interface ProductsTableCardProps {
+  deletingProductId?: number;
   filteredProducts: ProductRow[];
   hasFilters: boolean;
   isError: boolean;
   isLoading: boolean;
   keyword: string;
   onClearFilters: () => void;
+  onDeleteProduct: (productId: number) => void;
   onKeywordChange: (value: string) => void;
   onRetry: () => void;
   onSelectProduct: (product: ProductRow | null) => void;
@@ -39,12 +47,14 @@ interface ProductsTableCardProps {
 }
 
 export function ProductsTableCard({
+  deletingProductId,
   filteredProducts,
   hasFilters,
   isError,
   isLoading,
   keyword,
   onClearFilters,
+  onDeleteProduct,
   onKeywordChange,
   onRetry,
   onSelectProduct,
@@ -57,6 +67,11 @@ export function ProductsTableCard({
   statusFilter,
   stockFilter,
 }: ProductsTableCardProps) {
+  function openEditor(product: ProductRow) {
+    onSelectProduct(product);
+    onSetDrawerOpen(true);
+  }
+
   return (
     <Card className={`panel-card ${styles.tableCard}`}>
       <div className={styles.toolbar}>
@@ -138,14 +153,11 @@ export function ProductsTableCard({
         <Table
           rowKey="id"
           sticky
-          scroll={{ x: 1180 }}
+          scroll={{ x: 1260 }}
           dataSource={filteredProducts}
           rowClassName={(record) => (record.isLowStock ? styles.lowStockRow : '')}
           onRow={(record) => ({
-            onDoubleClick: () => {
-              onSelectProduct(record);
-              onSetDrawerOpen(true);
-            },
+            onDoubleClick: () => openEditor(record),
           })}
           columns={[
             {
@@ -236,26 +248,37 @@ export function ProductsTableCard({
               ),
             },
             {
-              title: '',
+              title: 'Actions',
               fixed: 'right',
-              width: 64,
+              width: 96,
               render: (_, record) => (
-                <Dropdown
-                  trigger={['click']}
-                  menu={{
-                    items: [{ key: 'edit', label: 'Edit product' }],
-                    onClick: () => {
-                      onSelectProduct(record);
-                      onSetDrawerOpen(true);
-                    },
-                  }}
-                >
-                  <Button
-                    type="text"
-                    icon={<MoreOutlined />}
-                    aria-label={`Actions for ${record.name}`}
-                  />
-                </Dropdown>
+                <Space size={4} className={styles.rowActions}>
+                  <Tooltip title="Edit product">
+                    <Button
+                      type="text"
+                      icon={<EditOutlined />}
+                      aria-label={`Edit ${record.name}`}
+                      onClick={() => openEditor(record)}
+                    />
+                  </Tooltip>
+                  <Popconfirm
+                    title="Delete product?"
+                    description="This hides the product from active lists."
+                    okText="Delete"
+                    okButtonProps={{ danger: true }}
+                    onConfirm={() => onDeleteProduct(record.id)}
+                  >
+                    <Tooltip title="Delete product">
+                      <Button
+                        danger
+                        type="text"
+                        icon={<DeleteOutlined />}
+                        loading={deletingProductId === record.id}
+                        aria-label={`Delete ${record.name}`}
+                      />
+                    </Tooltip>
+                  </Popconfirm>
+                </Space>
               ),
             },
           ]}
@@ -264,3 +287,6 @@ export function ProductsTableCard({
     </Card>
   );
 }
+
+
+

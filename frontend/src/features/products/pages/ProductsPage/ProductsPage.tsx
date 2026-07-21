@@ -6,6 +6,7 @@ import { toNumber } from '../../../../lib/format';
 import { ProductFormDrawer } from '../../components/ProductFormDrawer';
 import {
   useCreateProduct,
+  useDeleteProduct,
   useProducts,
   useUpdateProduct,
 } from '../../hooks/useProductQueries';
@@ -18,6 +19,7 @@ export function ProductsPage() {
   const productsQuery = useProducts();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
+  const deleteProduct = useDeleteProduct();
   const [keyword, setKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
   const [stockFilter, setStockFilter] = useState<'ALL' | 'HEALTHY' | 'LOW_STOCK'>('ALL');
@@ -146,6 +148,8 @@ export function ProductsPage() {
         }}
         onSelectProduct={setSelectedProduct}
         onSetDrawerOpen={setDrawerOpen}
+        onDeleteProduct={(productId) => deleteProduct.mutate(productId)}
+        deletingProductId={deleteProduct.isPending ? deleteProduct.variables : undefined}
         onSortByChange={setSortBy}
         onStatusFilterChange={setStatusFilter}
         onStockFilterChange={setStockFilter}
