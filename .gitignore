@@ -62,3 +62,29 @@ application-secret.yml
 application-local-secret.yml
 backend/src/main/resources/application-secret.yml
 backend/src/main/resources/application-local-secret.yml
+
+# Local Spring profiles with machine-specific secrets
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-prod.yml
+backend/src/main/resources/application-*.local.yml
+
+# Private keys / certificates
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+
+# Cloud/service credentials
+credentials.json
+service-account.json
+*-credentials.json
+*-service-account.json
+
+# Database backups
+backups/
+db-backups/
+*.backup.sql
+*.dump.sql
+database*.sql
+db-backup*.sql
