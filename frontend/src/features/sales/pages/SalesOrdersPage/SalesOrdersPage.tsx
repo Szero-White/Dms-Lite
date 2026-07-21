@@ -7,6 +7,7 @@ import {
   SearchOutlined,
   StopOutlined,
   TrophyOutlined,
+  ShoppingCartOutlined,
 } from '@ant-design/icons';
 import {
   App,
@@ -43,6 +44,7 @@ import {
   toNumber,
 } from '../../../../lib/format';
 import type { SalesOrder } from '../../types/sales.types';
+import { SalesOrdersPulseBar } from './components/SalesOrdersPulseBar';
 import styles from './SalesOrdersPage.module.css';
 
 function getInitials(name: string) {
@@ -136,6 +138,8 @@ export function SalesOrdersPage() {
     CANCELLED: orders.filter((o) => o.status === 'CANCELLED').length,
   }), [orders]);
 
+  const totalOrders = orders.length;
+  const activeOrders = orders.filter((o) => o.status === 'CONFIRMED').length;
   const totalRevenue = useMemo(
     () => orders.filter((o) => o.status !== 'CANCELLED')
       .reduce((s, o) => s + toNumber(o.totalAmount), 0),
@@ -143,6 +147,10 @@ export function SalesOrdersPage() {
   );
   const outstandingDebt = useMemo(
     () => orders.reduce((s, o) => s + toNumber(o.debtAmount), 0),
+    [orders],
+  );
+  const paidAmount = useMemo(
+    () => orders.reduce((s, o) => s + toNumber(o.paidAmount), 0),
     [orders],
   );
 
@@ -205,81 +213,20 @@ export function SalesOrdersPage() {
         )}
       />
 
-      {/* â”€â”€ Pipeline strip â”€â”€ */}
-      <div className={styles.pipeline}>
-        {(Object.entries(STATUS_CONFIG) as [keyof typeof STATUS_CONFIG, typeof STATUS_CONFIG[keyof typeof STATUS_CONFIG]][]).map(([status, cfg]) => {
-          const count = statusCounts[status];
-          const total = Object.values(statusCounts).reduce((a, b) => a + b, 0) || 1;
-          const pct = Math.round((count / total) * 100);
-          return (
-            <button
-              key={status}
-              type="button"
-              className={`${styles.pipelineCard} ${statusFilter === status ? styles.pipelineActive : ''}`}
-              onClick={() => setStatusFilter(statusFilter === status ? 'ALL' : status)}
-              style={{
-                '--card-gradient': cfg.gradient,
-                '--card-glow': cfg.glow,
-                '--card-border': cfg.border,
-                '--card-count': cfg.countColor,
-                '--card-label': cfg.labelColor,
-                '--card-dot': cfg.color,
-                '--card-text': cfg.color,
-              } as React.CSSProperties}
-            >
-              {/* Top row: icon + percentage pill */}
-              <div className={styles.pipelineCardTop}>
-                <div className={styles.pipelineIcon} style={{ background: cfg.bg }}>
-                  {cfg.icon}
-                </div>
-                <div className={styles.pipelineBarPill}>
-                  <span />
-                  {pct}%
-                </div>
-              </div>
-
-              {/* Body: big count + label */}
-              <div className={styles.pipelineBody}>
-                <span className={styles.pipelineCount} style={{ color: cfg.countColor }}>{count}</span>
-                <span className={styles.pipelineLabel} style={{ color: cfg.labelColor }}>{cfg.label}</span>
-              </div>
-
-              {/* Bottom accent bar */}
-              <div className={styles.pipelineBar}>
-                <div
-                  className={styles.pipelineBarFill}
-                  style={{ width: `${Math.max(pct, 8)}%`, background: cfg.bg }}
-                />
-              </div>
-            </button>
-          );
-        })}
-
-        {/* Revenue + debt summary â€” dark indigo premium card */}
-        <div className={styles.pipelineSummary}>
-          <div className={styles.pipelineSummaryItem}>
-            <div className={`${styles.pipelineSummaryIconWrap} ${styles.revenue}`}>
-              <DollarOutlined />
-            </div>
-            <div>
-              <span className={styles.pipelineSummaryVal}>{formatCurrency(totalRevenue)}</span>
-              <span className={styles.pipelineSummaryLbl}>Total revenue</span>
-            </div>
-          </div>
-          <div className={styles.pipelineSummaryDivider} />
-          <div className={styles.pipelineSummaryItem}>
-            <div className={`${styles.pipelineSummaryIconWrap} ${styles.debt}`}>
-              <DollarOutlined />
-            </div>
-            <div>
-              <span className={`${styles.pipelineSummaryVal} ${styles.debtVal}`}>
-                {formatCurrency(outstandingDebt)}
-              </span>
-              <span className={styles.pipelineSummaryLbl}>Outstanding debt</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Sales Orders Pulse Bar */}
+      <SalesOrdersPulseBar
+        activeOrders={activeOrders}
+        cancelledCount={statusCounts.CANCELLED}
+        completedCount={statusCounts.COMPLETED}
+        confirmedCount={statusCounts.CONFIRMED}
+        draftCount={statusCounts.DRAFT}
+        onStatusFilterChange={setStatusFilter}
+        outstandingDebt={outstandingDebt}
+        paidAmount={paidAmount}
+        statusFilter={statusFilter}
+        totalOrders={totalOrders}
+        totalRevenue={totalRevenue}
+      />
 
       {/* â”€â”€ Table card â”€â”€ */}
       <Card className={`panel-card ${styles.tableCard}`}>

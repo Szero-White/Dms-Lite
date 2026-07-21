@@ -1,0 +1,1 @@
+export { SalesOrdersPulseBar } from './SalesOrdersPulseBar';
