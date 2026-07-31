@@ -26,7 +26,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: dms
       SPRING_REDIS_HOST: redis
       SPRING_RABBITMQ_HOST: rabbitmq
-      APP_JWT_SECRET: dms-lite-secret-key-must-be-at-least-32-characters
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-dms-lite-secret-key-must-be-at-least-32-characters}
       SPRING_PROFILES_ACTIVE: docker
     depends_on:
       postgres: { condition: service_healthy }
@@ -47,7 +47,7 @@ services:
     image: grafana/grafana
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-admin}
     ports: ["3001:3000"]
 volumes:
   postgres_data:

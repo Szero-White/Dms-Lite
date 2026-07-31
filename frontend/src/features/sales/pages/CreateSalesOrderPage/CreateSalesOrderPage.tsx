@@ -22,6 +22,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
+import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
 import { useProducts } from '../../../products';
 import {
@@ -45,6 +46,8 @@ interface OrderFormValues {
 }
 
 export function CreateSalesOrderPage() {
+  const { user } = useAuth();
+  const canConfirmSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CONFIRM);
   const navigate = useNavigate();
   const customersQuery = useCustomers();
   const productsQuery = useProducts();
@@ -304,13 +307,15 @@ export function CreateSalesOrderPage() {
                 message={`Order #${createdOrderId} created successfully`}
                 description={(
                   <Space direction="vertical">
-                    <Button
-                      type="primary"
-                      loading={confirmOrder.isPending}
-                      onClick={() => confirmOrder.mutate(createdOrderId)}
-                    >
-                      Confirm Order Now
-                    </Button>
+                    {canConfirmSalesOrder ? (
+                      <Button
+                        type="primary"
+                        loading={confirmOrder.isPending}
+                        onClick={() => confirmOrder.mutate(createdOrderId)}
+                      >
+                        Confirm Order Now
+                      </Button>
+                    ) : null}
                     <Button onClick={() => navigate('/sales-orders')}>Back to Orders</Button>
                   </Space>
                 )}

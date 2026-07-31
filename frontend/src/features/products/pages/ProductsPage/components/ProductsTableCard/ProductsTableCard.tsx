@@ -1,4 +1,4 @@
-﻿import {
+import {
   DeleteOutlined,
   EditOutlined,
   SearchOutlined,
@@ -23,6 +23,7 @@ import type { ProductRow } from '../../../../types/product.types';
 import styles from './ProductsTableCard.module.css';
 
 interface ProductsTableCardProps {
+  canManageProducts: boolean;
   deletingProductId?: number;
   filteredProducts: ProductRow[];
   hasFilters: boolean;
@@ -47,6 +48,7 @@ interface ProductsTableCardProps {
 }
 
 export function ProductsTableCard({
+  canManageProducts,
   deletingProductId,
   filteredProducts,
   hasFilters,
@@ -68,6 +70,10 @@ export function ProductsTableCard({
   stockFilter,
 }: ProductsTableCardProps) {
   function openEditor(product: ProductRow) {
+    if (!canManageProducts) {
+      return;
+    }
+
     onSelectProduct(product);
     onSetDrawerOpen(true);
   }
@@ -136,7 +142,7 @@ export function ProductsTableCard({
         emptyAction={
           hasFilters ? (
             <Button onClick={onClearFilters}>Clear filters</Button>
-          ) : (
+          ) : canManageProducts ? (
             <Button
               type="primary"
               onClick={() => {
@@ -146,7 +152,7 @@ export function ProductsTableCard({
             >
               New Product
             </Button>
-          )
+          ) : null
         }
         onRetry={onRetry}
       >
@@ -157,7 +163,7 @@ export function ProductsTableCard({
           dataSource={filteredProducts}
           rowClassName={(record) => (record.isLowStock ? styles.lowStockRow : '')}
           onRow={(record) => ({
-            onDoubleClick: () => openEditor(record),
+            onDoubleClick: canManageProducts ? () => openEditor(record) : undefined,
           })}
           columns={[
             {
@@ -251,7 +257,7 @@ export function ProductsTableCard({
               title: 'Actions',
               fixed: 'right',
               width: 96,
-              render: (_, record) => (
+              render: (_, record) => (canManageProducts ? (
                 <Space size={4} className={styles.rowActions}>
                   <Tooltip title="Edit product">
                     <Button
@@ -279,7 +285,7 @@ export function ProductsTableCard({
                     </Tooltip>
                   </Popconfirm>
                 </Space>
-              ),
+              ) : null),
             },
           ]}
         />

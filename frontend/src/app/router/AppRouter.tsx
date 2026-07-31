@@ -8,7 +8,13 @@ import {
   Navigate,
   RouterProvider,
   createBrowserRouter,
+  useLocation,
 } from 'react-router-dom';
+import {
+  canAccessPath,
+  firstAuthorizedPath,
+  useAuth,
+} from '../../features/auth';
 import { ProtectedRoute } from './ProtectedRoute';
 import { PublicRoute } from './PublicRoute';
 
@@ -46,17 +52,36 @@ const SalesOrdersPage = lazy(() => import('../../features/sales').then((module) 
   default: module.SalesOrdersPage,
 })));
 
+function RootRedirect() {
+  const { user } = useAuth();
+
+  return <Navigate to={firstAuthorizedPath(user)} replace />;
+}
+
+function AuthorizedPage({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const location = useLocation();
+
+  if (!canAccessPath(user, location.pathname)) {
+    return <Navigate to={firstAuthorizedPath(user)} replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function routeElement(element: ReactNode) {
   return (
-    <Suspense
-      fallback={(
-        <div className="panel-card">
-          <Skeleton active paragraph={{ rows: 8 }} />
-        </div>
-      )}
-    >
-      {element}
-    </Suspense>
+    <AuthorizedPage>
+      <Suspense
+        fallback={(
+          <div className="panel-card">
+            <Skeleton active paragraph={{ rows: 8 }} />
+          </div>
+        )}
+      >
+        {element}
+      </Suspense>
+    </AuthorizedPage>
   );
 }
 
@@ -69,7 +94,7 @@ const router = createBrowserRouter([
     path: '/',
     element: <ProtectedRoute />,
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
+      { index: true, element: <RootRedirect /> },
       { path: 'dashboard', element: routeElement(<DashboardPage />) },
       { path: 'sales-orders', element: routeElement(<SalesOrdersPage />) },
       { path: 'sales-orders/new', element: routeElement(<CreateSalesOrderPage />) },
@@ -85,7 +110,7 @@ const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <Navigate to="/dashboard" replace />,
+    element: <RootRedirect />,
   },
 ]);
 

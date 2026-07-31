@@ -18,7 +18,11 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom';
-import { useAuth } from '../../../features/auth';
+import {
+  ROUTE_PERMISSIONS,
+  hasPermission,
+  useAuth,
+} from '../../../features/auth';
 import styles from './AppSidebar.module.css';
 
 const menuItems = [
@@ -105,7 +109,19 @@ const menuItems = [
   },
 ];
 
-const routeItems = menuItems.flatMap((group) => group.children);
+function filterMenuItems(user: ReturnType<typeof useAuth>['user']) {
+  return menuItems
+    .map((group) => ({
+      ...group,
+      children: group.children.filter((item) => {
+        const permission = ROUTE_PERMISSIONS[item.key];
+
+        return permission ? hasPermission(user, permission) : true;
+      }),
+    }))
+    .filter((group) => group.children.length > 0);
+}
+
 
 interface AppSidebarProps {
   collapsed?: boolean;
@@ -122,10 +138,12 @@ export function AppSidebar({
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const visibleMenuItems = filterMenuItems(user);
+  const routeItems = visibleMenuItems.flatMap((group) => group.children);
   const selectedKey =
     routeItems.find((item) =>
       location.pathname.startsWith(item.key),
-    )?.key ?? '/dashboard';
+    )?.key ?? routeItems[0]?.key;
 
   return (
     <div className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
@@ -148,8 +166,8 @@ export function AppSidebar({
       <Menu
         mode="inline"
         inlineCollapsed={collapsed}
-        selectedKeys={[selectedKey]}
-        items={menuItems}
+        selectedKeys={selectedKey ? [selectedKey] : []}
+        items={visibleMenuItems}
         onClick={(event) => {
           navigate(event.key);
           onNavigate?.();

@@ -28,6 +28,7 @@ import type { Customer } from '../../../../types/customer.types';
 import styles from './CustomersTableCard.module.css';
 
 interface CustomersTableCardProps {
+  canManageCustomers: boolean;
   activeFilter: 'ALL' | 'ACTIVE' | 'INACTIVE';
   creditFilter: 'ALL' | 'NEAR_LIMIT' | 'OVER_LIMIT';
   debtFilter: 'ALL' | 'WITH_DEBT' | 'CLEAR';
@@ -50,6 +51,7 @@ interface CustomersTableCardProps {
 
 export function CustomersTableCard({
   activeFilter,
+  canManageCustomers,
   creditFilter,
   debtFilter,
   deletingCustomerId,
@@ -228,40 +230,46 @@ export function CustomersTableCard({
                       onClick={() => navigate(`/customers/${record.id}`)}
                     />
                   </Tooltip>
-                  <Tooltip title="Edit customer">
-                    <Button
-                      type="text"
-                      icon={<EditOutlined />}
-                      aria-label={`Edit ${record.name}`}
-                      onClick={() => onEditCustomer(record)}
-                    />
-                  </Tooltip>
-                  <Popconfirm
-                    title="Delete customer?"
-                    description="Customers with outstanding debt cannot be deleted."
-                    okText="Delete"
-                    okButtonProps={{ danger: true }}
-                    onConfirm={() => onDeleteCustomer(record.id)}
-                  >
-                    <Tooltip title="Delete customer">
-                      <Button
-                        danger
-                        type="text"
-                        icon={<DeleteOutlined />}
-                        loading={deletingCustomerId === record.id}
-                        aria-label={`Delete ${record.name}`}
-                      />
-                    </Tooltip>
-                  </Popconfirm>
+                  {canManageCustomers ? (
+                    <>
+                      <Tooltip title="Edit customer">
+                        <Button
+                          type="text"
+                          icon={<EditOutlined />}
+                          aria-label={`Edit ${record.name}`}
+                          onClick={() => onEditCustomer(record)}
+                        />
+                      </Tooltip>
+                      <Popconfirm
+                        title="Delete customer?"
+                        description="Customers with outstanding debt cannot be deleted."
+                        okText="Delete"
+                        okButtonProps={{ danger: true }}
+                        onConfirm={() => onDeleteCustomer(record.id)}
+                      >
+                        <Tooltip title="Delete customer">
+                          <Button
+                            danger
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            loading={deletingCustomerId === record.id}
+                            aria-label={`Delete ${record.name}`}
+                          />
+                        </Tooltip>
+                      </Popconfirm>
+                    </>
+                  ) : null}
                   <Dropdown
                     trigger={['click']}
                     menu={{
                       items: [
                         { key: 'view', icon: <EyeOutlined />, label: 'View detail' },
-                        { key: 'edit', icon: <EditOutlined />, label: 'Edit customer' },
+                        ...(canManageCustomers ? [
+                          { key: 'edit', icon: <EditOutlined />, label: 'Edit customer' },
+                        ] : []),
                       ],
                       onClick: ({ key }) => {
-                        if (key === 'edit') {
+                        if (key === 'edit' && canManageCustomers) {
                           onEditCustomer(record);
                           return;
                         }

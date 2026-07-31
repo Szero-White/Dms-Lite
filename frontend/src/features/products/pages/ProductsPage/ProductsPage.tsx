@@ -3,6 +3,7 @@ import { Button } from 'antd';
 import { useMemo, useState } from 'react';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { toNumber } from '../../../../lib/format';
+import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
 import { ProductFormDrawer } from '../../components/ProductFormDrawer';
 import {
   useCreateProduct,
@@ -16,6 +17,8 @@ import { ProductsTableCard } from './components/ProductsTableCard/ProductsTableC
 import styles from './ProductsPage.module.css';
 
 export function ProductsPage() {
+  const { user } = useAuth();
+  const canManageProducts = hasPermission(user, PERMISSIONS.PRODUCT_MANAGE);
   const productsQuery = useProducts();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
@@ -95,6 +98,10 @@ export function ProductsPage() {
   }
 
   async function handleSubmit(values: ProductFormValues) {
+    if (!canManageProducts) {
+      return;
+    }
+
     if (selectedProduct) {
       await updateProduct.mutateAsync({
         productId: selectedProduct.id,
@@ -113,7 +120,7 @@ export function ProductsPage() {
       <PageHeader
         title="Products"
         subtitle="Manage catalog, pricing and product availability."
-        extra={
+        extra={canManageProducts ? (
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -124,7 +131,7 @@ export function ProductsPage() {
           >
             New Product
           </Button>
-        }
+        ) : null}
       />
 
       <ProductsScoreboard
@@ -136,6 +143,7 @@ export function ProductsPage() {
       />
 
       <ProductsTableCard
+        canManageProducts={canManageProducts}
         filteredProducts={filteredProducts}
         hasFilters={hasFilters}
         isError={productsQuery.isError}
@@ -159,16 +167,18 @@ export function ProductsPage() {
         stockFilter={stockFilter}
       />
 
-      <ProductFormDrawer
-        open={drawerOpen}
-        product={selectedProduct}
-        onClose={() => {
-          setDrawerOpen(false);
-          setSelectedProduct(null);
-        }}
-        onSubmit={handleSubmit}
-        submitting={createProduct.isPending || updateProduct.isPending}
-      />
+      {canManageProducts ? (
+        <ProductFormDrawer
+          open={drawerOpen}
+          product={selectedProduct}
+          onClose={() => {
+            setDrawerOpen(false);
+            setSelectedProduct(null);
+          }}
+          onSubmit={handleSubmit}
+          submitting={createProduct.isPending || updateProduct.isPending}
+        />
+      ) : null}
     </div>
   );
 }

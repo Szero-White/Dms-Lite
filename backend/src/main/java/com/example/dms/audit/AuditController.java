@@ -16,7 +16,7 @@ public class AuditController {
     private final AuditQueryService auditQueryService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('REPORT_VIEW')")
+    @PreAuthorize("hasAuthority('AUDIT_VIEW')")
     public ApiResponse<Page<AuditLog>> list() {
         return ApiResponse.ok(auditQueryService.listRecent());
     }

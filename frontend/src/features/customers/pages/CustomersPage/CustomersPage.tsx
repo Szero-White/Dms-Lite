@@ -3,6 +3,7 @@ import { Button, Form, Input, Modal } from 'antd';
 import { useMemo, useState } from 'react';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { toNumber } from '../../../../lib/format';
+import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
 import {
   useCreateCustomer,
   useCustomers,
@@ -15,6 +16,8 @@ import { CustomersTableCard } from './components/CustomersTableCard/CustomersTab
 import styles from './CustomersPage.module.css';
 
 export function CustomersPage() {
+  const { user } = useAuth();
+  const canManageCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_MANAGE);
   const customersQuery = useCustomers();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
@@ -87,6 +90,10 @@ export function CustomersPage() {
   }
 
   function openCreateCustomer() {
+    if (!canManageCustomers) {
+      return;
+    }
+
     setSelectedCustomer(null);
     form.resetFields();
     form.setFieldsValue({ paymentTermDays: 14, creditLimit: 0 });
@@ -94,6 +101,10 @@ export function CustomersPage() {
   }
 
   function openEditCustomer(customer: Customer) {
+    if (!canManageCustomers) {
+      return;
+    }
+
     setSelectedCustomer(customer);
     form.setFieldsValue({
       name: customer.name,
@@ -112,6 +123,10 @@ export function CustomersPage() {
   }
 
   async function handleSubmit(values: CustomerFormValues) {
+    if (!canManageCustomers) {
+      return;
+    }
+
     if (selectedCustomer) {
       await updateCustomer.mutateAsync({
         customerId: selectedCustomer.id,
@@ -129,11 +144,11 @@ export function CustomersPage() {
       <PageHeader
         title="Customers"
         subtitle="Manage customer profiles, credit limits and receivables."
-        extra={
+        extra={canManageCustomers ? (
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreateCustomer}>
             New Customer
           </Button>
-        }
+        ) : null}
       />
 
       <CustomersPulseBar
@@ -148,6 +163,7 @@ export function CustomersPage() {
 
       <CustomersTableCard
         activeFilter={activeFilter}
+        canManageCustomers={canManageCustomers}
         creditFilter={creditFilter}
         debtFilter={debtFilter}
         deletingCustomerId={deleteCustomer.isPending ? deleteCustomer.variables : undefined}
@@ -169,37 +185,39 @@ export function CustomersPage() {
         queryError={customersQuery.error}
       />
 
-      <Modal
-        rootClassName={styles.modal}
-        open={open}
-        title={selectedCustomer ? 'Edit Customer' : 'Create Customer'}
-        confirmLoading={createCustomer.isPending || updateCustomer.isPending}
-        onCancel={closeCustomerForm}
-        onOk={() => form.submit()}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{ paymentTermDays: 14, creditLimit: 0 }}
-          onFinish={handleSubmit}
+      {canManageCustomers ? (
+        <Modal
+          rootClassName={styles.modal}
+          open={open}
+          title={selectedCustomer ? 'Edit Customer' : 'Create Customer'}
+          confirmLoading={createCustomer.isPending || updateCustomer.isPending}
+          onCancel={closeCustomerForm}
+          onOk={() => form.submit()}
         >
-          <Form.Item name="name" label="Customer Name" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="phone" label="Phone">
-            <Input />
-          </Form.Item>
-          <Form.Item name="address" label="Address">
-            <Input.TextArea rows={3} />
-          </Form.Item>
-          <Form.Item name="creditLimit" label="Credit Limit">
-            <Input type="number" />
-          </Form.Item>
-          <Form.Item name="paymentTermDays" label="Payment Term Days">
-            <Input type="number" />
-          </Form.Item>
-        </Form>
-      </Modal>
+          <Form
+            form={form}
+            layout="vertical"
+            initialValues={{ paymentTermDays: 14, creditLimit: 0 }}
+            onFinish={handleSubmit}
+          >
+            <Form.Item name="name" label="Customer Name" rules={[{ required: true }]}>
+              <Input />
+            </Form.Item>
+            <Form.Item name="phone" label="Phone">
+              <Input />
+            </Form.Item>
+            <Form.Item name="address" label="Address">
+              <Input.TextArea rows={3} />
+            </Form.Item>
+            <Form.Item name="creditLimit" label="Credit Limit">
+              <Input type="number" />
+            </Form.Item>
+            <Form.Item name="paymentTermDays" label="Payment Term Days">
+              <Input type="number" />
+            </Form.Item>
+          </Form>
+        </Modal>
+      ) : null}
     </div>
   );
 }

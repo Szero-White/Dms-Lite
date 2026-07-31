@@ -32,7 +32,7 @@ public class InventoryController {
     }
 
     @PostMapping("/receive")
-    @PreAuthorize("hasAuthority('INVENTORY_VIEW')")
+    @PreAuthorize("hasAuthority('INVENTORY_MANAGE')")
     public ApiResponse<Void> receive(
         @Valid @RequestBody StockReceiveRequest request
     ) {

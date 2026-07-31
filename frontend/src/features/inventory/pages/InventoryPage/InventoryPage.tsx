@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { useProducts } from '../../../../features/products';
+import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
 import {
   useInventoryHistory,
   useReceiveStock,
@@ -19,6 +20,8 @@ import type { StockFilter } from './inventoryPage.types';
 import styles from './InventoryPage.module.css';
 
 export function InventoryPage() {
+  const { user } = useAuth();
+  const canManageInventory = hasPermission(user, PERMISSIONS.INVENTORY_MANAGE);
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [stockFilter, setStockFilter] = useState<StockFilter>('ALL');
@@ -56,6 +59,10 @@ export function InventoryPage() {
   }
 
   function handleOpenReceiveModal() {
+    if (!canManageInventory) {
+      return;
+    }
+
     form.setFieldsValue({
       warehouseId: 1,
       quantity: 1,
@@ -71,6 +78,10 @@ export function InventoryPage() {
   }
 
   async function handleReceiveStock() {
+    if (!canManageInventory) {
+      return;
+    }
+
     const values = await form.validateFields();
 
     receiveStockMutation.mutate(values, {
@@ -85,7 +96,7 @@ export function InventoryPage() {
       <PageHeader
         title="Inventory"
         subtitle="Monitor on-hand stock, low-stock warnings, and movement history."
-        extra={
+        extra={canManageInventory ? (
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -93,7 +104,7 @@ export function InventoryPage() {
           >
             Receive Stock
           </Button>
-        }
+        ) : null}
       />
 
       <QueryState
@@ -138,19 +149,21 @@ export function InventoryPage() {
         </div>
       </QueryState>
 
-      <ReceiveStockModal
-        form={form}
-        isOpen={isReceiveModalOpen}
-        isSubmitting={receiveStockMutation.isPending}
-        onCancel={handleCloseReceiveModal}
-        onSubmit={() => {
-          void handleReceiveStock();
-        }}
-        products={products}
-        projectedStock={projectedStock}
-        receivedQuantity={receivedQuantity}
-        selectedProduct={selectedProduct}
-      />
+      {canManageInventory ? (
+        <ReceiveStockModal
+          form={form}
+          isOpen={isReceiveModalOpen}
+          isSubmitting={receiveStockMutation.isPending}
+          onCancel={handleCloseReceiveModal}
+          onSubmit={() => {
+            void handleReceiveStock();
+          }}
+          products={products}
+          projectedStock={projectedStock}
+          receivedQuantity={receivedQuantity}
+          selectedProduct={selectedProduct}
+        />
+      ) : null}
     </div>
   );
 }

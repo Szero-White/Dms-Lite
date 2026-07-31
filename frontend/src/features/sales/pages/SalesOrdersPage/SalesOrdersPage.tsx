@@ -30,6 +30,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
+import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
 import { SalesOrderStatusTag } from '../../../../components/common/StatusTag';
 import { useCustomers } from '../../../customers';
 import { useProducts } from '../../../products';
@@ -105,6 +106,10 @@ const STATUS_CONFIG = {
 } as const;
 
 export function SalesOrdersPage() {
+  const { user } = useAuth();
+  const canCreateSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE);
+  const canConfirmSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CONFIRM);
+  const canCancelSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CANCEL);
   const { modal } = App.useApp();
   const navigate = useNavigate();
   const ordersQuery = useSalesOrders();
@@ -181,6 +186,10 @@ export function SalesOrdersPage() {
   }
 
   function confirmOrder(order: SalesOrder) {
+    if (!canConfirmSalesOrder) {
+      return;
+    }
+
     modal.confirm({
       title: `Confirm ${order.code}?`,
       content: 'Confirming this order applies the existing inventory and receivable workflow.',
@@ -190,6 +199,10 @@ export function SalesOrdersPage() {
   }
 
   function cancelOrder(order: SalesOrder) {
+    if (!canCancelSalesOrder) {
+      return;
+    }
+
     modal.confirm({
       title: `Cancel ${order.code}?`,
       content: 'This action uses the existing cancellation workflow and cannot be undone here.',
@@ -206,11 +219,11 @@ export function SalesOrdersPage() {
       <PageHeader
         title="Sales Orders"
         subtitle="Track order progress, revenue and fulfillment."
-        extra={(
+        extra={canCreateSalesOrder ? (
           <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/sales-orders/new')}>
             Create Order
           </Button>
-        )}
+        ) : null}
       />
 
       {/* Sales Orders Pulse Bar */}
@@ -299,7 +312,9 @@ export function SalesOrdersPage() {
           emptyDescription={hasFilters ? 'Clear or adjust filters.' : 'Create the first sales order.'}
           emptyAction={hasFilters
             ? <Button onClick={clearFilters}>Clear filters</Button>
-            : <Button type="primary" onClick={() => navigate('/sales-orders/new')}>Create Order</Button>}
+            : canCreateSalesOrder
+              ? <Button type="primary" onClick={() => navigate('/sales-orders/new')}>Create Order</Button>
+              : null}
           onRetry={() => { ordersQuery.refetch(); customersQuery.refetch(); productsQuery.refetch(); }}
         >
           <Table

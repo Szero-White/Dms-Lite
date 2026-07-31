@@ -28,6 +28,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
+import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
 import { SummaryCard } from '../../../../components/common/SummaryCard';
 import { SalesOrderStatusTag } from '../../../../components/common/StatusTag';
 import {
@@ -45,6 +46,8 @@ import { useSalesOrders } from '../../../../features/sales';
 import styles from './CustomerDetailPage.module.css';
 
 export function CustomerDetailPage() {
+  const { user } = useAuth();
+  const canRecordPayment = hasPermission(user, PERMISSIONS.PAYMENT_CREATE);
   const { customerId } = useParams();
   const navigate = useNavigate();
   const customersQuery = useCustomers();
@@ -81,14 +84,16 @@ export function CustomerDetailPage() {
             <Button icon={<LeftOutlined />} onClick={() => navigate('/customers')}>
               Back
             </Button>
-            <Button
-              type="primary"
-              icon={<DollarOutlined />}
-              onClick={() => setPaymentOpen(true)}
-              disabled={!customer}
-            >
-              Record Payment
-            </Button>
+            {canRecordPayment ? (
+              <Button
+                type="primary"
+                icon={<DollarOutlined />}
+                onClick={() => setPaymentOpen(true)}
+                disabled={!customer}
+              >
+                Record Payment
+              </Button>
+            ) : null}
           </Space>
         }
       />
@@ -296,46 +301,48 @@ export function CustomerDetailPage() {
         ) : null}
       </QueryState>
 
-      <Modal
-        rootClassName={styles.modal}
-        title="Record Payment"
-        open={paymentOpen}
-        confirmLoading={paymentMutation.isPending}
-        onCancel={() => setPaymentOpen(false)}
-        onOk={() => form.submit()}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={async (values) => {
-            if (!customer) {
-              return;
-            }
-
-            await paymentMutation.mutateAsync({
-              customerId: customer.id,
-              amount: values.amount,
-              note: values.note,
-            });
-            form.resetFields();
-            setPaymentOpen(false);
-          }}
+      {canRecordPayment ? (
+        <Modal
+          rootClassName={styles.modal}
+          title="Record Payment"
+          open={paymentOpen}
+          confirmLoading={paymentMutation.isPending}
+          onCancel={() => setPaymentOpen(false)}
+          onOk={() => form.submit()}
         >
-          <Form.Item label="Customer">
-            <Input value={customer?.name} disabled />
-          </Form.Item>
-          <Form.Item name="amount" label="Amount" rules={[{ required: true }]}>
-            <InputNumber
-              className={styles.fullWidth}
-              min={1}
-              max={toNumber(customer?.debtBalance)}
-            />
-          </Form.Item>
-          <Form.Item name="note" label="Note">
-            <Input.TextArea rows={3} />
-          </Form.Item>
-        </Form>
-      </Modal>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={async (values) => {
+              if (!customer) {
+                return;
+              }
+
+              await paymentMutation.mutateAsync({
+                customerId: customer.id,
+                amount: values.amount,
+                note: values.note,
+              });
+              form.resetFields();
+              setPaymentOpen(false);
+            }}
+          >
+            <Form.Item label="Customer">
+              <Input value={customer?.name} disabled />
+            </Form.Item>
+            <Form.Item name="amount" label="Amount" rules={[{ required: true }]}>
+              <InputNumber
+                className={styles.fullWidth}
+                min={1}
+                max={toNumber(customer?.debtBalance)}
+              />
+            </Form.Item>
+            <Form.Item name="note" label="Note">
+              <Input.TextArea rows={3} />
+            </Form.Item>
+          </Form>
+        </Modal>
+      ) : null}
     </div>
   );
 }

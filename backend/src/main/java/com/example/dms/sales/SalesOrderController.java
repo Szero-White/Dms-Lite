@@ -21,7 +21,7 @@ public class SalesOrderController {
     private final SalesOrderService salesOrderService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('SALES_ORDER_CREATE')")
+    @PreAuthorize("hasAuthority('SALES_ORDER_VIEW')")
     public ApiResponse<Page<SalesOrderResponse>> list(
         @RequestParam(defaultValue = "0") int page
     ) {
@@ -43,7 +43,7 @@ public class SalesOrderController {
     }
 
     @PostMapping("/{id}/cancel")
-    @PreAuthorize("hasAuthority('SALES_ORDER_CONFIRM')")
+    @PreAuthorize("hasAuthority('SALES_ORDER_CANCEL')")
     public ApiResponse<SalesOrderDetailResponse> cancel(@PathVariable Long id) {
         return ApiResponse.ok(salesOrderService.cancelOrder(id));
     }
