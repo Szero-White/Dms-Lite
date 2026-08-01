@@ -10,13 +10,13 @@ import {
   WalletOutlined,
 } from '@ant-design/icons';
 import { Tag, Typography } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { SummaryCard } from '../../../../../components/common/SummaryCard/SummaryCard';
 import { formatCurrency, formatNumber } from '../../../../../lib/format';
 import type { DashboardSnapshot } from '../../../types/dashboard.types';
 import type { ProductRow } from '../../../../products';
 import type { SalesOrder } from '../../../../sales';
 import type { DashboardRange } from '../dashboardPage.types';
-import { rangeLabels } from '../dashboardPage.utils';
 import styles from './DashboardPerformanceSection.module.css';
 
 interface DashboardPerformanceSectionProps {
@@ -71,6 +71,8 @@ export function DashboardPerformanceSection({
   products,
   range,
 }: DashboardPerformanceSectionProps) {
+  const { t } = useTranslation();
+  const rangeLabel = t(`dashboard.range.${range}`);
   const totalOrders = filteredOrders.length || 1;
   const confirmedPct = Math.round((confirmedOrders.length / totalOrders) * 100);
   const healthyPct = products.length
@@ -81,43 +83,43 @@ export function DashboardPerformanceSection({
     {
       color: '#6366f1',
       icon: <DollarOutlined />,
-      label: 'Revenue Today',
+      label: t('dashboard.performance.revenueToday'),
       showGauge: false,
-      subLabel: 'vs. this month',
+      subLabel: t('dashboard.performance.vsThisMonth'),
       value: formatCurrency(dashboard.summary.revenueToday),
     },
     {
       color: '#06b6d4',
       icon: <AppstoreOutlined />,
-      label: 'Active SKUs',
+      label: t('dashboard.performance.activeSkus'),
       showGauge: false,
-      subLabel: `${lowStockProducts.length} low stock`,
+      subLabel: t('dashboard.performance.lowStockCount', { count: lowStockProducts.length }),
       value: String(formatNumber(dashboard.summary.productCount)),
     },
     {
       color: '#8b5cf6',
       icon: <InboxOutlined />,
-      label: 'Payable Debt',
+      label: t('dashboard.performance.payableDebt'),
       showGauge: false,
-      subLabel: 'supplier obligations',
+      subLabel: t('dashboard.performance.supplierObligations'),
       value: formatCurrency(dashboard.summary.payableDebt),
     },
     {
       color: '#10b981',
       icon: <TeamOutlined />,
-      label: 'Active Customers',
+      label: t('dashboard.performance.activeCustomers'),
       pct: healthyPct,
       showGauge: true,
-      subLabel: `${healthyPct}% inventory healthy`,
+      subLabel: t('dashboard.performance.inventoryHealthy', { percent: healthyPct }),
       value: String(formatNumber(activeCustomers)),
     },
     {
       color: '#f59e0b',
       icon: <ShoppingCartOutlined />,
-      label: 'Orders Need Action',
+      label: t('dashboard.performance.ordersNeedAction'),
       pct: confirmedPct,
       showGauge: true,
-      subLabel: `${confirmedPct}% confirmed`,
+      subLabel: t('dashboard.performance.confirmedPercent', { percent: confirmedPct }),
       value: String(formatNumber(filteredOrders.filter((order) => order.status === 'DRAFT').length)),
     },
   ];
@@ -126,40 +128,40 @@ export function DashboardPerformanceSection({
     <section className={styles.section}>
       <div className={styles.sectionHeading}>
         <div>
-          <Typography.Title level={3}>Key performance</Typography.Title>
+          <Typography.Title level={3}>{t('dashboard.performance.title')}</Typography.Title>
           <Typography.Text type="secondary">
-            Core operating metrics for the current business cycle
+            {t('dashboard.performance.subtitle')}
           </Typography.Text>
         </div>
-        <Tag icon={<CalendarOutlined />}>{rangeLabels[range]}</Tag>
+        <Tag icon={<CalendarOutlined />}>{rangeLabel}</Tag>
       </div>
 
       <div className={styles.primaryMetrics}>
         <SummaryCard
-          title="Revenue This Month"
+          title={t('dashboard.performance.revenueThisMonth')}
           value={formatCurrency(dashboard.summary.revenueThisMonth)}
-          note="Month-to-date recognized revenue"
+          note={t('dashboard.performance.revenueThisMonthNote')}
           icon={<DollarOutlined />}
           variant="blue"
         />
         <SummaryCard
-          title="Total Receivables"
+          title={t('dashboard.performance.totalReceivables')}
           value={formatCurrency(dashboard.summary.totalReceivable)}
-          note="Outstanding customer receivables"
+          note={t('dashboard.performance.totalReceivablesNote')}
           icon={<WalletOutlined />}
           variant="orange"
         />
         <SummaryCard
-          title="Confirmed / Completed"
+          title={t('dashboard.performance.confirmedCompleted')}
           value={formatNumber(confirmedOrders.length)}
-          note={`Orders in selected ${rangeLabels[range].toLowerCase()} range`}
+          note={t('dashboard.performance.ordersInRange', { range: rangeLabel.toLowerCase() })}
           icon={<ShoppingCartOutlined />}
           variant="green"
         />
         <SummaryCard
-          title="Low-stock Products"
+          title={t('dashboard.performance.lowStockProducts')}
           value={formatNumber(lowStockProducts.length)}
-          note="Products requiring replenishment"
+          note={t('dashboard.performance.lowStockProductsNote')}
           icon={<WarningOutlined />}
           variant="red"
         />

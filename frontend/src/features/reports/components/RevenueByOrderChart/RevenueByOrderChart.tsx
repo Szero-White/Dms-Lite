@@ -3,6 +3,7 @@ import {
   Card,
   Empty,
 } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { toNumber } from '../../../../lib/format';
 import type { SalesOrder } from '../../../sales';
 import styles from './RevenueByOrderChart.module.css';
@@ -14,6 +15,7 @@ interface RevenueByOrderChartProps {
 export function RevenueByOrderChart({
   orders,
 }: RevenueByOrderChartProps) {
+  const { t } = useTranslation();
   const chartData = orders
     .filter((order) => order.status !== 'CANCELLED')
     .map((order) => ({
@@ -25,7 +27,7 @@ export function RevenueByOrderChart({
 
   return (
     <Card
-      title="Revenue by Sales Order"
+      title={t('charts.revenueByOrder.title')}
       className={`panel-card ${styles.card}`}
     >
       {chartData.length ? (
@@ -41,7 +43,7 @@ export function RevenueByOrderChart({
               labelAutoRotate: false,
             },
             y: {
-              title: 'Revenue',
+              title: t('reports.metric.revenue'),
               labelFormatter: (value: number) =>
                 new Intl.NumberFormat('vi-VN', {
                   notation: 'compact',
@@ -54,7 +56,7 @@ export function RevenueByOrderChart({
             items: [
               {
                 field: 'revenue',
-                name: 'Revenue',
+                name: t('reports.metric.revenue'),
                 valueFormatter: (value: number) =>
                   new Intl.NumberFormat('vi-VN', {
                     style: 'currency',
@@ -73,7 +75,7 @@ export function RevenueByOrderChart({
         <div className={styles.empty}>
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="No sales data"
+            description={t('charts.empty.noSalesData')}
           />
         </div>
       )}

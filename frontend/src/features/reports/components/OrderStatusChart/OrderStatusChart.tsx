@@ -3,6 +3,7 @@ import {
   Card,
   Empty,
 } from 'antd';
+import { useTranslation } from 'react-i18next';
 import type { SalesOrder } from '../../../sales';
 import styles from './OrderStatusChart.module.css';
 
@@ -13,6 +14,7 @@ interface OrderStatusChartProps {
 export function OrderStatusChart({
   orders,
 }: OrderStatusChartProps) {
+  const { t } = useTranslation();
   const statusMap = orders.reduce<Record<string, number>>(
     (result, order) => {
       result[order.status] = (result[order.status] ?? 0) + 1;
@@ -30,7 +32,7 @@ export function OrderStatusChart({
 
   return (
     <Card
-      title="Sales Order Status"
+      title={t('charts.salesOrderStatus.title')}
       className={`panel-card ${styles.card}`}
     >
       {chartData.length ? (
@@ -95,7 +97,7 @@ export function OrderStatusChart({
         <div className={styles.empty}>
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="No sales orders"
+            description={t('charts.empty.noSalesOrders')}
           />
         </div>
       )}

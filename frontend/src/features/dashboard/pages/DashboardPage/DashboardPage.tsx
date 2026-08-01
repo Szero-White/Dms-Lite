@@ -1,5 +1,6 @@
 import { Typography } from 'antd';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
@@ -19,6 +20,7 @@ import type { DashboardRange } from './dashboardPage.types';
 import styles from './DashboardPage.module.css';
 
 export function DashboardPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const canViewCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_VIEW);
@@ -102,8 +104,8 @@ export function DashboardPage() {
   return (
     <div className={styles.dashboardPage}>
       <PageHeader
-        title="Business Overview"
-        subtitle="Monitor sales, inventory health and receivables from one operational workspace."
+        title={t('dashboard.title')}
+        subtitle={t('dashboard.subtitle')}
         extra={
           <DashboardHeaderActions
             canExport={filteredOrders.length > 0}
@@ -151,9 +153,9 @@ export function DashboardPage() {
             <section className={styles.section}>
               <div className={styles.sectionHeading}>
                 <div>
-                  <Typography.Title level={3}>Sales analytics</Typography.Title>
+                  <Typography.Title level={3}>{t('dashboard.salesAnalytics.title')}</Typography.Title>
                   <Typography.Text type="secondary">
-                    Revenue and order mix for the selected range
+                    {t('dashboard.salesAnalytics.subtitle')}
                   </Typography.Text>
                 </div>
               </div>

@@ -21,6 +21,7 @@ import {
   Typography,
 } from 'antd';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import {
@@ -82,6 +83,7 @@ function StatStrip({ items }: {
 }
 
 export function ReportsPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canViewCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_VIEW);
   const canViewOrders = hasPermission(user, PERMISSIONS.SALES_ORDER_VIEW);
@@ -135,20 +137,20 @@ export function ReportsPage() {
   function exportActiveReport() {
     if (activeTab === 'sales') {
       downloadCsv('dms-sales-report.csv', [
-        ['Order', 'Created At', 'Status', 'Total', 'Paid', 'Debt'],
-        ...filteredOrders.map((o) => [o.code, o.createdAt, o.status, toNumber(o.totalAmount), toNumber(o.paidAmount), toNumber(o.debtAmount)]),
+        [t('reports.table.order'), t('reports.table.createdAt'), t('reports.table.status'), t('reports.table.total'), t('reports.table.paid'), t('reports.table.debt')],
+        ...filteredOrders.map((o) => [o.code, o.createdAt, t(`status.sales.${o.status}`), toNumber(o.totalAmount), toNumber(o.paidAmount), toNumber(o.debtAmount)]),
       ]);
       return;
     }
     if (activeTab === 'inventory') {
       downloadCsv('dms-inventory-report.csv', [
-        ['SKU', 'Product', 'On Hand', 'Minimum', 'Cost Price', 'Status'],
-        ...products.map((p) => [p.sku, p.name, p.stock, p.minStock, toNumber(p.costPrice), p.isLowStock ? 'LOW STOCK' : 'HEALTHY']),
+        [t('reports.table.sku'), t('reports.table.product'), t('reports.table.onHand'), t('reports.table.minimum'), t('reports.table.costPrice'), t('reports.table.status')],
+        ...products.map((p) => [p.sku, p.name, p.stock, p.minStock, toNumber(p.costPrice), p.isLowStock ? t('status.product.lowStock') : t('inventory.status.healthy')]),
       ]);
       return;
     }
     downloadCsv('dms-receivables-report.csv', [
-      ['Customer', 'Phone', 'Debt Balance', 'Credit Limit', 'Payment Term Days'],
+      [t('reports.table.customer'), t('reports.table.phone'), t('reports.table.debtBalance'), t('reports.table.creditLimit'), t('reports.table.paymentTermDays')],
       ...customers.map((c) => [c.name, c.phone ?? '', toNumber(c.debtBalance), toNumber(c.creditLimit), c.paymentTermDays]),
     ]);
   }
@@ -156,8 +158,8 @@ export function ReportsPage() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title="Reports"
-        subtitle="Analyze sales, inventory and receivable performance."
+        title={t('reports.title')}
+        subtitle={t('reports.subtitle')}
         extra={(
           <Space>
             <DatePicker.RangePicker
@@ -167,8 +169,8 @@ export function ReportsPage() {
                 setDateRange([vals[0].startOf('day').valueOf(), vals[1].endOf('day').valueOf()]);
               }}
             />
-            <Button icon={<ReloadOutlined />} onClick={refreshReports}>Refresh</Button>
-            <Button type="primary" icon={<DownloadOutlined />} onClick={exportActiveReport}>Export CSV</Button>
+            <Button icon={<ReloadOutlined />} onClick={refreshReports}>{t('reports.action.refresh')}</Button>
+            <Button type="primary" icon={<DownloadOutlined />} onClick={exportActiveReport}>{t('reports.action.exportCsv')}</Button>
           </Space>
         )}
       />
@@ -178,8 +180,8 @@ export function ReportsPage() {
         isError={dashboardQuery.isError || (canViewCustomers && customersQuery.isError) || (canViewInventoryProducts && productsQuery.isError) || (canViewOrders && ordersQuery.isError)}
         error={dashboardQuery.error || (canViewCustomers && customersQuery.error) || (canViewInventoryProducts && productsQuery.error) || (canViewOrders && ordersQuery.error)}
         hasData={Boolean(dashboardQuery.data)}
-        emptyTitle="No report data available"
-        emptyDescription="Operational reports will appear after business data is available."
+        emptyTitle={t('reports.title')}
+        emptyDescription={t('reports.empty.description')}
         onRetry={refreshReports}
       >
         {dashboardQuery.data ? (
@@ -189,22 +191,22 @@ export function ReportsPage() {
               activeKey={activeTab}
               onChange={(key) => setActiveTab(key as ReportTab)}
               items={[
-                /* ──────── SALES TAB ──────── */
+                /* Sales tab */
                 {
                   key: 'sales',
                   label: (
                     <span className={styles.tabLabel}>
-                      <ShoppingCartOutlined /> Sales
+                      <ShoppingCartOutlined /> {t('reports.tabs.sales')}
                     </span>
                   ),
                   children: (
                     <div className={styles.tabContent}>
                       {/* Stat strip replaces 4 boring cards */}
                       <StatStrip items={[
-                        { icon: <DollarOutlined />, label: 'Revenue', value: formatCurrency(salesRevenue), color: '#6366f1' },
-                        { icon: <ShoppingCartOutlined />, label: 'Orders', value: filteredOrders.length, color: '#3b82f6' },
-                        { icon: <BarChartOutlined />, label: 'Avg. Order', value: formatCurrency(averageOrderValue), color: '#8b5cf6' },
-                        { icon: <CheckCircleOutlined />, label: 'Completed', value: completedCount, color: '#10b981' },
+                        { icon: <DollarOutlined />, label: t('reports.metric.revenue'), value: formatCurrency(salesRevenue), color: '#6366f1' },
+                        { icon: <ShoppingCartOutlined />, label: t('reports.metric.orders'), value: filteredOrders.length, color: '#3b82f6' },
+                        { icon: <BarChartOutlined />, label: t('reports.metric.avgOrder'), value: formatCurrency(averageOrderValue), color: '#8b5cf6' },
+                        { icon: <CheckCircleOutlined />, label: t('reports.metric.completed'), value: completedCount, color: '#10b981' },
                       ]} />
 
                       <div className={styles.chartGrid}>
@@ -212,78 +214,78 @@ export function ReportsPage() {
                         <OrderStatusChart orders={filteredOrders} />
                       </div>
 
-                      <Card title="Top Sales Orders" className="panel-card">
+                      <Card title={t('reports.title')} className="panel-card">
                         <Table rowKey="id" size="small" sticky scroll={{ x: 760 }}
                           dataSource={[...filteredOrders].sort((a, b) => toNumber(b.totalAmount) - toNumber(a.totalAmount)).slice(0, 10)}
-                          locale={{ emptyText: 'No sales orders in this period' }}
+                          locale={{ emptyText: t('reports.empty.noSalesOrders') }}
                           columns={[
-                            { title: 'Order', dataIndex: 'code' },
-                            { title: 'Created', dataIndex: 'createdAt', render: formatDateTime },
-                            { title: 'Status', dataIndex: 'status', render: (v) => <SalesOrderStatusTag status={v} /> },
-                            { title: 'Revenue', dataIndex: 'totalAmount', align: 'right', render: formatCurrency },
-                            { title: 'Debt', dataIndex: 'debtAmount', align: 'right', render: formatCurrency },
+                            { title: t('reports.table.order'), dataIndex: 'code' },
+                            { title: t('reports.table.created'), dataIndex: 'createdAt', render: formatDateTime },
+                            { title: t('reports.table.status'), dataIndex: 'status', render: (v) => <SalesOrderStatusTag status={v} /> },
+                            { title: t('reports.table.revenue'), dataIndex: 'totalAmount', align: 'right', render: formatCurrency },
+                            { title: t('reports.table.debt'), dataIndex: 'debtAmount', align: 'right', render: formatCurrency },
                           ]}
                         />
                       </Card>
                     </div>
                   ),
                 },
-                /* ──────── INVENTORY TAB ──────── */
+                /* Inventory tab */
                 {
                   key: 'inventory',
                   label: (
                     <span className={styles.tabLabel}>
-                      <InboxOutlined /> Inventory
+                      <InboxOutlined /> {t('reports.tabs.inventory')}
                     </span>
                   ),
                   children: (
                     <div className={styles.tabContent}>
                       <StatStrip items={[
-                        { icon: <InboxOutlined />, label: 'Tracked SKUs', value: products.length, color: '#6366f1' },
-                        { icon: <BarChartOutlined />, label: 'Total Units', value: totalUnits.toLocaleString('vi-VN'), color: '#3b82f6' },
-                        { icon: <DollarOutlined />, label: 'Inventory Value', value: formatCurrency(inventoryValue), color: '#8b5cf6' },
-                        { icon: <WarningOutlined />, label: 'Low Stock', value: lowStockCount, color: lowStockCount > 0 ? '#f59e0b' : '#10b981' },
+                        { icon: <InboxOutlined />, label: t('reports.metric.trackedSkus'), value: products.length, color: '#6366f1' },
+                        { icon: <BarChartOutlined />, label: t('reports.metric.totalUnits'), value: totalUnits.toLocaleString('vi-VN'), color: '#3b82f6' },
+                        { icon: <DollarOutlined />, label: t('reports.metric.inventoryValue'), value: formatCurrency(inventoryValue), color: '#8b5cf6' },
+                        { icon: <WarningOutlined />, label: t('reports.metric.lowStock'), value: lowStockCount, color: lowStockCount > 0 ? '#f59e0b' : '#10b981' },
                       ]} />
 
                       <InventoryStockChart products={products} />
 
-                      <Card title="Inventory Exposure" className="panel-card">
+                      <Card title={t('reports.title')} className="panel-card">
                         <Table rowKey="id" size="small" sticky scroll={{ x: 820 }}
                           dataSource={products}
-                          locale={{ emptyText: 'No inventory data yet' }}
+                          locale={{ emptyText: t('reports.empty.noInventory') }}
                           columns={[
-                            { title: 'SKU', dataIndex: 'sku' },
-                            { title: 'Product', dataIndex: 'name' },
-                            { title: 'On Hand', dataIndex: 'stock', align: 'right' },
-                            { title: 'Minimum', dataIndex: 'minStock', align: 'right' },
-                            { title: 'Cost Value', align: 'right', render: (_, r) => formatCurrency(toNumber(r.costPrice) * toNumber(r.stock)) },
-                            { title: 'Status', render: (_, r) => <ProductStatusTag active={r.active} isLowStock={r.isLowStock} /> },
+                            { title: t('reports.table.sku'), dataIndex: 'sku' },
+                            { title: t('reports.table.product'), dataIndex: 'name' },
+                            { title: t('reports.table.onHand'), dataIndex: 'stock', align: 'right' },
+                            { title: t('reports.table.minimum'), dataIndex: 'minStock', align: 'right' },
+                            { title: t('reports.table.costValue'), align: 'right', render: (_, r) => formatCurrency(toNumber(r.costPrice) * toNumber(r.stock)) },
+                            { title: t('reports.table.status'), render: (_, r) => <ProductStatusTag active={r.active} isLowStock={r.isLowStock} /> },
                           ]}
                         />
                       </Card>
                     </div>
                   ),
                 },
-                /* ──────── RECEIVABLES TAB ──────── */
+                /* Receivables tab */
                 {
                   key: 'receivables',
                   label: (
                     <span className={styles.tabLabel}>
-                      <TeamOutlined /> Receivables
+                      <TeamOutlined /> {t('reports.tabs.receivables')}
                     </span>
                   ),
                   children: (
                     <div className={styles.tabContent}>
                       <StatStrip items={[
-                        { icon: <DollarOutlined />, label: 'Receivables', value: formatCurrency(totalReceivables), color: '#ef4444' },
-                        { icon: <TeamOutlined />, label: 'Debtor Accounts', value: debtorCount, color: '#f97316' },
-                        { icon: <BarChartOutlined />, label: 'Credit Exposure', value: formatCurrency(creditExposure), color: '#6366f1' },
-                        { icon: <WarningOutlined />, label: 'High Risk', value: highRiskCustomers.length, color: highRiskCustomers.length > 0 ? '#ef4444' : '#10b981' },
+                        { icon: <DollarOutlined />, label: t('reports.metric.receivables'), value: formatCurrency(totalReceivables), color: '#ef4444' },
+                        { icon: <TeamOutlined />, label: t('reports.metric.debtorAccounts'), value: debtorCount, color: '#f97316' },
+                        { icon: <BarChartOutlined />, label: t('reports.metric.creditExposure'), value: formatCurrency(creditExposure), color: '#6366f1' },
+                        { icon: <WarningOutlined />, label: t('reports.metric.highRisk'), value: highRiskCustomers.length, color: highRiskCustomers.length > 0 ? '#ef4444' : '#10b981' },
                       ]} />
 
                       {/* Horizontal debt bars for top customers */}
                       {debtorCount > 0 && (
-                        <Card title="Receivable by Customer" className="panel-card">
+                        <Card title={t('reports.title')} className="panel-card">
                           <div className={styles.debtBarList}>
                             {[...customers]
                               .filter((c) => toNumber(c.debtBalance) > 0)
@@ -302,10 +304,10 @@ export function ReportsPage() {
                                     <div className={styles.debtBarMeta}>
                                       <span className={styles.debtBarRank}>{i + 1}</span>
                                       <span className={styles.debtBarName}>{c.name}</span>
-                                      <span className={styles.debtBarTerm}>{c.paymentTermDays}d term</span>
+                                      <span className={styles.debtBarTerm}>{t('reports.table.termShort', { count: c.paymentTermDays })}</span>
                                       {limitPct >= 80 && (
                                         <Tag color={limitPct >= 100 ? 'error' : 'warning'} style={{ margin: 0 }}>
-                                          {limitPct}% of limit
+                                          {t('reports.table.ofLimit', { percent: limitPct })}
                                         </Tag>
                                       )}
                                       <span className={styles.debtBarAmt}>{formatCurrency(c.debtBalance)}</span>
@@ -330,17 +332,17 @@ export function ReportsPage() {
                         </Card>
                       )}
 
-                      <Card title="Full Receivable Table" className="panel-card">
+                      <Card title={t('reports.title')} className="panel-card">
                         <Table rowKey="id" size="small" sticky scroll={{ x: 900 }}
                           dataSource={[...customers].sort((a, b) => toNumber(b.debtBalance) - toNumber(a.debtBalance))}
-                          locale={{ emptyText: 'No receivable data yet' }}
+                          locale={{ emptyText: t('reports.empty.noReceivables') }}
                           columns={[
-                            { title: 'Customer', dataIndex: 'name' },
-                            { title: 'Term', dataIndex: 'paymentTermDays', render: (v) => `${v} days` },
-                            { title: 'Debt', dataIndex: 'debtBalance', align: 'right', render: formatCurrency },
-                            { title: 'Credit Limit', dataIndex: 'creditLimit', align: 'right', render: formatCurrency },
+                            { title: t('reports.table.customer'), dataIndex: 'name' },
+                            { title: t('reports.table.term'), dataIndex: 'paymentTermDays', render: (v) => t('reports.table.days', { count: v }) },
+                            { title: t('reports.table.debt'), dataIndex: 'debtBalance', align: 'right', render: formatCurrency },
+                            { title: t('reports.table.creditLimit'), dataIndex: 'creditLimit', align: 'right', render: formatCurrency },
                             {
-                              title: 'Utilization', width: 220,
+                              title: t('reports.table.utilization'), width: 220,
                               render: (_, r) => {
                                 const lim = toNumber(r.creditLimit);
                                 const pct = lim > 0 ? Math.round((toNumber(r.debtBalance) / lim) * 100) : 0;
@@ -349,7 +351,7 @@ export function ReportsPage() {
                                     <Progress percent={Math.min(pct, 100)} showInfo={false} size="small"
                                       status={pct >= 100 ? 'exception' : pct >= 80 ? 'normal' : 'success'} />
                                     <Tag color={pct >= 100 ? 'error' : pct >= 80 ? 'warning' : 'success'}>
-                                      {lim > 0 ? `${pct}%` : 'No limit'}
+                                      {lim > 0 ? `${pct}%` : t('reports.table.noLimit')}
                                     </Tag>
                                   </div>
                                 );

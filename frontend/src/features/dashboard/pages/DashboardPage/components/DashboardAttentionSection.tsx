@@ -1,4 +1,5 @@
 import { Button, Card, List, Progress, Tag, Typography } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { SalesOrderStatusTag } from '../../../../../components/common/StatusTag';
 import { formatCurrency, formatDateTime } from '../../../../../lib/format';
 import type { ProductRow } from '../../../../products';
@@ -30,29 +31,31 @@ export function DashboardAttentionSection({
   products,
   recentOrders,
 }: DashboardAttentionSectionProps) {
+  const { t } = useTranslation();
+
   return (
     <section className={styles.section}>
       <div className={styles.sectionHeading}>
         <div>
-          <Typography.Title level={3}>Needs attention</Typography.Title>
+          <Typography.Title level={3}>{t('dashboard.attention.title')}</Typography.Title>
           <Typography.Text type="secondary">
-            Operational queues that can be acted on now
+            {t('dashboard.attention.subtitle')}
           </Typography.Text>
         </div>
       </div>
       <div className={styles.actionGrid}>
-        <Card title="Inventory Health" className={`panel-card ${styles.actionCard}`}>
+        <Card title={t('dashboard.attention.inventoryHealth')} className={`panel-card ${styles.actionCard}`}>
           <div className={styles.healthSummary}>
             <div>
-              <span>Healthy</span>
+              <span>{t('dashboard.attention.healthy')}</span>
               <strong>{healthyProducts.length}</strong>
             </div>
             <div>
-              <span>Low stock</span>
+              <span>{t('dashboard.attention.lowStock')}</span>
               <strong>{lowStockProducts.length}</strong>
             </div>
             <div>
-              <span>Out of stock</span>
+              <span>{t('dashboard.attention.outOfStock')}</span>
               <strong>{outOfStockProducts.length}</strong>
             </div>
           </div>
@@ -67,7 +70,7 @@ export function DashboardAttentionSection({
           />
           <List
             dataSource={lowStockProducts.slice(0, 3)}
-            locale={{ emptyText: 'All tracked products are above minimum stock.' }}
+            locale={{ emptyText: t('dashboard.attention.allAboveMinimum') }}
             renderItem={(product) => (
               <List.Item>
                 <div className={styles.compactRow}>
@@ -75,27 +78,27 @@ export function DashboardAttentionSection({
                     <strong>{product.name}</strong>
                     <span>{product.sku}</span>
                   </div>
-                  <Tag color="orange">{product.stock} on hand</Tag>
+                  <Tag color="orange">{t('dashboard.attention.onHand', { count: product.stock })}</Tag>
                 </div>
               </List.Item>
             )}
           />
           <Button type="link" onClick={onOpenInventory}>
-            Open inventory
+            {t('dashboard.attention.openInventory')}
           </Button>
         </Card>
 
-        <Card title="Orders Requiring Attention" className={`panel-card ${styles.actionCard}`}>
+        <Card title={t('dashboard.attention.ordersRequiringAttention')} className={`panel-card ${styles.actionCard}`}>
           <List
             dataSource={attentionOrders.slice(0, 4)}
-            locale={{ emptyText: 'No draft orders in the selected range.' }}
+            locale={{ emptyText: t('dashboard.attention.noDraftOrders') }}
             renderItem={(order) => (
               <List.Item>
                 <div className={styles.compactRow}>
                   <div>
                     <strong>{order.code}</strong>
                     <span>
-                      {customersMap.get(order.customerId) || `Customer #${order.customerId}`}
+                      {customersMap.get(order.customerId) || t('dashboard.attention.customerFallback', { id: order.customerId })}
                     </span>
                   </div>
                   <Typography.Text strong>{formatCurrency(order.totalAmount)}</Typography.Text>
@@ -104,14 +107,14 @@ export function DashboardAttentionSection({
             )}
           />
           <Button type="link" onClick={onReviewOrders}>
-            Review orders
+            {t('dashboard.attention.reviewOrders')}
           </Button>
         </Card>
 
-        <Card title="Recent Business Activity" className={`panel-card ${styles.actionCard}`}>
+        <Card title={t('dashboard.attention.recentActivity')} className={`panel-card ${styles.actionCard}`}>
           <List
             dataSource={recentOrders}
-            locale={{ emptyText: 'No recent order activity.' }}
+            locale={{ emptyText: t('dashboard.attention.noRecentActivity') }}
             renderItem={(order) => (
               <List.Item>
                 <div className={styles.compactRow}>
@@ -125,7 +128,7 @@ export function DashboardAttentionSection({
             )}
           />
           <Button type="link" onClick={onViewActivity}>
-            View activity
+            {t('dashboard.attention.viewActivity')}
           </Button>
         </Card>
       </div>

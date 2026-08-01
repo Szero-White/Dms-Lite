@@ -3,6 +3,7 @@ import {
   Card,
   Empty,
 } from 'antd';
+import { useTranslation } from 'react-i18next';
 import type { ProductRow } from '../../../products';
 import styles from './InventoryStockChart.module.css';
 
@@ -13,6 +14,7 @@ interface InventoryStockChartProps {
 export function InventoryStockChart({
   products,
 }: InventoryStockChartProps) {
+  const { t } = useTranslation();
   const chartData = [...products]
     .sort((a, b) => b.stock - a.stock)
     .slice(0, 10)
@@ -24,7 +26,7 @@ export function InventoryStockChart({
 
   return (
     <Card
-      title="Inventory Stock Level"
+      title={t('charts.inventoryStock.title')}
       className={`panel-card ${styles.card}`}
     >
       {chartData.length ? (
@@ -68,7 +70,7 @@ export function InventoryStockChart({
         <div className={styles.empty}>
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="No inventory data"
+            description={t('charts.empty.noInventory')}
           />
         </div>
       )}

@@ -3,6 +3,7 @@ import {
   Card,
   Empty,
 } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { toNumber } from '../../../../lib/format';
 import type { SalesOrder } from '../../../sales';
 import styles from './DashboardRevenueChart.module.css';
@@ -22,6 +23,7 @@ export function DashboardRevenueChart({
   orders,
   rangeDays = 7,
 }: DashboardRevenueChartProps) {
+  const { t } = useTranslation();
   const today = new Date();
 
   const chartData: RevenueChartItem[] = Array.from(
@@ -77,7 +79,7 @@ export function DashboardRevenueChart({
 
   return (
     <Card
-      title="Revenue Trend"
+      title={t('charts.revenueTrend.title')}
       className={`panel-card ${styles.card}`}
     >
       {hasRevenue ? (
@@ -126,7 +128,7 @@ export function DashboardRevenueChart({
               },
             },
             y: {
-              title: 'Revenue',
+              title: t('reports.metric.revenue'),
               labelFormatter: (value: number) =>
                 new Intl.NumberFormat('vi-VN', {
                   notation: 'compact',
@@ -152,7 +154,7 @@ export function DashboardRevenueChart({
             items: [
               {
                 field: 'revenue',
-                name: 'Revenue',
+                name: t('reports.metric.revenue'),
                 valueFormatter: (value: number) =>
                   new Intl.NumberFormat('vi-VN', {
                     style: 'currency',

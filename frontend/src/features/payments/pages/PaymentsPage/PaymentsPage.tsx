@@ -17,6 +17,7 @@ import {
   Typography,
 } from 'antd';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { CustomerDebtTag } from '../../../../components/common/StatusTag';
@@ -28,6 +29,7 @@ import styles from './PaymentsPage.module.css';
 import heroStyles from './PaymentsHero.module.css';
 
 export function PaymentsPage() {
+  const { t } = useTranslation();
   const customersQuery = useCustomers();
   const paymentMutation = useRecordCustomerPayment();
   const [form] = Form.useForm<RecordPaymentPayload>();
@@ -80,11 +82,11 @@ export function PaymentsPage() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title="Payments"
-        subtitle="Record customer payments and immediately reflect lower outstanding debt."
+        title={t('payments.title')}
+        subtitle={t('payments.subtitle')}
         extra={(
           <Button type="primary" icon={<PlusOutlined />} onClick={() => openPaymentDrawer()}>
-            Record Payment
+            {t('payments.record')}
           </Button>
         )}
       />
@@ -94,8 +96,8 @@ export function PaymentsPage() {
         isError={customersQuery.isError}
         error={customersQuery.error}
         hasData={Boolean(customers.length)}
-        emptyTitle="No customer accounts yet"
-        emptyDescription="Create customer profiles before recording receivable payments."
+        emptyTitle={t('payments.title')}
+        emptyDescription={t('payments.empty.description')}
         onRetry={() => customersQuery.refetch()}
       >
         <div className={styles.contentStack}>
@@ -124,33 +126,33 @@ export function PaymentsPage() {
                     </svg>
                     <div className={heroStyles.ringCenter}>
                       <span className={heroStyles.ringPct}>{Math.round(debtorRatio * 100)}%</span>
-                      <span className={heroStyles.ringLabel}>have debt</span>
+                      <span className={heroStyles.ringLabel}>{t('payments.hero.haveDebt')}</span>
                     </div>
                   </div>
 
                   <div className={heroStyles.heroMain}>
-                    <div className={heroStyles.heroEyebrow}>Total Receivables</div>
+                    <div className={heroStyles.heroEyebrow}>{t('payments.hero.totalReceivables')}</div>
                     <div className={heroStyles.heroAmount}>{formatCurrency(totalReceivables)}</div>
                     <div className={heroStyles.heroMiniStats}>
                       <div className={heroStyles.miniStat}>
                         <span className={`${heroStyles.miniDot} ${heroStyles.red}`}/>
                         <div>
                           <strong>{debtors.length}</strong>
-                          <span>Debtors</span>
+                          <span>{t('payments.hero.debtors')}</span>
                         </div>
                       </div>
                       <div className={heroStyles.miniStat}>
                         <span className={`${heroStyles.miniDot} ${heroStyles.green}`}/>
                         <div>
                           <strong>{formatCurrency(availableCredit)}</strong>
-                          <span>Available credit</span>
+                          <span>{t('payments.hero.availableCredit')}</span>
                         </div>
                       </div>
                       <div className={heroStyles.miniStat}>
                         <span className={`${heroStyles.miniDot} ${heroStyles.blue}`}/>
                         <div>
                           <strong>{customers.filter((c) => c.active).length}</strong>
-                          <span>Active accounts</span>
+                          <span>{t('payments.hero.activeAccounts')}</span>
                         </div>
                       </div>
                     </div>
@@ -163,8 +165,8 @@ export function PaymentsPage() {
             <div className={heroStyles.heroRight}>
               <div className={heroStyles.topDebtorsCard}>
                 <div className={heroStyles.topDebtorsHeader}>
-                  <span>Top Debtors</span>
-                  <span className={heroStyles.topDebtorsCount}>{debtors.length} accounts</span>
+                  <span>{t('payments.hero.topDebtors')}</span>
+                  <span className={heroStyles.topDebtorsCount}>{t('payments.hero.accounts', { count: debtors.length })}</span>
                 </div>
                 <div className={heroStyles.barList}>
                   {topDebtors.map((d, i) => {
@@ -200,29 +202,29 @@ export function PaymentsPage() {
             </div>
           </div>
 
-          <Card className={`panel-card ${styles.watchlistCard}`} title="Receivable Watchlist">
+          <Card className={`panel-card ${styles.watchlistCard}`} title={t('payments.title')}>
             <div className={styles.toolbar}>
               <Input
                 allowClear
                 className={styles.search}
                 prefix={<SearchOutlined />}
-                placeholder="Search customer, phone, address"
+                placeholder={t('payments.searchPlaceholder')}
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
               />
               <Typography.Text type="secondary">
-                {debtors.length} account{debtors.length === 1 ? '' : 's'} requiring collection
+                {t('payments.collectionCount', { count: debtors.length })}
               </Typography.Text>
             </div>
             <Table
               rowKey="id"
               sticky
               scroll={{ x: 960 }}
-              locale={{ emptyText: keyword ? 'No debtor accounts match this search' : 'No outstanding receivables' }}
+              locale={{ emptyText: keyword ? t('payments.noDebtorsFiltered') : t('payments.noReceivables') }}
               dataSource={debtors}
               columns={[
                 {
-                  title: 'Customer',
+                  title: t('customers.column.customer'),
                   fixed: 'left',
                   width: 240,
                   render: (_, record) => (
@@ -236,7 +238,7 @@ export function PaymentsPage() {
                   ),
                 },
                 {
-                  title: 'Credit Usage',
+                  title: t('customers.column.creditUsage'),
                   width: 220,
                   render: (_, record) => {
                     const debt = toNumber(record.debtBalance);
@@ -246,7 +248,7 @@ export function PaymentsPage() {
                     return (
                       <div className={styles.creditUsage}>
                         <div>
-                          <span>{limit > 0 ? `${percent}%` : 'No limit'}</span>
+                          <span>{limit > 0 ? `${percent}%` : t('payments.noLimit')}</span>
                           <span>{formatCurrency(limit)}</span>
                         </div>
                         <Progress
@@ -260,7 +262,7 @@ export function PaymentsPage() {
                   },
                 },
                 {
-                  title: 'Debt Balance',
+                  title: t('customers.column.debtBalance'),
                   dataIndex: 'debtBalance',
                   align: 'right',
                   width: 170,
@@ -271,7 +273,7 @@ export function PaymentsPage() {
                   ),
                 },
                 {
-                  title: 'Status',
+                  title: t('common.status'),
                   width: 120,
                   render: (_, record) => <CustomerDebtTag amount={toNumber(record.debtBalance)} />,
                 },
@@ -280,7 +282,7 @@ export function PaymentsPage() {
                   fixed: 'right',
                   width: 140,
                   render: (_, record) => (
-                    <Button onClick={() => openPaymentDrawer(record.id)}>Record payment</Button>
+                    <Button onClick={() => openPaymentDrawer(record.id)}>{t('payments.recordPayment')}</Button>
                   ),
                 },
               ]}
@@ -292,19 +294,19 @@ export function PaymentsPage() {
       <Drawer
         className={styles.paymentDrawer}
         width={460}
-        title="Record Payment"
+        title={t('payments.title')}
         open={drawerOpen}
         onClose={closePaymentDrawer}
         destroyOnClose
         footer={(
           <Space className={styles.drawerFooter}>
-            <Button onClick={closePaymentDrawer}>Cancel</Button>
+            <Button onClick={closePaymentDrawer}>{t('common.cancel')}</Button>
             <Button
               type="primary"
               loading={paymentMutation.isPending}
               onClick={() => form.submit()}
             >
-              Save Payment
+              {t('payments.savePayment')}
             </Button>
           </Space>
         )}
@@ -319,24 +321,24 @@ export function PaymentsPage() {
           }}
         >
           <Form.Item
-            label="Customer"
+            label={t('customers.column.customer')}
             name="customerId"
-            rules={[{ required: true, message: 'Please select a customer' }]}
+            rules={[{ required: true, message: t('payments.customerRequired') }]}
           >
             <Select
               showSearch
               optionFilterProp="label"
-              placeholder="Choose customer"
+              placeholder={t('payments.customerPlaceholder')}
               options={customers.map((customer) => ({
                 value: customer.id,
-                label: `${customer.name} - Debt ${formatCurrency(customer.debtBalance)}`,
+                label: t('payments.customerDebtLabel', { name: customer.name, debt: formatCurrency(customer.debtBalance) }),
               }))}
             />
           </Form.Item>
           <Form.Item
-            label="Amount"
+            label={t('payments.amount')}
             name="amount"
-            rules={[{ required: true, message: 'Please enter a payment amount' }]}
+            rules={[{ required: true, message: t('payments.amountRequired') }]}
           >
             <InputNumber className={styles.fullWidth} min={1} />
           </Form.Item>
@@ -344,24 +346,24 @@ export function PaymentsPage() {
           {selectedCustomer ? (
             <div className={styles.paymentProjection}>
               <div>
-                <Typography.Text type="secondary">Debt before payment</Typography.Text>
+                <Typography.Text type="secondary">{t('payments.debtBefore')}</Typography.Text>
                 <Typography.Text strong>{formatCurrency(currentDebt)}</Typography.Text>
               </div>
               <div>
-                <Typography.Text type="secondary">Payment amount</Typography.Text>
+                <Typography.Text type="secondary">{t('payments.paymentAmount')}</Typography.Text>
                 <Typography.Text strong>{formatCurrency(toNumber(paymentAmount))}</Typography.Text>
               </div>
               <div>
-                <Typography.Text type="secondary">Projected debt</Typography.Text>
+                <Typography.Text type="secondary">{t('payments.projectedDebt')}</Typography.Text>
                 <Typography.Text strong>{formatCurrency(projectedDebt)}</Typography.Text>
               </div>
             </div>
           ) : null}
 
-          <Form.Item label="Note" name="note">
+          <Form.Item label={t('inventory.receive.note')} name="note">
             <Input.TextArea
               rows={4}
-              placeholder="Transfer note, receipt number, or collection comment"
+              placeholder={t('payments.notePlaceholder')}
             />
           </Form.Item>
         </Form>

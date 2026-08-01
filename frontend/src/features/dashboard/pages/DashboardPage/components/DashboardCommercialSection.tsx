@@ -1,4 +1,5 @@
 import { Card, Empty, List, Typography } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../../../../lib/format';
 import type { DashboardSnapshot } from '../../../types/dashboard.types';
 import styles from './DashboardCommercialSection.module.css';
@@ -10,18 +11,20 @@ interface DashboardCommercialSectionProps {
 export function DashboardCommercialSection({
   dashboard,
 }: DashboardCommercialSectionProps) {
+  const { t } = useTranslation();
+
   return (
     <section className={styles.section}>
       <div className={styles.sectionHeading}>
         <div>
-          <Typography.Title level={3}>Commercial exposure</Typography.Title>
+          <Typography.Title level={3}>{t('dashboard.commercial.title')}</Typography.Title>
           <Typography.Text type="secondary">
-            Customers and products with the greatest current impact
+            {t('dashboard.commercial.subtitle')}
           </Typography.Text>
         </div>
       </div>
       <div className={styles.insightGrid}>
-        <Card title="Top Customers by Debt" className={`panel-card ${styles.panel}`}>
+        <Card title={t('dashboard.commercial.topCustomersByDebt')} className={`panel-card ${styles.panel}`}>
           {dashboard.topCustomersByDebt.length ? (
             <List
               dataSource={dashboard.topCustomersByDebt}
@@ -32,7 +35,7 @@ export function DashboardCommercialSection({
                     <div className={styles.listContent}>
                       <Typography.Text strong>{item.customerName}</Typography.Text>
                       <Typography.Text type="secondary">
-                        Outstanding receivable
+                        {t('dashboard.commercial.outstandingReceivable')}
                       </Typography.Text>
                     </div>
                     <Typography.Text strong className={styles.amount}>
@@ -46,13 +49,13 @@ export function DashboardCommercialSection({
             <div className="panel-empty">
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description="No customer debt yet"
+                description={t('dashboard.commercial.noCustomerDebt')}
               />
             </div>
           )}
         </Card>
 
-        <Card title="Top Selling Products" className={`panel-card ${styles.panel}`}>
+        <Card title={t('dashboard.commercial.topSellingProducts')} className={`panel-card ${styles.panel}`}>
           {dashboard.topSellingProducts.length ? (
             <List
               dataSource={dashboard.topSellingProducts}
@@ -63,7 +66,7 @@ export function DashboardCommercialSection({
                     <div className={styles.listContent}>
                       <Typography.Text strong>{item.productName}</Typography.Text>
                       <Typography.Text type="secondary">
-                        {item.totalQuantity} units sold
+                        {t('dashboard.commercial.unitsSold', { count: item.totalQuantity })}
                       </Typography.Text>
                     </div>
                     <Typography.Text strong>{formatCurrency(item.revenue)}</Typography.Text>
@@ -75,7 +78,7 @@ export function DashboardCommercialSection({
             <div className="panel-empty">
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description="No completed sales yet"
+                description={t('dashboard.commercial.noCompletedSales')}
               />
             </div>
           )}
