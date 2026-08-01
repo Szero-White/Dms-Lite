@@ -3,7 +3,7 @@ import type { TableColumnsType } from 'antd';
 import { formatDateTime } from '../../../../../lib/format';
 import type { ProductRow } from '../../../../products';
 import type { InventoryTransaction } from '../../../types/inventory.types';
-import styles from '../InventoryPage.module.css';
+import styles from './InventoryHistoryTable.module.css';
 
 interface InventoryHistoryTableProps {
   history: InventoryTransaction[];

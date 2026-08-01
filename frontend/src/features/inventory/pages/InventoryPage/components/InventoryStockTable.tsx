@@ -4,7 +4,8 @@ import type { TableColumnsType } from 'antd';
 import { formatDateTime, toNumber } from '../../../../../lib/format';
 import type { ProductRow } from '../../../../products';
 import type { StockFilter } from '../inventoryPage.types';
-import styles from '../InventoryPage.module.css';
+import styles from './InventoryStockTable.module.css';
+import tagStyles from '../inventoryTags.module.css';
 
 interface InventoryStockTableProps {
   clearFilters: () => void;
@@ -58,8 +59,8 @@ const stockColumns = (
     width: 120,
     render: (_, record) => (
       <Tag
-        className={`${styles.stockTag} ${
-          record.isLowStock ? styles.lowStock : styles.healthy
+        className={`${tagStyles.stockTag} ${
+          record.isLowStock ? tagStyles.lowStock : tagStyles.healthy
         }`}
       >
         {record.isLowStock ? 'LOW STOCK' : 'HEALTHY'}

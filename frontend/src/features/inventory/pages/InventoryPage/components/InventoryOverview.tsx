@@ -1,7 +1,7 @@
 import { InboxOutlined, AlertOutlined, CheckCircleOutlined, DollarOutlined } from '@ant-design/icons';
 import { formatCurrency } from '../../../../../lib/format';
 import type { ProductRow } from '../../../../products';
-import styles from '../InventoryPage.module.css';
+import styles from './InventoryOverview.module.css';
 
 interface InventoryOverviewProps {
   inventoryValue: number;

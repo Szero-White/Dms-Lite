@@ -1,6 +1,7 @@
 import { Card, Empty, Space, Tag, Typography } from 'antd';
 import type { ProductRow } from '../../../../products';
-import styles from '../InventoryPage.module.css';
+import styles from './InventoryWatchlist.module.css';
+import tagStyles from '../inventoryTags.module.css';
 
 interface InventoryWatchlistProps {
   lowStockItems: ProductRow[];
@@ -23,7 +24,7 @@ export function InventoryWatchlist({ lowStockItems }: InventoryWatchlistProps) {
                 </Typography.Paragraph>
               </div>
 
-              <Tag className={`${styles.stockTag} ${styles.lowStock}`}>
+              <Tag className={`${tagStyles.stockTag} ${tagStyles.lowStock}`}>
                 Action needed
               </Tag>
             </div>

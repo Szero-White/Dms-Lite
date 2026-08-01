@@ -1,0 +1,274 @@
+.loginPane {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: var(--color-card-background);
+}
+
+.loginPane::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: radial-gradient(var(--color-border-subtle) 1px, transparent 1px);
+  background-size: 28px 28px;
+  content: '';
+  pointer-events: none;
+}
+
+.loginContent {
+  position: relative;
+  z-index: 1;
+  width: min(420px, calc(100% - 48px));
+  animation: formFadeIn 220ms ease-out both;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 52px;
+}
+
+.brandMark {
+  flex: 0 0 auto;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 14px;
+  color: #ffffff;
+  background: var(--gradient-primary);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.brandName {
+  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+}
+
+.brandSubtitle {
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.formHeader {
+  margin-bottom: 32px;
+}
+
+.formHeader h1 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+
+.formHeader p {
+  margin: 8px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 24px;
+}
+
+.loginContent :global(.ant-form-item) {
+  margin-bottom: 18px;
+}
+
+.loginContent :global(.ant-form-item-label) {
+  padding-bottom: 6px;
+}
+
+.loginContent :global(.ant-form-item-label > label) {
+  height: auto;
+  color: var(--color-text-secondary);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.loginContent :global(.ant-input-affix-wrapper) {
+  min-height: 48px;
+  padding-inline: 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-card-background);
+  box-shadow: none;
+  font-size: 14px;
+  transition: all 0.25s ease;
+}
+
+.loginContent :global(.ant-input-affix-wrapper:hover),
+.loginContent :global(.ant-input-affix-wrapper-focused) {
+  border-color: var(--color-primary);
+}
+
+.loginContent :global(.ant-input-affix-wrapper-focused) {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
+}
+
+.loginContent :global(.ant-input) {
+  color: var(--color-text-primary);
+  background: transparent;
+  font-size: 14px;
+}
+
+.loginContent :global(.ant-input::placeholder),
+.loginContent :global(.ant-input-prefix),
+.loginContent :global(.ant-input-suffix .anticon) {
+  color: var(--color-text-muted);
+}
+
+.loginContent :global(.ant-input-prefix),
+.loginContent :global(.ant-input-suffix .anticon) {
+  font-size: 15px;
+}
+
+.loginContent :global(.ant-input-prefix) {
+  margin-inline-end: 10px;
+}
+
+.passwordField:global(.ant-form-item) {
+  margin-bottom: 24px;
+}
+
+.submitButton:global(.ant-btn) {
+  height: 50px;
+  border: none;
+  border-radius: 12px;
+  background: var(--gradient-primary) !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: all 0.25s ease;
+}
+
+.submitButton:global(.ant-btn:hover) {
+  box-shadow: 0 8px 22px rgba(99, 102, 241, 0.45) !important;
+  transform: translateY(-2px);
+}
+
+.submitButton:global(.ant-btn:active) {
+  transform: translateY(0);
+}
+
+.demoAccounts {
+  margin-top: 20px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-muted);
+  font-size: 12.5px;
+  line-height: 18px;
+  transition: all 0.2s ease;
+}
+
+.demoAccounts:hover {
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.demoAccounts summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.demoAccounts summary::marker,
+.demoAccounts summary::-webkit-details-marker {
+  color: var(--color-primary);
+}
+
+.demoAccounts[open] summary {
+  margin-bottom: 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.demoList {
+  display: grid;
+  gap: 5px;
+  padding: 4px 0 12px;
+}
+
+.demoRow {
+  display: grid;
+  grid-template-columns: 80px 10px minmax(0, 1fr);
+  min-width: 0;
+  align-items: baseline;
+  column-gap: 4px;
+  white-space: nowrap;
+}
+
+.demoRow span:first-child {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+@keyframes formFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1023px) {
+  .loginContent {
+    width: min(400px, 100%);
+  }
+}
+
+@media (max-width: 767px) {
+  .loginPane {
+    min-height: 100vh;
+    align-items: center;
+    padding: 32px 24px;
+  }
+
+  .loginContent {
+    width: 100%;
+    max-width: 440px;
+  }
+
+  .brand {
+    margin-bottom: 44px;
+  }
+
+  .formHeader h1 {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 420px) {
+  .loginPane {
+    align-items: flex-start;
+    padding: 36px 20px;
+  }
+
+  .brand {
+    margin-bottom: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loginContent {
+    animation: none;
+  }
+}

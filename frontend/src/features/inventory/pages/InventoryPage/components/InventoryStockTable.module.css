@@ -1,0 +1,72 @@
+.stockCard {
+  height: 100%;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.search {
+  width: min(280px, 100%);
+}
+
+.filter {
+  width: 175px;
+}
+
+.stockTable :global(.ant-table-container) {
+  border-radius: 12px;
+}
+
+.stockTable :global(.ant-table-body) {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.45) transparent;
+}
+
+.stockTable :global(.ant-table-body::-webkit-scrollbar) {
+  width: 8px;
+  height: 8px;
+}
+
+.stockTable :global(.ant-table-body::-webkit-scrollbar-thumb) {
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.36);
+}
+
+.stockTable :global(.ant-table-body::-webkit-scrollbar-thumb:hover) {
+  background: rgba(100, 116, 139, 0.56);
+}
+
+.stockTable :global(.ant-table-body::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+.stockLevel {
+  width: 96px;
+}
+
+.stockLevel :global(.ant-progress) {
+  display: block;
+  margin-top: 3px;
+}
+
+.lowStockRow > :global(.ant-table-cell) {
+  background: linear-gradient(to right, #fffbf2, #fff8e8) !important;
+}
+
+.lowStockRow:hover > :global(.ant-table-cell) {
+  background: #fff3cd !important;
+}
+
+@media (max-width: 768px) {
+  .toolbar,
+  .search,
+  .filter,
+  .toolbar > :global(.ant-btn) {
+    width: 100%;
+  }
+}

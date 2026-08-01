@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
-import { useAuth } from '../../../auth';
+import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
 import { useProducts } from '../../../products';
 import { useSalesOrders } from '../../../sales';
@@ -21,16 +21,19 @@ import styles from './DashboardPage.module.css';
 export function DashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const canViewCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_VIEW);
+  const canViewOrders = hasPermission(user, PERMISSIONS.SALES_ORDER_VIEW);
+  const canViewInventoryProducts = hasPermission(user, PERMISSIONS.PRODUCT_VIEW) && hasPermission(user, PERMISSIONS.INVENTORY_VIEW);
   const dashboardQuery = useDashboardData();
-  const ordersQuery = useSalesOrders();
-  const customersQuery = useCustomers();
-  const productsQuery = useProducts();
+  const ordersQuery = useSalesOrders({ enabled: canViewOrders });
+  const customersQuery = useCustomers({ enabled: canViewCustomers });
+  const productsQuery = useProducts({ enabled: canViewInventoryProducts });
   const [range, setRange] = useState<DashboardRange>('7_DAYS');
   const [refreshing, setRefreshing] = useState(false);
 
-  const orders = ordersQuery.data ?? [];
-  const customers = customersQuery.data ?? [];
-  const products = productsQuery.data ?? [];
+  const orders = canViewOrders ? ordersQuery.data ?? [] : [];
+  const customers = canViewCustomers ? customersQuery.data ?? [] : [];
+  const products = canViewInventoryProducts ? productsQuery.data ?? [] : [];
   const {
     activeCustomers,
     attentionOrders,
@@ -54,19 +57,19 @@ export function DashboardPage() {
 
   const isLoading =
     dashboardQuery.isLoading ||
-    ordersQuery.isLoading ||
-    customersQuery.isLoading ||
-    productsQuery.isLoading;
+    (canViewOrders && ordersQuery.isLoading) ||
+    (canViewCustomers && customersQuery.isLoading) ||
+    (canViewInventoryProducts && productsQuery.isLoading);
   const isError =
     dashboardQuery.isError ||
-    ordersQuery.isError ||
-    customersQuery.isError ||
-    productsQuery.isError;
+    (canViewOrders && ordersQuery.isError) ||
+    (canViewCustomers && customersQuery.isError) ||
+    (canViewInventoryProducts && productsQuery.isError);
   const error =
     dashboardQuery.error ||
-    ordersQuery.error ||
-    customersQuery.error ||
-    productsQuery.error;
+    (canViewOrders && ordersQuery.error) ||
+    (canViewCustomers && customersQuery.error) ||
+    (canViewInventoryProducts && productsQuery.error);
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -74,9 +77,9 @@ export function DashboardPage() {
     try {
       await Promise.all([
         dashboardQuery.refetch(),
-        ordersQuery.refetch(),
-        customersQuery.refetch(),
-        productsQuery.refetch(),
+        canViewOrders ? ordersQuery.refetch() : Promise.resolve(),
+        canViewCustomers ? customersQuery.refetch() : Promise.resolve(),
+        canViewInventoryProducts ? productsQuery.refetch() : Promise.resolve(),
       ]);
     } finally {
       setRefreshing(false);

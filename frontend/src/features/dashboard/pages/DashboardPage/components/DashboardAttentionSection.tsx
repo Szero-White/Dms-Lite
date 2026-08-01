@@ -3,7 +3,7 @@ import { SalesOrderStatusTag } from '../../../../../components/common/StatusTag'
 import { formatCurrency, formatDateTime } from '../../../../../lib/format';
 import type { ProductRow } from '../../../../products';
 import type { SalesOrder } from '../../../../sales';
-import styles from '../DashboardPage.module.css';
+import styles from './DashboardAttentionSection.module.css';
 
 interface DashboardAttentionSectionProps {
   attentionOrders: SalesOrder[];

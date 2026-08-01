@@ -3,7 +3,7 @@ import type { FormInstance } from 'antd';
 import type { ProductRow } from '../../../../products';
 import { toNumber } from '../../../../../lib/format';
 import type { ReceiveStockPayload } from '../../../types/inventory.types';
-import styles from '../InventoryPage.module.css';
+import styles from './ReceiveStockModal.module.css';
 
 interface ReceiveStockModalProps {
   form: FormInstance<ReceiveStockPayload>;

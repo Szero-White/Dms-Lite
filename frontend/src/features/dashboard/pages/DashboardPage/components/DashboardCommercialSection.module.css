@@ -1,0 +1,150 @@
+.section {
+  display: grid;
+  gap: 20px;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding-left: 14px;
+  border-left: 4px solid var(--color-primary, #6366f1);
+  border-radius: 0 4px 4px 0;
+}
+
+.sectionHeading :global(h3.ant-typography) {
+  margin: 0 !important;
+  color: var(--color-text-primary);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 26px;
+  letter-spacing: -0.2px;
+}
+
+.sectionHeading :global(.ant-typography-secondary) {
+  margin-top: 2px !important;
+  font-size: 13px;
+}
+
+.insightGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.insightGrid :global(.panel-card) {
+  border-radius: 16px !important;
+  transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+}
+
+.insightGrid :global(.panel-card:hover) {
+  border-color: rgba(99, 102, 241, 0.22) !important;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.13);
+  transform: translateY(-3px);
+}
+
+.panel {
+  min-height: 220px;
+}
+
+.panel :global(.ant-list-item) {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border-subtle) !important;
+  transition: background 0.15s ease;
+}
+
+.panel :global(.ant-list-item:last-child) {
+  border-bottom: none !important;
+}
+
+.panel :global(.ant-list-item:hover) {
+  padding-right: 6px;
+  padding-left: 6px;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.035);
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+}
+
+.rank {
+  flex: 0 0 auto;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 8px;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.panel :global(.ant-list-item:nth-child(1)) .rank {
+  background: linear-gradient(135deg, #f59e0b, #fb923c);
+}
+
+.panel :global(.ant-list-item:nth-child(2)) .rank {
+  color: #1e293b;
+  background: linear-gradient(135deg, #94a3b8, #cbd5e1);
+}
+
+.panel :global(.ant-list-item:nth-child(3)) .rank {
+  background: linear-gradient(135deg, #b45309, #d97706);
+}
+
+.listContent {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.listContent strong {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listContent :global(.ant-typography-secondary) {
+  color: var(--color-text-muted) !important;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.amount {
+  color: var(--color-warning) !important;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  background-clip: text;
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (max-width: 1200px) {
+  .insightGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .sectionHeading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

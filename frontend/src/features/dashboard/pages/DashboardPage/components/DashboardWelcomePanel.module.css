@@ -1,0 +1,145 @@
+.welcomePanel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xl);
+  overflow: hidden;
+  padding: 36px 40px;
+  border-radius: 22px;
+  background: var(--gradient-primary);
+  box-shadow: 0 10px 40px rgba(99, 102, 241, 0.35);
+}
+
+.welcomePanel::before,
+.welcomePanel::after {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  content: '';
+  pointer-events: none;
+  animation: blobPulse 5s ease-in-out infinite alternate;
+}
+
+.welcomePanel::before {
+  top: -40%;
+  right: -15%;
+  width: 340px;
+  height: 340px;
+}
+
+.welcomePanel::after {
+  bottom: -50%;
+  left: 25%;
+  width: 260px;
+  height: 260px;
+  background: rgba(255, 255, 255, 0.06);
+  animation-duration: 7s;
+  animation-direction: alternate-reverse;
+}
+
+.welcomeEyebrow:global(.ant-typography) {
+  position: relative;
+  z-index: 1;
+  display: block;
+  margin-bottom: 6px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.welcomeTitle:global(.ant-typography) {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 10px !important;
+  color: #ffffff;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 38px;
+  letter-spacing: -0.5px;
+}
+
+.welcomeDescription:global(.ant-typography) {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.quickActions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.quickActions :global(.ant-btn) {
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  border-radius: 10px !important;
+  color: white !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  font-weight: 500;
+  backdrop-filter: blur(14px);
+  transition: all 0.25s ease;
+}
+
+.quickActions :global(.ant-btn:hover) {
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  background: rgba(255, 255, 255, 0.26) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  transform: translateY(-2px);
+}
+
+.quickActions :global(.ant-btn-primary) {
+  border-color: transparent !important;
+  color: var(--color-primary) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  font-weight: 700;
+}
+
+.quickActions :global(.ant-btn-primary:hover) {
+  background: #ffffff !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes blobPulse {
+  from { transform: scale(1) translate(0, 0); }
+  to { transform: scale(1.15) translate(10px, -10px); }
+}
+
+@media (max-width: 992px) {
+  .welcomePanel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .quickActions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .welcomePanel {
+    padding: 24px 22px;
+  }
+
+  .welcomeTitle:global(.ant-typography) {
+    font-size: 22px;
+    line-height: 28px;
+  }
+
+  .quickActions,
+  .quickActions :global(.ant-btn) {
+    width: 100%;
+  }
+}

@@ -1,7 +1,7 @@
 import { Card, Empty, List, Typography } from 'antd';
 import { formatCurrency } from '../../../../../lib/format';
 import type { DashboardSnapshot } from '../../../types/dashboard.types';
-import styles from '../DashboardPage.module.css';
+import styles from './DashboardCommercialSection.module.css';
 
 interface DashboardCommercialSectionProps {
   dashboard: DashboardSnapshot;

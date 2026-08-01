@@ -6,7 +6,7 @@ import {
 } from '@ant-design/icons';
 import { Button, Typography } from 'antd';
 import { formatDateTime } from '../../../../../lib/format';
-import styles from '../DashboardPage.module.css';
+import styles from './DashboardWelcomePanel.module.css';
 
 interface DashboardWelcomePanelProps {
   latestOrderCreatedAt?: string;

@@ -25,6 +25,7 @@ import { formatCurrency, toNumber } from '../../../../lib/format';
 import { useRecordCustomerPayment } from '../../hooks/usePaymentQueries';
 import { RecordPaymentPayload } from '../../types/payment.types';
 import styles from './PaymentsPage.module.css';
+import heroStyles from './PaymentsHero.module.css';
 
 export function PaymentsPage() {
   const customersQuery = useCustomers();
@@ -98,14 +99,14 @@ export function PaymentsPage() {
         onRetry={() => customersQuery.refetch()}
       >
         <div className={styles.contentStack}>
-          <div className={styles.heroRow}>
+          <div className={heroStyles.heroRow}>
             {/* LEFT: Receivables Overview */}
-            <div className={styles.heroLeft}>
-              <div className={styles.heroCard}>
-                <div className={styles.heroCardInner}>
+            <div className={heroStyles.heroLeft}>
+              <div className={heroStyles.heroCard}>
+                <div className={heroStyles.heroCardInner}>
                   {/* SVG ring */}
-                  <div className={styles.ringWrap}>
-                    <svg viewBox="0 0 120 120" className={styles.ring}>
+                  <div className={heroStyles.ringWrap}>
+                    <svg viewBox="0 0 120 120" className={heroStyles.ring}>
                       <circle cx="60" cy="60" r="50" fill="none" stroke="#f1f5f9" strokeWidth="10"/>
                       <circle
                         cx="60" cy="60" r="50" fill="none"
@@ -121,32 +122,32 @@ export function PaymentsPage() {
                         </linearGradient>
                       </defs>
                     </svg>
-                    <div className={styles.ringCenter}>
-                      <span className={styles.ringPct}>{Math.round(debtorRatio * 100)}%</span>
-                      <span className={styles.ringLabel}>have debt</span>
+                    <div className={heroStyles.ringCenter}>
+                      <span className={heroStyles.ringPct}>{Math.round(debtorRatio * 100)}%</span>
+                      <span className={heroStyles.ringLabel}>have debt</span>
                     </div>
                   </div>
 
-                  <div className={styles.heroMain}>
-                    <div className={styles.heroEyebrow}>Total Receivables</div>
-                    <div className={styles.heroAmount}>{formatCurrency(totalReceivables)}</div>
-                    <div className={styles.heroMiniStats}>
-                      <div className={styles.miniStat}>
-                        <span className={`${styles.miniDot} ${styles.red}`}/>
+                  <div className={heroStyles.heroMain}>
+                    <div className={heroStyles.heroEyebrow}>Total Receivables</div>
+                    <div className={heroStyles.heroAmount}>{formatCurrency(totalReceivables)}</div>
+                    <div className={heroStyles.heroMiniStats}>
+                      <div className={heroStyles.miniStat}>
+                        <span className={`${heroStyles.miniDot} ${heroStyles.red}`}/>
                         <div>
                           <strong>{debtors.length}</strong>
                           <span>Debtors</span>
                         </div>
                       </div>
-                      <div className={styles.miniStat}>
-                        <span className={`${styles.miniDot} ${styles.green}`}/>
+                      <div className={heroStyles.miniStat}>
+                        <span className={`${heroStyles.miniDot} ${heroStyles.green}`}/>
                         <div>
                           <strong>{formatCurrency(availableCredit)}</strong>
                           <span>Available credit</span>
                         </div>
                       </div>
-                      <div className={styles.miniStat}>
-                        <span className={`${styles.miniDot} ${styles.blue}`}/>
+                      <div className={heroStyles.miniStat}>
+                        <span className={`${heroStyles.miniDot} ${heroStyles.blue}`}/>
                         <div>
                           <strong>{customers.filter((c) => c.active).length}</strong>
                           <span>Active accounts</span>
@@ -159,25 +160,25 @@ export function PaymentsPage() {
             </div>
 
             {/* RIGHT: Top debtors bar chart */}
-            <div className={styles.heroRight}>
-              <div className={styles.topDebtorsCard}>
-                <div className={styles.topDebtorsHeader}>
+            <div className={heroStyles.heroRight}>
+              <div className={heroStyles.topDebtorsCard}>
+                <div className={heroStyles.topDebtorsHeader}>
                   <span>Top Debtors</span>
-                  <span className={styles.topDebtorsCount}>{debtors.length} accounts</span>
+                  <span className={heroStyles.topDebtorsCount}>{debtors.length} accounts</span>
                 </div>
-                <div className={styles.barList}>
+                <div className={heroStyles.barList}>
                   {topDebtors.map((d, i) => {
                     const pct = maxDebt > 0 ? (toNumber(d.debtBalance) / maxDebt) * 100 : 0;
                     return (
-                      <div key={d.id} className={styles.barRow}>
-                        <div className={styles.barMeta}>
-                          <span className={styles.barRank}>{i + 1}</span>
-                          <span className={styles.barName}>{d.name}</span>
-                          <span className={styles.barAmt}>{formatCurrency(d.debtBalance)}</span>
+                      <div key={d.id} className={heroStyles.barRow}>
+                        <div className={heroStyles.barMeta}>
+                          <span className={heroStyles.barRank}>{i + 1}</span>
+                          <span className={heroStyles.barName}>{d.name}</span>
+                          <span className={heroStyles.barAmt}>{formatCurrency(d.debtBalance)}</span>
                         </div>
-                        <div className={styles.barTrack}>
+                        <div className={heroStyles.barTrack}>
                           <div
-                            className={styles.barFill}
+                            className={heroStyles.barFill}
                             style={{
                               width: `${pct}%`,
                               background: i === 0
@@ -192,7 +193,7 @@ export function PaymentsPage() {
                     );
                   })}
                   {debtors.length === 0 && (
-                    <div className={styles.barEmpty}>No outstanding debts 🎉</div>
+                    <div className={heroStyles.barEmpty}>No outstanding debts 🎉</div>
                   )}
                 </div>
               </div>

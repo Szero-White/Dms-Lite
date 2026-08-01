@@ -246,10 +246,22 @@
 .collapsed .brand { justify-content: center; padding-inline: 0; }
 
 .collapsed .brandCopy,
-.collapsed .userCopy,
-.collapsed .collapseButton span { display: none; }
+.collapsed .userCopy { display: none; }
 
 .collapsed .userSummary { justify-content: center; padding-inline: 0; }
+
+.collapsed .collapseButton {
+  min-height: 36px;
+  padding: 0;
+  border-color: rgba(99, 102, 241, 0.34);
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.collapsed .collapseButton :global(.anticon) {
+  display: none;
+}
 
 .collapsed :global(.ant-menu-item-group-title) {
   height: 8px;

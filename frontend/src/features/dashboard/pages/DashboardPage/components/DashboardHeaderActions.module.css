@@ -1,0 +1,17 @@
+.headerActions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 992px) {
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .headerActions :global(.ant-segmented) {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}

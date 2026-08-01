@@ -1,0 +1,20 @@
+.watchlistCard {
+  height: 100%;
+}
+
+.watchlist {
+  width: 100%;
+}
+
+.watchlistMeta:global(.ant-typography) {
+  margin-bottom: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-meta);
+  line-height: var(--line-height-meta);
+}
+
+.watchlistCard :global(.alert-row) {
+  margin-bottom: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}

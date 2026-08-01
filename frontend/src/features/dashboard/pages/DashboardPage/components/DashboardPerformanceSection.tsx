@@ -17,7 +17,7 @@ import type { ProductRow } from '../../../../products';
 import type { SalesOrder } from '../../../../sales';
 import type { DashboardRange } from '../dashboardPage.types';
 import { rangeLabels } from '../dashboardPage.utils';
-import styles from '../DashboardPage.module.css';
+import styles from './DashboardPerformanceSection.module.css';
 
 interface DashboardPerformanceSectionProps {
   activeCustomers: number;

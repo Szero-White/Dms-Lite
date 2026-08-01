@@ -3,6 +3,9 @@ import { Button, Form, Input } from 'antd';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import styles from './LoginPage.module.css';
+import formStyles from './LoginFormPanel.module.css';
+import visualStyles from './LoginVisualPanel.module.css';
+import previewStyles from './LoginPreview.module.css';
 
 const demoAccounts = [
   { username: 'owner', password: '123456', role: 'Owner' },
@@ -18,21 +21,21 @@ export function LoginPage() {
 
   return (
     <main className={styles.shell}>
-      <section className={styles.loginPane}>
-        <div className={styles.loginContent}>
-          <div className={styles.brand}>
-            <div className={styles.brandMark} aria-hidden="true">
+      <section className={formStyles.loginPane}>
+        <div className={formStyles.loginContent}>
+          <div className={formStyles.brand}>
+            <div className={formStyles.brandMark} aria-hidden="true">
               D
             </div>
             <div>
-              <div className={styles.brandName}>DMS Lite</div>
-              <div className={styles.brandSubtitle}>
+              <div className={formStyles.brandName}>DMS Lite</div>
+              <div className={formStyles.brandSubtitle}>
                 Distributor Operating System
               </div>
             </div>
           </div>
 
-          <header className={styles.formHeader}>
+          <header className={formStyles.formHeader}>
             <h1>Welcome back</h1>
             <p>Enter your credentials to access your workspace.</p>
           </header>
@@ -60,7 +63,7 @@ export function LoginPage() {
             </Form.Item>
 
             <Form.Item
-              className={styles.passwordField}
+              className={formStyles.passwordField}
               label="Password"
               name="password"
               rules={[{ required: true }]}
@@ -75,7 +78,7 @@ export function LoginPage() {
 
             <Button
               block
-              className={styles.submitButton}
+              className={formStyles.submitButton}
               size="large"
               type="primary"
               htmlType="submit"
@@ -85,11 +88,11 @@ export function LoginPage() {
             </Button>
           </Form>
 
-          <details className={styles.demoAccounts}>
+          <details className={formStyles.demoAccounts}>
             <summary>Use a demo account</summary>
-            <div className={styles.demoList}>
+            <div className={formStyles.demoList}>
               {demoAccounts.map((account) => (
-                <div className={styles.demoRow} key={account.username}>
+                <div className={formStyles.demoRow} key={account.username}>
                   <span>{account.role}</span>
                   <span aria-hidden="true">&mdash;</span>
                   <span>
@@ -102,50 +105,50 @@ export function LoginPage() {
         </div>
       </section>
 
-      <aside className={styles.visualPane}>
-        <div className={styles.visualContent}>
-          <div className={styles.productPreview} aria-hidden="true">
-            <div className={styles.previewTopbar}>
-              <span className={styles.previewLogo}>D</span>
-              <span className={styles.previewLine} />
-              <span className={styles.previewAvatar} />
+      <aside className={visualStyles.visualPane}>
+        <div className={visualStyles.visualContent}>
+          <div className={previewStyles.productPreview} aria-hidden="true">
+            <div className={previewStyles.previewTopbar}>
+              <span className={previewStyles.previewLogo}>D</span>
+              <span className={previewStyles.previewLine} />
+              <span className={previewStyles.previewAvatar} />
             </div>
-            <div className={styles.previewBody}>
-              <div className={styles.previewSidebar}>
-                <span className={styles.previewNavActive} />
+            <div className={previewStyles.previewBody}>
+              <div className={previewStyles.previewSidebar}>
+                <span className={previewStyles.previewNavActive} />
                 <span />
                 <span />
                 <span />
                 <span />
               </div>
-              <div className={styles.previewWorkspace}>
-                <div className={styles.previewHeading}>
+              <div className={previewStyles.previewWorkspace}>
+                <div className={previewStyles.previewHeading}>
                   <span />
                   <span />
                 </div>
-                <div className={styles.previewMetrics}>
+                <div className={previewStyles.previewMetrics}>
                   <div><span>Sales</span><i /></div>
                   <div><span>Inventory</span><i /></div>
                   <div><span>Receivables</span><i /></div>
                 </div>
-                <div className={styles.previewAnalytics}>
-                  <div className={styles.previewChart}>
+                <div className={previewStyles.previewAnalytics}>
+                  <div className={previewStyles.previewChart}>
                     <span /><span /><span /><span /><span /><span />
                   </div>
-                  <div className={styles.previewStatus}>
+                  <div className={previewStyles.previewStatus}>
                     <div />
                     <span /><span /><span />
                   </div>
                 </div>
-                <div className={styles.previewTable}>
+                <div className={previewStyles.previewTable}>
                   <span /><span /><span /><span />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className={styles.visualCopy}>
-            <span className={styles.eyebrow}>DISTRIBUTION, SIMPLIFIED</span>
+          <div className={visualStyles.visualCopy}>
+            <span className={visualStyles.eyebrow}>DISTRIBUTION, SIMPLIFIED</span>
             <h2>One workspace for daily commercial operations.</h2>
             <p>Keep every order, stock movement, and customer balance visible to the right team.</p>
             <ul>

@@ -2,7 +2,7 @@ import { DownloadOutlined, ReloadOutlined } from '@ant-design/icons';
 import { Button, Segmented, Space } from 'antd';
 import type { DashboardRange } from '../dashboardPage.types';
 import { rangeLabels } from '../dashboardPage.utils';
-import styles from '../DashboardPage.module.css';
+import styles from './DashboardHeaderActions.module.css';
 
 interface DashboardHeaderActionsProps {
   canExport: boolean;

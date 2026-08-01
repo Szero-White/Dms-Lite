@@ -1,0 +1,29 @@
+.fullWidth {
+  width: 100%;
+}
+
+.modal :global(.ant-modal-body) {
+  padding-top: 8px !important;
+}
+
+.stockProjection {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  background: var(--color-surface-muted);
+}
+
+.stockProjection > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px 0;
+}
+
+.stockProjection > div :global(.ant-typography) {
+  font-size: 13px;
+}
