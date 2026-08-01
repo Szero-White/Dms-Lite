@@ -25,6 +25,7 @@ import {
   Typography,
 } from 'antd';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
@@ -46,6 +47,7 @@ import { useSalesOrders } from '../../../../features/sales';
 import styles from './CustomerDetailPage.module.css';
 
 export function CustomerDetailPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canRecordPayment = hasPermission(user, PERMISSIONS.PAYMENT_CREATE);
   const { customerId } = useParams();
@@ -76,9 +78,9 @@ export function CustomerDetailPage() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title={customer?.name || 'Customer Detail'}
-        subtitle="Customer profile, debt statement, and order history."
-        breadcrumb={['Customers', customer?.name || 'Detail']}
+        title={customer?.name || t('customers.detail.titleFallback')}
+        subtitle={t('customers.detail.subtitle')}
+        breadcrumb={[t('app.navigation.customers'), customer?.name || t('customers.detail.breadcrumbDetail')]}
         extra={
           <Space wrap className={styles.headerActions}>
             <Button icon={<LeftOutlined />} onClick={() => navigate('/customers')}>
@@ -91,7 +93,7 @@ export function CustomerDetailPage() {
                 onClick={() => setPaymentOpen(true)}
                 disabled={!customer}
               >
-                Record Payment
+                {t('payments.recordPayment')}
               </Button>
             ) : null}
           </Space>
@@ -115,9 +117,9 @@ export function CustomerDetailPage() {
           salesOrdersQuery.error
         }
         hasData={Boolean(customer)}
-        emptyTitle="Customer not found"
-        emptyDescription="This customer may no longer be available in the current dataset."
-        emptyAction={<Button onClick={() => navigate('/customers')}>Back to customers</Button>}
+        emptyTitle={t('customers.detail.notFoundTitle')}
+        emptyDescription={t('customers.detail.notFoundDescription')}
+        emptyAction={<Button onClick={() => navigate('/customers')}>{t('customers.detail.backToCustomers')}</Button>}
         onRetry={() => {
           void Promise.all([
             customersQuery.refetch(),
@@ -137,7 +139,7 @@ export function CustomerDetailPage() {
                   <div className={styles.profileTitleRow}>
                     <Typography.Title level={2}>{customer.name}</Typography.Title>
                     <Tag color={customer.active ? 'success' : 'default'}>
-                      {customer.active ? 'ACTIVE' : 'INACTIVE'}
+                      {customer.active ? t('common.active') : t('common.inactive')}
                     </Tag>
                   </div>
                   <Space wrap size={[20, 6]} className={styles.profileMeta}>
@@ -148,9 +150,9 @@ export function CustomerDetailPage() {
               </div>
               <div className={styles.creditPanel}>
                 <div>
-                  <Typography.Text>Credit utilization</Typography.Text>
+                  <Typography.Text>{t('customers.detail.creditUtilization')}</Typography.Text>
                   <Typography.Text strong>
-                    {creditLimit > 0 ? `${creditUsage}%` : 'No credit limit'}
+                    {creditLimit > 0 ? `${creditUsage}%` : t('customers.detail.noCreditLimit')}
                   </Typography.Text>
                 </div>
                 <Progress
@@ -159,64 +161,64 @@ export function CustomerDetailPage() {
                   status={creditUsage >= 100 ? 'exception' : creditUsage >= 80 ? 'normal' : 'success'}
                 />
                 <Typography.Text type="secondary">
-                  {formatCurrency(debt)} of {formatCurrency(creditLimit)} used
+                  {t('customers.detail.creditUsed', { debt: formatCurrency(debt), limit: formatCurrency(creditLimit) })}
                 </Typography.Text>
               </div>
             </Card>
 
             <div className={styles.metricsGrid}>
               <SummaryCard
-                title="Current Debt"
+                title={t('customers.detail.currentDebt')}
                 value={formatCurrency(debt)}
-                note={debt > 0 ? 'Outstanding receivable balance' : 'Customer balance is clear'}
+                note={debt > 0 ? t('customers.detail.outstandingReceivableBalance') : t('customers.detail.balanceClear')}
                 icon={<WalletOutlined />}
                 variant={debt > 0 ? 'red' : 'green'}
                 visual="dashboard"
               />
               <SummaryCard
-                title="Credit Limit"
+                title={t('customers.detail.creditLimit')}
                 value={formatCurrency(creditLimit)}
-                note="Approved customer credit exposure"
+                note={t('customers.detail.approvedCreditExposure')}
                 icon={<SafetyCertificateOutlined />}
                 variant="blue"
                 visual="dashboard"
               />
               <SummaryCard
-                title="Available Credit"
+                title={t('customers.detail.availableCredit')}
                 value={formatCurrency(availableCredit)}
-                note="Remaining credit before the limit"
+                note={t('customers.detail.remainingCredit')}
                 icon={<CheckCircleOutlined />}
                 variant="green"
                 visual="dashboard"
               />
               <SummaryCard
-                title="Payment Term"
+                title={t('customers.detail.paymentTerm')}
                 value={`${customer.paymentTermDays} days`}
-                note="Configured settlement period"
+                note={t('customers.detail.settlementPeriod')}
                 icon={<CalendarOutlined />}
                 variant="orange"
                 visual="dashboard"
               />
             </div>
 
-            <Card className="panel-card" title="Debt Statement">
+            <Card className="panel-card" title={t('customers.detail.debtStatement')}>
               <Table
                 size="small"
                 rowKey="id"
                 sticky
                 scroll={{ x: 940 }}
-                locale={{ emptyText: 'No debt transactions recorded for this customer' }}
+                locale={{ emptyText: t('customers.detail.noDebtTransactions') }}
                 dataSource={debtStatementQuery.data ?? []}
                 columns={[
                   {
-                    title: 'Date',
+                    title: t('customers.detail.date'),
                     dataIndex: 'createdAt',
                     width: 170,
                     render: (value) => formatDateTime(value),
                   },
-                  { title: 'Type', dataIndex: 'sourceType', width: 130 },
+                  { title: t('customers.detail.type'), dataIndex: 'sourceType', width: 130 },
                   {
-                    title: 'Direction',
+                    title: t('customers.detail.direction'),
                     dataIndex: 'direction',
                     width: 135,
                     render: (value: string) => {
@@ -230,7 +232,7 @@ export function CustomerDetailPage() {
                     },
                   },
                   {
-                    title: 'Amount',
+                    title: t('customers.detail.amount'),
                     dataIndex: 'amount',
                     align: 'right',
                     render: (value, record) => (
@@ -243,54 +245,54 @@ export function CustomerDetailPage() {
                     ),
                   },
                   {
-                    title: 'Remaining',
+                    title: t('customers.detail.remaining'),
                     dataIndex: 'remainingAmount',
                     align: 'right',
                     render: (value) => formatCurrency(value),
                   },
                   {
-                    title: 'Due Date',
+                    title: t('customers.detail.dueDate'),
                     dataIndex: 'dueDate',
                     width: 130,
                     render: (value) => value ? formatDate(value) : '--',
                   },
-                  { title: 'Note', dataIndex: 'note', width: 200, ellipsis: true },
+                  { title: t('inventory.history.note'), dataIndex: 'note', width: 200, ellipsis: true },
                 ]}
               />
             </Card>
 
-            <Card className="panel-card" title="Sales Order History">
+            <Card className="panel-card" title={t('customers.detail.salesOrderHistory')}>
               <Table
                 size="small"
                 rowKey="id"
                 sticky
                 scroll={{ x: 800 }}
-                locale={{ emptyText: 'No sales orders recorded for this customer' }}
+                locale={{ emptyText: t('customers.detail.noSalesOrders') }}
                 dataSource={orderHistory}
                 columns={[
-                  { title: 'Code', dataIndex: 'code' },
+                  { title: t('customers.detail.code'), dataIndex: 'code' },
                   {
-                    title: 'Created At',
+                    title: t('customers.detail.createdAt'),
                     dataIndex: 'createdAt',
                     render: (value) => formatDateTime(value),
                   },
                   {
-                    title: 'Status',
+                    title: t('common.status'),
                     dataIndex: 'status',
                     render: (value) => <SalesOrderStatusTag status={value} />,
                   },
                   {
-                    title: 'Total',
+                    title: t('sales.column.total'),
                     dataIndex: 'totalAmount',
                     render: (value) => formatCurrency(value),
                   },
                   {
-                    title: 'Paid',
+                    title: t('sales.column.paid'),
                     dataIndex: 'paidAmount',
                     render: (value) => formatCurrency(value),
                   },
                   {
-                    title: 'Debt',
+                    title: t('sales.column.debt'),
                     dataIndex: 'debtAmount',
                     render: (value) => formatCurrency(value),
                   },
@@ -304,7 +306,7 @@ export function CustomerDetailPage() {
       {canRecordPayment ? (
         <Modal
           rootClassName={styles.modal}
-          title="Record Payment"
+          title={t('payments.recordPayment')}
           open={paymentOpen}
           confirmLoading={paymentMutation.isPending}
           onCancel={() => setPaymentOpen(false)}
@@ -327,17 +329,17 @@ export function CustomerDetailPage() {
               setPaymentOpen(false);
             }}
           >
-            <Form.Item label="Customer">
+            <Form.Item label={t('customers.column.customer')}>
               <Input value={customer?.name} disabled />
             </Form.Item>
-            <Form.Item name="amount" label="Amount" rules={[{ required: true }]}>
+            <Form.Item name="amount" label={t('payments.amount')} rules={[{ required: true }]}>
               <InputNumber
                 className={styles.fullWidth}
                 min={1}
                 max={toNumber(customer?.debtBalance)}
               />
             </Form.Item>
-            <Form.Item name="note" label="Note">
+            <Form.Item name="note" label={t('inventory.receive.note')}>
               <Input.TextArea rows={3} />
             </Form.Item>
           </Form>

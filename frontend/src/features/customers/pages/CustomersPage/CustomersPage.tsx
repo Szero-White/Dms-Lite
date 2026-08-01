@@ -1,6 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Form, Input, Modal } from 'antd';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { toNumber } from '../../../../lib/format';
 import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
@@ -16,6 +17,7 @@ import { CustomersTableCard } from './components/CustomersTableCard/CustomersTab
 import styles from './CustomersPage.module.css';
 
 export function CustomersPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canManageCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_MANAGE);
   const customersQuery = useCustomers();
@@ -142,11 +144,11 @@ export function CustomersPage() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title="Customers"
-        subtitle="Manage customer profiles, credit limits and receivables."
+        title={t('customers.title')}
+        subtitle={t('customers.subtitle')}
         extra={canManageCustomers ? (
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreateCustomer}>
-            New Customer
+            {t('customers.new')}
           </Button>
         ) : null}
       />
@@ -189,7 +191,7 @@ export function CustomersPage() {
         <Modal
           rootClassName={styles.modal}
           open={open}
-          title={selectedCustomer ? 'Edit Customer' : 'Create Customer'}
+          title={selectedCustomer ? t('customers.form.editTitle') : t('customers.form.createTitle')}
           confirmLoading={createCustomer.isPending || updateCustomer.isPending}
           onCancel={closeCustomerForm}
           onOk={() => form.submit()}
@@ -200,19 +202,23 @@ export function CustomersPage() {
             initialValues={{ paymentTermDays: 14, creditLimit: 0 }}
             onFinish={handleSubmit}
           >
-            <Form.Item name="name" label="Customer Name" rules={[{ required: true }]}>
+            <Form.Item
+              name="name"
+              label={t('customers.form.name')}
+              rules={[{ required: true, message: t('customers.form.nameRequired') }]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item name="phone" label="Phone">
+            <Form.Item name="phone" label={t('customers.form.phone')}>
               <Input />
             </Form.Item>
-            <Form.Item name="address" label="Address">
+            <Form.Item name="address" label={t('customers.form.address')}>
               <Input.TextArea rows={3} />
             </Form.Item>
-            <Form.Item name="creditLimit" label="Credit Limit">
+            <Form.Item name="creditLimit" label={t('customers.form.creditLimit')}>
               <Input type="number" />
             </Form.Item>
-            <Form.Item name="paymentTermDays" label="Payment Term Days">
+            <Form.Item name="paymentTermDays" label={t('customers.form.paymentTermDays')}>
               <Input type="number" />
             </Form.Item>
           </Form>

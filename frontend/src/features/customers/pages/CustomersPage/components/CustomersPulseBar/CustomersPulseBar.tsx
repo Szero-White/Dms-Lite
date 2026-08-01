@@ -1,4 +1,4 @@
-import { TeamOutlined, DollarOutlined, CheckCircleOutlined, AlertOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import type { Customer } from '../../../../types/customer.types';
 import { formatCurrency } from '../../../../../../lib/format';
 import styles from './CustomersPulseBar.module.css';
@@ -22,40 +22,13 @@ export function CustomersPulseBar({
   thresholdCustomers,
   totalReceivables,
 }: CustomersPulseBarProps) {
+  const { t } = useTranslation();
   const totalCustomers = customers.length;
   const activeArc = totalCustomers > 0 ? (activeCount / totalCustomers) * 201 : 0;
 
-  // Metrics with colors from Report page style
-  const metrics = [
-    {
-      icon: <TeamOutlined />,
-      label: 'Total Customers',
-      value: totalCustomers,
-      color: '#6366f1',
-    },
-    {
-      icon: <CheckCircleOutlined />,
-      label: 'Active',
-      value: activeCount,
-      color: '#10b981',
-    },
-    {
-      icon: <DollarOutlined />,
-      label: 'Total Receivables',
-      value: formatCurrency(totalReceivables),
-      color: '#8b5cf6',
-    },
-    {
-      icon: <AlertOutlined />,
-      label: 'Near Limit',
-      value: thresholdCustomers,
-      color: thresholdCustomers > 0 ? '#f59e0b' : '#10b981',
-    },
-  ];
 
   return (
     <div className={styles.pulseBar}>
-      {/* Hero Section with Ring */}
       <div className={styles.pulseHero}>
         <div className={styles.pulseRingWrap}>
           <svg viewBox="0 0 80 80" className={styles.pulseRing}>
@@ -80,25 +53,23 @@ export function CustomersPulseBar({
           </svg>
           <div className={styles.pulseRingCenter}>
             <span className={styles.pulseRingNum}>{totalCustomers}</span>
-            <span className={styles.pulseRingLbl}>total</span>
+            <span className={styles.pulseRingLbl}>{t('sales.pulse.total')}</span>
           </div>
         </div>
         <div className={styles.pulseHeroText}>
-          <div className={styles.pulseHeroTitle}>Customer Base</div>
+          <div className={styles.pulseHeroTitle}>{t('customers.pulse.customerBase')}</div>
           <div className={styles.pulseHeroSub}>
-            {activeCount} active · {totalCustomers - activeCount} inactive
+            {t('customers.pulse.activeInactive', { active: activeCount, inactive: totalCustomers - activeCount })}
           </div>
         </div>
       </div>
 
       <div className={styles.pulseDivider} />
-
-      {/* Account Health Tiers */}
       <div className={styles.pulseTiers}>
-        <div className={styles.tierTitle}>Account Health</div>
+        <div className={styles.tierTitle}>{t('customers.pulse.accountHealth')}</div>
         <div className={styles.tierRow}>
           <div className={styles.tierDot} style={{ background: '#10b981' }} />
-          <span className={styles.tierLbl}>Clear balance</span>
+          <span className={styles.tierLbl}>{t('customers.pulse.clearBalance')}</span>
           <div className={styles.tierBar}>
             <div
               className={styles.tierFill}
@@ -112,7 +83,7 @@ export function CustomersPulseBar({
         </div>
         <div className={styles.tierRow}>
           <div className={styles.tierDot} style={{ background: '#f59e0b' }} />
-          <span className={styles.tierLbl}>Has debt</span>
+          <span className={styles.tierLbl}>{t('customers.pulse.hasDebt')}</span>
           <div className={styles.tierBar}>
             <div
               className={styles.tierFill}
@@ -126,7 +97,7 @@ export function CustomersPulseBar({
         </div>
         <div className={styles.tierRow}>
           <div className={styles.tierDot} style={{ background: '#ef4444' }} />
-          <span className={styles.tierLbl}>Over limit</span>
+          <span className={styles.tierLbl}>{t('customers.pulse.overLimit')}</span>
           <div className={styles.tierBar}>
             <div
               className={styles.tierFill}
@@ -141,17 +112,15 @@ export function CustomersPulseBar({
       </div>
 
       <div className={styles.pulseDivider} />
-
-      {/* Receivables Section */}
       <div className={styles.pulseReceivables}>
-        <div className={styles.prLabel}>Total Receivables</div>
+        <div className={styles.prLabel}>{t('payments.hero.totalReceivables')}</div>
         <div className={styles.prAmount} style={{ color: '#8b5cf6' }}>{formatCurrency(totalReceivables)}</div>
         <div className={styles.prSub}>
-          across {debtorCount} debtor{debtorCount !== 1 ? 's' : ''}
+          {t('customers.pulse.acrossDebtors', { count: debtorCount })}
         </div>
         <div className={styles.prAlerts}>
           {thresholdCustomers > 0 && (
-            <span className={styles.prAlertTag}>⚠ {thresholdCustomers} near limit</span>
+            <span className={styles.prAlertTag}>{t('customers.pulse.nearLimitAlert', { count: thresholdCustomers })}</span>
           )}
         </div>
       </div>

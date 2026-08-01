@@ -1,4 +1,5 @@
 import { Card, Empty, Space, Tag, Typography } from 'antd';
+import { useTranslation } from 'react-i18next';
 import type { ProductRow } from '../../../../products';
 import styles from './InventoryWatchlist.module.css';
 import tagStyles from '../inventoryTags.module.css';
@@ -8,8 +9,10 @@ interface InventoryWatchlistProps {
 }
 
 export function InventoryWatchlist({ lowStockItems }: InventoryWatchlistProps) {
+  const { t } = useTranslation();
+
   return (
-    <Card className={`panel-card ${styles.watchlistCard}`} title="Low Stock Watchlist">
+    <Card className={`panel-card ${styles.watchlistCard}`} title={t('inventory.watchlist.title')}>
       {lowStockItems.length ? (
         <Space direction="vertical" className={styles.watchlist}>
           {lowStockItems.map((product) => (
@@ -20,12 +23,16 @@ export function InventoryWatchlist({ lowStockItems }: InventoryWatchlistProps) {
                   type="secondary"
                   className={styles.watchlistMeta}
                 >
-                  {product.sku} - On hand {product.stock} / Min {product.minStock}
+                  {t('inventory.watchlist.meta', {
+                    sku: product.sku,
+                    stock: product.stock,
+                    minStock: product.minStock,
+                  })}
                 </Typography.Paragraph>
               </div>
 
               <Tag className={`${tagStyles.stockTag} ${tagStyles.lowStock}`}>
-                Action needed
+                {t('inventory.watchlist.actionNeeded')}
               </Tag>
             </div>
           ))}
@@ -34,7 +41,7 @@ export function InventoryWatchlist({ lowStockItems }: InventoryWatchlistProps) {
         <div className="panel-empty">
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="No low stock items"
+            description={t('inventory.watchlist.empty')}
           />
         </div>
       )}

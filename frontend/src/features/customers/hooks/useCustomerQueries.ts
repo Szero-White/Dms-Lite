@@ -1,4 +1,5 @@
 import { App } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../../lib/queryKeys';
 import { getErrorMessage } from '../../../lib/format';
@@ -14,10 +15,12 @@ import { CustomerFormValues } from '../types/customer.types';
 function useMutationFeedback() {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
+  const { t } = useTranslation();
 
   return {
     queryClient,
     message,
+    t,
     onError(error: unknown) {
       message.error(getErrorMessage(error));
     },
@@ -41,12 +44,12 @@ export function useCustomerDebtStatement(customerId?: number) {
 }
 
 export function useCreateCustomer() {
-  const { queryClient, message, onError } = useMutationFeedback();
+  const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: (payload: CustomerFormValues) => createCustomer(payload),
     onSuccess: async () => {
-      message.success('Customer created.');
+      message.success(t('toast.customer.created'));
       await queryClient.invalidateQueries({ queryKey: queryKeys.customers });
     },
     onError,
@@ -54,7 +57,7 @@ export function useCreateCustomer() {
 }
 
 export function useUpdateCustomer() {
-  const { queryClient, message, onError } = useMutationFeedback();
+  const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: ({
@@ -65,7 +68,7 @@ export function useUpdateCustomer() {
       payload: CustomerFormValues;
     }) => updateCustomer(customerId, payload),
     onSuccess: async () => {
-      message.success('Customer updated.');
+      message.success(t('toast.customer.updated'));
       await queryClient.invalidateQueries({ queryKey: queryKeys.customers });
     },
     onError,
@@ -73,12 +76,12 @@ export function useUpdateCustomer() {
 }
 
 export function useDeleteCustomer() {
-  const { queryClient, message, onError } = useMutationFeedback();
+  const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: (customerId: number) => deleteCustomer(customerId),
     onSuccess: async () => {
-      message.success('Customer deleted.');
+      message.success(t('toast.customer.deleted'));
       await queryClient.invalidateQueries({ queryKey: queryKeys.customers });
     },
     onError,

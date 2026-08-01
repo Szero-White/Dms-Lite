@@ -1,4 +1,5 @@
 import { InboxOutlined, AlertOutlined, CheckCircleOutlined, DollarOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../../../../lib/format';
 import type { ProductRow } from '../../../../products';
 import styles from './InventoryOverview.module.css';
@@ -16,27 +17,30 @@ export function InventoryOverview({
   products,
   totalUnits,
 }: InventoryOverviewProps) {
+  const { i18n, t } = useTranslation();
+  const numberLocale = i18n.resolvedLanguage === 'vi' ? 'vi-VN' : 'en-US';
   const healthy = products.length - lowStockItems.length;
   const total = products.length || 1;
   const healthyPct = healthy / total;
+  const healthyPercent = Math.round(healthyPct * 100);
 
   const metrics = [
     {
-      label: 'Total Units',
-      value: totalUnits.toLocaleString('vi-VN'),
+      label: t('inventory.overview.totalUnits'),
+      value: totalUnits.toLocaleString(numberLocale),
       icon: <InboxOutlined />,
       color: '#6366f1',
       bgColor: '#eef2ff',
     },
     {
-      label: 'Inventory Value',
+      label: t('inventory.overview.inventoryValue'),
       value: formatCurrency(inventoryValue),
       icon: <DollarOutlined />,
       color: '#10b981',
       bgColor: '#ecfdf5',
     },
     {
-      label: 'Total SKUs',
+      label: t('inventory.overview.totalSkus'),
       value: products.length.toString(),
       icon: <CheckCircleOutlined />,
       color: '#f59e0b',
@@ -46,7 +50,6 @@ export function InventoryOverview({
 
   return (
     <div className={styles.overviewContainer}>
-      {/* Metrics Grid - original layout with colored values */}
       <div className={styles.metricsGrid}>
         {metrics.map((metric) => (
           <div key={metric.label} className={styles.metricCard}>
@@ -61,26 +64,24 @@ export function InventoryOverview({
         ))}
       </div>
 
-      {/* Health & Alerts Row */}
       <div className={styles.healthAlertsRow}>
-        {/* Stock Health Card */}
         <div className={styles.healthCard}>
           <div className={styles.cardHeader}>
-            <h3 className={styles.cardTitle}>Stock Health</h3>
+            <h3 className={styles.cardTitle}>{t('inventory.overview.stockHealth')}</h3>
             <div className={styles.healthBadge} style={{ background: healthyPct > 0.7 ? '#ecfdf5' : '#fef2f2', color: healthyPct > 0.7 ? '#059669' : '#dc2626' }}>
-              {Math.round(healthyPct * 100)}% Healthy
+              {t('inventory.overview.healthyPercent', { percent: healthyPercent })}
             </div>
           </div>
           <div className={styles.healthContent}>
             <div className={styles.healthStats}>
               <div className={styles.healthStat}>
                 <span className={styles.healthStatValue} style={{ color: '#10b981' }}>{healthy}</span>
-                <span className={styles.healthStatLabel}>Healthy</span>
+                <span className={styles.healthStatLabel}>{t('inventory.overview.healthy')}</span>
               </div>
               <div className={styles.healthStatDivider} />
               <div className={styles.healthStat}>
                 <span className={styles.healthStatValue} style={{ color: '#f97316' }}>{lowStockItems.length}</span>
-                <span className={styles.healthStatLabel}>Low Stock</span>
+                <span className={styles.healthStatLabel}>{t('inventory.overview.lowStock')}</span>
               </div>
             </div>
             <div className={styles.healthProgress}>
@@ -89,7 +90,7 @@ export function InventoryOverview({
                   className={styles.healthBarFill}
                   style={{
                     width: `${healthyPct * 100}%`,
-                    background: `linear-gradient(90deg, #10b981, #34d399)`,
+                    background: 'linear-gradient(90deg, #10b981, #34d399)',
                   }}
                 />
               </div>
@@ -97,11 +98,10 @@ export function InventoryOverview({
           </div>
         </div>
 
-        {/* Restock Alerts Card */}
         <div className={styles.alertsCard}>
           <div className={styles.cardHeader}>
             <h3 className={styles.cardTitle}>
-              <AlertOutlined /> Needs Restock
+              <AlertOutlined /> {t('inventory.overview.needsRestock')}
             </h3>
             {lowStockItems.length > 0 && (
               <span className={styles.alertCountBadge}>{lowStockItems.length}</span>
@@ -110,7 +110,7 @@ export function InventoryOverview({
           {lowStockItems.length === 0 ? (
             <div className={styles.alertEmpty}>
               <CheckCircleOutlined className={styles.alertEmptyIcon} />
-              <span>All products healthy</span>
+              <span>{t('inventory.overview.allProductsHealthy')}</span>
             </div>
           ) : (
             <div className={styles.alertList}>
@@ -146,7 +146,7 @@ export function InventoryOverview({
               })}
               {lowStockItems.length > 5 && (
                 <div className={styles.alertMore}>
-                  +{lowStockItems.length - 5} more items
+                  {t('inventory.overview.moreItems', { count: lowStockItems.length - 5 })}
                 </div>
               )}
             </div>

@@ -1,6 +1,8 @@
 import { SearchOutlined } from '@ant-design/icons';
 import { Button, Card, Input, Progress, Select, Table, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
+import { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { formatDateTime, toNumber } from '../../../../../lib/format';
 import type { ProductRow } from '../../../../products';
 import type { StockFilter } from '../inventoryPage.types';
@@ -20,11 +22,12 @@ interface InventoryStockTableProps {
 
 const stockColumns = (
   latestMovementByProduct: Map<number, string>,
+  t: TFunction,
 ): TableColumnsType<ProductRow> => [
-  { title: 'SKU', dataIndex: 'sku', width: 120 },
-  { title: 'Product', dataIndex: 'name', width: 220 },
+  { title: t('inventory.column.sku'), dataIndex: 'sku', width: 120 },
+  { title: t('inventory.column.product'), dataIndex: 'name', width: 220 },
   {
-    title: 'On Hand',
+    title: t('inventory.column.onHand'),
     dataIndex: 'stock',
     width: 120,
     render: (value, record) => {
@@ -44,9 +47,9 @@ const stockColumns = (
       );
     },
   },
-  { title: 'Minimum', dataIndex: 'minStock', width: 100 },
+  { title: t('inventory.column.minimum'), dataIndex: 'minStock', width: 100 },
   {
-    title: 'Last Movement',
+    title: t('inventory.column.lastMovement'),
     width: 170,
     render: (_, record) => {
       const lastMovement = latestMovementByProduct.get(record.id);
@@ -55,7 +58,7 @@ const stockColumns = (
     },
   },
   {
-    title: 'Status',
+    title: t('common.status'),
     width: 120,
     render: (_, record) => (
       <Tag
@@ -63,7 +66,7 @@ const stockColumns = (
           record.isLowStock ? tagStyles.lowStock : tagStyles.healthy
         }`}
       >
-        {record.isLowStock ? 'LOW STOCK' : 'HEALTHY'}
+        {record.isLowStock ? t('status.product.lowStock') : t('inventory.status.healthy')}
       </Tag>
     ),
   },
@@ -79,14 +82,16 @@ export function InventoryStockTable({
   onStockFilterChange,
   stockFilter,
 }: InventoryStockTableProps) {
+  const { t } = useTranslation();
+
   return (
-    <Card className={`panel-card ${styles.stockCard}`} title="Stock by Product">
+    <Card className={`panel-card ${styles.stockCard}`} title={t('inventory.stock.title')}>
       <div className={styles.toolbar}>
         <Input
           allowClear
           className={styles.search}
           prefix={<SearchOutlined />}
-          placeholder="Search product, SKU, barcode"
+          placeholder={t('inventory.stock.searchPlaceholder')}
           value={keyword}
           onChange={(event) => onKeywordChange(event.target.value)}
         />
@@ -95,13 +100,13 @@ export function InventoryStockTable({
           value={stockFilter}
           onChange={onStockFilterChange}
           options={[
-            { value: 'ALL', label: 'All stock states' },
-            { value: 'HEALTHY', label: 'Healthy stock' },
-            { value: 'LOW', label: 'Low stock' },
+            { value: 'ALL', label: t('inventory.stock.allStates') },
+            { value: 'HEALTHY', label: t('products.filters.healthyStock') },
+            { value: 'LOW', label: t('status.product.lowStock') },
           ]}
         />
         <Button disabled={!hasFilters} onClick={clearFilters}>
-          Clear
+          {t('common.clearFilters')}
         </Button>
       </div>
       <Table
@@ -110,12 +115,14 @@ export function InventoryStockTable({
         sticky
         scroll={{ x: 820, y: 520 }}
         locale={{
-          emptyText: hasFilters ? 'No inventory matches these filters' : 'No stock data',
+          emptyText: hasFilters
+            ? t('inventory.stock.noFiltered')
+            : t('inventory.stock.noData'),
         }}
         dataSource={filteredProducts}
         pagination={false}
         rowClassName={(record) => (record.isLowStock ? styles.lowStockRow : '')}
-        columns={stockColumns(latestMovementByProduct)}
+        columns={stockColumns(latestMovementByProduct, t)}
       />
     </Card>
   );

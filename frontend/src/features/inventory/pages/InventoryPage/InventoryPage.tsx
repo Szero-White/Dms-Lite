@@ -1,6 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Col, Form, Row } from 'antd';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { useProducts } from '../../../../features/products';
@@ -20,6 +21,7 @@ import type { StockFilter } from './inventoryPage.types';
 import styles from './InventoryPage.module.css';
 
 export function InventoryPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canManageInventory = hasPermission(user, PERMISSIONS.INVENTORY_MANAGE);
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
@@ -94,15 +96,15 @@ export function InventoryPage() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title="Inventory"
-        subtitle="Monitor on-hand stock, low-stock warnings, and movement history."
+        title={t('inventory.title')}
+        subtitle={t('inventory.subtitle')}
         extra={canManageInventory ? (
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={handleOpenReceiveModal}
           >
-            Receive Stock
+            {t('inventory.action.receiveStock')}
           </Button>
         ) : null}
       />
@@ -112,8 +114,8 @@ export function InventoryPage() {
         isError={productsQuery.isError || historyQuery.isError}
         error={productsQuery.error || historyQuery.error}
         hasData={Boolean(productsQuery.data?.length)}
-        emptyTitle="No inventory products yet"
-        emptyDescription="Create products before receiving and monitoring inventory."
+        emptyTitle={t('inventory.title')}
+        emptyDescription={t('inventory.empty.description')}
         onRetry={() => {
           void Promise.all([productsQuery.refetch(), historyQuery.refetch()]);
         }}

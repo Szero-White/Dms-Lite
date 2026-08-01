@@ -20,6 +20,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { QueryState } from '../../../../../../components/common/QueryState';
 import { CustomerDebtTag } from '../../../../../../components/common/StatusTag';
@@ -71,6 +72,7 @@ export function CustomersTableCard({
   queryError,
 }: CustomersTableCardProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <Card className={`panel-card ${styles.tableCard}`}>
@@ -80,7 +82,7 @@ export function CustomersTableCard({
             allowClear
             className={styles.search}
             prefix={<SearchOutlined />}
-            placeholder="Search customer, phone, address"
+            placeholder={t('customers.filters.searchPlaceholder')}
             value={keyword}
             onChange={(event) => onKeywordChange(event.target.value)}
           />
@@ -89,9 +91,9 @@ export function CustomersTableCard({
             value={activeFilter}
             onChange={onActiveFilterChange}
             options={[
-              { value: 'ALL', label: 'All statuses' },
-              { value: 'ACTIVE', label: 'Active' },
-              { value: 'INACTIVE', label: 'Inactive' },
+              { value: 'ALL', label: t('customers.filters.allStatuses') },
+              { value: 'ACTIVE', label: t('common.active') },
+              { value: 'INACTIVE', label: t('common.inactive') },
             ]}
           />
           <Select
@@ -99,9 +101,9 @@ export function CustomersTableCard({
             value={debtFilter}
             onChange={onDebtFilterChange}
             options={[
-              { value: 'ALL', label: 'All debt states' },
-              { value: 'WITH_DEBT', label: 'Outstanding debt' },
-              { value: 'CLEAR', label: 'Clear balance' },
+              { value: 'ALL', label: t('customers.filters.allDebtStates') },
+              { value: 'WITH_DEBT', label: t('customers.filters.withDebt') },
+              { value: 'CLEAR', label: t('customers.filters.clearBalance') },
             ]}
           />
           <Select
@@ -109,14 +111,14 @@ export function CustomersTableCard({
             value={creditFilter}
             onChange={onCreditFilterChange}
             options={[
-              { value: 'ALL', label: 'All credit usage' },
-              { value: 'NEAR_LIMIT', label: '80%+ credit used' },
-              { value: 'OVER_LIMIT', label: 'Over credit limit' },
+              { value: 'ALL', label: t('customers.filters.allCreditUsage') },
+              { value: 'NEAR_LIMIT', label: t('customers.filters.nearLimit') },
+              { value: 'OVER_LIMIT', label: t('customers.filters.overLimit') },
             ]}
           />
         </div>
         <Button disabled={!hasFilters} onClick={onClearFilters}>
-          Clear filters
+          {t('common.clearFilters')}
         </Button>
       </div>
 
@@ -125,13 +127,21 @@ export function CustomersTableCard({
         isError={isError}
         error={queryError}
         hasData={filteredCustomers.length > 0}
-        emptyTitle={hasFilters ? 'No customers match these filters' : 'No customers yet'}
+        emptyTitle={
+          hasFilters
+            ? t('customers.empty.filteredTitle')
+            : t('customers.empty.title')
+        }
         emptyDescription={
           hasFilters
-            ? 'Adjust or clear filters to view additional customer profiles.'
-            : 'Create the first customer to begin managing orders and receivables.'
+            ? t('customers.empty.filteredDescription')
+            : t('customers.empty.description')
         }
-        emptyAction={hasFilters ? <Button onClick={onClearFilters}>Clear filters</Button> : null}
+        emptyAction={
+          hasFilters ? (
+            <Button onClick={onClearFilters}>{t('common.clearFilters')}</Button>
+          ) : null
+        }
         onRetry={onRetry}
       >
         <Table
@@ -147,7 +157,7 @@ export function CustomersTableCard({
           }}
           columns={[
             {
-              title: 'Customer',
+              title: t('customers.column.customer'),
               fixed: 'left',
               width: 300,
               ellipsis: true,
@@ -161,22 +171,32 @@ export function CustomersTableCard({
                         record.active ? styles.active : styles.inactive
                       }`}
                     >
-                      {record.active ? 'ACTIVE' : 'INACTIVE'}
+                      {record.active ? t('common.active') : t('common.inactive')}
                     </Tag>
                   </div>
                 </div>
               ),
             },
-            { title: 'Phone', dataIndex: 'phone', width: 170, ellipsis: true },
-            { title: 'Address', dataIndex: 'address', width: 260, ellipsis: true },
             {
-              title: 'Payment Term',
-              dataIndex: 'paymentTermDays',
-              width: 150,
-              render: (value) => `${value} days`,
+              title: t('customers.column.phone'),
+              dataIndex: 'phone',
+              width: 170,
+              ellipsis: true,
             },
             {
-              title: 'Credit Usage',
+              title: t('customers.column.address'),
+              dataIndex: 'address',
+              width: 260,
+              ellipsis: true,
+            },
+            {
+              title: t('customers.column.paymentTerm'),
+              dataIndex: 'paymentTermDays',
+              width: 150,
+              render: (value) => t('customers.paymentTermDays', { count: value }),
+            },
+            {
+              title: t('customers.column.creditUsage'),
               width: 240,
               render: (_, record) => {
                 const debt = toNumber(record.debtBalance);
@@ -187,7 +207,13 @@ export function CustomersTableCard({
                   <div className={styles.creditUsage}>
                     <div>
                       <span>{formatCurrency(debt)}</span>
-                      <span>{limit > 0 ? `of ${formatCurrency(limit)}` : 'No credit limit'}</span>
+                      <span>
+                        {limit > 0
+                          ? t('customers.creditUsage.ofLimit', {
+                              amount: formatCurrency(limit),
+                            })
+                          : t('customers.creditUsage.noLimit')}
+                      </span>
                     </div>
                     <Progress
                       percent={Math.min(percent, 100)}
@@ -202,7 +228,7 @@ export function CustomersTableCard({
               },
             },
             {
-              title: 'Debt Balance',
+              title: t('customers.column.debtBalance'),
               dataIndex: 'debtBalance',
               width: 190,
               render: (value) => (
@@ -217,43 +243,43 @@ export function CustomersTableCard({
               ),
             },
             {
-              title: 'Actions',
+              title: t('common.actions'),
               fixed: 'right',
               width: 136,
               render: (_, record) => (
                 <Space size={4} className={styles.rowActions}>
-                  <Tooltip title="View customer">
+                  <Tooltip title={t('customers.action.view')}>
                     <Button
                       type="text"
                       icon={<EyeOutlined />}
-                      aria-label={`View ${record.name}`}
+                      aria-label={t('customers.action.viewAria', { name: record.name })}
                       onClick={() => navigate(`/customers/${record.id}`)}
                     />
                   </Tooltip>
                   {canManageCustomers ? (
                     <>
-                      <Tooltip title="Edit customer">
+                      <Tooltip title={t('customers.action.edit')}>
                         <Button
                           type="text"
                           icon={<EditOutlined />}
-                          aria-label={`Edit ${record.name}`}
+                          aria-label={t('customers.action.editAria', { name: record.name })}
                           onClick={() => onEditCustomer(record)}
                         />
                       </Tooltip>
                       <Popconfirm
-                        title="Delete customer?"
-                        description="Customers with outstanding debt cannot be deleted."
-                        okText="Delete"
+                        title={t('customers.delete.title')}
+                        description={t('customers.delete.description')}
+                        okText={t('common.delete')}
                         okButtonProps={{ danger: true }}
                         onConfirm={() => onDeleteCustomer(record.id)}
                       >
-                        <Tooltip title="Delete customer">
+                        <Tooltip title={t('customers.action.delete')}>
                           <Button
                             danger
                             type="text"
                             icon={<DeleteOutlined />}
                             loading={deletingCustomerId === record.id}
-                            aria-label={`Delete ${record.name}`}
+                            aria-label={t('customers.action.deleteAria', { name: record.name })}
                           />
                         </Tooltip>
                       </Popconfirm>
@@ -263,9 +289,17 @@ export function CustomersTableCard({
                     trigger={['click']}
                     menu={{
                       items: [
-                        { key: 'view', icon: <EyeOutlined />, label: 'View detail' },
+                        {
+                          key: 'view',
+                          icon: <EyeOutlined />,
+                          label: t('customers.action.viewDetail'),
+                        },
                         ...(canManageCustomers ? [
-                          { key: 'edit', icon: <EditOutlined />, label: 'Edit customer' },
+                          {
+                            key: 'edit',
+                            icon: <EditOutlined />,
+                            label: t('customers.action.edit'),
+                          },
                         ] : []),
                       ],
                       onClick: ({ key }) => {
@@ -281,7 +315,7 @@ export function CustomersTableCard({
                     <Button
                       type="text"
                       icon={<MoreOutlined />}
-                      aria-label={`More actions for ${record.name}`}
+                      aria-label={t('customers.action.moreAria', { name: record.name })}
                     />
                   </Dropdown>
                 </Space>

@@ -1,4 +1,5 @@
 import { Button, Drawer, Form, Input, InputNumber, Typography } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { ProductFormValues, ProductRow } from '../../types/product.types';
 import styles from './ProductFormDrawer.module.css';
 
@@ -18,10 +19,11 @@ export function ProductFormDrawer({
   submitting,
 }: ProductFormDrawerProps) {
   const [form] = Form.useForm<ProductFormValues>();
+  const { t } = useTranslation();
 
   return (
     <Drawer
-      title={product ? 'Edit Product' : 'Create Product'}
+      title={product ? t('products.form.editTitle') : t('products.form.createTitle')}
       width={420}
       rootClassName={styles.drawer}
       open={open}
@@ -50,62 +52,66 @@ export function ProductFormDrawer({
       }}
       footer={
         <div className={styles.footer}>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{t('common.cancel')}</Button>
           <Button
             type="primary"
             loading={submitting}
             onClick={() => form.submit()}
           >
-            Save
+            {t('common.save')}
           </Button>
         </div>
       }
     >
       <Form form={form} layout="vertical" onFinish={onSubmit}>
         <div className={styles.sectionHeading}>
-          <Typography.Text strong>Product Identity</Typography.Text>
-          <Typography.Text type="secondary">Catalog code and customer-facing information</Typography.Text>
+          <Typography.Text strong>{t('products.form.identityTitle')}</Typography.Text>
+          <Typography.Text type="secondary">
+            {t('products.form.identitySubtitle')}
+          </Typography.Text>
         </div>
         <Form.Item
-          label="SKU"
+          label={t('products.form.sku')}
           name="sku"
-          rules={[{ required: true, message: 'SKU is required' }]}
+          rules={[{ required: true, message: t('products.form.skuRequired') }]}
         >
-          <Input placeholder="Ex: WATER-24" />
+          <Input placeholder={t('products.form.skuPlaceholder')} />
         </Form.Item>
         <Form.Item
-          label="Name"
+          label={t('products.form.name')}
           name="name"
-          rules={[{ required: true, message: 'Name is required' }]}
+          rules={[{ required: true, message: t('products.form.nameRequired') }]}
         >
-          <Input placeholder="Product name" />
+          <Input placeholder={t('products.form.namePlaceholder')} />
         </Form.Item>
-        <Form.Item label="Barcode" name="barcode">
-          <Input placeholder="Optional barcode" />
+        <Form.Item label={t('products.form.barcode')} name="barcode">
+          <Input placeholder={t('products.form.barcodePlaceholder')} />
         </Form.Item>
 
         <div className={styles.sectionHeading}>
-          <Typography.Text strong>Pricing & Stock Policy</Typography.Text>
-          <Typography.Text type="secondary">Commercial value and replenishment threshold</Typography.Text>
+          <Typography.Text strong>{t('products.form.pricingTitle')}</Typography.Text>
+          <Typography.Text type="secondary">
+            {t('products.form.pricingSubtitle')}
+          </Typography.Text>
         </div>
         <Form.Item
-          label="Cost Price"
+          label={t('products.form.costPrice')}
           name="costPrice"
-          rules={[{ required: true, message: 'Cost price is required' }]}
+          rules={[{ required: true, message: t('products.form.costPriceRequired') }]}
         >
           <InputNumber className={styles.fullWidth} min={0} />
         </Form.Item>
         <Form.Item
-          label="Selling Price"
+          label={t('products.form.sellingPrice')}
           name="sellingPrice"
-          rules={[{ required: true, message: 'Selling price is required' }]}
+          rules={[{ required: true, message: t('products.form.sellingPriceRequired') }]}
         >
           <InputNumber className={styles.fullWidth} min={0} />
         </Form.Item>
         <Form.Item
-          label="Minimum Stock"
+          label={t('products.form.minimumStock')}
           name="minStock"
-          rules={[{ required: true, message: 'Minimum stock is required' }]}
+          rules={[{ required: true, message: t('products.form.minimumStockRequired') }]}
         >
           <InputNumber className={styles.fullWidth} min={0} />
         </Form.Item>

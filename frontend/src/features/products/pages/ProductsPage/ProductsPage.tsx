@@ -1,6 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { toNumber } from '../../../../lib/format';
 import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
@@ -17,6 +18,7 @@ import { ProductsTableCard } from './components/ProductsTableCard/ProductsTableC
 import styles from './ProductsPage.module.css';
 
 export function ProductsPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canManageProducts = hasPermission(user, PERMISSIONS.PRODUCT_MANAGE);
   const productsQuery = useProducts();
@@ -118,8 +120,8 @@ export function ProductsPage() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title="Products"
-        subtitle="Manage catalog, pricing and product availability."
+        title={t('products.title')}
+        subtitle={t('products.subtitle')}
         extra={canManageProducts ? (
           <Button
             type="primary"
@@ -129,7 +131,7 @@ export function ProductsPage() {
               setDrawerOpen(true);
             }}
           >
-            New Product
+            {t('products.action.new')}
           </Button>
         ) : null}
       />

@@ -5,6 +5,7 @@ import {
   WarningOutlined,
 } from '@ant-design/icons';
 import { Progress } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../../../../../lib/format';
 import styles from './ProductsScoreboard.module.css';
 
@@ -23,9 +24,11 @@ export function ProductsScoreboard({
   lowStockCount,
   totalProducts,
 }: ProductsScoreboardProps) {
+  const { t } = useTranslation();
   const total = totalProducts || 1;
   const activePct = activeCount / total;
   const circumference = 2 * Math.PI * 28;
+  const inactiveCount = totalProducts - activeCount;
   const healthyPct = totalProducts
     ? Math.round(((totalProducts - lowStockCount) / totalProducts) * 100)
     : 100;
@@ -38,7 +41,7 @@ export function ProductsScoreboard({
         </div>
         <div>
           <div className={styles.scoreHeroBig}>{totalProducts}</div>
-          <div className={styles.scoreHeroLbl}>Total SKUs</div>
+          <div className={styles.scoreHeroLbl}>{t('products.scoreboard.totalSkus')}</div>
         </div>
       </div>
 
@@ -73,11 +76,11 @@ export function ProductsScoreboard({
         <div className={styles.donutLegend}>
           <span>
             <span className={styles.dot} style={{ background: '#10b981' }} />
-            {activeCount} active
+            {t('products.scoreboard.activeCount', { count: activeCount })}
           </span>
           <span>
             <span className={styles.dot} style={{ background: '#e2e8f0' }} />
-            {totalProducts - activeCount} inactive
+            {t('products.scoreboard.inactiveCount', { count: inactiveCount })}
           </span>
         </div>
       </div>
@@ -99,7 +102,7 @@ export function ProductsScoreboard({
             {lowStockCount}
           </span>
         </div>
-        <div className={styles.scoreAlertLbl}>Low-stock SKUs</div>
+        <div className={styles.scoreAlertLbl}>{t('products.scoreboard.lowStockSkus')}</div>
         <Progress
           percent={healthyPct}
           showInfo={false}
@@ -115,14 +118,14 @@ export function ProductsScoreboard({
           <DollarOutlined style={{ color: '#8b5cf6', fontSize: 16 }} />
           <div>
             <div className={styles.scoreFinVal}>{formatCurrency(inventoryValue)}</div>
-            <div className={styles.scoreFinLbl}>Inventory value</div>
+            <div className={styles.scoreFinLbl}>{t('products.scoreboard.inventoryValue')}</div>
           </div>
         </div>
         <div className={styles.scoreFinRow}>
           <EditOutlined style={{ color: '#6366f1', fontSize: 16 }} />
           <div>
             <div className={styles.scoreFinVal}>{avgMargin.toFixed(1)}%</div>
-            <div className={styles.scoreFinLbl}>Avg. margin</div>
+            <div className={styles.scoreFinLbl}>{t('products.scoreboard.avgMargin')}</div>
           </div>
         </div>
       </div>

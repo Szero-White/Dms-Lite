@@ -16,6 +16,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../../components/common/QueryState';
 import { ProductStatusTag } from '../../../../../../components/common/StatusTag';
 import { formatCurrency, toNumber } from '../../../../../../lib/format';
@@ -69,6 +70,8 @@ export function ProductsTableCard({
   statusFilter,
   stockFilter,
 }: ProductsTableCardProps) {
+  const { t } = useTranslation();
+
   function openEditor(product: ProductRow) {
     if (!canManageProducts) {
       return;
@@ -86,7 +89,7 @@ export function ProductsTableCard({
             allowClear
             className={styles.search}
             prefix={<SearchOutlined />}
-            placeholder="Search SKU, name, barcode"
+            placeholder={t('products.filters.searchPlaceholder')}
             value={keyword}
             onChange={(event) => onKeywordChange(event.target.value)}
           />
@@ -95,9 +98,9 @@ export function ProductsTableCard({
             value={statusFilter}
             onChange={onStatusFilterChange}
             options={[
-              { value: 'ALL', label: 'All statuses' },
-              { value: 'ACTIVE', label: 'Active' },
-              { value: 'INACTIVE', label: 'Inactive' },
+              { value: 'ALL', label: t('products.filters.allStatuses') },
+              { value: 'ACTIVE', label: t('common.active') },
+              { value: 'INACTIVE', label: t('common.inactive') },
             ]}
           />
           <Select
@@ -105,9 +108,9 @@ export function ProductsTableCard({
             value={stockFilter}
             onChange={onStockFilterChange}
             options={[
-              { value: 'ALL', label: 'All stock health' },
-              { value: 'HEALTHY', label: 'Healthy stock' },
-              { value: 'LOW_STOCK', label: 'Low stock' },
+              { value: 'ALL', label: t('products.filters.allStockHealth') },
+              { value: 'HEALTHY', label: t('products.filters.healthyStock') },
+              { value: 'LOW_STOCK', label: t('status.product.lowStock') },
             ]}
           />
           <Select
@@ -115,16 +118,16 @@ export function ProductsTableCard({
             value={sortBy}
             onChange={onSortByChange}
             options={[
-              { value: 'DEFAULT', label: 'Default order' },
-              { value: 'NAME', label: 'Name A-Z' },
-              { value: 'STOCK_ASC', label: 'Stock low-high' },
-              { value: 'STOCK_DESC', label: 'Stock high-low' },
-              { value: 'PRICE_DESC', label: 'Selling price high-low' },
+              { value: 'DEFAULT', label: t('products.filters.defaultOrder') },
+              { value: 'NAME', label: t('products.filters.nameAsc') },
+              { value: 'STOCK_ASC', label: t('products.filters.stockAsc') },
+              { value: 'STOCK_DESC', label: t('products.filters.stockDesc') },
+              { value: 'PRICE_DESC', label: t('products.filters.priceDesc') },
             ]}
           />
         </div>
         <Button disabled={!hasFilters} onClick={onClearFilters}>
-          Clear filters
+          {t('common.clearFilters')}
         </Button>
       </div>
 
@@ -133,15 +136,19 @@ export function ProductsTableCard({
         isError={isError}
         error={productsError}
         hasData={filteredProducts.length > 0}
-        emptyTitle={hasFilters ? 'No products match these filters' : 'No products yet'}
+        emptyTitle={
+          hasFilters
+            ? t('products.empty.filteredTitle')
+            : t('products.empty.title')
+        }
         emptyDescription={
           hasFilters
-            ? 'Adjust or clear the active filters to see more products.'
-            : 'Create the first product to begin catalog and stock management.'
+            ? t('products.empty.filteredDescription')
+            : t('products.empty.description')
         }
         emptyAction={
           hasFilters ? (
-            <Button onClick={onClearFilters}>Clear filters</Button>
+            <Button onClick={onClearFilters}>{t('common.clearFilters')}</Button>
           ) : canManageProducts ? (
             <Button
               type="primary"
@@ -150,7 +157,7 @@ export function ProductsTableCard({
                 onSetDrawerOpen(true);
               }}
             >
-              New Product
+              {t('products.action.new')}
             </Button>
           ) : null
         }
@@ -167,7 +174,7 @@ export function ProductsTableCard({
           })}
           columns={[
             {
-              title: 'Product',
+              title: t('products.column.product'),
               fixed: 'left',
               width: 320,
               ellipsis: true,
@@ -177,20 +184,20 @@ export function ProductsTableCard({
                   <div>
                     <Typography.Text strong>{record.name}</Typography.Text>
                     <Typography.Text type="secondary">
-                      {record.barcode || 'No barcode'}
+                      {record.barcode || t('products.noBarcode')}
                     </Typography.Text>
                   </div>
                 </div>
               ),
             },
             {
-              title: 'SKU',
+              title: t('products.column.sku'),
               dataIndex: 'sku',
               width: 170,
               render: (value) => <span className={styles.sku}>{value}</span>,
             },
             {
-              title: 'Cost Price',
+              title: t('products.column.costPrice'),
               dataIndex: 'costPrice',
               align: 'right',
               width: 160,
@@ -199,7 +206,7 @@ export function ProductsTableCard({
               ),
             },
             {
-              title: 'Selling Price',
+              title: t('products.column.sellingPrice'),
               dataIndex: 'sellingPrice',
               align: 'right',
               width: 170,
@@ -208,7 +215,7 @@ export function ProductsTableCard({
               ),
             },
             {
-              title: 'Margin',
+              title: t('products.column.margin'),
               width: 110,
               align: 'right',
               render: (_, record) => {
@@ -222,7 +229,7 @@ export function ProductsTableCard({
               },
             },
             {
-              title: 'Stock Health',
+              title: t('products.column.stockHealth'),
               width: 210,
               render: (_, record) => {
                 const stockPercent =
@@ -234,7 +241,7 @@ export function ProductsTableCard({
                   <div className={styles.stockCell}>
                     <div>
                       <strong>{record.stock}</strong>
-                      <span> / min {record.minStock}</span>
+                      <span> / {t('products.minStockShort', { count: record.minStock })}</span>
                     </div>
                     <Progress
                       percent={stockPercent}
@@ -247,40 +254,40 @@ export function ProductsTableCard({
               },
             },
             {
-              title: 'Status',
+              title: t('common.status'),
               width: 150,
               render: (_, record) => (
                 <ProductStatusTag isLowStock={record.isLowStock} active={record.active} />
               ),
             },
             {
-              title: 'Actions',
+              title: t('common.actions'),
               fixed: 'right',
               width: 96,
               render: (_, record) => (canManageProducts ? (
                 <Space size={4} className={styles.rowActions}>
-                  <Tooltip title="Edit product">
+                  <Tooltip title={t('products.action.edit')}>
                     <Button
                       type="text"
                       icon={<EditOutlined />}
-                      aria-label={`Edit ${record.name}`}
+                      aria-label={t('products.action.editAria', { name: record.name })}
                       onClick={() => openEditor(record)}
                     />
                   </Tooltip>
                   <Popconfirm
-                    title="Delete product?"
-                    description="This hides the product from active lists."
-                    okText="Delete"
+                    title={t('products.delete.title')}
+                    description={t('products.delete.description')}
+                    okText={t('common.delete')}
                     okButtonProps={{ danger: true }}
                     onConfirm={() => onDeleteProduct(record.id)}
                   >
-                    <Tooltip title="Delete product">
+                    <Tooltip title={t('products.action.delete')}>
                       <Button
                         danger
                         type="text"
                         icon={<DeleteOutlined />}
                         loading={deletingProductId === record.id}
-                        aria-label={`Delete ${record.name}`}
+                        aria-label={t('products.action.deleteAria', { name: record.name })}
                       />
                     </Tooltip>
                   </Popconfirm>
@@ -293,6 +300,3 @@ export function ProductsTableCard({
     </Card>
   );
 }
-
-
-

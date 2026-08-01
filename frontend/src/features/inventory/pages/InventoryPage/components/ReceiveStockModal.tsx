@@ -1,5 +1,6 @@
 import { Form, Input, InputNumber, Modal, Select, Typography } from 'antd';
 import type { FormInstance } from 'antd';
+import { useTranslation } from 'react-i18next';
 import type { ProductRow } from '../../../../products';
 import { toNumber } from '../../../../../lib/format';
 import type { ReceiveStockPayload } from '../../../types/inventory.types';
@@ -28,26 +29,28 @@ export function ReceiveStockModal({
   receivedQuantity,
   selectedProduct,
 }: ReceiveStockModalProps) {
+  const { t } = useTranslation();
+
   return (
     <Modal
       rootClassName={styles.modal}
-      title="Receive Stock"
+      title={t('inventory.receive.title')}
       open={isOpen}
       onCancel={onCancel}
       onOk={onSubmit}
-      okText="Receive"
-      cancelText="Cancel"
+      okText={t('inventory.receive.ok')}
+      cancelText={t('common.cancel')}
       confirmLoading={isSubmitting}
       destroyOnClose
     >
       <Form form={form} layout="vertical" preserve={false}>
         <Form.Item
-          label="Warehouse"
+          label={t('inventory.receive.warehouse')}
           name="warehouseId"
           rules={[
             {
               required: true,
-              message: 'Please select a warehouse',
+              message: t('inventory.receive.selectWarehouseRequired'),
             },
           ]}
         >
@@ -56,25 +59,25 @@ export function ReceiveStockModal({
             options={[
               {
                 value: 1,
-                label: 'Main Warehouse',
+                label: t('inventory.receive.mainWarehouse'),
               },
             ]}
           />
         </Form.Item>
 
         <Form.Item
-          label="Product"
+          label={t('inventory.receive.product')}
           name="productId"
           rules={[
             {
               required: true,
-              message: 'Please select a product',
+              message: t('inventory.receive.selectProductRequired'),
             },
           ]}
         >
           <Select
             showSearch
-            placeholder="Select product"
+            placeholder={t('inventory.receive.productPlaceholder')}
             optionFilterProp="label"
             options={products.map((product) => ({
               value: product.id,
@@ -84,12 +87,12 @@ export function ReceiveStockModal({
         </Form.Item>
 
         <Form.Item
-          label="Quantity"
+          label={t('inventory.receive.quantity')}
           name="quantity"
           rules={[
             {
               required: true,
-              message: 'Please enter quantity',
+              message: t('inventory.receive.quantityRequired'),
             },
           ]}
         >
@@ -99,22 +102,22 @@ export function ReceiveStockModal({
         {selectedProduct ? (
           <div className={styles.stockProjection}>
             <div>
-              <Typography.Text type="secondary">Current stock</Typography.Text>
+              <Typography.Text type="secondary">{t('inventory.receive.currentStock')}</Typography.Text>
               <Typography.Text strong>{selectedProduct.stock}</Typography.Text>
             </div>
             <div>
-              <Typography.Text type="secondary">Quantity received</Typography.Text>
+              <Typography.Text type="secondary">{t('inventory.receive.quantityReceived')}</Typography.Text>
               <Typography.Text strong>{toNumber(receivedQuantity)}</Typography.Text>
             </div>
             <div>
-              <Typography.Text type="secondary">Projected stock</Typography.Text>
+              <Typography.Text type="secondary">{t('inventory.receive.projectedStock')}</Typography.Text>
               <Typography.Text strong>{projectedStock}</Typography.Text>
             </div>
           </div>
         ) : null}
 
-        <Form.Item label="Note" name="note">
-          <Input.TextArea rows={3} placeholder="Example: Initial stock receipt" />
+        <Form.Item label={t('inventory.receive.note')} name="note">
+          <Input.TextArea rows={3} placeholder={t('inventory.receive.notePlaceholder')} />
         </Form.Item>
       </Form>
     </Modal>
