@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../../../lib/queryKeys';
-import { enrichAuditLogs } from '../../../services/mockData';
 import { fetchAuditLogs } from '../api/auditService';
 
 export function useAuditLogs() {
@@ -8,7 +7,10 @@ export function useAuditLogs() {
     queryKey: queryKeys.auditLogs,
     queryFn: async () => {
       const page = await fetchAuditLogs();
-      return enrichAuditLogs(page.content);
+      return page.content.map((log) => ({
+        ...log,
+        actorName: log.actorName || (log.actorId ? `User #${log.actorId}` : 'System'),
+      }));
     },
   });
 }

@@ -14,4 +14,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     );
 
     Optional<Product> findByIdAndTenantIdAndDeletedAtIsNull(Long id, Long tenantId);
+
+    Optional<Product> findFirstByTenantIdAndDeletedAtIsNullAndSkuIgnoreCase(Long tenantId, String sku);
+
+    long countByTenantIdAndDeletedAtIsNull(Long tenantId);
 }

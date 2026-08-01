@@ -16,12 +16,24 @@ import {
   Typography,
 } from 'antd';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatDateTime } from '../../../../lib/format';
 import { useAuditLogs } from '../../hooks/useAuditQueries';
 import { AuditLogRow } from '../../types/audit.types';
 import styles from './AuditLogsPage.module.css';
+
+function fallbackAuditLabel(value?: string) {
+  if (!value) {
+    return '--';
+  }
+  return value
+    .toLowerCase()
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
 
 // colour pool for actor avatars
 const ACTOR_COLORS = [
@@ -34,6 +46,7 @@ const ACTOR_COLORS = [
 ];
 
 export function AuditLogsPage() {
+  const { t } = useTranslation();
   const auditQuery = useAuditLogs();
   const [actorFilter, setActorFilter]   = useState<string>('ALL');
   const [actionFilter, setActionFilter] = useState<string>('ALL');
@@ -44,20 +57,39 @@ export function AuditLogsPage() {
 
   const auditLogs = auditQuery.data ?? [];
 
+  function actorLabel(actorName: string) {
+    if (actorName === 'System') {
+      return t('audit.actor.system');
+    }
+    const match = actorName.match(/^User #(\d+)$/);
+    if (match) {
+      return t('audit.actor.unknownUser', { id: match[1] });
+    }
+    return actorName;
+  }
+
+  function actionLabel(action: string) {
+    return t(`audit.actions.${action}`, fallbackAuditLabel(action));
+  }
+
+  function entityLabel(entity: string) {
+    return t(`audit.entities.${entity}`, fallbackAuditLabel(entity));
+  }
+
   const actorOptions = useMemo(() => {
     const vals = [...new Set(auditLogs.map((i) => i.actorName))];
-    return [{ value: 'ALL', label: 'All actors' }, ...vals.map((v) => ({ value: v, label: v }))];
-  }, [auditLogs]);
+    return [{ value: 'ALL', label: t('audit.filters.allActors') }, ...vals.map((v) => ({ value: v, label: actorLabel(v) }))];
+  }, [auditLogs, t]);
 
   const actionOptions = useMemo(() => {
     const vals = [...new Set(auditLogs.map((i) => i.action))];
-    return [{ value: 'ALL', label: 'All actions' }, ...vals.map((v) => ({ value: v, label: v }))];
-  }, [auditLogs]);
+    return [{ value: 'ALL', label: t('audit.filters.allActions') }, ...vals.map((v) => ({ value: v, label: actionLabel(v) }))];
+  }, [auditLogs, t]);
 
   const entityOptions = useMemo(() => {
     const vals = [...new Set(auditLogs.map((i) => i.entityType))];
-    return [{ value: 'ALL', label: 'All entities' }, ...vals.map((v) => ({ value: v, label: v }))];
-  }, [auditLogs]);
+    return [{ value: 'ALL', label: t('audit.filters.allEntities') }, ...vals.map((v) => ({ value: v, label: entityLabel(v) }))];
+  }, [auditLogs, t]);
 
   // Actor activity breakdown
   const actorStats = useMemo(() => {
@@ -99,29 +131,24 @@ export function AuditLogsPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Audit Logs" subtitle="Trace who did what, to which entity, and when." />
-
-      {/* ── Overview strip ── */}
+      <PageHeader title={t('audit.title')} subtitle={t('audit.subtitle')} />
       <div className={styles.overviewStrip}>
-        {/* Total events */}
         <div className={styles.stripHero}>
           <div className={styles.stripHeroIcon}><AuditOutlined /></div>
           <div>
             <div className={styles.stripHeroBig}>{auditLogs.length.toLocaleString('vi-VN')}</div>
-            <div className={styles.stripHeroLbl}>Total audit events</div>
+            <div className={styles.stripHeroLbl}>{t('audit.summary.totalEvents')}</div>
           </div>
         </div>
 
         <div className={styles.stripDivider} />
-
-        {/* Actor leaderboard */}
         <div className={styles.stripActors}>
           <div className={styles.stripSectionTitle}>
-            <TeamOutlined /> Actor Activity
+            <TeamOutlined /> {t('audit.summary.actorActivity')}
           </div>
           <div className={styles.actorList}>
             {actorStats.length === 0 && (
-              <span className={styles.emptyNote}>No activity yet</span>
+              <span className={styles.emptyNote}>{t('audit.empty.noActivity')}</span>
             )}
             {actorStats.map(([actor, count], i) => (
               <div key={actor} className={styles.actorRow}>
@@ -131,7 +158,7 @@ export function AuditLogsPage() {
                 >
                   {actor.slice(0, 2).toUpperCase()}
                 </div>
-                <span className={styles.actorName}>{actor}</span>
+                <span className={styles.actorName}>{actorLabel(actor)}</span>
                 <div className={styles.actorBar}>
                   <div
                     className={styles.actorBarFill}
@@ -148,11 +175,9 @@ export function AuditLogsPage() {
         </div>
 
         <div className={styles.stripDivider} />
-
-        {/* Entity chips */}
         <div className={styles.stripEntities}>
           <div className={styles.stripSectionTitle}>
-            <ClockCircleOutlined /> Entity Coverage
+            <ClockCircleOutlined /> {t('audit.summary.entityCoverage')}
           </div>
           <div className={styles.entityChips}>
             {entityStats.map(([entity, count]) => (
@@ -162,16 +187,14 @@ export function AuditLogsPage() {
                 className={`${styles.entityChip} ${entityFilter === entity ? styles.entityChipActive : ''}`}
                 onClick={() => setEntityFilter(entityFilter === entity ? 'ALL' : entity)}
               >
-                {entity}
+                {entityLabel(entity)}
                 <span className={styles.entityChipCount}>{count}</span>
               </button>
             ))}
-            {entityStats.length === 0 && <span className={styles.emptyNote}>No entities yet</span>}
+            {entityStats.length === 0 && <span className={styles.emptyNote}>{t('audit.empty.noEntities')}</span>}
           </div>
         </div>
       </div>
-
-      {/* ── Table ── */}
       <Card className={`panel-card table-panel-card ${styles.auditCard}`}>
         <div className={styles.toolbar}>
           <div className={styles.filters}>
@@ -188,7 +211,7 @@ export function AuditLogsPage() {
               }}
             />
           </div>
-          <Button disabled={!hasFilters} onClick={clearFilters}>Clear filters</Button>
+          <Button disabled={!hasFilters} onClick={clearFilters}>{t('common.clearFilters')}</Button>
         </div>
 
         <QueryState
@@ -196,9 +219,9 @@ export function AuditLogsPage() {
           isError={auditQuery.isError}
           error={auditQuery.error}
           hasData={dataSource.length > 0}
-          emptyTitle={hasFilters ? 'No audit events match these filters' : 'No audit activity yet'}
-          emptyDescription={hasFilters ? 'Adjust or clear filters.' : 'System activity will appear here when actions are recorded.'}
-          emptyAction={hasFilters ? <Button onClick={clearFilters}>Clear filters</Button> : null}
+          emptyTitle={hasFilters ? t('audit.empty.filteredTitle') : t('audit.empty.title')}
+          emptyDescription={hasFilters ? t('audit.empty.filteredDescription') : t('audit.empty.description')}
+          emptyAction={hasFilters ? <Button onClick={clearFilters}>{t('common.clearFilters')}</Button> : null}
           onRetry={() => auditQuery.refetch()}
         >
           <Table<AuditLogRow>
@@ -209,55 +232,53 @@ export function AuditLogsPage() {
             dataSource={dataSource}
             columns={[
               {
-                title: 'Actor', dataIndex: 'actorName', width: 160,
+                title: t('audit.column.actor'), dataIndex: 'actorName', width: 180,
                 render: (v: string, _r, i) => (
                   <div className={styles.actorCell}>
                     <div className={styles.actorCellAvatar}
                       style={{ background: ACTOR_COLORS[actorStats.findIndex(([a]) => a === v) % ACTOR_COLORS.length] || ACTOR_COLORS[0] }}>
                       {v.slice(0, 2).toUpperCase()}
                     </div>
-                    <span>{v}</span>
+                    <span>{actorLabel(v)}</span>
                   </div>
                 ),
               },
               {
-                title: 'Action', dataIndex: 'action', width: 160,
-                render: (v: string) => <span className={styles.actionTag}>{v}</span>,
+                title: t('audit.column.action'), dataIndex: 'action', width: 180,
+                render: (v: string) => <span className={styles.actionTag}>{actionLabel(v)}</span>,
               },
-              { title: 'Entity',    dataIndex: 'entityType', width: 140 },
-              { title: 'Entity ID', dataIndex: 'entityId',   width: 90,  render: (v) => v ?? '--' },
+              { title: t('audit.column.entity'), dataIndex: 'entityType', width: 150, render: (v: string) => entityLabel(v) },
+              { title: t('audit.column.entityId'), dataIndex: 'entityId', width: 100, render: (v) => v ?? '--' },
               {
-                title: 'Change', dataIndex: 'newValue', width: 260,
+                title: t('audit.column.change'), dataIndex: 'newValue', width: 260,
                 render: (v?: string) => v
                   ? <Typography.Text className={styles.changePreview} ellipsis={{ tooltip: false }}>{v}</Typography.Text>
-                  : <span className={styles.noChange}>—</span>,
+                  : <span className={styles.noChange}>--</span>,
               },
-              { title: 'Time', dataIndex: 'createdAt', width: 180, render: (v) => formatDateTime(v) },
+              { title: t('audit.column.time'), dataIndex: 'createdAt', width: 180, render: (v) => formatDateTime(v) },
               {
                 title: '', fixed: 'right', width: 48,
                 render: (_, record) => (
-                  <Button type="text" icon={<EyeOutlined />} aria-label={`View ${record.id}`} onClick={() => setSelectedLog(record)} />
+                  <Button type="text" icon={<EyeOutlined />} aria-label={t('audit.action.viewLog', { id: record.id })} onClick={() => setSelectedLog(record)} />
                 ),
               },
             ]}
           />
         </QueryState>
       </Card>
-
-      {/* ── Detail drawer ── */}
-      <Drawer width={520} title="Audit Event Detail" open={Boolean(selectedLog)} onClose={() => setSelectedLog(null)}>
+      <Drawer width={520} title={t('audit.title')} open={Boolean(selectedLog)} onClose={() => setSelectedLog(null)}>
         {selectedLog && (
           <div className={styles.detailContent}>
             <Descriptions column={1} bordered size="small">
-              <Descriptions.Item label="Actor">{selectedLog.actorName}</Descriptions.Item>
-              <Descriptions.Item label="Action">{selectedLog.action}</Descriptions.Item>
-              <Descriptions.Item label="Entity">{selectedLog.entityType}</Descriptions.Item>
-              <Descriptions.Item label="Entity ID">{selectedLog.entityId ?? '--'}</Descriptions.Item>
-              <Descriptions.Item label="Time">{formatDateTime(selectedLog.createdAt)}</Descriptions.Item>
+              <Descriptions.Item label={t('audit.column.actor')}>{actorLabel(selectedLog.actorName)}</Descriptions.Item>
+              <Descriptions.Item label={t('audit.column.action')}>{actionLabel(selectedLog.action)}</Descriptions.Item>
+              <Descriptions.Item label={t('audit.column.entity')}>{entityLabel(selectedLog.entityType)}</Descriptions.Item>
+              <Descriptions.Item label={t('audit.column.entityId')}>{selectedLog.entityId ?? '--'}</Descriptions.Item>
+              <Descriptions.Item label={t('audit.column.time')}>{formatDateTime(selectedLog.createdAt)}</Descriptions.Item>
             </Descriptions>
             <div>
-              <Typography.Title level={5}>Recorded Change</Typography.Title>
-              <pre className={styles.changeDetail}>{selectedLog.newValue || 'No change payload recorded.'}</pre>
+              <Typography.Title level={5}>{t('audit.detail.recordedChange')}</Typography.Title>
+              <pre className={styles.changeDetail}>{selectedLog.newValue || t('audit.detail.noChangePayload')}</pre>
             </div>
           </div>
         )}

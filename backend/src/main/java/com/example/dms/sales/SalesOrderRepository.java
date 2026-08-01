@@ -12,4 +12,6 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
     Page<SalesOrder> findByTenantIdOrderByCreatedAtDesc(Long tenantId, Pageable pageable);
 
     long countByTenantId(Long tenantId);
+
+    Optional<SalesOrder> findFirstByTenantIdAndCodeIgnoreCase(Long tenantId, String code);
 }

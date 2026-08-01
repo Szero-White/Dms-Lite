@@ -14,4 +14,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     );
 
     Optional<Customer> findByIdAndTenantIdAndDeletedAtIsNull(Long id, Long tenantId);
+
+    long countByTenantIdAndDeletedAtIsNull(Long tenantId);
 }

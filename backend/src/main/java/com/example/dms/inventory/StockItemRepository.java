@@ -38,4 +38,6 @@ public interface StockItemRepository extends JpaRepository<StockItem, Long> {
         "order by (p.minStock - s.quantityOnHand) desc"
     )
     List<StockItem> lowStock(@Param("tenantId") Long tenantId, Pageable pageable);
+
+    List<StockItem> findByTenantIdAndProductId(Long tenantId, Long productId);
 }

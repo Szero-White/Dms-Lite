@@ -1,6 +1,7 @@
 export interface AuditLog {
   id: number;
   actorId?: number;
+  actorName?: string;
   action: string;
   entityType: string;
   entityId?: number;
