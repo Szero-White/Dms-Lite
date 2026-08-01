@@ -1,4 +1,5 @@
 import { App } from 'antd';
+import { useTranslation } from 'react-i18next';
 import {
   useMutation,
   useQuery,
@@ -30,10 +31,12 @@ export function useSalesOrders(options: { enabled?: boolean } = {}) {
 function useMutationFeedback() {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
+  const { t } = useTranslation();
 
   return {
     queryClient,
     message,
+    t,
     onError(error: unknown) {
       message.error(getErrorMessage(error));
     },
@@ -41,12 +44,12 @@ function useMutationFeedback() {
 }
 
 export function useCreateSalesOrder() {
-  const { queryClient, message, onError } = useMutationFeedback();
+  const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: (payload: CreateSalesOrderPayload) => createSalesOrder(payload),
     onSuccess: async () => {
-      message.success('Sales order created.');
+      message.success(t('toast.sales.created'));
       await queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders });
     },
     onError,
@@ -54,12 +57,12 @@ export function useCreateSalesOrder() {
 }
 
 export function useConfirmSalesOrder() {
-  const { queryClient, message, onError } = useMutationFeedback();
+  const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: (orderId: number) => confirmSalesOrder(orderId),
     onSuccess: async () => {
-      message.success('Sales order confirmed.');
+      message.success(t('toast.sales.confirmed'));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders }),
         queryClient.invalidateQueries({ queryKey: queryKeys.inventoryStock }),
@@ -74,12 +77,12 @@ export function useConfirmSalesOrder() {
 }
 
 export function useCancelSalesOrder() {
-  const { queryClient, message, onError } = useMutationFeedback();
+  const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: (orderId: number) => cancelSalesOrder(orderId),
     onSuccess: async () => {
-      message.success('Sales order cancelled.');
+      message.success(t('toast.sales.cancelled'));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders }),
         queryClient.invalidateQueries({ queryKey: queryKeys.notifications }),

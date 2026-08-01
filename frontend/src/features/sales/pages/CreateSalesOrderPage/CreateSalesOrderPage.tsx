@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   DeleteOutlined,
   PlusOutlined,
@@ -46,6 +47,7 @@ interface OrderFormValues {
 }
 
 export function CreateSalesOrderPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canConfirmSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CONFIRM);
   const navigate = useNavigate();
@@ -69,7 +71,7 @@ export function CreateSalesOrderPage() {
 
       return sum + toNumber(product.sellingPrice) * Number(item.quantity || 0);
     }, 0),
-    [productsQuery.data, watchedItems],
+    [productsQuery.data, t, watchedItems],
   );
 
   const discountTotal = useMemo(
@@ -86,16 +88,36 @@ export function CreateSalesOrderPage() {
     const quantity = Number(item?.quantity || 0);
 
     return product && quantity > product.stock
-      ? [`${product.name}: requested ${quantity}, available ${product.stock}`]
+      ? [t('sales.create.stockWarningItem', { name: product.name, quantity, stock: product.stock })]
       : [];
   });
 
+  function getAvailableStockForLine(productId: number | undefined, lineIndex: number) {
+    if (!productId) {
+      return 0;
+    }
+
+    const product = productsQuery.data?.find((candidate) => candidate.id === productId);
+    if (!product) {
+      return 0;
+    }
+
+    const reservedByOtherLines = watchedItems.reduce((sum, item, index) => {
+      if (index === lineIndex || item?.productId !== productId) {
+        return sum;
+      }
+
+      return sum + Number(item.quantity || 0);
+    }, 0);
+
+    return Math.max(product.stock - reservedByOtherLines, 0);
+  }
   return (
     <div className={styles.page}>
       <PageHeader
-        title="Create Sales Order"
-        subtitle="Build a multi-line order, preview settlement, and confirm right after creation."
-        breadcrumb={['Sales Orders', 'Create']}
+        title={t('sales.create.title')}
+        subtitle={t('sales.create.subtitle')}
+        breadcrumb={[t('sales.create.breadcrumbSalesOrders'), t('sales.create.breadcrumbCreate')]}
       />
 
       <QueryState
@@ -103,8 +125,8 @@ export function CreateSalesOrderPage() {
         isError={customersQuery.isError || productsQuery.isError}
         error={customersQuery.error || productsQuery.error}
         hasData={Boolean(customersQuery.data?.length && productsQuery.data?.length)}
-        emptyTitle="Customer and product data required"
-        emptyDescription="Create at least one customer and one active product before building a sales order."
+        emptyTitle={t('sales.create.title')}
+        emptyDescription={t('sales.create.emptyDescription')}
         onRetry={() => {
           customersQuery.refetch();
           productsQuery.refetch();
@@ -112,7 +134,7 @@ export function CreateSalesOrderPage() {
       >
         <Row gutter={[16, 16]} className={styles.orderGrid}>
           <Col xs={24} xl={16}>
-            <Card className={`panel-card ${styles.formCard}`} title="Order Details">
+            <Card className={`panel-card ${styles.formCard}`} title={t('sales.create.title')}>
               <Form
                 form={form}
                 layout="vertical"
@@ -136,101 +158,120 @@ export function CreateSalesOrderPage() {
                 }}
               >
                 <div className={styles.formSectionHeading}>
-                  <Typography.Text strong>Customer & Warehouse</Typography.Text>
+                  <Typography.Text strong>{t('sales.create.customerWarehouse')}</Typography.Text>
                   <Typography.Text type="secondary">
-                    Select the customer and review the fulfillment location.
+                    {t('sales.create.customerWarehouseHint')}
                   </Typography.Text>
                 </div>
 
                 <Form.Item
                   name="customerId"
-                  label="Customer"
+                  label={t('customers.column.customer')}
                   rules={[{ required: true }]}
                 >
                   <Select
-                    placeholder="Select customer"
+                    placeholder={t('payments.customerPlaceholder')}
                     options={(customersQuery.data ?? []).map((customer) => ({
                       value: customer.id,
-                      label: `${customer.name} \u2022 Debt ${formatCurrency(customer.debtBalance)}`,
+                      label: t('sales.create.customerDebtLabel', { name: customer.name, debt: formatCurrency(customer.debtBalance) }),
                     }))}
                   />
                 </Form.Item>
 
-                <Form.Item label="Warehouse">
+                <Form.Item label={t('sales.drawer.warehouse')}>
                   <Select
                     disabled
                     value={1}
-                    options={[{ value: 1, label: 'Main Warehouse' }]}
+                    options={[{ value: 1, label: t('inventory.receive.mainWarehouse') }]}
                   />
                 </Form.Item>
 
                 <div className={styles.formSectionHeading}>
-                  <Typography.Text strong>Order Items</Typography.Text>
+                  <Typography.Text strong>{t('sales.create.orderItems')}</Typography.Text>
                   <Typography.Text type="secondary">
-                    Add products, quantities and line-level discounts.
+                    {t('sales.create.orderItemsHint')}
                   </Typography.Text>
                 </div>
 
                 <Form.List name="items">
                   {(fields, { add, remove }) => (
                     <Space direction="vertical" className={styles.itemsStack} size={12}>
-                      {fields.map((field) => (
-                        <Card
-                          key={field.key}
-                          size="small"
-                          className={`line-item-card ${styles.lineItem}`}
-                        >
-                          <Row gutter={12}>
-                            <Col xs={24} md={10}>
-                              <Form.Item
-                                {...field}
-                                name={[field.name, 'productId']}
-                                label="Product"
-                                rules={[{ required: true }]}
-                              >
-                                <Select
-                                  placeholder="Choose product"
-                                  options={(productsQuery.data ?? []).map((product) => ({
-                                    value: product.id,
-                                    label: `${product.name} \u2022 ${formatCurrency(product.sellingPrice)} \u2022 Stock ${product.stock}`,
-                                  }))}
+                      {fields.map((field) => {
+                        const selectedProduct = productsQuery.data?.find(
+                          (product) => product.id === watchedItems[field.name]?.productId,
+                        );
+                        const availableStock = getAvailableStockForLine(selectedProduct?.id, field.name);
+
+                        return (
+                          <Card
+                            key={field.key}
+                            size="small"
+                            className={`line-item-card ${styles.lineItem}`}
+                          >
+                            <Row gutter={[12, 12]} align="bottom">
+                              <Col xs={24} xl={9}>
+                                <Form.Item
+                                  {...field}
+                                  name={[field.name, 'productId']}
+                                  label={t('inventory.column.product')}
+                                  rules={[{ required: true }]}
+                                >
+                                  <Select
+                                    placeholder={t('inventory.receive.productPlaceholder')}
+                                    options={(productsQuery.data ?? []).map((product) => ({
+                                      value: product.id,
+                                      label: t('sales.create.productLabel', { name: product.name, price: formatCurrency(product.sellingPrice), stock: product.stock }),
+                                    }))}
+                                  />
+                                </Form.Item>
+                              </Col>
+                              <Col xs={12} sm={8} xl={4}>
+                                <div className={styles.readonlyFieldGroup}>
+                                  <label className={styles.readonlyLabel}>{t('sales.create.availableStock')}</label>
+                                  <div className={styles.readonlyValue}>
+                                    {selectedProduct ? availableStock : '--'}
+                                  </div>
+                                </div>
+                              </Col>
+                              <Col xs={12} sm={8} xl={4}>
+                                <Form.Item
+                                  {...field}
+                                  name={[field.name, 'quantity']}
+                                  label={t('inventory.history.qty')}
+                                  rules={[{ required: true }]}
+                                >
+                                  <InputNumber
+                                    className={styles.fullWidth}
+                                    min={1}
+                                    max={selectedProduct ? availableStock : undefined}
+                                  />
+                                </Form.Item>
+                              </Col>
+                              <Col xs={12} sm={8} xl={5}>
+                                <Form.Item
+                                  {...field}
+                                  name={[field.name, 'discountAmount']}
+                                  label={t('sales.create.discount')}
+                                >
+                                  <InputNumber className={styles.fullWidth} min={0} />
+                                </Form.Item>
+                              </Col>
+                              <Col xs={12} sm={8} xl={2} className={styles.removeColumn}>
+                                <Button
+                                  danger
+                                  className={styles.removeButton}
+                                  icon={<DeleteOutlined />}
+                                  onClick={() => remove(field.name)}
+                                  disabled={fields.length === 1}
+                                  aria-label={t('sales.create.remove')}
                                 />
-                              </Form.Item>
-                            </Col>
-                            <Col xs={12} md={4}>
-                              <Form.Item
-                                {...field}
-                                name={[field.name, 'quantity']}
-                                label="Qty"
-                                rules={[{ required: true }]}
-                              >
-                                <InputNumber className={styles.fullWidth} min={1} />
-                              </Form.Item>
-                            </Col>
-                            <Col xs={12} md={6}>
-                              <Form.Item
-                                {...field}
-                                name={[field.name, 'discountAmount']}
-                                label="Discount"
-                              >
-                                <InputNumber className={styles.fullWidth} min={0} />
-                              </Form.Item>
-                            </Col>
-                            <Col xs={24} md={4} className={styles.removeColumn}>
-                              <Button
-                                danger
-                                icon={<DeleteOutlined />}
-                                onClick={() => remove(field.name)}
-                                disabled={fields.length === 1}
-                              >
-                                Remove
-                              </Button>
-                            </Col>
-                          </Row>
-                        </Card>
-                      ))}
+                              </Col>
+                            </Row>
+                          </Card>
+                        );
+                      })}
                       <Button icon={<PlusOutlined />} onClick={() => add({ quantity: 1, discountAmount: 0 })}>
-                        Add Product
+                        {t('sales.create.addProduct')}
                       </Button>
                     </Space>
                   )}
@@ -241,26 +282,26 @@ export function CreateSalesOrderPage() {
                     className={styles.stockAlert}
                     type="warning"
                     showIcon
-                    message="Requested quantity exceeds current stock"
+                    message={t('sales.create.stockWarningTitle')}
                     description={stockWarnings.join('; ')}
                   />
                 ) : null}
 
                 <div className={styles.formSectionHeading}>
-                  <Typography.Text strong>Payment</Typography.Text>
+                  <Typography.Text strong>{t('sales.create.payment')}</Typography.Text>
                   <Typography.Text type="secondary">
-                    Record the amount received now; the balance becomes debt.
+                    {t('sales.create.paymentHint')}
                   </Typography.Text>
                 </div>
 
-                <Form.Item name="paidAmount" label="Paid Amount" className={styles.paidField}>
+                <Form.Item name="paidAmount" label={t('sales.column.paid')} className={styles.paidField}>
                   <InputNumber className={styles.fullWidth} min={0} />
                 </Form.Item>
 
                 <Space>
-                  <Button onClick={() => navigate('/sales-orders')}>Back</Button>
+                  <Button onClick={() => navigate('/sales-orders')}>{t('sales.create.back')}</Button>
                   <Button type="primary" htmlType="submit" loading={createOrder.isPending}>
-                    Create Order
+                    {t('sales.action.createOrder')}
                   </Button>
                 </Space>
               </Form>
@@ -269,26 +310,26 @@ export function CreateSalesOrderPage() {
 
           <Col xs={24} xl={8}>
             <div className={styles.summaryColumn}>
-            <Card className={`panel-card ${styles.summaryCard}`} title="Order Summary">
+            <Card className={`panel-card ${styles.summaryCard}`} title={t('sales.create.title')}>
               <Space direction="vertical" size={10} className={styles.summaryList}>
                 <div className="flex-between">
-                  <Typography.Text>Subtotal</Typography.Text>
+                  <Typography.Text>{t('sales.create.subtotal')}</Typography.Text>
                   <Typography.Text strong>{formatCurrency(subtotal)}</Typography.Text>
                 </div>
                 <div className="flex-between">
-                  <Typography.Text>Discount</Typography.Text>
+                  <Typography.Text>{t('sales.create.discount')}</Typography.Text>
                   <Typography.Text strong>{formatCurrency(discountTotal)}</Typography.Text>
                 </div>
                 <div className={`${styles.summaryTotal} flex-between`}>
-                  <Typography.Text>Order Total</Typography.Text>
+                  <Typography.Text>{t('sales.create.orderTotal')}</Typography.Text>
                   <Typography.Text strong>{formatCurrency(orderTotal)}</Typography.Text>
                 </div>
                 <div className="flex-between">
-                  <Typography.Text>Paid Amount</Typography.Text>
+                  <Typography.Text>{t('sales.column.paid')}</Typography.Text>
                   <Typography.Text strong>{formatCurrency(paidAmount)}</Typography.Text>
                 </div>
                 <div className="flex-between">
-                  <Typography.Text>Debt Amount</Typography.Text>
+                  <Typography.Text>{t('sales.create.debtAmount')}</Typography.Text>
                   <Typography.Text
                     strong
                     className={debtAmount > 0 ? styles.debtAmount : undefined}
@@ -304,7 +345,7 @@ export function CreateSalesOrderPage() {
                 className={styles.successAlert}
                 type="success"
                 showIcon
-                message={`Order #${createdOrderId} created successfully`}
+                message={t('sales.create.createdSuccess', { id: createdOrderId })}
                 description={(
                   <Space direction="vertical">
                     {canConfirmSalesOrder ? (
@@ -313,16 +354,16 @@ export function CreateSalesOrderPage() {
                         loading={confirmOrder.isPending}
                         onClick={() => confirmOrder.mutate(createdOrderId)}
                       >
-                        Confirm Order Now
+                        {t('sales.create.confirmNow')}
                       </Button>
                     ) : null}
-                    <Button onClick={() => navigate('/sales-orders')}>Back to Orders</Button>
+                    <Button onClick={() => navigate('/sales-orders')}>{t('sales.create.backToOrders')}</Button>
                   </Space>
                 )}
               />
             ) : null}
 
-            <Card className="panel-card" title="Preview Lines">
+            <Card className="panel-card" title={t('sales.create.title')}>
               <Table
                 size="small"
                 pagination={false}
@@ -330,14 +371,20 @@ export function CreateSalesOrderPage() {
                 dataSource={watchedItems}
                 columns={[
                   {
-                    title: 'Product',
+                    title: t('inventory.column.product'),
                     render: (_, record) => (
                       productsQuery.data?.find((product) => product.id === record.productId)?.name || '--'
                     ),
                   },
-                  { title: 'Qty', dataIndex: 'quantity' },
+                  { title: t('inventory.history.qty'), dataIndex: 'quantity' },
                   {
-                    title: 'Line Total',
+                    title: t('sales.create.availableStock'),
+                    render: (_, record, index) => (
+                      record.productId ? getAvailableStockForLine(record.productId, index) : '--'
+                    ),
+                  },
+                  {
+                    title: t('sales.drawer.lineTotal'),
                     render: (_, record) => {
                       const product = productsQuery.data?.find(
                         (candidate) => candidate.id === record.productId,

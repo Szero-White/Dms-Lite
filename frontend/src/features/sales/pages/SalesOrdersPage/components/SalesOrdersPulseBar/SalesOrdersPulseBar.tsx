@@ -5,6 +5,7 @@ import {
   StopOutlined,
   TrophyOutlined,
 } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../../../../../lib/format';
 import styles from './SalesOrdersPulseBar.module.css';
 
@@ -37,11 +38,11 @@ export function SalesOrdersPulseBar({
   statusFilter,
   onStatusFilterChange,
 }: SalesOrdersPulseBarProps) {
+  const { t } = useTranslation();
   const activeArc = totalOrders > 0 ? (activeOrders / totalOrders) * 201 : 0;
 
   return (
     <div className={styles.pulseBar}>
-      {/* Hero Section */}
       <div className={styles.pulseHero}>
         <div className={styles.pulseRingWrap}>
           <svg viewBox="0 0 80 80" className={styles.pulseRing}>
@@ -66,23 +67,25 @@ export function SalesOrdersPulseBar({
           </svg>
           <div className={styles.pulseRingCenter}>
             <span className={styles.pulseRingNum}>{totalOrders}</span>
-            <span className={styles.pulseRingLbl}>total</span>
+            <span className={styles.pulseRingLbl}>{t('sales.pulse.total')}</span>
           </div>
         </div>
         <div className={styles.pulseHeroText}>
-          <div className={styles.pulseHeroTitle}>Sales Pipeline</div>
+          <div className={styles.pulseHeroTitle}>{t('sales.pulse.pipeline')}</div>
           <div className={styles.pulseHeroSub}>
-            {activeOrders} active - {totalOrders - activeOrders} inactive
+            {t('sales.pulse.activeInactive', {
+              active: activeOrders,
+              inactive: totalOrders - activeOrders,
+            })}
           </div>
         </div>
       </div>
 
       <div className={styles.pulseDivider} />
 
-      {/* Status Tiers */}
       <div className={styles.pulseTiers}>
-        <div className={styles.tierTitle}>Order Status</div>
-        
+        <div className={styles.tierTitle}>{t('sales.pulse.orderStatus')}</div>
+
         <button
           type="button"
           className={`${styles.tierRow} ${statusFilter === 'DRAFT' ? styles.tierActive : ''}`}
@@ -91,7 +94,7 @@ export function SalesOrdersPulseBar({
           <div className={styles.tierDot} style={{ background: '#f59e0b' }}>
             <ClockCircleOutlined />
           </div>
-          <span className={styles.tierLbl}>Draft</span>
+          <span className={styles.tierLbl}>{t('status.sales.DRAFT')}</span>
           <div className={styles.tierBar}>
             <div
               className={styles.tierFill}
@@ -112,7 +115,7 @@ export function SalesOrdersPulseBar({
           <div className={styles.tierDot} style={{ background: '#6366f1' }}>
             <CheckCircleOutlined />
           </div>
-          <span className={styles.tierLbl}>Confirmed</span>
+          <span className={styles.tierLbl}>{t('status.sales.CONFIRMED')}</span>
           <div className={styles.tierBar}>
             <div
               className={styles.tierFill}
@@ -133,7 +136,7 @@ export function SalesOrdersPulseBar({
           <div className={styles.tierDot} style={{ background: '#10b981' }}>
             <TrophyOutlined />
           </div>
-          <span className={styles.tierLbl}>Completed</span>
+          <span className={styles.tierLbl}>{t('status.sales.COMPLETED')}</span>
           <div className={styles.tierBar}>
             <div
               className={styles.tierFill}
@@ -154,7 +157,7 @@ export function SalesOrdersPulseBar({
           <div className={styles.tierDot} style={{ background: '#ef4444' }}>
             <StopOutlined />
           </div>
-          <span className={styles.tierLbl}>Cancelled</span>
+          <span className={styles.tierLbl}>{t('status.sales.CANCELLED')}</span>
           <div className={styles.tierBar}>
             <div
               className={styles.tierFill}
@@ -172,41 +175,40 @@ export function SalesOrdersPulseBar({
         <>
           <div className={styles.pulseDivider} />
 
-          {/* Financial Summary */}
           <div className={styles.pulseFinancial}>
-        <div className={styles.financialTitle}>Financial Overview</div>
-        
-        <div className={styles.financialRow}>
-          <div className={styles.financialIcon} style={{ background: '#eef2ff', color: '#6366f1' }}>
-            <DollarOutlined />
-          </div>
-          <div className={styles.financialContent}>
-            <span className={styles.financialLabel}>Total Revenue</span>
-            <span className={styles.financialValue}>{formatCurrency(totalRevenue)}</span>
-          </div>
-        </div>
+            <div className={styles.financialTitle}>{t('sales.pulse.financialOverview')}</div>
 
-        <div className={styles.financialRow}>
-          <div className={styles.financialIcon} style={{ background: '#ecfdf5', color: '#10b981' }}>
-            <DollarOutlined />
-          </div>
-          <div className={styles.financialContent}>
-            <span className={styles.financialLabel}>Paid Amount</span>
-            <span className={styles.financialValue}>{formatCurrency(paidAmount)}</span>
-          </div>
-        </div>
+            <div className={styles.financialRow}>
+              <div className={styles.financialIcon} style={{ background: '#eef2ff', color: '#6366f1' }}>
+                <DollarOutlined />
+              </div>
+              <div className={styles.financialContent}>
+                <span className={styles.financialLabel}>{t('sales.pulse.totalRevenue')}</span>
+                <span className={styles.financialValue}>{formatCurrency(totalRevenue)}</span>
+              </div>
+            </div>
 
-        <div className={styles.financialRow}>
-          <div className={styles.financialIcon} style={{ background: '#fef2f2', color: '#ef4444' }}>
-            <DollarOutlined />
-          </div>
-          <div className={styles.financialContent}>
-            <span className={styles.financialLabel}>Outstanding Debt</span>
-            <span className={`${styles.financialValue} ${outstandingDebt > 0 ? styles.debtValue : ''}`}>
-              {formatCurrency(outstandingDebt)}
-            </span>
-          </div>
-        </div>
+            <div className={styles.financialRow}>
+              <div className={styles.financialIcon} style={{ background: '#ecfdf5', color: '#10b981' }}>
+                <DollarOutlined />
+              </div>
+              <div className={styles.financialContent}>
+                <span className={styles.financialLabel}>{t('sales.pulse.paidAmount')}</span>
+                <span className={styles.financialValue}>{formatCurrency(paidAmount)}</span>
+              </div>
+            </div>
+
+            <div className={styles.financialRow}>
+              <div className={styles.financialIcon} style={{ background: '#fef2f2', color: '#ef4444' }}>
+                <DollarOutlined />
+              </div>
+              <div className={styles.financialContent}>
+                <span className={styles.financialLabel}>{t('sales.pulse.outstandingDebt')}</span>
+                <span className={`${styles.financialValue} ${outstandingDebt > 0 ? styles.debtValue : ''}`}>
+                  {formatCurrency(outstandingDebt)}
+                </span>
+              </div>
+            </div>
           </div>
         </>
       ) : null}

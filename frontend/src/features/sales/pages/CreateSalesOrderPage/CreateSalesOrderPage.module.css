@@ -47,13 +47,50 @@
 
 .lineItem :global(.ant-form-item) { margin-bottom: 0; }
 
+.readonlyFieldGroup {
+  display: grid;
+  gap: 8px;
+}
+
+.readonlyLabel {
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.readonlyValue {
+  height: 46px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 10px;
+  color: var(--color-text-primary);
+  background: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
 .removeColumn {
   display: flex;
   align-items: flex-end;
   padding-bottom: 0;
 }
 
+.removeColumn :global(.ant-btn) {
+  height: 46px;
+}
+
 .fullWidth { width: 100%; }
+
+.removeButton {
+  width: 46px;
+  min-width: 46px;
+  padding-inline: 0 !important;
+}
 
 .paidField { margin-top: 18px; }
 
@@ -113,5 +150,8 @@
 }
 
 @media (max-width: 767px) {
+
   .removeColumn { align-items: center; }
+
+  .removeButton { width: 100%; }
 }
