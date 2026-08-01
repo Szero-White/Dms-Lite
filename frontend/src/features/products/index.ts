@@ -1,5 +1,5 @@
-export { fetchProductRows } from './api/productService';
-export { useProducts } from './hooks/useProductQueries';
+export { fetchProductRows, fetchProductsContent } from './api/productService';
+export { useProductList, useProducts } from './hooks/useProductQueries';
 export { ProductsPage } from './pages/ProductsPage';
 export type {
   Product,

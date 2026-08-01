@@ -3,6 +3,7 @@ package com.example.dms.debt;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,10 +43,19 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
     @Query(
         "select debt " +
         "from CustomerDebtTransaction debt " +
-        "where debt.tenantId=:tenantId and debt.direction='INCREASE' and debt.remainingAmount>0 and debt.dueDate<:today"
+        "where debt.tenantId=:tenantId and debt.direction='INCREASE' " +
+        "and debt.remainingAmount>0 and debt.dueDate<:today " +
+        "order by debt.dueDate asc, debt.createdAt asc"
     )
     List<CustomerDebtTransaction> overdue(
         @Param("tenantId") Long tenantId,
-        @Param("today") LocalDate today
+        @Param("today") LocalDate today,
+        Pageable pageable
+    );
+
+    List<CustomerDebtTransaction> findByTenantIdAndSourceTypeOrderByCreatedAtDesc(
+        Long tenantId,
+        String sourceType,
+        Pageable pageable
     );
 }

@@ -24,10 +24,11 @@ function useMutationFeedback() {
   };
 }
 
-export function useCustomers() {
+export function useCustomers(options: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: queryKeys.customers,
     queryFn: () => fetchCustomersContent(),
+    enabled: options.enabled ?? true,
   });
 }
 

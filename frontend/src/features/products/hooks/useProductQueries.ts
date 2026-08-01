@@ -5,10 +5,15 @@ import { getErrorMessage } from '../../../lib/format';
 import {
   createProduct,
   deleteProduct,
+  fetchProductsContent,
   fetchProductRows,
   updateProduct,
 } from '../api/productService';
 import { ProductFormValues } from '../types/product.types';
+
+interface QueryOptions {
+  enabled?: boolean;
+}
 
 function useMutationFeedback() {
   const queryClient = useQueryClient();
@@ -23,10 +28,19 @@ function useMutationFeedback() {
   };
 }
 
-export function useProducts() {
+export function useProductList(options: QueryOptions = {}) {
   return useQuery({
     queryKey: queryKeys.products,
+    queryFn: () => fetchProductsContent(),
+    enabled: options.enabled ?? true,
+  });
+}
+
+export function useProducts(options: QueryOptions = {}) {
+  return useQuery({
+    queryKey: queryKeys.productRows,
     queryFn: fetchProductRows,
+    enabled: options.enabled ?? true,
   });
 }
 
@@ -39,6 +53,7 @@ export function useCreateProduct() {
       message.success('Product saved.');
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.products }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.productRows }),
         queryClient.invalidateQueries({ queryKey: queryKeys.dashboard }),
       ]);
     },
@@ -59,7 +74,10 @@ export function useUpdateProduct() {
     }) => updateProduct(productId, payload),
     onSuccess: async () => {
       message.success('Product updated.');
-      await queryClient.invalidateQueries({ queryKey: queryKeys.products });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.products }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.productRows }),
+      ]);
     },
     onError,
   });
@@ -74,6 +92,7 @@ export function useDeleteProduct() {
       message.success('Product deleted.');
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.products }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.productRows }),
         queryClient.invalidateQueries({ queryKey: queryKeys.dashboard }),
       ]);
     },

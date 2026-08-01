@@ -9,9 +9,15 @@ export async function fetchProducts(keyword = '') {
   );
 }
 
+export async function fetchProductsContent(keyword = '') {
+  const productsPage = await fetchProducts(keyword);
+
+  return productsPage.content;
+}
+
 export async function fetchProductRows() {
-  const [productsPage, stockItems] = await Promise.all([
-    fetchProducts(),
+  const [products, stockItems] = await Promise.all([
+    fetchProductsContent(),
     fetchInventoryStock(),
   ]);
 
@@ -19,7 +25,7 @@ export async function fetchProductRows() {
     stockItems.map((item) => [item.productId, item.quantityOnHand]),
   );
 
-  return productsPage.content.map((product): ProductRow => {
+  return products.map((product): ProductRow => {
     const stock = stockMap.get(product.id) ?? 0;
 
     return {

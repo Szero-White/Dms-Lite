@@ -1,25 +1,40 @@
-import { apiClient, unwrapResponse } from './apiClient';
-import type { DashboardSummary } from '../features/dashboard';
+﻿import { apiClient, unwrapResponse } from './apiClient';
+import type { DashboardSnapshot, DashboardSummary } from '../features/dashboard';
 
-export async function fetchDashboardSummary() {
-  return unwrapResponse<{
-    revenueToday: string | number;
-    revenueThisMonth: string | number;
-    totalReceivable: string | number;
-    productCount: number;
-  }>(apiClient.get('/reports/dashboard'));
-}
-
-export function normalizeDashboardSummary(summary: {
+interface DashboardResponse {
   revenueToday: string | number;
   revenueThisMonth: string | number;
   totalReceivable: string | number;
+  payableDebt: string | number;
+  lowStockItems: number;
   productCount: number;
-}): Partial<DashboardSummary> {
+  topCustomersByDebt: DashboardSnapshot['topCustomersByDebt'];
+  topSellingProducts: DashboardSnapshot['topSellingProducts'];
+}
+
+export async function fetchDashboardSnapshot() {
+  const response = await unwrapResponse<DashboardResponse>(apiClient.get('/reports/dashboard'));
+
   return {
-    revenueToday: summary.revenueToday,
-    revenueThisMonth: summary.revenueThisMonth,
-    totalReceivable: summary.totalReceivable,
-    productCount: summary.productCount,
+    summary: normalizeDashboardSummary(response),
+    topCustomersByDebt: response.topCustomersByDebt ?? [],
+    topSellingProducts: response.topSellingProducts ?? [],
+  } satisfies DashboardSnapshot;
+}
+
+export async function fetchDashboardSummary() {
+  const snapshot = await fetchDashboardSnapshot();
+
+  return snapshot.summary;
+}
+
+export function normalizeDashboardSummary(summary: Partial<DashboardSummary>): DashboardSummary {
+  return {
+    revenueToday: summary.revenueToday ?? 0,
+    revenueThisMonth: summary.revenueThisMonth ?? 0,
+    totalReceivable: summary.totalReceivable ?? 0,
+    payableDebt: summary.payableDebt ?? 0,
+    lowStockItems: summary.lowStockItems ?? 0,
+    productCount: summary.productCount ?? 0,
   };
 }

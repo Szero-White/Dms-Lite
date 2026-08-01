@@ -3,6 +3,7 @@ package com.example.dms.inventory;
 import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -32,7 +33,9 @@ public interface StockItemRepository extends JpaRepository<StockItem, Long> {
     @Query(
         "select s from StockItem s " +
         "join Product p on p.id = s.productId " +
-        "where s.tenantId = :tenantId and s.quantityOnHand <= p.minStock"
+        "where s.tenantId = :tenantId and p.tenantId = :tenantId " +
+        "and p.deletedAt is null and s.quantityOnHand <= p.minStock " +
+        "order by (p.minStock - s.quantityOnHand) desc"
     )
-    List<StockItem> lowStock(@Param("tenantId") Long tenantId);
+    List<StockItem> lowStock(@Param("tenantId") Long tenantId, Pageable pageable);
 }

@@ -5,6 +5,8 @@ import com.example.dms.common.TenantContext;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,9 +102,10 @@ public class InventoryService {
         return stockItemRepository.findByTenantId(TenantContext.tenantRequired());
     }
 
-    public List<InventoryTransaction> history() {
+    public Page<InventoryTransaction> history(Pageable pageable) {
         return inventoryTransactionRepository.findByTenantIdOrderByCreatedAtDesc(
-            TenantContext.tenantRequired()
+            TenantContext.tenantRequired(),
+            pageable
         );
     }
 
