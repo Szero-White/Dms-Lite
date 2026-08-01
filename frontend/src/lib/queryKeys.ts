@@ -1,6 +1,7 @@
 export const queryKeys = {
   auth: ['auth'] as const,
   products: ['products'] as const,
+  productRows: ['products', 'rows'] as const,
   customers: ['customers'] as const,
   customerDebt: (customerId: number | string) => ['customers', customerId, 'debt'] as const,
   salesOrders: ['sales-orders'] as const,
@@ -9,4 +10,9 @@ export const queryKeys = {
   dashboard: ['reports', 'dashboard'] as const,
   auditLogs: ['audit-logs'] as const,
   notifications: ['notifications'] as const,
+  teamMembers: ['team', 'members'] as const,
+  teamRoles: ['team', 'roles'] as const,
+  teamPermissions: ['team', 'permissions'] as const,
+  helpHistory: ['help', 'history'] as const,
+  helpHistoryList: (params: object) => ['help', 'history', params] as const,
 };

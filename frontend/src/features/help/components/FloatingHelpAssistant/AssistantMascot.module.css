@@ -1,0 +1,291 @@
+.mascot {
+  position: relative;
+  width: 104px;
+  height: 116px;
+  display: grid;
+  place-items: center;
+}
+
+.compactMascot {
+  width: 48px;
+  height: 56px;
+}
+
+.mascotGlow {
+  position: absolute;
+  width: 82%;
+  height: 78%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.72), rgba(167, 139, 250, 0.24) 56%, transparent 72%);
+  filter: blur(10px);
+  animation: mascotPulse 2.6s ease-in-out infinite;
+}
+
+.mascotCharacter {
+  position: relative;
+  z-index: 1;
+  width: 74%;
+  height: 82%;
+  animation: mascotFloat 3.2s ease-in-out infinite;
+}
+
+.mascotHead {
+  position: absolute;
+  top: 5%;
+  left: 50%;
+  z-index: 3;
+  width: 62%;
+  height: 42%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 42% 42% 38% 38%;
+  background:
+    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.95) 0 9%, transparent 10%),
+    linear-gradient(155deg, #ffffff 0%, #f1ecff 42%, #9078ff 100%);
+  box-shadow: inset 0 -8px 16px rgba(74, 58, 208, 0.18), 0 12px 24px rgba(72, 57, 199, 0.2);
+  transform: translateX(-50%);
+}
+
+.mascotBody {
+  position: absolute;
+  left: 50%;
+  bottom: 15%;
+  z-index: 2;
+  width: 70%;
+  height: 46%;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  border-radius: 38% 38% 44% 44%;
+  background:
+    radial-gradient(circle at 68% 24%, rgba(255, 255, 255, 0.58) 0 10%, transparent 11%),
+    linear-gradient(155deg, #a58bff 0%, #735df6 58%, #fb7fd4 100%);
+  box-shadow: inset 0 -12px 18px rgba(45, 35, 137, 0.18), 0 14px 28px rgba(72, 57, 199, 0.22);
+  transform: translateX(-50%);
+}
+
+.mascotBadge {
+  position: absolute;
+  top: 28%;
+  left: 50%;
+  width: 26%;
+  height: 24%;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 -3px 6px rgba(91, 77, 246, 0.16);
+  transform: translateX(-50%);
+}
+
+.mascotBadge::before,
+.mascotBadge::after {
+  position: absolute;
+  top: 45%;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: #705df6;
+  content: '';
+}
+
+.mascotBadge::before {
+  left: 30%;
+}
+
+.mascotBadge::after {
+  right: 30%;
+}
+
+.mascotAntenna {
+  position: absolute;
+  top: -22%;
+  left: 50%;
+  width: 20%;
+  height: 20%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffffff, #dcd3ff);
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.22), 0 0 18px rgba(255, 139, 209, 0.42);
+  transform: translateX(-50%);
+}
+
+.mascotAntenna::before {
+  position: absolute;
+  left: 50%;
+  bottom: -62%;
+  width: 3px;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(112, 93, 246, 0.42);
+  content: '';
+  transform: translateX(-50%);
+}
+
+.mascotFace {
+  position: absolute;
+  top: 38%;
+  left: 24%;
+  right: 24%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.mascotFace span {
+  width: 8px;
+  height: 10px;
+  border-radius: 999px;
+  background: #2f276f;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  animation: mascotBlink 4.4s infinite;
+}
+
+.mascotSmile {
+  position: absolute;
+  left: 36%;
+  bottom: 22%;
+  width: 28%;
+  height: 14%;
+  border-bottom: 3px solid #2f276f;
+  border-radius: 0 0 999px 999px;
+}
+
+.mascotArm {
+  position: absolute;
+  top: 47%;
+  z-index: 1;
+  width: 18%;
+  height: 34%;
+  border: 2px solid rgba(255, 255, 255, 0.58);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #b8a7ff, #795ff5 68%, #f58bd5);
+  box-shadow: 0 8px 18px rgba(72, 57, 199, 0.18);
+  transform-origin: top center;
+}
+
+.mascotArm::after {
+  position: absolute;
+  left: 50%;
+  bottom: -12%;
+  width: 72%;
+  height: 28%;
+  border-radius: 999px;
+  background: #fff8ff;
+  box-shadow: inset 0 -3px 5px rgba(91, 77, 246, 0.12);
+  content: '';
+  transform: translateX(-50%);
+}
+
+.mascotArmLeft {
+  left: 3%;
+  transform: rotate(24deg);
+  animation: mascotLeftArm 2.4s ease-in-out infinite;
+}
+
+.mascotArmRight {
+  right: 3%;
+  transform: rotate(-34deg);
+  animation: mascotWave 1.35s ease-in-out infinite;
+}
+
+.mascotFoot {
+  position: absolute;
+  bottom: 5%;
+  z-index: 1;
+  width: 24%;
+  height: 14%;
+  border-radius: 999px 999px 60% 60%;
+  background: linear-gradient(180deg, #fff7ff, #cabdff 45%, #866ff7);
+  box-shadow: 0 8px 14px rgba(72, 57, 199, 0.16);
+}
+
+.mascotFootLeft {
+  left: 26%;
+  transform: rotate(8deg);
+}
+
+.mascotFootRight {
+  right: 26%;
+  transform: rotate(-8deg);
+}
+
+.compactMascot .mascotCharacter {
+  width: 82%;
+  height: 88%;
+}
+
+.compactMascot .mascotFace span {
+  width: 4px;
+  height: 5px;
+}
+
+.compactMascot .mascotSmile {
+  border-bottom-width: 2px;
+}
+
+.compactMascot .mascotAntenna::before,
+.compactMascot .mascotArm,
+.compactMascot .mascotFoot {
+  display: none;
+}
+
+.compactMascot .mascotHead {
+  top: 15%;
+  width: 66%;
+  height: 56%;
+}
+
+.compactMascot .mascotBody {
+  bottom: 12%;
+  width: 60%;
+  height: 34%;
+  border-radius: 45%;
+}
+
+.compactMascot .mascotBadge {
+  display: none;
+}
+
+.mascotShadow {
+  position: absolute;
+  bottom: 3%;
+  width: 62%;
+  height: 8%;
+  border-radius: 999px;
+  background: rgba(30, 27, 75, 0.18);
+  filter: blur(4px);
+  animation: mascotShadow 3.2s ease-in-out infinite;
+}
+
+@keyframes mascotFloat {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-7px) rotate(2deg); }
+}
+
+@keyframes mascotWave {
+  0%, 100% { transform: rotate(-34deg); }
+  50% { transform: rotate(-58deg) translateY(-3px); }
+}
+
+@keyframes mascotLeftArm {
+  0%, 100% { transform: rotate(24deg); }
+  50% { transform: rotate(14deg) translateY(2px); }
+}
+
+@keyframes mascotShadow {
+  0%, 100% { transform: scaleX(1); opacity: 0.2; }
+  50% { transform: scaleX(0.78); opacity: 0.12; }
+}
+
+@keyframes mascotPulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.12); opacity: 0.9; }
+}
+
+@keyframes mascotBlink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascotCharacter,
+  .mascotGlow,
+  .mascotShadow,
+  .mascotFace span {
+    animation: none;
+  }
+}

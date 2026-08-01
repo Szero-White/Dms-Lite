@@ -4,6 +4,7 @@ import {
   useState,
 } from 'react';
 import { Outlet } from 'react-router-dom';
+import { FloatingHelpAssistant } from '../../../features/help';
 import { AppHeader } from '../AppHeader';
 import { AppSidebar } from '../AppSidebar';
 import styles from './AppLayout.module.css';
@@ -58,6 +59,7 @@ export function AppLayout({
             {children ?? <Outlet />}
           </div>
         </Layout.Content>
+        <FloatingHelpAssistant />
       </Layout>
     </Layout>
   );
