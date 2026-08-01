@@ -76,20 +76,24 @@ public class SeedDataRunner implements CommandLineRunner {
             PermissionNames.SALES_ORDER_CANCEL, PermissionNames.INVENTORY_VIEW,
             PermissionNames.INVENTORY_MANAGE, PermissionNames.PAYMENT_CREATE,
             PermissionNames.DEBT_VIEW, PermissionNames.REPORT_VIEW, PermissionNames.AUDIT_VIEW,
-            PermissionNames.NOTIFICATION_VIEW);
+            PermissionNames.NOTIFICATION_VIEW,
+            PermissionNames.TEAM_MANAGE,
+            PermissionNames.AI_HELP_VIEW);
         Role salesRole = ensureRole(SALES, permissionMap, PermissionNames.PRODUCT_VIEW,
             PermissionNames.CUSTOMER_VIEW, PermissionNames.CUSTOMER_MANAGE,
             PermissionNames.SALES_ORDER_VIEW, PermissionNames.SALES_ORDER_CREATE,
             PermissionNames.SALES_ORDER_CANCEL, PermissionNames.INVENTORY_VIEW,
-            PermissionNames.REPORT_VIEW, PermissionNames.NOTIFICATION_VIEW);
+            PermissionNames.REPORT_VIEW, PermissionNames.NOTIFICATION_VIEW,
+            PermissionNames.AI_HELP_VIEW);
         Role warehouseRole = ensureRole(WAREHOUSE, permissionMap, PermissionNames.PRODUCT_VIEW,
             PermissionNames.SALES_ORDER_VIEW, PermissionNames.SALES_ORDER_CONFIRM,
             PermissionNames.INVENTORY_VIEW, PermissionNames.INVENTORY_MANAGE,
-            PermissionNames.NOTIFICATION_VIEW);
+            PermissionNames.NOTIFICATION_VIEW, PermissionNames.AI_HELP_VIEW);
         Role accountantRole = ensureRole(ACCOUNTANT, permissionMap, PermissionNames.PRODUCT_VIEW,
             PermissionNames.CUSTOMER_VIEW, PermissionNames.SALES_ORDER_VIEW,
             PermissionNames.PAYMENT_CREATE, PermissionNames.DEBT_VIEW,
-            PermissionNames.REPORT_VIEW, PermissionNames.NOTIFICATION_VIEW);
+            PermissionNames.REPORT_VIEW, PermissionNames.NOTIFICATION_VIEW,
+            PermissionNames.AI_HELP_VIEW);
 
         ensureDemoUser("owner", "Owner", tenant.getId(), ownerRole);
         ensureDemoUser("sale", "Sale", tenant.getId(), salesRole);
@@ -119,7 +123,9 @@ public class SeedDataRunner implements CommandLineRunner {
             PermissionNames.DEBT_VIEW,
             PermissionNames.REPORT_VIEW,
             PermissionNames.AUDIT_VIEW,
-            PermissionNames.NOTIFICATION_VIEW
+            PermissionNames.NOTIFICATION_VIEW,
+            PermissionNames.TEAM_MANAGE,
+            PermissionNames.AI_HELP_VIEW
         );
 
         names.forEach(name -> perms.findByName(name)
@@ -136,7 +142,9 @@ public class SeedDataRunner implements CommandLineRunner {
         String... permissionNames
     ) {
         Role role = roles.findByName(roleName)
-            .orElseGet(() -> roles.save(Role.builder().name(roleName).build()));
+            .orElseGet(() -> roles.save(Role.builder().name(roleName).tenantId(null).systemRole(true).build()));
+        role.setTenantId(null);
+        role.setSystemRole(true);
         role.setPermissions(Arrays.stream(permissionNames)
             .map(permissionMap::get)
             .collect(Collectors.toSet()));
