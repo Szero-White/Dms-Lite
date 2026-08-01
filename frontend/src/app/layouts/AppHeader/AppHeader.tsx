@@ -1,6 +1,7 @@
 import {
   BellOutlined,
   DownOutlined,
+  GlobalOutlined,
   LogoutOutlined,
   MenuOutlined,
   PlusOutlined,
@@ -14,9 +15,12 @@ import {
   Button,
   Dropdown,
   Input,
+  Segmented,
+  Tooltip,
   Typography,
 } from 'antd';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   PERMISSIONS,
@@ -25,21 +29,8 @@ import {
   useAuth,
 } from '../../../features/auth';
 import { useNotifications } from '../../../features/notifications';
+import { LANGUAGE_STORAGE_KEY, type SupportedLanguage } from '../../../i18n';
 import styles from './AppHeader.module.css';
-
-const navigationOptions = [
-  { value: '/dashboard', label: 'Dashboard' },
-  { value: '/sales-orders', label: 'Sales Orders' },
-  { value: '/products', label: 'Products' },
-  { value: '/customers', label: 'Customers' },
-  { value: '/inventory', label: 'Inventory' },
-  { value: '/payments', label: 'Payments' },
-  { value: '/reports', label: 'Reports' },
-  { value: '/notifications', label: 'Notifications' },
-  { value: '/audit-logs', label: 'Audit Logs' },
-  { value: '/team', label: 'Team Access' },
-  { value: '/ai-history', label: 'AI History' },
-];
 
 interface AppHeaderProps {
   onOpenNavigation?: () => void;
@@ -47,9 +38,27 @@ interface AppHeaderProps {
 
 export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
   const { user, logout } = useAuth();
+  const { i18n, t } = useTranslation();
   const navigate = useNavigate();
   const notificationsQuery = useNotifications();
   const [searchValue, setSearchValue] = useState('');
+  const currentLanguage: SupportedLanguage = i18n.resolvedLanguage?.startsWith('vi') ? 'vi' : 'en';
+  const navigationOptions = useMemo(
+    () => [
+      { value: '/dashboard', label: t('app.navigation.dashboard') },
+      { value: '/sales-orders', label: t('app.navigation.salesOrders') },
+      { value: '/products', label: t('app.navigation.products') },
+      { value: '/customers', label: t('app.navigation.customers') },
+      { value: '/inventory', label: t('app.navigation.inventory') },
+      { value: '/payments', label: t('app.navigation.payments') },
+      { value: '/reports', label: t('app.navigation.reports') },
+      { value: '/notifications', label: t('app.navigation.notifications') },
+      { value: '/audit-logs', label: t('app.navigation.auditLogs') },
+      { value: '/team', label: t('app.navigation.teamAccess') },
+      { value: '/ai-history', label: t('app.navigation.aiHistory') },
+    ],
+    [t],
+  );
   const canViewNotifications = hasPermission(user, PERMISSIONS.NOTIFICATION_VIEW);
   const unreadCount = canViewNotifications
     ? (notificationsQuery.data ?? []).filter(
@@ -58,29 +67,35 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
     : 0;
   const allowedNavigationOptions = useMemo(
     () => navigationOptions.filter((option) => canAccessPath(user, option.value)),
-    [user],
+    [navigationOptions, user],
   );
   const quickCreateItems = useMemo(
     () => [
       hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE)
-        ? { key: '/sales-orders/new', label: 'Create sales order' }
+        ? { key: '/sales-orders/new', label: t('app.header.createSalesOrder') }
         : null,
       hasPermission(user, PERMISSIONS.INVENTORY_MANAGE)
-        ? { key: '/inventory', label: 'Receive stock' }
+        ? { key: '/inventory', label: t('app.header.receiveStock') }
         : null,
       hasPermission(user, PERMISSIONS.PAYMENT_CREATE)
-        ? { key: '/payments', label: 'Record payment' }
+        ? { key: '/payments', label: t('app.header.recordPayment') }
         : null,
       hasPermission(user, PERMISSIONS.CUSTOMER_MANAGE)
-        ? { key: '/customers', label: 'Manage customers' }
+        ? { key: '/customers', label: t('app.header.manageCustomers') }
         : null,
     ].filter(Boolean),
-    [user],
+    [t, user],
   );
 
   function handleLogout() {
     logout();
     navigate('/login', { replace: true });
+  }
+
+  function handleLanguageChange(value: string | number) {
+    const nextLanguage: SupportedLanguage = value === 'vi' ? 'vi' : 'en';
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
+    void i18n.changeLanguage(nextLanguage);
   }
 
   return (
@@ -89,7 +104,7 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
         <Button
           className={styles.menuButton}
           icon={<MenuOutlined />}
-          aria-label="Open navigation"
+          aria-label={t('app.header.openNavigation')}
           onClick={onOpenNavigation}
         />
 
@@ -111,8 +126,8 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
           <Input
             allowClear
             prefix={<SearchOutlined />}
-            placeholder="Search pages..."
-            aria-label="Search application pages"
+            placeholder={t('app.search.placeholder')}
+            aria-label={t('app.search.ariaLabel')}
           />
         </AutoComplete>
       </div>
@@ -127,10 +142,25 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
             }}
           >
             <Button type="primary" icon={<PlusOutlined />}>
-              Quick create <DownOutlined />
+              {t('app.header.quickCreate')} <DownOutlined />
             </Button>
           </Dropdown>
         ) : null}
+
+        <Tooltip title={t('app.header.language')}>
+          <div className={styles.languageSwitcher} aria-label={t('app.header.language')}>
+            <GlobalOutlined />
+            <Segmented
+              size="small"
+              value={currentLanguage}
+              options={[
+                { label: 'VI', value: 'vi' },
+                { label: 'EN', value: 'en' },
+              ]}
+              onChange={handleLanguageChange}
+            />
+          </div>
+        </Tooltip>
 
         {canViewNotifications ? (
           <Badge count={unreadCount} size="small" overflowCount={99}>
@@ -139,8 +169,8 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
               icon={<BellOutlined />}
               aria-label={
                 unreadCount
-                  ? `${unreadCount} unread notifications`
-                  : 'Notifications'
+                  ? t('app.header.unreadNotifications', { count: unreadCount })
+                  : t('app.header.notifications')
               }
               onClick={() => navigate('/notifications')}
             />
@@ -154,7 +184,7 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
               {
                 key: 'logout',
                 icon: <LogoutOutlined />,
-                label: 'Logout',
+                label: t('app.header.logout'),
                 onClick: handleLogout,
               },
             ],

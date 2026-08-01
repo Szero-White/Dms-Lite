@@ -71,7 +71,7 @@
 }
 
 /* ============================================================
-   RIGHT SIDE — ACTIONS
+   RIGHT SIDE - ACTIONS
    ============================================================ */
 .actions {
   display: flex;
@@ -95,6 +95,36 @@
   background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
   box-shadow: 0 4px 16px rgba(99, 102, 241, 0.42) !important;
   transform: translateY(-1px);
+}
+
+
+.languageSwitcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 4px 6px 4px 10px;
+  border: 1.5px solid var(--color-border-subtle);
+  border-radius: 10px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-smooth);
+}
+
+.languageSwitcher:hover {
+  border-color: var(--color-primary-mid);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.languageSwitcher :global(.ant-segmented) {
+  background: transparent;
+}
+
+.languageSwitcher :global(.ant-segmented-item) {
+  min-width: 32px;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 /* Bell icon button */
@@ -194,6 +224,8 @@
   .search { width: min(200px, 100%); }
   .userMeta { display: none; }
   .actions :global(.ant-btn-primary) { display: none; }
+  .languageSwitcher { padding-inline: 6px; }
+  .languageSwitcher > :global(.anticon) { display: none; }
 }
 
 @media (max-width: 520px) {

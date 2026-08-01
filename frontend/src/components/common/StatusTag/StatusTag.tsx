@@ -1,4 +1,5 @@
 import { Tag } from 'antd';
+import { useTranslation } from 'react-i18next';
 import styles from './StatusTag.module.css';
 
 type StatusTone =
@@ -27,14 +28,24 @@ function statusClass(tone: StatusTone) {
   return `${styles.tag} ${styles[tone]}`;
 }
 
+function enumFallback(value: string) {
+  return value
+    .toLowerCase()
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 export function SalesOrderStatusTag({
   status,
 }: {
   status: string;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Tag className={statusClass(SALES_STATUS_MAP[status] || 'neutral')}>
-      {status}
+      {t(`status.sales.${status}`, enumFallback(status))}
     </Tag>
   );
 }
@@ -46,18 +57,20 @@ export function ProductStatusTag({
   isLowStock: boolean;
   active: boolean;
 }) {
+  const { t } = useTranslation();
+
   if (!active) {
     return (
       <Tag className={statusClass('neutral')}>
-        INACTIVE
+        {t('common.inactive')}
       </Tag>
     );
   }
 
   return isLowStock ? (
-    <Tag className={statusClass('warning')}>LOW STOCK</Tag>
+    <Tag className={statusClass('warning')}>{t('status.product.lowStock')}</Tag>
   ) : (
-    <Tag className={statusClass('success')}>ACTIVE</Tag>
+    <Tag className={statusClass('success')}>{t('common.active')}</Tag>
   );
 }
 
@@ -66,9 +79,13 @@ export function CustomerDebtTag({
 }: {
   amount: number;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Tag className={statusClass(amount > 0 ? 'danger' : 'success')}>
-      {amount > 0 ? 'Outstanding' : 'Clear'}
+      {amount > 0
+        ? t('status.customer.outstanding')
+        : t('status.customer.clear')}
     </Tag>
   );
 }
@@ -78,9 +95,11 @@ export function NotificationTypeTag({
 }: {
   type: string;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Tag className={statusClass(NOTIFICATION_STATUS_MAP[type] || 'info')}>
-      {type}
+      {t(`status.notification.${type}`, enumFallback(type))}
     </Tag>
   );
 }

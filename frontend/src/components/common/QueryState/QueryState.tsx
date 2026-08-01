@@ -1,5 +1,6 @@
 import { ReloadOutlined } from '@ant-design/icons';
 import { Alert, Button, Empty, Skeleton } from 'antd';
+import { useTranslation } from 'react-i18next';
 import styles from './QueryState.module.css';
 
 interface QueryStateProps {
@@ -19,12 +20,14 @@ export function QueryState({
   isError,
   error,
   hasData = true,
-  emptyTitle = 'No data yet',
+  emptyTitle,
   emptyDescription,
   emptyAction,
   onRetry,
   children,
 }: QueryStateProps) {
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
       <div className={styles.stateBlock}>
@@ -42,11 +45,11 @@ export function QueryState({
       <div className={styles.feedbackBlock}>
         <Alert
           type="error"
-          message="Unable to load data"
+          message={t('common.unableToLoadData')}
           description={
             error instanceof Error
               ? error.message
-              : 'Please try again.'
+              : t('common.tryAgain')
           }
           showIcon
           action={
@@ -55,7 +58,7 @@ export function QueryState({
                 icon={<ReloadOutlined />}
                 onClick={onRetry}
               >
-                Retry
+                {t('common.retry')}
               </Button>
             ) : undefined
           }
@@ -71,7 +74,7 @@ export function QueryState({
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={(
             <div className={styles.emptyContent}>
-              <strong>{emptyTitle}</strong>
+              <strong>{emptyTitle ?? t('common.noDataYet')}</strong>
               {emptyDescription ? <span>{emptyDescription}</span> : null}
               {emptyAction ? <div className={styles.emptyAction}>{emptyAction}</div> : null}
             </div>
