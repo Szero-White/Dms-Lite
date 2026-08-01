@@ -1,5 +1,6 @@
 import { Form, Tabs } from 'antd';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import {
   useCreateTeamMember,
@@ -32,6 +33,7 @@ import {
 } from './teamPage.utils';
 
 export function TeamPage() {
+  const { t } = useTranslation();
   const [memberForm] = Form.useForm<TeamMemberFormValues>();
   const [roleForm] = Form.useForm<RoleFormValues>();
   const membersQuery = useTeamMembers();
@@ -158,8 +160,8 @@ export function TeamPage() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title="Team Access"
-        subtitle="Create staff accounts and tailor roles for the way each company works."
+        title={t('team.title')}
+        subtitle={t('team.subtitle')}
       />
 
       <TeamSummary activeMembers={activeMembers} customRoles={customRoles} />
@@ -169,7 +171,7 @@ export function TeamPage() {
         items={[
           {
             key: 'members',
-            label: 'Members',
+            label: t('team.tabs.members'),
             children: (
               <MembersTable
                 members={members}
@@ -190,7 +192,7 @@ export function TeamPage() {
           },
           {
             key: 'roles',
-            label: 'Roles & Permissions',
+            label: t('team.tabs.roles'),
             children: (
               <RolesTable
                 roles={roles}

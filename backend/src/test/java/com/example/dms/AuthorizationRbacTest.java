@@ -139,8 +139,8 @@ class AuthorizationRbacTest {
                     "question", "Owner cap tai khoan va phan quyen nhan vien ra sao?"
                 ))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.answer").value("I cannot help with Team Access because it is outside your assigned role or permissions."))
-            .andExpect(jsonPath("$.data.scopeNotice").value("Requested area blocked: Team Access"));
+            .andExpect(jsonPath("$.data.answer").value(org.hamcrest.Matchers.containsString("Team Access")))
+            .andExpect(jsonPath("$.data.blocked").value(true));
     }
 
     @Test

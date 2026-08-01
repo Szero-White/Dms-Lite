@@ -1,4 +1,5 @@
 import { App } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getErrorMessage } from '../../../lib/format';
 import { queryKeys } from '../../../lib/queryKeys';
@@ -22,10 +23,12 @@ import type {
 function useTeamMutationFeedback() {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
+  const { t } = useTranslation();
 
   return {
     queryClient,
     message,
+    t,
     onError(error: unknown) {
       message.error(getErrorMessage(error));
     },
@@ -54,12 +57,12 @@ export function useTeamPermissions() {
 }
 
 export function useCreateTeamRole() {
-  const { queryClient, message, onError } = useTeamMutationFeedback();
+  const { queryClient, message, t, onError } = useTeamMutationFeedback();
 
   return useMutation({
     mutationFn: (payload: RoleFormPayload) => createTeamRole(payload),
     onSuccess: async () => {
-      message.success('Role created.');
+      message.success(t('toast.team.roleCreated'));
       await queryClient.invalidateQueries({ queryKey: queryKeys.teamRoles });
     },
     onError,
@@ -67,13 +70,13 @@ export function useCreateTeamRole() {
 }
 
 export function useUpdateTeamRole() {
-  const { queryClient, message, onError } = useTeamMutationFeedback();
+  const { queryClient, message, t, onError } = useTeamMutationFeedback();
 
   return useMutation({
     mutationFn: ({ roleId, payload }: { roleId: number; payload: RoleFormPayload }) =>
       updateTeamRole(roleId, payload),
     onSuccess: async () => {
-      message.success('Role updated.');
+      message.success(t('toast.team.roleUpdated'));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.teamRoles }),
         queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers }),
@@ -84,12 +87,12 @@ export function useUpdateTeamRole() {
 }
 
 export function useDeleteTeamRole() {
-  const { queryClient, message, onError } = useTeamMutationFeedback();
+  const { queryClient, message, t, onError } = useTeamMutationFeedback();
 
   return useMutation({
     mutationFn: (roleId: number) => deleteTeamRole(roleId),
     onSuccess: async () => {
-      message.success('Role deleted.');
+      message.success(t('toast.team.roleDeleted'));
       await queryClient.invalidateQueries({ queryKey: queryKeys.teamRoles });
     },
     onError,
@@ -97,12 +100,12 @@ export function useDeleteTeamRole() {
 }
 
 export function useCreateTeamMember() {
-  const { queryClient, message, onError } = useTeamMutationFeedback();
+  const { queryClient, message, t, onError } = useTeamMutationFeedback();
 
   return useMutation({
     mutationFn: (payload: TeamMemberCreatePayload) => createTeamMember(payload),
     onSuccess: async () => {
-      message.success('Team member created.');
+      message.success(t('toast.team.memberCreated'));
       await queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers });
     },
     onError,
@@ -110,7 +113,7 @@ export function useCreateTeamMember() {
 }
 
 export function useUpdateTeamMember() {
-  const { queryClient, message, onError } = useTeamMutationFeedback();
+  const { queryClient, message, t, onError } = useTeamMutationFeedback();
 
   return useMutation({
     mutationFn: ({
@@ -121,7 +124,7 @@ export function useUpdateTeamMember() {
       payload: TeamMemberUpdatePayload;
     }) => updateTeamMember(userId, payload),
     onSuccess: async () => {
-      message.success('Team member updated.');
+      message.success(t('toast.team.memberUpdated'));
       await queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers });
     },
     onError,
@@ -129,12 +132,12 @@ export function useUpdateTeamMember() {
 }
 
 export function useDeactivateTeamMember() {
-  const { queryClient, message, onError } = useTeamMutationFeedback();
+  const { queryClient, message, t, onError } = useTeamMutationFeedback();
 
   return useMutation({
     mutationFn: (userId: number) => deactivateTeamMember(userId),
     onSuccess: async () => {
-      message.success('Team member deactivated.');
+      message.success(t('toast.team.memberDeactivated'));
       await queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers });
     },
     onError,

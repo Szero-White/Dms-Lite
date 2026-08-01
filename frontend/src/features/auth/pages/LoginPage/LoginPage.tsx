@@ -1,6 +1,7 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Form, Input } from 'antd';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import styles from './LoginPage.module.css';
 import formStyles from './LoginFormPanel.module.css';
@@ -15,6 +16,7 @@ const demoAccounts = [
 ];
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
   const [form] = Form.useForm();
@@ -30,14 +32,14 @@ export function LoginPage() {
             <div>
               <div className={formStyles.brandName}>DMS Lite</div>
               <div className={formStyles.brandSubtitle}>
-                Distributor Operating System
+                {t('login.brandSubtitle')}
               </div>
             </div>
           </div>
 
           <header className={formStyles.formHeader}>
-            <h1>Welcome back</h1>
-            <p>Enter your credentials to access your workspace.</p>
+            <h1>{t('login.title')}</h1>
+            <p>{t('login.subtitle')}</p>
           </header>
 
           <Form
@@ -53,25 +55,25 @@ export function LoginPage() {
               }
             }}
           >
-            <Form.Item label="Username" name="username" rules={[{ required: true }]}>
+            <Form.Item label={t('login.username')} name="username" rules={[{ required: true }]}>
               <Input
                 autoComplete="username"
                 prefix={<UserOutlined />}
-                placeholder="Enter username"
+                placeholder={t('login.usernamePlaceholder')}
                 size="large"
               />
             </Form.Item>
 
             <Form.Item
               className={formStyles.passwordField}
-              label="Password"
+              label={t('login.password')}
               name="password"
               rules={[{ required: true }]}
             >
               <Input.Password
                 autoComplete="current-password"
                 prefix={<LockOutlined />}
-                placeholder="Enter password"
+                placeholder={t('login.passwordPlaceholder')}
                 size="large"
               />
             </Form.Item>
@@ -83,13 +85,11 @@ export function LoginPage() {
               type="primary"
               htmlType="submit"
               loading={submitting}
-            >
-              Sign in
-            </Button>
+            >{t('login.signIn')}</Button>
           </Form>
 
           <details className={formStyles.demoAccounts}>
-            <summary>Use a demo account</summary>
+            <summary>{t('login.demoSummary')}</summary>
             <div className={formStyles.demoList}>
               {demoAccounts.map((account) => (
                 <div className={formStyles.demoRow} key={account.username}>
@@ -127,9 +127,9 @@ export function LoginPage() {
                   <span />
                 </div>
                 <div className={previewStyles.previewMetrics}>
-                  <div><span>Sales</span><i /></div>
-                  <div><span>Inventory</span><i /></div>
-                  <div><span>Receivables</span><i /></div>
+                  <div><span>{t('login.preview.sales')}</span><i /></div>
+                  <div><span>{t('login.preview.inventory')}</span><i /></div>
+                  <div><span>{t('login.preview.receivables')}</span><i /></div>
                 </div>
                 <div className={previewStyles.previewAnalytics}>
                   <div className={previewStyles.previewChart}>
@@ -148,13 +148,13 @@ export function LoginPage() {
           </div>
 
           <div className={visualStyles.visualCopy}>
-            <span className={visualStyles.eyebrow}>DISTRIBUTION, SIMPLIFIED</span>
-            <h2>One workspace for daily commercial operations.</h2>
-            <p>Keep every order, stock movement, and customer balance visible to the right team.</p>
+            <span className={visualStyles.eyebrow}>{t('login.visualEyebrow')}</span>
+            <h2>{t('login.visualTitle')}</h2>
+            <p>{t('login.visualDescription')}</p>
             <ul>
-              <li><span aria-hidden="true">&#10003;</span> Manage sales</li>
-              <li><span aria-hidden="true">&#10003;</span> Control inventory</li>
-              <li><span aria-hidden="true">&#10003;</span> Track receivables</li>
+              <li><span aria-hidden="true">&#10003;</span> {t('login.manageSales')}</li>
+              <li><span aria-hidden="true">&#10003;</span> {t('login.controlInventory')}</li>
+              <li><span aria-hidden="true">&#10003;</span> {t('login.trackReceivables')}</li>
             </ul>
           </div>
         </div>

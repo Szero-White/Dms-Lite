@@ -15,6 +15,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../components/common/QueryState';
 import type { TeamMember } from '../../../types/team.types';
 import styles from '../TeamPage.module.css';
@@ -45,15 +46,17 @@ export function MembersTable({
   onDeactivate,
   onRetry,
 }: MembersTableProps) {
+  const { t } = useTranslation();
+
   return (
     <Card className={`panel-card ${styles.tableCard}`}>
       <div className={styles.cardToolbar}>
         <div>
-          <Typography.Text strong>Team members</Typography.Text>
-          <Typography.Text type="secondary">Assign each employee to the right role.</Typography.Text>
+          <Typography.Text strong>{t('team.members.title')}</Typography.Text>
+          <Typography.Text type="secondary">{t('team.members.subtitle')}</Typography.Text>
         </div>
         <Button type="primary" icon={<PlusOutlined />} onClick={onCreate}>
-          New Member
+          {t('team.members.new')}
         </Button>
       </div>
 
@@ -62,9 +65,9 @@ export function MembersTable({
         isError={isError}
         error={error}
         hasData={members.length > 0}
-        emptyTitle="No team members yet"
-        emptyDescription="Create staff accounts so each person works with the right access."
-        emptyAction={<Button type="primary" onClick={onCreate}>New Member</Button>}
+        emptyTitle={t('team.members.emptyTitle')}
+        emptyDescription={t('team.members.emptyDescription')}
+        emptyAction={<Button type="primary" onClick={onCreate}>{t('team.members.new')}</Button>}
         onRetry={onRetry}
       >
         <Table
@@ -73,7 +76,7 @@ export function MembersTable({
           scroll={{ x: 980 }}
           columns={[
             {
-              title: 'Member',
+              title: t('team.members.column.member'),
               fixed: 'left',
               width: 280,
               render: (_, record) => (
@@ -87,7 +90,7 @@ export function MembersTable({
               ),
             },
             {
-              title: 'Roles',
+              title: t('team.members.column.roles'),
               width: 260,
               render: (_, record) => (
                 <Space size={[6, 6]} wrap>
@@ -100,53 +103,53 @@ export function MembersTable({
               ),
             },
             {
-              title: 'Permissions',
+              title: t('team.members.column.permissions'),
               width: 320,
               render: (_, record) => (
                 <Typography.Text type="secondary">
-                  {record.permissions.length} permissions
+                  {t('common.permissionsCount', { count: record.permissions.length })}
                 </Typography.Text>
               ),
             },
             {
-              title: 'Status',
+              title: t('common.status'),
               width: 130,
               render: (_, record) => (
                 <Tag color={record.active ? 'green' : 'default'}>
-                  {record.active ? 'Active' : 'Inactive'}
+                  {record.active ? t('common.active') : t('common.inactive')}
                 </Tag>
               ),
             },
             {
-              title: 'Actions',
+              title: t('common.actions'),
               fixed: 'right',
               width: 120,
               render: (_, record) => (isOwner(record) ? (
-                <Typography.Text type="secondary">Protected</Typography.Text>
+                <Typography.Text type="secondary">{t('common.protected')}</Typography.Text>
               ) : (
                 <Space size={4}>
-                  <Tooltip title="Edit access">
+                  <Tooltip title={t('team.members.editAccess')}>
                     <Button
                       type="text"
                       icon={<EditOutlined />}
-                      aria-label={`Edit ${record.username}`}
+                      aria-label={`${t('team.members.editAccess')} ${record.username}`}
                       onClick={() => onEdit(record)}
                     />
                   </Tooltip>
                   <Popconfirm
-                    title="Deactivate member?"
-                    description="The account will no longer be able to sign in."
-                    okText="Deactivate"
+                    title={t('team.members.deactivateTitle')}
+                    description={t('team.members.deactivateDescription')}
+                    okText={t('team.members.deactivate')}
                     okButtonProps={{ danger: true }}
                     onConfirm={() => onDeactivate(record.id)}
                   >
-                    <Tooltip title="Deactivate member">
+                    <Tooltip title={t('team.members.deactivate')}>
                       <Button
                         danger
                         type="text"
                         icon={<DeleteOutlined />}
                         loading={isDeactivating && deactivatingMemberId === record.id}
-                        aria-label={`Deactivate ${record.username}`}
+                        aria-label={`${t('team.members.deactivate')} ${record.username}`}
                       />
                     </Tooltip>
                   </Popconfirm>

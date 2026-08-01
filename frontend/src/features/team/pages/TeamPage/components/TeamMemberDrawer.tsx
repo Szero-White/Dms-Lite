@@ -7,6 +7,7 @@ import {
   Switch,
 } from 'antd';
 import type { FormInstance } from 'antd';
+import { useTranslation } from 'react-i18next';
 import type {
   TeamMember,
   TeamMemberFormValues,
@@ -37,9 +38,11 @@ export function TeamMemberDrawer({
   onClose,
   onSubmit,
 }: TeamMemberDrawerProps) {
+  const { t } = useTranslation();
+
   return (
     <Drawer
-      title={selectedMember ? 'Edit Team Member' : 'Create Team Member'}
+      title={selectedMember ? t('team.drawer.member.editTitle') : t('team.drawer.member.createTitle')}
       width={440}
       open={open}
       onClose={onClose}
@@ -59,9 +62,9 @@ export function TeamMemberDrawer({
       }}
       footer={(
         <div className={styles.drawerFooter}>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{t('common.cancel')}</Button>
           <Button type="primary" loading={submitting} onClick={() => form.submit()}>
-            Save
+            {t('common.save')}
           </Button>
         </div>
       )}
@@ -69,37 +72,37 @@ export function TeamMemberDrawer({
       <Form form={form} layout="vertical" onFinish={onSubmit}>
         {!selectedMember ? (
           <Form.Item
-            label="Username"
+            label={t('team.drawer.username')}
             name="username"
-            rules={[{ required: true, message: 'Username is required' }]}
+            rules={[{ required: true, message: t('team.drawer.usernameRequired') }]}
           >
-            <Input placeholder="Ex: sales02" autoComplete="off" />
+            <Input placeholder={t('team.drawer.usernamePlaceholder')} autoComplete="off" />
           </Form.Item>
         ) : null}
         <Form.Item
-          label="Full name"
+          label={t('team.drawer.fullName')}
           name="fullName"
-          rules={[{ required: true, message: 'Full name is required' }]}
+          rules={[{ required: true, message: t('team.drawer.fullNameRequired') }]}
         >
-          <Input placeholder="Employee full name" />
+          <Input placeholder={t('team.drawer.fullNamePlaceholder')} />
         </Form.Item>
         {!selectedMember ? (
           <Form.Item
-            label="Temporary password"
+            label={t('team.drawer.temporaryPassword')}
             name="password"
-            rules={[{ required: true, min: 8, message: 'Password must be at least 8 characters' }]}
+            rules={[{ required: true, min: 8, message: t('team.drawer.passwordRequired') }]}
           >
-            <Input.Password placeholder="At least 8 characters" autoComplete="new-password" />
+            <Input.Password placeholder={t('team.drawer.passwordPlaceholder')} autoComplete="new-password" />
           </Form.Item>
         ) : null}
         <Form.Item
-          label="Roles"
+          label={t('team.drawer.roles')}
           name="roles"
-          rules={[{ required: true, message: 'Select at least one role' }]}
+          rules={[{ required: true, message: t('team.drawer.roleRequired') }]}
         >
-          <Select mode="multiple" options={roleOptions} placeholder="Select staff role" />
+          <Select mode="multiple" options={roleOptions} placeholder={t('team.drawer.rolePlaceholder')} />
         </Form.Item>
-        <Form.Item label="Active account" name="active" valuePropName="checked">
+        <Form.Item label={t('team.drawer.activeAccount')} name="active" valuePropName="checked">
           <Switch />
         </Form.Item>
       </Form>

@@ -7,6 +7,7 @@ import {
   Typography,
 } from 'antd';
 import type { FormInstance } from 'antd';
+import { useTranslation } from 'react-i18next';
 import type {
   PermissionOption,
   RoleFormValues,
@@ -27,12 +28,12 @@ interface RoleDrawerProps {
   onSubmit: (values: RoleFormValues) => void;
 }
 
-function getRoleDrawerTitle(mode: RoleDrawerMode, selectedRole: RoleOption | null) {
+function getRoleDrawerTitle(mode: RoleDrawerMode, hasSelectedRole: boolean, t: (key: string) => string) {
   if (mode === 'view') {
-    return 'View Role';
+    return t('team.drawer.role.viewTitle');
   }
 
-  return selectedRole ? 'Edit Custom Role' : 'Create Custom Role';
+  return hasSelectedRole ? t('team.drawer.role.editTitle') : t('team.drawer.role.createTitle');
 }
 
 export function RoleDrawer({
@@ -45,11 +46,12 @@ export function RoleDrawer({
   onClose,
   onSubmit,
 }: RoleDrawerProps) {
+  const { t } = useTranslation();
   const readOnly = mode === 'view';
 
   return (
     <Drawer
-      title={getRoleDrawerTitle(mode, selectedRole)}
+      title={getRoleDrawerTitle(mode, Boolean(selectedRole), t)}
       width={620}
       open={open}
       onClose={onClose}
@@ -71,13 +73,13 @@ export function RoleDrawer({
       }}
       footer={readOnly ? (
         <div className={styles.drawerFooter}>
-          <Button type="primary" onClick={onClose}>Close</Button>
+          <Button type="primary" onClick={onClose}>{t('common.close')}</Button>
         </div>
       ) : (
         <div className={styles.drawerFooter}>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{t('common.cancel')}</Button>
           <Button type="primary" loading={submitting} onClick={() => form.submit()}>
-            Save Role
+            {t('team.drawer.role.save')}
           </Button>
         </div>
       )}
@@ -89,16 +91,16 @@ export function RoleDrawer({
         onFinish={onSubmit}
       >
         <Form.Item
-          label="Role name"
+          label={t('team.drawer.roleName')}
           name="name"
-          rules={[{ required: true, message: 'Role name is required' }]}
+          rules={[{ required: true, message: t('team.drawer.roleNameRequired') }]}
         >
-          <Input placeholder="Ex: Sales Manager, Purchasing, Cashier" />
+          <Input placeholder={t('team.drawer.roleNamePlaceholder')} />
         </Form.Item>
         <Form.Item
-          label="Permissions"
+          label={t('team.drawer.permissions')}
           name="permissions"
-          rules={[{ required: true, message: 'Select at least one permission' }]}
+          rules={[{ required: true, message: t('team.drawer.permissionRequired') }]}
         >
           <Checkbox.Group className={styles.permissionGroup}>
             {Object.entries(permissionsByGroup).map(([group, groupPermissionsValue]) => (

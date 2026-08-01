@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getErrorMessage } from '../../../lib/format';
 import { login as loginRequest } from '../api/authService';
 import type {
@@ -32,6 +33,7 @@ function readStoredUser() {
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<AuthUser | null>(readStoredUser);
   const { message } = App.useApp();
+  const { t } = useTranslation();
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -42,7 +44,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           const authUser = await loginRequest(payload);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser));
           setUser(authUser);
-          message.success(`Welcome back, ${authUser.fullName || authUser.username}.`);
+          message.success(t('toast.auth.welcome', { name: authUser.fullName || authUser.username }));
         } catch (error) {
           message.error(getErrorMessage(error));
           throw error;
@@ -53,7 +55,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setUser(null);
       },
     }),
-    [message, user],
+    [message, t, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

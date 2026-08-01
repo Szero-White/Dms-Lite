@@ -14,6 +14,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../components/common/QueryState';
 import type { RoleOption } from '../../../types/team.types';
 import styles from '../TeamPage.module.css';
@@ -46,15 +47,17 @@ export function RolesTable({
   onDelete,
   onRetry,
 }: RolesTableProps) {
+  const { t } = useTranslation();
+
   return (
     <Card className={`panel-card ${styles.tableCard}`}>
       <div className={styles.cardToolbar}>
         <div>
-          <Typography.Text strong>Roles & Permissions</Typography.Text>
-          <Typography.Text type="secondary">Create custom roles without changing protected system roles.</Typography.Text>
+          <Typography.Text strong>{t('team.roles.title')}</Typography.Text>
+          <Typography.Text type="secondary">{t('team.roles.subtitle')}</Typography.Text>
         </div>
         <Button type="primary" icon={<PlusOutlined />} onClick={onCreate}>
-          New Role
+          {t('team.roles.new')}
         </Button>
       </div>
 
@@ -63,8 +66,8 @@ export function RolesTable({
         isError={isError}
         error={error}
         hasData={roles.length > 0}
-        emptyTitle="No roles available"
-        emptyDescription="Seeded roles should appear here after the backend starts."
+        emptyTitle={t('team.roles.emptyTitle')}
+        emptyDescription={t('team.roles.emptyDescription')}
         onRetry={onRetry}
       >
         <Table
@@ -73,7 +76,7 @@ export function RolesTable({
           scroll={{ x: 980 }}
           columns={[
             {
-              title: 'Role',
+              title: t('team.roles.column.role'),
               fixed: 'left',
               width: 260,
               render: (_, record) => (
@@ -81,22 +84,22 @@ export function RolesTable({
                   <div>
                     <Typography.Text strong>{roleLabel(record.name)}</Typography.Text>
                     <Typography.Text type="secondary">
-                      {record.systemRole ? 'System role' : 'Custom role'}
+                      {record.systemRole ? t('team.roles.systemRole') : t('team.roles.customRole')}
                     </Typography.Text>
                   </div>
-                  {record.editable ? <Tag color="purple">Editable</Tag> : <Tag>Protected</Tag>}
+                  {record.editable ? <Tag color="purple">{t('common.editable')}</Tag> : <Tag>{t('common.protected')}</Tag>}
                 </div>
               ),
             },
             {
-              title: 'Permission coverage',
+              title: t('team.roles.column.coverage'),
               width: 220,
               render: (_, record) => (
-                <Typography.Text>{record.permissions.length} permissions</Typography.Text>
+                <Typography.Text>{t('common.permissionsCount', { count: record.permissions.length })}</Typography.Text>
               ),
             },
             {
-              title: 'Key permissions',
+              title: t('team.roles.column.keyPermissions'),
               width: 420,
               render: (_, record) => (
                 <Space size={[6, 6]} wrap>
@@ -108,43 +111,43 @@ export function RolesTable({
               ),
             },
             {
-              title: 'Actions',
+              title: t('common.actions'),
               fixed: 'right',
               width: 144,
               render: (_, record) => (
                 <Space size={4}>
-                  <Tooltip title="View role">
+                  <Tooltip title={t('team.roles.view')}>
                     <Button
                       type="text"
                       icon={<EyeOutlined />}
-                      aria-label={`View ${record.name}`}
+                      aria-label={`${t('team.roles.view')} ${record.name}`}
                       onClick={() => onView(record)}
                     />
                   </Tooltip>
                   {record.editable ? (
                     <>
-                      <Tooltip title="Edit role">
+                      <Tooltip title={t('team.roles.edit')}>
                         <Button
                           type="text"
                           icon={<EditOutlined />}
-                          aria-label={`Edit ${record.name}`}
+                          aria-label={`${t('team.roles.edit')} ${record.name}`}
                           onClick={() => onEdit(record)}
                         />
                       </Tooltip>
                       <Popconfirm
-                        title="Delete custom role?"
-                        description="Only roles not assigned to members can be deleted."
-                        okText="Delete"
+                        title={t('team.roles.deleteTitle')}
+                        description={t('team.roles.deleteDescription')}
+                        okText={t('common.delete')}
                         okButtonProps={{ danger: true }}
                         onConfirm={() => onDelete(record.id)}
                       >
-                        <Tooltip title="Delete role">
+                        <Tooltip title={t('common.delete')}>
                           <Button
                             danger
                             type="text"
                             icon={<DeleteOutlined />}
                             loading={isDeleting && deletingRoleId === record.id}
-                            aria-label={`Delete ${record.name}`}
+                            aria-label={`${t('common.delete')} ${record.name}`}
                           />
                         </Tooltip>
                       </Popconfirm>
