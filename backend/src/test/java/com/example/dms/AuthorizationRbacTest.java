@@ -1,7 +1,9 @@
 package com.example.dms;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -80,6 +82,17 @@ class AuthorizationRbacTest {
     }
 
     @Test
+    void warehouseNotificationFeedDoesNotExposeFinanceAlerts() throws Exception {
+        MvcResult result = mvc.perform(get("/api/notifications")
+                .header("Authorization", bearer("warehouse")))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonNode data = objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
+        assertThat(data.findValuesAsText("type"))
+            .doesNotContain("OVERDUE_DEBT", "PAYMENT_RECORDED");
+    }
+    @Test
     void accountantCanRecordPaymentButCannotManageProducts() throws Exception {
         mvc.perform(post("/api/products")
                 .header("Authorization", bearer("accountant"))
@@ -93,6 +106,85 @@ class AuthorizationRbacTest {
                     "minStock", 1
                 ))))
             .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void ownerCanManageTeamButSalesCannot() throws Exception {
+        mvc.perform(get("/api/team/members")
+                .header("Authorization", bearer("owner")))
+            .andExpect(status().isOk());
+
+        mvc.perform(get("/api/team/members")
+                .header("Authorization", bearer("sale")))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void salesCanAskHelpAssistant() throws Exception {
+        mvc.perform(post("/api/help/ask")
+                .header("Authorization", bearer("sale"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(Map.of(
+                    "question", "Nhan vien sales moi can lam gi de tao don hang?"
+                ))))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    void salesCannotUseHelpAssistantToLearnTeamAccess() throws Exception {
+        mvc.perform(post("/api/help/ask")
+                .header("Authorization", bearer("sale"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(Map.of(
+                    "question", "Owner cap tai khoan va phan quyen nhan vien ra sao?"
+                ))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.answer").value("I cannot help with Team Access because it is outside your assigned role or permissions."))
+            .andExpect(jsonPath("$.data.scopeNotice").value("Requested area blocked: Team Access"));
+    }
+
+    @Test
+    void salesCannotReadHelpHistory() throws Exception {
+        mvc.perform(get("/api/help/history")
+                .header("Authorization", bearer("sale")))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void ownerCannotCreateCustomRoleWithTeamManagementPermission() throws Exception {
+        mvc.perform(post("/api/team/roles")
+                .header("Authorization", bearer("owner"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(Map.of(
+                    "name", "Branch Admin",
+                    "permissions", new String[] { "AI_HELP_VIEW", "TEAM_MANAGE" }
+                ))))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Team management permission is reserved for Owner accounts"));
+    }
+
+    @Test
+    void helpAssistantRejectsTooManyQuestionsFromSameUser() throws Exception {
+        String token = bearer("accountant");
+
+        for (int i = 0; i < 12; i++) {
+            mvc.perform(post("/api/help/ask")
+                    .header("Authorization", token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json(Map.of(
+                        "question", "How should accountant record payment " + i + "?"
+                    ))))
+                .andExpect(status().isOk());
+        }
+
+        mvc.perform(post("/api/help/ask")
+                .header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(Map.of(
+                    "question", "How should accountant record payment after limit?"
+                ))))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Too many AI questions. Please wait a moment before asking again."));
     }
 
     private String bearer(String username) throws Exception {

@@ -1,4 +1,4 @@
-import type { AuthUser } from './types/auth.types';
+﻿import type { AuthUser } from './types/auth.types';
 
 export const PERMISSIONS = {
   PRODUCT_VIEW: 'PRODUCT_VIEW',
@@ -16,21 +16,33 @@ export const PERMISSIONS = {
   REPORT_VIEW: 'REPORT_VIEW',
   AUDIT_VIEW: 'AUDIT_VIEW',
   NOTIFICATION_VIEW: 'NOTIFICATION_VIEW',
+  TEAM_MANAGE: 'TEAM_MANAGE',
+  AI_HELP_VIEW: 'AI_HELP_VIEW',
 } as const;
 
 export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
+type RoutePermission = Permission | Permission[];
 
-export const ROUTE_PERMISSIONS: Record<string, Permission> = {
+const ORDER_FINANCIAL_PERMISSIONS: Permission[] = [
+  PERMISSIONS.DEBT_VIEW,
+  PERMISSIONS.PAYMENT_CREATE,
+  PERMISSIONS.REPORT_VIEW,
+  PERMISSIONS.SALES_ORDER_CREATE,
+];
+
+export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
   '/dashboard': PERMISSIONS.REPORT_VIEW,
   '/sales-orders': PERMISSIONS.SALES_ORDER_VIEW,
   '/sales-orders/new': PERMISSIONS.SALES_ORDER_CREATE,
-  '/products': PERMISSIONS.PRODUCT_VIEW,
+  '/products': [PERMISSIONS.PRODUCT_VIEW, PERMISSIONS.INVENTORY_VIEW],
   '/customers': PERMISSIONS.CUSTOMER_VIEW,
   '/inventory': PERMISSIONS.INVENTORY_VIEW,
   '/payments': PERMISSIONS.PAYMENT_CREATE,
   '/reports': PERMISSIONS.REPORT_VIEW,
   '/audit-logs': PERMISSIONS.AUDIT_VIEW,
   '/notifications': PERMISSIONS.NOTIFICATION_VIEW,
+  '/team': PERMISSIONS.TEAM_MANAGE,
+  '/ai-history': PERMISSIONS.TEAM_MANAGE,
 };
 
 export const DEFAULT_AUTHORIZED_PATHS = [
@@ -43,17 +55,39 @@ export const DEFAULT_AUTHORIZED_PATHS = [
   '/reports',
   '/notifications',
   '/audit-logs',
+  '/team',
+  '/ai-history',
 ];
 
 export function hasPermission(user: AuthUser | null | undefined, permission: Permission) {
   return Boolean(user?.permissions?.includes(permission));
 }
 
+export function hasEveryPermission(
+  user: AuthUser | null | undefined,
+  permissions: RoutePermission,
+) {
+  const requiredPermissions = Array.isArray(permissions) ? permissions : [permissions];
+
+  return requiredPermissions.every((permission) => hasPermission(user, permission));
+}
+
+export function hasAnyPermission(
+  user: AuthUser | null | undefined,
+  permissions: Permission[],
+) {
+  return permissions.some((permission) => hasPermission(user, permission));
+}
+
+export function canViewOrderFinancials(user: AuthUser | null | undefined) {
+  return hasAnyPermission(user, ORDER_FINANCIAL_PERMISSIONS);
+}
+
 export function canAccessPath(user: AuthUser | null | undefined, path: string) {
   const normalizedPath = normalizePath(path);
   const requiredPermission = ROUTE_PERMISSIONS[normalizedPath];
 
-  return requiredPermission ? hasPermission(user, requiredPermission) : true;
+  return requiredPermission ? hasEveryPermission(user, requiredPermission) : true;
 }
 
 export function firstAuthorizedPath(user: AuthUser | null | undefined) {

@@ -18,6 +18,9 @@ import {
 import { ProtectedRoute } from './ProtectedRoute';
 import { PublicRoute } from './PublicRoute';
 
+const AIHistoryPage = lazy(() => import('../../features/help').then((module) => ({
+  default: module.AIHistoryPage,
+})));
 const AuditLogsPage = lazy(() => import('../../features/audit').then((module) => ({
   default: module.AuditLogsPage,
 })));
@@ -50,6 +53,9 @@ const CreateSalesOrderPage = lazy(() => import('../../features/sales').then((mod
 })));
 const SalesOrdersPage = lazy(() => import('../../features/sales').then((module) => ({
   default: module.SalesOrdersPage,
+})));
+const TeamPage = lazy(() => import('../../features/team').then((module) => ({
+  default: module.TeamPage,
 })));
 
 function RootRedirect() {
@@ -105,6 +111,8 @@ const router = createBrowserRouter([
       { path: 'payments', element: routeElement(<PaymentsPage />) },
       { path: 'reports', element: routeElement(<ReportsPage />) },
       { path: 'audit-logs', element: routeElement(<AuditLogsPage />) },
+      { path: 'team', element: routeElement(<TeamPage />) },
+      { path: 'ai-history', element: routeElement(<AIHistoryPage />) },
       { path: 'notifications', element: routeElement(<NotificationsPage />) },
     ],
   },

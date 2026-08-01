@@ -3,6 +3,7 @@ import {
   AuditOutlined,
   BarChartOutlined,
   BellOutlined,
+  HistoryOutlined,
   DoubleLeftOutlined,
   DoubleRightOutlined,
   DashboardOutlined,
@@ -13,14 +14,13 @@ import {
   TeamOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Avatar, Badge, Menu } from 'antd';
+import { Avatar, Menu } from 'antd';
 import {
   useLocation,
   useNavigate,
 } from 'react-router-dom';
 import {
-  ROUTE_PERMISSIONS,
-  hasPermission,
+  canAccessPath,
   useAuth,
 } from '../../../features/auth';
 import styles from './AppSidebar.module.css';
@@ -105,6 +105,16 @@ const menuItems = [
         icon: <AuditOutlined />,
         label: 'Audit Logs',
       },
+      {
+        key: '/team',
+        icon: <TeamOutlined />,
+        label: 'Team Access',
+      },
+      {
+        key: '/ai-history',
+        icon: <HistoryOutlined />,
+        label: 'AI History',
+      },
     ],
   },
 ];
@@ -113,11 +123,7 @@ function filterMenuItems(user: ReturnType<typeof useAuth>['user']) {
   return menuItems
     .map((group) => ({
       ...group,
-      children: group.children.filter((item) => {
-        const permission = ROUTE_PERMISSIONS[item.key];
-
-        return permission ? hasPermission(user, permission) : true;
-      }),
+      children: group.children.filter((item) => canAccessPath(user, item.key)),
     }))
     .filter((group) => group.children.length > 0);
 }
@@ -191,7 +197,7 @@ export function AppSidebar({
             onClick={onToggleCollapse}
           >
             {collapsed ? <DoubleRightOutlined /> : <DoubleLeftOutlined />}
-            <span>Collapse</span>
+            <span>{collapsed ? '>>' : 'Collapse'}</span>
           </button>
         ) : null}
       </div>

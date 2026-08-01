@@ -17,6 +17,8 @@ public final class PermissionNames {
     public static final String REPORT_VIEW = "REPORT_VIEW";
     public static final String AUDIT_VIEW = "AUDIT_VIEW";
     public static final String NOTIFICATION_VIEW = "NOTIFICATION_VIEW";
+    public static final String TEAM_MANAGE = "TEAM_MANAGE";
+    public static final String AI_HELP_VIEW = "AI_HELP_VIEW";
 
     private PermissionNames() {
     }

@@ -16,9 +16,14 @@ import {
   Input,
   Typography,
 } from 'antd';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../features/auth';
+import {
+  PERMISSIONS,
+  canAccessPath,
+  hasPermission,
+  useAuth,
+} from '../../../features/auth';
 import { useNotifications } from '../../../features/notifications';
 import styles from './AppHeader.module.css';
 
@@ -32,6 +37,8 @@ const navigationOptions = [
   { value: '/reports', label: 'Reports' },
   { value: '/notifications', label: 'Notifications' },
   { value: '/audit-logs', label: 'Audit Logs' },
+  { value: '/team', label: 'Team Access' },
+  { value: '/ai-history', label: 'AI History' },
 ];
 
 interface AppHeaderProps {
@@ -43,9 +50,33 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
   const navigate = useNavigate();
   const notificationsQuery = useNotifications();
   const [searchValue, setSearchValue] = useState('');
-  const unreadCount = (notificationsQuery.data ?? []).filter(
-    (notification) => notification.readFlag === false,
-  ).length;
+  const canViewNotifications = hasPermission(user, PERMISSIONS.NOTIFICATION_VIEW);
+  const unreadCount = canViewNotifications
+    ? (notificationsQuery.data ?? []).filter(
+        (notification) => notification.readFlag === false,
+      ).length
+    : 0;
+  const allowedNavigationOptions = useMemo(
+    () => navigationOptions.filter((option) => canAccessPath(user, option.value)),
+    [user],
+  );
+  const quickCreateItems = useMemo(
+    () => [
+      hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE)
+        ? { key: '/sales-orders/new', label: 'Create sales order' }
+        : null,
+      hasPermission(user, PERMISSIONS.INVENTORY_MANAGE)
+        ? { key: '/inventory', label: 'Receive stock' }
+        : null,
+      hasPermission(user, PERMISSIONS.PAYMENT_CREATE)
+        ? { key: '/payments', label: 'Record payment' }
+        : null,
+      hasPermission(user, PERMISSIONS.CUSTOMER_MANAGE)
+        ? { key: '/customers', label: 'Manage customers' }
+        : null,
+    ].filter(Boolean),
+    [user],
+  );
 
   function handleLogout() {
     logout();
@@ -65,7 +96,7 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
         <AutoComplete
           className={styles.search}
           value={searchValue}
-          options={navigationOptions}
+          options={allowedNavigationOptions}
           filterOption={(inputValue, option) =>
             String(option?.label ?? '')
               .toLowerCase()
@@ -87,35 +118,34 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
       </div>
 
       <div className={styles.actions}>
-        <Dropdown
-          trigger={['click']}
-          menu={{
-            onClick: ({ key }) => navigate(key),
-            items: [
-              { key: '/sales-orders/new', label: 'Create sales order' },
-              { key: '/inventory', label: 'Receive stock' },
-              { key: '/payments', label: 'Record payment' },
-              { key: '/customers', label: 'Manage customers' },
-            ],
-          }}
-        >
-          <Button type="primary" icon={<PlusOutlined />}>
-            Quick create <DownOutlined />
-          </Button>
-        </Dropdown>
+        {quickCreateItems.length > 0 ? (
+          <Dropdown
+            trigger={['click']}
+            menu={{
+              onClick: ({ key }) => navigate(key),
+              items: quickCreateItems,
+            }}
+          >
+            <Button type="primary" icon={<PlusOutlined />}>
+              Quick create <DownOutlined />
+            </Button>
+          </Dropdown>
+        ) : null}
 
-        <Badge count={unreadCount} size="small" overflowCount={99}>
-          <Button
-            className={styles.iconButton}
-            icon={<BellOutlined />}
-            aria-label={
-              unreadCount
-                ? `${unreadCount} unread notifications`
-                : 'Notifications'
-            }
-            onClick={() => navigate('/notifications')}
-          />
-        </Badge>
+        {canViewNotifications ? (
+          <Badge count={unreadCount} size="small" overflowCount={99}>
+            <Button
+              className={styles.iconButton}
+              icon={<BellOutlined />}
+              aria-label={
+                unreadCount
+                  ? `${unreadCount} unread notifications`
+                  : 'Notifications'
+              }
+              onClick={() => navigate('/notifications')}
+            />
+          </Badge>
+        ) : null}
 
         <Dropdown
           trigger={['click']}

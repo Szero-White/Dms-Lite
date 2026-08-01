@@ -1,4 +1,4 @@
-export {
+﻿export {
   AuthProvider,
   useAuth,
 } from './hooks/useAuth';
@@ -9,7 +9,9 @@ export type {
 } from './types/auth.types';
 export {
   canAccessPath,
+  canViewOrderFinancials,
   firstAuthorizedPath,
+  hasAnyPermission,
   hasPermission,
   PERMISSIONS,
   ROUTE_PERMISSIONS,

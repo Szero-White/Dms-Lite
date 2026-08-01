@@ -31,8 +31,12 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    private Long tenantId;
+
+    @Column(length = 100)
     private String name;
+
+    private boolean systemRole;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
