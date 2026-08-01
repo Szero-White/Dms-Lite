@@ -1,10 +1,17 @@
 import { App as AntApp, ConfigProvider, theme } from 'antd';
+import enUS from 'antd/es/locale/en_US';
+import viVN from 'antd/es/locale/vi_VN';
+import { useTranslation } from 'react-i18next';
 import { AppProviders } from './providers';
 import { AppRouter } from './router';
 
 function AppShell() {
+  const { i18n } = useTranslation();
+  const antdLocale = i18n.resolvedLanguage?.startsWith('vi') ? viVN : enUS;
+
   return (
     <ConfigProvider
+      locale={antdLocale}
       theme={{
         algorithm: theme.defaultAlgorithm,
         token: {

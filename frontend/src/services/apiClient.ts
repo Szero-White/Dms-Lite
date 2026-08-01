@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { i18n } from '../i18n';
 import { ApiResponse } from '../types';
 
 const API_BASE_URL = 'http://localhost:8080/api';
@@ -9,6 +10,7 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   const rawUser = localStorage.getItem('dms-lite-auth');
+  config.headers['Accept-Language'] = i18n.language || 'en';
 
   if (rawUser) {
     const user = JSON.parse(rawUser);
