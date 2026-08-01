@@ -16,13 +16,14 @@ import {
 } from '../api/salesService';
 import type { CreateSalesOrderPayload } from '../types/sales.types';
 
-export function useSalesOrders() {
+export function useSalesOrders(options: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: queryKeys.salesOrders,
     queryFn: async () => {
       const response = await fetchSalesOrders();
       return response.content;
     },
+    enabled: options.enabled ?? true,
   });
 }
 

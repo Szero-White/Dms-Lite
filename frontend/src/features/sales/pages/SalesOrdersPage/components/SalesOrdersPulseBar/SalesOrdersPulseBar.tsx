@@ -18,6 +18,7 @@ interface SalesOrdersPulseBarProps {
   totalRevenue: number;
   paidAmount: number;
   outstandingDebt: number;
+  showFinancials: boolean;
   statusFilter: string;
   onStatusFilterChange: (status: string) => void;
 }
@@ -32,6 +33,7 @@ export function SalesOrdersPulseBar({
   totalRevenue,
   paidAmount,
   outstandingDebt,
+  showFinancials,
   statusFilter,
   onStatusFilterChange,
 }: SalesOrdersPulseBarProps) {
@@ -70,7 +72,7 @@ export function SalesOrdersPulseBar({
         <div className={styles.pulseHeroText}>
           <div className={styles.pulseHeroTitle}>Sales Pipeline</div>
           <div className={styles.pulseHeroSub}>
-            {activeOrders} active · {totalOrders - activeOrders} inactive
+            {activeOrders} active - {totalOrders - activeOrders} inactive
           </div>
         </div>
       </div>
@@ -166,10 +168,12 @@ export function SalesOrdersPulseBar({
         </button>
       </div>
 
-      <div className={styles.pulseDivider} />
+      {showFinancials ? (
+        <>
+          <div className={styles.pulseDivider} />
 
-      {/* Financial Summary */}
-      <div className={styles.pulseFinancial}>
+          {/* Financial Summary */}
+          <div className={styles.pulseFinancial}>
         <div className={styles.financialTitle}>Financial Overview</div>
         
         <div className={styles.financialRow}>
@@ -203,7 +207,9 @@ export function SalesOrdersPulseBar({
             </span>
           </div>
         </div>
-      </div>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

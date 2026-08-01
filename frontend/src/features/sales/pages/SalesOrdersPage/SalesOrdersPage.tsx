@@ -30,10 +30,10 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
-import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
+import { PERMISSIONS, canViewOrderFinancials, hasPermission, useAuth } from '../../../auth';
 import { SalesOrderStatusTag } from '../../../../components/common/StatusTag';
 import { useCustomers } from '../../../customers';
-import { useProducts } from '../../../products';
+import { useProductList } from '../../../products';
 import {
   useCancelSalesOrder,
   useConfirmSalesOrder,
@@ -108,13 +108,16 @@ const STATUS_CONFIG = {
 export function SalesOrdersPage() {
   const { user } = useAuth();
   const canCreateSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE);
+  const canViewCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_VIEW);
+  const canViewProducts = hasPermission(user, PERMISSIONS.PRODUCT_VIEW);
+  const canViewSalesOrderFinancials = canViewOrderFinancials(user);
   const canConfirmSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CONFIRM);
   const canCancelSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CANCEL);
   const { modal } = App.useApp();
   const navigate = useNavigate();
   const ordersQuery = useSalesOrders();
-  const customersQuery = useCustomers();
-  const productsQuery = useProducts();
+  const customersQuery = useCustomers({ enabled: canViewCustomers });
+  const productsQuery = useProductList({ enabled: canViewProducts });
   const confirmMutation = useConfirmSalesOrder();
   const cancelMutation = useCancelSalesOrder();
   const [keyword, setKeyword] = useState('');
@@ -124,8 +127,8 @@ export function SalesOrdersPage() {
   const [datePickerKey, setDatePickerKey] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<SalesOrder | null>(null);
 
-  const customers = customersQuery.data ?? [];
-  const products = productsQuery.data ?? [];
+  const customers = canViewCustomers ? customersQuery.data ?? [] : [];
+  const products = canViewProducts ? productsQuery.data ?? [] : [];
   const customersMap = useMemo(
     () => new Map(customers.map((c) => [c.id, c])),
     [customers],
@@ -162,7 +165,7 @@ export function SalesOrdersPage() {
   const filteredOrders = useMemo(() => {
     const kw = keyword.trim().toLowerCase();
     return orders.filter((order) => {
-      const cName = customersMap.get(order.customerId)?.name ?? '';
+      const cName = canViewCustomers ? customersMap.get(order.customerId)?.name ?? '' : '';
       const matchesKeyword = !kw || order.code.toLowerCase().includes(kw) || cName.toLowerCase().includes(kw);
       const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
       const matchesCustomer = customerFilter === 'ALL' || order.customerId === customerFilter;
@@ -173,7 +176,7 @@ export function SalesOrdersPage() {
       );
       return matchesKeyword && matchesStatus && matchesCustomer && matchesDate;
     });
-  }, [customerFilter, customersMap, dateRange, keyword, orders, statusFilter]);
+  }, [canViewCustomers, customerFilter, customersMap, dateRange, keyword, orders, statusFilter]);
 
   const hasFilters = Boolean(keyword || statusFilter !== 'ALL' || customerFilter !== 'ALL' || dateRange);
 
@@ -236,12 +239,12 @@ export function SalesOrdersPage() {
         onStatusFilterChange={setStatusFilter}
         outstandingDebt={outstandingDebt}
         paidAmount={paidAmount}
+        showFinancials={canViewSalesOrderFinancials}
         statusFilter={statusFilter}
         totalOrders={totalOrders}
         totalRevenue={totalRevenue}
       />
-
-      {/* â”€â”€ Table card â”€â”€ */}
+      {/* Table card */}
       <Card className={`panel-card ${styles.tableCard}`}>
         <div className={styles.toolbar}>
           <div className={styles.filterControls}>
@@ -265,17 +268,19 @@ export function SalesOrdersPage() {
                 { value: 'CANCELLED', label: 'Cancelled' },
               ]}
             />
-            <Select
-              showSearch
-              optionFilterProp="label"
-              className={styles.customerFilter}
-              value={customerFilter}
-              onChange={setCustomerFilter}
-              options={[
-                { value: 'ALL', label: 'All customers' },
-                ...customers.map((c) => ({ value: c.id, label: c.name })),
-              ]}
-            />
+            {canViewCustomers ? (
+              <Select
+                showSearch
+                optionFilterProp="label"
+                className={styles.customerFilter}
+                value={customerFilter}
+                onChange={setCustomerFilter}
+                options={[
+                  { value: 'ALL', label: 'All customers' },
+                  ...customers.map((c) => ({ value: c.id, label: c.name })),
+                ]}
+              />
+            ) : null}
             <DatePicker.RangePicker
               key={datePickerKey}
               className={styles.dateFilter}
@@ -297,16 +302,16 @@ export function SalesOrdersPage() {
             )}
             {dateRange && (
               <Tag closable onClose={() => { setDateRange(null); setDatePickerKey((c) => c + 1); }}>
-                Date: {dateRange[0]} â€“ {dateRange[1]}
+                Date: {dateRange[0]} - {dateRange[1]}
               </Tag>
             )}
           </div>
         )}
 
         <QueryState
-          isLoading={ordersQuery.isLoading || customersQuery.isLoading || productsQuery.isLoading}
-          isError={ordersQuery.isError || customersQuery.isError || productsQuery.isError}
-          error={ordersQuery.error || customersQuery.error || productsQuery.error}
+          isLoading={ordersQuery.isLoading || (canViewCustomers && customersQuery.isLoading) || (canViewProducts && productsQuery.isLoading)}
+          isError={ordersQuery.isError || (canViewCustomers && customersQuery.isError) || (canViewProducts && productsQuery.isError)}
+          error={ordersQuery.error || (canViewCustomers && customersQuery.error) || (canViewProducts && productsQuery.error)}
           hasData={filteredOrders.length > 0}
           emptyTitle={hasFilters ? 'No orders match these filters' : 'No sales orders yet'}
           emptyDescription={hasFilters ? 'Clear or adjust filters.' : 'Create the first sales order.'}
@@ -315,7 +320,15 @@ export function SalesOrdersPage() {
             : canCreateSalesOrder
               ? <Button type="primary" onClick={() => navigate('/sales-orders/new')}>Create Order</Button>
               : null}
-          onRetry={() => { ordersQuery.refetch(); customersQuery.refetch(); productsQuery.refetch(); }}
+          onRetry={() => {
+            ordersQuery.refetch();
+            if (canViewCustomers) {
+              customersQuery.refetch();
+            }
+            if (canViewProducts) {
+              productsQuery.refetch();
+            }
+          }}
         >
           <Table
             rowKey="id"
@@ -340,7 +353,7 @@ export function SalesOrdersPage() {
                 render: (_, record) => (
                   <div className={styles.customerCell}>
                     <Avatar size={30} style={{ background: 'var(--gradient-primary)', color: '#fff', fontWeight: 700 }}>
-                      {getInitials(customersMap.get(record.customerId)?.name || 'C')}
+                      {getInitials(customersMap.get(record.customerId)?.name || `#${record.customerId}`)}
                     </Avatar>
                     <div>
                       <strong>{customersMap.get(record.customerId)?.name || `#${record.customerId}`}</strong>
@@ -351,20 +364,24 @@ export function SalesOrdersPage() {
               },
               { title: 'Created', dataIndex: 'createdAt', width: 160, render: (v) => formatDateTime(v) },
               { title: 'Status', width: 130, render: (_, r) => <SalesOrderStatusTag status={r.status} /> },
-              { title: 'Total', dataIndex: 'totalAmount', align: 'right', width: 150, render: (v) => <span className={styles.money}>{formatCurrency(v)}</span> },
-              { title: 'Paid',  dataIndex: 'paidAmount',  align: 'right', width: 150, render: (v) => <span className={styles.money}>{formatCurrency(v)}</span> },
-              {
-                title: 'Debt', dataIndex: 'debtAmount', align: 'right', width: 150,
-                render: (v) => <span className={`${styles.money} ${toNumber(v) > 0 ? styles.debt : ''}`}>{formatCurrency(v)}</span>,
-              },
+              ...(canViewSalesOrderFinancials ? [
+                { title: 'Total', dataIndex: 'totalAmount', align: 'right' as const, width: 150, render: (v: string | number | null) => <span className={styles.money}>{formatCurrency(v)}</span> },
+                { title: 'Paid', dataIndex: 'paidAmount', align: 'right' as const, width: 150, render: (v: string | number | null) => <span className={styles.money}>{formatCurrency(v)}</span> },
+                {
+                  title: 'Debt', dataIndex: 'debtAmount', align: 'right' as const, width: 150,
+                  render: (v: string | number | null) => <span className={`${styles.money} ${toNumber(v) > 0 ? styles.debt : ''}`}>{formatCurrency(v)}</span>,
+                },
+              ] : []),
               {
                 title: '', fixed: 'right', width: 56,
                 render: (_, record) => (
                   <Dropdown trigger={['click']} menu={{
                     items: [
                       { key: 'view', label: 'View details' },
-                      ...(record.status === 'DRAFT' ? [
+                      ...(record.status === 'DRAFT' && canConfirmSalesOrder ? [
                         { key: 'confirm', label: 'Confirm order', icon: <CheckCircleOutlined /> },
+                      ] : []),
+                      ...(record.status === 'DRAFT' && canCancelSalesOrder ? [
                         { key: 'cancel', label: 'Cancel order', icon: <StopOutlined />, danger: true },
                       ] : []),
                     ],
@@ -382,8 +399,7 @@ export function SalesOrdersPage() {
           />
         </QueryState>
       </Card>
-
-      {/* â”€â”€ Detail drawer â”€â”€ */}
+      {/* Detail drawer */}
       <Drawer
         title={selectedOrder ? `Order ${selectedOrder.code}` : 'Order Details'}
         width={720}
@@ -397,9 +413,13 @@ export function SalesOrdersPage() {
                 {customersMap.get(selectedOrder.customerId)?.name || `#${selectedOrder.customerId}`}
               </Descriptions.Item>
               <Descriptions.Item label="Status"><SalesOrderStatusTag status={selectedOrder.status} /></Descriptions.Item>
-              <Descriptions.Item label="Total">{formatCurrency(selectedOrder.totalAmount)}</Descriptions.Item>
-              <Descriptions.Item label="Paid">{formatCurrency(selectedOrder.paidAmount)}</Descriptions.Item>
-              <Descriptions.Item label="Debt">{formatCurrency(selectedOrder.debtAmount)}</Descriptions.Item>
+              {canViewSalesOrderFinancials ? (
+                <>
+                  <Descriptions.Item label="Total">{formatCurrency(selectedOrder.totalAmount)}</Descriptions.Item>
+                  <Descriptions.Item label="Paid">{formatCurrency(selectedOrder.paidAmount)}</Descriptions.Item>
+                  <Descriptions.Item label="Debt">{formatCurrency(selectedOrder.debtAmount)}</Descriptions.Item>
+                </>
+              ) : null}
               <Descriptions.Item label="Warehouse">#{selectedOrder.warehouseId}</Descriptions.Item>
             </Descriptions>
             <div>
@@ -410,9 +430,11 @@ export function SalesOrdersPage() {
                 columns={[
                   { title: 'Product', render: (_, item) => productsMap.get(item.productId)?.name || `#${item.productId}` },
                   { title: 'Qty', dataIndex: 'quantity', align: 'right' },
-                  { title: 'Unit Price', dataIndex: 'unitPrice', align: 'right', render: formatCurrency },
-                  { title: 'Discount', dataIndex: 'discountAmount', align: 'right', render: formatCurrency },
-                  { title: 'Line Total', dataIndex: 'lineTotal', align: 'right', render: formatCurrency },
+                  ...(canViewSalesOrderFinancials ? [
+                    { title: 'Unit Price', dataIndex: 'unitPrice', align: 'right' as const, render: formatCurrency },
+                    { title: 'Discount', dataIndex: 'discountAmount', align: 'right' as const, render: formatCurrency },
+                    { title: 'Line Total', dataIndex: 'lineTotal', align: 'right' as const, render: formatCurrency },
+                  ] : []),
                 ]}
               />
             </div>

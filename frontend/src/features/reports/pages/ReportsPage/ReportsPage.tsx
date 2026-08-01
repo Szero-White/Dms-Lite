@@ -32,6 +32,7 @@ import {
   formatDateTime,
   toNumber,
 } from '../../../../lib/format';
+import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
 import { useDashboardData } from '../../../dashboard';
 import { useProducts } from '../../../products';
@@ -81,16 +82,20 @@ function StatStrip({ items }: {
 }
 
 export function ReportsPage() {
+  const { user } = useAuth();
+  const canViewCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_VIEW);
+  const canViewOrders = hasPermission(user, PERMISSIONS.SALES_ORDER_VIEW);
+  const canViewInventoryProducts = hasPermission(user, PERMISSIONS.PRODUCT_VIEW) && hasPermission(user, PERMISSIONS.INVENTORY_VIEW);
   const dashboardQuery = useDashboardData();
-  const customersQuery = useCustomers();
-  const productsQuery = useProducts();
-  const ordersQuery = useSalesOrders();
+  const customersQuery = useCustomers({ enabled: canViewCustomers });
+  const productsQuery = useProducts({ enabled: canViewInventoryProducts });
+  const ordersQuery = useSalesOrders({ enabled: canViewOrders });
   const [activeTab, setActiveTab] = useState<ReportTab>('sales');
   const [dateRange, setDateRange] = useState<[number, number] | null>(null);
 
-  const customers = customersQuery.data ?? [];
-  const products  = productsQuery.data ?? [];
-  const orders    = ordersQuery.data ?? [];
+  const customers = canViewCustomers ? customersQuery.data ?? [] : [];
+  const products = canViewInventoryProducts ? productsQuery.data ?? [] : [];
+  const orders = canViewOrders ? ordersQuery.data ?? [] : [];
 
   const filteredOrders = useMemo(
     () => orders.filter((o) => {
@@ -119,7 +124,12 @@ export function ReportsPage() {
   });
 
   function refreshReports() {
-    void Promise.all([dashboardQuery.refetch(), customersQuery.refetch(), productsQuery.refetch(), ordersQuery.refetch()]);
+    void Promise.all([
+      dashboardQuery.refetch(),
+      canViewCustomers ? customersQuery.refetch() : Promise.resolve(),
+      canViewInventoryProducts ? productsQuery.refetch() : Promise.resolve(),
+      canViewOrders ? ordersQuery.refetch() : Promise.resolve(),
+    ]);
   }
 
   function exportActiveReport() {
@@ -164,9 +174,9 @@ export function ReportsPage() {
       />
 
       <QueryState
-        isLoading={dashboardQuery.isLoading || customersQuery.isLoading || productsQuery.isLoading || ordersQuery.isLoading}
-        isError={dashboardQuery.isError || customersQuery.isError || productsQuery.isError || ordersQuery.isError}
-        error={dashboardQuery.error || customersQuery.error || productsQuery.error || ordersQuery.error}
+        isLoading={dashboardQuery.isLoading || (canViewCustomers && customersQuery.isLoading) || (canViewInventoryProducts && productsQuery.isLoading) || (canViewOrders && ordersQuery.isLoading)}
+        isError={dashboardQuery.isError || (canViewCustomers && customersQuery.isError) || (canViewInventoryProducts && productsQuery.isError) || (canViewOrders && ordersQuery.isError)}
+        error={dashboardQuery.error || (canViewCustomers && customersQuery.error) || (canViewInventoryProducts && productsQuery.error) || (canViewOrders && ordersQuery.error)}
         hasData={Boolean(dashboardQuery.data)}
         emptyTitle="No report data available"
         emptyDescription="Operational reports will appear after business data is available."

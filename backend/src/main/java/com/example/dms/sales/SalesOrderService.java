@@ -11,15 +11,19 @@ import com.example.dms.inventory.InventoryService;
 import com.example.dms.notification.NotificationProducer;
 import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
+import com.example.dms.user.PermissionNames;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +39,12 @@ public class SalesOrderService {
     private static final String DEBT_DIRECTION_INCREASE = "INCREASE";
     private static final String NOTIFICATION_TYPE_CONFIRMED = "SALES_ORDER_CONFIRMED";
     private static final String NOTIFICATION_TYPE_CANCELLED = "SALES_ORDER_CANCELLED";
+    private static final Set<String> ORDER_FINANCIAL_PERMISSIONS = Set.of(
+        PermissionNames.DEBT_VIEW,
+        PermissionNames.PAYMENT_CREATE,
+        PermissionNames.REPORT_VIEW,
+        PermissionNames.SALES_ORDER_CREATE
+    );
 
     private final SalesOrderRepository salesOrderRepository;
     private final ProductRepository productRepository;
@@ -51,7 +61,7 @@ public class SalesOrderService {
         return salesOrderRepository.findByTenantIdOrderByCreatedAtDesc(
             tenantId,
             PageRequest.of(page, 20)
-        ).map(salesOrderMapper::toResponse);
+        ).map(salesOrder -> salesOrderMapper.toResponse(salesOrder, canViewOrderFinancials()));
     }
 
     @Transactional
@@ -82,7 +92,7 @@ public class SalesOrderService {
             savedSalesOrder.getCode()
         );
 
-        return salesOrderMapper.toDetailResponse(savedSalesOrder);
+        return salesOrderMapper.toDetailResponse(savedSalesOrder, canViewOrderFinancials());
     }
 
     @Transactional
@@ -122,7 +132,7 @@ public class SalesOrderService {
             "Order " + salesOrder.getCode() + " has been confirmed"
         );
 
-        return salesOrderMapper.toDetailResponse(salesOrder);
+        return salesOrderMapper.toDetailResponse(salesOrder, canViewOrderFinancials());
     }
 
     @Transactional
@@ -144,7 +154,15 @@ public class SalesOrderService {
             "Order cancelled",
             "Order " + salesOrder.getCode() + " has been cancelled"
         );
-        return salesOrderMapper.toDetailResponse(salesOrder);
+        return salesOrderMapper.toDetailResponse(salesOrder, canViewOrderFinancials());
+    }
+
+    private boolean canViewOrderFinancials() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        return authentication != null && authentication.getAuthorities()
+            .stream()
+            .anyMatch(authority -> ORDER_FINANCIAL_PERMISSIONS.contains(authority.getAuthority()));
     }
 
     private SalesOrder buildDraftOrder(CreateSalesOrderRequest request, Long tenantId) {

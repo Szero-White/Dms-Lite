@@ -9,9 +9,9 @@ export interface SalesOrderItem {
   id?: number;
   productId: number;
   quantity: number;
-  unitPrice: string | number;
-  discountAmount: string | number;
-  lineTotal: string | number;
+  unitPrice: string | number | null;
+  discountAmount: string | number | null;
+  lineTotal: string | number | null;
 }
 
 export interface SalesOrder {
@@ -20,9 +20,9 @@ export interface SalesOrder {
   warehouseId: number;
   code: string;
   status: SalesOrderStatus;
-  totalAmount: string | number;
-  paidAmount: string | number;
-  debtAmount: string | number;
+  totalAmount: string | number | null;
+  paidAmount: string | number | null;
+  debtAmount: string | number | null;
   createdAt: string;
   confirmedAt?: string;
   items: SalesOrderItem[];

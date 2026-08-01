@@ -7,24 +7,32 @@ import org.springframework.stereotype.Component;
 public class SalesOrderMapper {
 
     public SalesOrderResponse toResponse(SalesOrder salesOrder) {
+        return toResponse(salesOrder, true);
+    }
+
+    public SalesOrderResponse toResponse(SalesOrder salesOrder, boolean includeFinancials) {
         return new SalesOrderResponse(
             salesOrder.getId(),
             salesOrder.getCustomerId(),
             salesOrder.getWarehouseId(),
             salesOrder.getCode(),
             salesOrder.getStatus(),
-            salesOrder.getTotalAmount(),
-            salesOrder.getPaidAmount(),
-            salesOrder.getDebtAmount(),
+            includeFinancials ? salesOrder.getTotalAmount() : null,
+            includeFinancials ? salesOrder.getPaidAmount() : null,
+            includeFinancials ? salesOrder.getDebtAmount() : null,
             salesOrder.getCreatedAt(),
             salesOrder.getConfirmedAt()
         );
     }
 
     public SalesOrderDetailResponse toDetailResponse(SalesOrder salesOrder) {
+        return toDetailResponse(salesOrder, true);
+    }
+
+    public SalesOrderDetailResponse toDetailResponse(SalesOrder salesOrder, boolean includeFinancials) {
         List<SalesOrderItemResponse> itemResponses = salesOrder.getItems()
             .stream()
-            .map(this::toItemResponse)
+            .map(item -> toItemResponse(item, includeFinancials))
             .toList();
 
         return new SalesOrderDetailResponse(
@@ -33,23 +41,26 @@ public class SalesOrderMapper {
             salesOrder.getWarehouseId(),
             salesOrder.getCode(),
             salesOrder.getStatus(),
-            salesOrder.getTotalAmount(),
-            salesOrder.getPaidAmount(),
-            salesOrder.getDebtAmount(),
+            includeFinancials ? salesOrder.getTotalAmount() : null,
+            includeFinancials ? salesOrder.getPaidAmount() : null,
+            includeFinancials ? salesOrder.getDebtAmount() : null,
             salesOrder.getCreatedAt(),
             salesOrder.getConfirmedAt(),
             itemResponses
         );
     }
 
-    private SalesOrderItemResponse toItemResponse(SalesOrderItem salesOrderItem) {
+    private SalesOrderItemResponse toItemResponse(
+        SalesOrderItem salesOrderItem,
+        boolean includeFinancials
+    ) {
         return new SalesOrderItemResponse(
             salesOrderItem.getId(),
             salesOrderItem.getProductId(),
             salesOrderItem.getQuantity(),
-            salesOrderItem.getUnitPrice(),
-            salesOrderItem.getDiscountAmount(),
-            salesOrderItem.getLineTotal()
+            includeFinancials ? salesOrderItem.getUnitPrice() : null,
+            includeFinancials ? salesOrderItem.getDiscountAmount() : null,
+            includeFinancials ? salesOrderItem.getLineTotal() : null
         );
     }
 }
