@@ -6,8 +6,15 @@ export interface HelpAnswer {
   scopeNotice: string;
 }
 
+export interface HelpConversationTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface HelpAskPayload {
   question: string;
+  locale?: string;
+  context?: HelpConversationTurn[];
 }
 
 export interface HelpHistoryParams {
@@ -25,6 +32,7 @@ export interface HelpInteraction {
   actorFullName?: string;
   actorRoles: string[];
   question: string;
+  locale?: string;
   answer: string;
   steps: string[];
   relatedModules: string[];

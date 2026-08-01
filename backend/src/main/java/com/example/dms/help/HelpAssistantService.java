@@ -1,6 +1,5 @@
 package com.example.dms.help;
 
-import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -9,43 +8,69 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class HelpAssistantService {
 
+    private final HelpIntentDetector intentDetector;
+
     private final HelpWorkflowKnowledge knowledge;
+
+    private final HelpDataAnswerService dataAnswerService;
+
+    private final GeminiHelpAssistantClient geminiClient;
 
     public HelpAnswerResponse answer(HelpAskRequest request, Authentication authentication) {
         HelpPermissionScope scope = HelpPermissionScope.from(authentication);
-        String question = request.question().trim().toLowerCase(Locale.ROOT);
+        HelpLocale locale = HelpLocale.from(request.locale(), request.question());
 
-        if (containsAny(question, "nhan vien", "tai khoan", "role", "phan quyen", "permission", "user")) {
-            return scope.canManageTeam() ? knowledge.teamAccessAnswer() : knowledge.outOfScopeAnswer(scope, "Team Access");
-        }
-        if (containsAny(question, "ban hang", "sales", "don hang", "order", "bao gia")) {
-            return scope.canUseSales() ? knowledge.salesAnswer(scope) : knowledge.outOfScopeAnswer(scope, "Sales Orders");
-        }
-        if (containsAny(question, "kho", "ton kho", "inventory", "stock", "nhap hang")) {
-            return scope.canUseInventory() ? knowledge.inventoryAnswer(scope) : knowledge.outOfScopeAnswer(scope, "Inventory");
-        }
-        if (containsAny(question, "cong no", "thanh toan", "payment", "debt", "thu tien")) {
-            return scope.canUseFinance() ? knowledge.financeAnswer(scope) : knowledge.outOfScopeAnswer(scope, "Payments/Debt");
-        }
-        if (containsAny(question, "san pham", "product", "sku", "gia ban", "catalog")) {
-            return scope.canUseProducts() ? knowledge.productAnswer(scope) : knowledge.outOfScopeAnswer(scope, "Products");
-        }
-        if (containsAny(question, "khach hang", "customer", "dai ly", "credit")) {
-            return scope.canUseCustomers() ? knowledge.customerAnswer(scope) : knowledge.outOfScopeAnswer(scope, "Customers");
-        }
-        if (containsAny(question, "bao cao", "dashboard", "report", "doanh thu")) {
-            return scope.canUseReports() ? knowledge.reportAnswer() : knowledge.outOfScopeAnswer(scope, "Reports");
-        }
-
-        return knowledge.generalAnswer(scope);
+        return dataAnswerService.answer(request, scope, locale)
+            .orElseGet(() -> answerWorkflowQuestion(request, scope, locale));
     }
 
-    private boolean containsAny(String text, String... terms) {
-        for (String term : terms) {
-            if (text.contains(term)) {
-                return true;
-            }
+    private HelpAnswerResponse answerWorkflowQuestion(
+        HelpAskRequest request,
+        HelpPermissionScope scope,
+        HelpLocale locale
+    ) {
+        HelpIntentMatch intent = intentDetector.detect(request);
+        HelpAnswerResponse fallback = answerIntent(intent, scope, locale);
+
+        if (fallback.blocked() || intent.needsClarification()) {
+            return fallback;
         }
-        return false;
+
+        return geminiClient.answer(request, scope, locale, fallback).orElse(fallback);
+    }
+
+    private HelpAnswerResponse answerIntent(HelpIntentMatch intent, HelpPermissionScope scope, HelpLocale locale) {
+        if (intent.needsClarification()) {
+            return knowledge.clarifyingQuestionAnswer(scope, locale);
+        }
+
+        return switch (intent.intent()) {
+            case TESTING -> knowledge.testingGuideAnswer(scope, locale);
+            case ONBOARDING -> knowledge.onboardingAnswer(scope, locale);
+            case ASSIGNED_WORK -> knowledge.assignedWorkAnswer(scope, locale);
+            case MISSING_SCREEN -> knowledge.missingScreenAnswer(scope, locale);
+            case TEAM_ACCESS -> scope.canManageTeam()
+                ? knowledge.teamAccessAnswer(locale)
+                : knowledge.outOfScopeAnswer(scope, "Team Access", locale);
+            case SALES -> scope.canUseSales()
+                ? knowledge.salesAnswer(scope, locale)
+                : knowledge.outOfScopeAnswer(scope, "Sales Orders", locale);
+            case INVENTORY -> scope.canUseInventory()
+                ? knowledge.inventoryAnswer(scope, locale)
+                : knowledge.outOfScopeAnswer(scope, "Inventory", locale);
+            case FINANCE -> scope.canUseFinance()
+                ? knowledge.financeAnswer(scope, locale)
+                : knowledge.outOfScopeAnswer(scope, "Payments/Debt", locale);
+            case PRODUCT -> scope.canUseProducts()
+                ? knowledge.productAnswer(scope, locale)
+                : knowledge.outOfScopeAnswer(scope, "Products", locale);
+            case CUSTOMER -> scope.canUseCustomers()
+                ? knowledge.customerAnswer(scope, locale)
+                : knowledge.outOfScopeAnswer(scope, "Customers", locale);
+            case REPORT -> scope.canUseReports()
+                ? knowledge.reportAnswer(locale)
+                : knowledge.outOfScopeAnswer(scope, "Reports", locale);
+            case UNKNOWN -> knowledge.generalAnswer(scope, locale);
+        };
     }
 }

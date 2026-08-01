@@ -28,6 +28,10 @@ public class HelpPermissionScope {
         return permissions.contains(permission);
     }
 
+    public List<String> permissions() {
+        return permissions.stream().sorted().toList();
+    }
+
     public boolean canManageTeam() {
         return has(PermissionNames.TEAM_MANAGE);
     }

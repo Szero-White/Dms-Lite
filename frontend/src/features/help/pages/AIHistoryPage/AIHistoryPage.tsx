@@ -22,6 +22,7 @@ import {
   Typography,
 } from 'antd';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatDateTime } from '../../../../lib/format';
@@ -49,6 +50,7 @@ function statusToBlocked(status: HistoryStatusFilter) {
 }
 
 export function AIHistoryPage() {
+  const { t } = useTranslation();
   const [mineOnly, setMineOnly] = useState(false);
   const [searchDraft, setSearchDraft] = useState('');
   const [keyword, setKeyword] = useState('');
@@ -74,16 +76,16 @@ export function AIHistoryPage() {
   const emptyCopy = useMemo(() => {
     if (hasActiveFilter) {
       return {
-        title: 'No AI history matches these filters',
-        description: 'Try another keyword or status filter.',
+        title: t('aiHistory.emptyFilteredTitle'),
+        description: t('aiHistory.emptyFilteredDescription'),
       };
     }
 
     return {
-      title: 'No AI history yet',
-      description: 'Assistant questions will appear after employees use Workflow Buddy.',
+      title: t('aiHistory.emptyTitle'),
+      description: t('aiHistory.emptyDescription'),
     };
-  }, [hasActiveFilter]);
+  }, [hasActiveFilter, t]);
 
   function resetToFirstPage() {
     setPage(0);
@@ -119,29 +121,29 @@ export function AIHistoryPage() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title="AI History"
-        subtitle="Review role-scoped assistant questions and blocked attempts across your team."
+        title={t('aiHistory.title')}
+        subtitle={t('aiHistory.subtitle')}
       />
 
       <div className={styles.metricsGrid}>
         <Card className={`panel-card ${styles.metricCard}`}>
           <div className={styles.metricIcon}><HistoryOutlined /></div>
           <div>
-            <Typography.Text type="secondary">Matching interactions</Typography.Text>
+            <Typography.Text type="secondary">{t('aiHistory.metric.matching')}</Typography.Text>
             <Typography.Title level={3}>{historyPage?.totalElements ?? 0}</Typography.Title>
           </div>
         </Card>
         <Card className={`panel-card ${styles.metricCard}`}>
           <div className={styles.metricIcon}><UserOutlined /></div>
           <div>
-            <Typography.Text type="secondary">Askers on this page</Typography.Text>
+            <Typography.Text type="secondary">{t('aiHistory.metric.actors')}</Typography.Text>
             <Typography.Title level={3}>{actorCount}</Typography.Title>
           </div>
         </Card>
         <Card className={`panel-card ${styles.metricCard}`}>
           <div className={styles.metricIcon}><LockOutlined /></div>
           <div>
-            <Typography.Text type="secondary">Blocked on this page</Typography.Text>
+            <Typography.Text type="secondary">{t('aiHistory.metric.blocked')}</Typography.Text>
             <Typography.Title level={3}>{blockedCount}</Typography.Title>
           </div>
         </Card>
@@ -154,8 +156,8 @@ export function AIHistoryPage() {
               value={mineOnly ? 'mine' : 'team'}
               onChange={handleScopeChange}
               options={[
-                { value: 'team', label: 'Team history' },
-                { value: 'mine', label: 'My history' },
+                { value: 'team', label: t('aiHistory.scope.team') },
+                { value: 'mine', label: t('aiHistory.scope.mine') },
               ]}
             />
             <Select<HistoryStatusFilter>
@@ -166,9 +168,9 @@ export function AIHistoryPage() {
                 resetToFirstPage();
               }}
               options={[
-                { value: 'all', label: 'All statuses' },
-                { value: 'answered', label: 'Answered' },
-                { value: 'blocked', label: 'Blocked' },
+                { value: 'all', label: t('aiHistory.status.all') },
+                { value: 'answered', label: t('aiHistory.status.answered') },
+                { value: 'blocked', label: t('aiHistory.status.blocked') },
               ]}
             />
             <Input.Search
@@ -177,7 +179,7 @@ export function AIHistoryPage() {
               enterButton
               prefix={<SearchOutlined />}
               value={searchDraft}
-              placeholder="Search actor, role, question or answer"
+              placeholder={t('aiHistory.searchPlaceholder')}
               onChange={(event) => {
                 setSearchDraft(event.target.value);
                 if (!event.target.value) {
@@ -187,7 +189,7 @@ export function AIHistoryPage() {
               onSearch={handleSearch}
             />
           </div>
-          <Button onClick={() => historyQuery.refetch()}>Refresh</Button>
+          <Button onClick={() => historyQuery.refetch()}>{t('common.refresh')}</Button>
         </div>
 
         <QueryState
@@ -197,7 +199,7 @@ export function AIHistoryPage() {
           hasData={history.length > 0}
           emptyTitle={emptyCopy.title}
           emptyDescription={emptyCopy.description}
-          emptyAction={hasActiveFilter ? <Button onClick={clearFilters}>Clear filters</Button> : null}
+          emptyAction={hasActiveFilter ? <Button onClick={clearFilters}>{t('common.clearFilters')}</Button> : null}
           onRetry={() => historyQuery.refetch()}
         >
           <Table<HelpInteraction>
@@ -219,7 +221,7 @@ export function AIHistoryPage() {
             }}
             columns={[
               {
-                title: 'Actor',
+                title: t('aiHistory.column.actor'),
                 dataIndex: 'actorFullName',
                 width: 210,
                 render: (_, record) => (
@@ -228,38 +230,40 @@ export function AIHistoryPage() {
                     <div>
                       <Typography.Text strong>{record.actorFullName || record.actorUsername}</Typography.Text>
                       <Typography.Paragraph type="secondary">
-                        {record.actorRoles.join(', ') || 'Staff'}
+                        {record.actorRoles.join(', ') || t('common.staff')}
                       </Typography.Paragraph>
                     </div>
                   </div>
                 ),
               },
               {
-                title: 'Question',
+                title: t('aiHistory.column.question'),
                 dataIndex: 'question',
                 width: 300,
                 render: (value: string) => <Typography.Text ellipsis={{ tooltip: value }}>{value}</Typography.Text>,
               },
               {
-                title: 'Answer Preview',
+                title: t('aiHistory.column.answerPreview'),
                 dataIndex: 'answer',
                 width: 340,
                 render: (value: string) => <Typography.Text ellipsis={{ tooltip: value }}>{value}</Typography.Text>,
               },
               {
-                title: 'Status',
+                title: t('common.status'),
                 dataIndex: 'blocked',
                 width: 120,
-                render: (blocked: boolean) => blocked ? <Tag color="red">Blocked</Tag> : <Tag color="purple">Answered</Tag>,
+                render: (blocked: boolean) => blocked
+                  ? <Tag color="red">{t('aiHistory.status.blocked')}</Tag>
+                  : <Tag color="purple">{t('aiHistory.status.answered')}</Tag>,
               },
               {
-                title: 'Time',
+                title: t('common.time'),
                 dataIndex: 'createdAt',
                 width: 170,
                 render: (value: string) => formatDateTime(value),
               },
               {
-                title: 'Actions',
+                title: t('common.actions'),
                 fixed: 'right',
                 width: 104,
                 render: (_, record) => (
@@ -267,13 +271,13 @@ export function AIHistoryPage() {
                     <Button
                       type="text"
                       icon={<EyeOutlined />}
-                      aria-label="View AI history detail"
+                      aria-label={t('aiHistory.viewDetail')}
                       onClick={() => setSelectedItem(record)}
                     />
                     <Popconfirm
-                      title="Delete this AI history item?"
-                      description="Only Owner can remove assistant history records."
-                      okText="Delete"
+                      title={t('aiHistory.deleteTitle')}
+                      description={t('aiHistory.deleteDescription')}
+                      okText={t('common.delete')}
                       okButtonProps={{ danger: true }}
                       onConfirm={() => deleteItem(record.id)}
                     >
@@ -282,7 +286,7 @@ export function AIHistoryPage() {
                         type="text"
                         icon={<DeleteOutlined />}
                         loading={deleteHistoryItem.isPending}
-                        aria-label="Delete AI history item"
+                        aria-label={t('aiHistory.deleteLabel')}
                       />
                     </Popconfirm>
                   </Space>
@@ -295,46 +299,46 @@ export function AIHistoryPage() {
 
       <Drawer
         width={620}
-        title="AI Interaction Detail"
+        title={t('aiHistory.detailTitle')}
         open={Boolean(selectedItem)}
         onClose={() => setSelectedItem(null)}
         extra={selectedItem ? (
           <Popconfirm
-            title="Delete this AI history item?"
-            okText="Delete"
+            title={t('aiHistory.deleteTitle')}
+            okText={t('common.delete')}
             okButtonProps={{ danger: true }}
             onConfirm={() => deleteItem(selectedItem.id)}
           >
-            <Button danger icon={<DeleteOutlined />} loading={deleteHistoryItem.isPending}>Delete</Button>
+            <Button danger icon={<DeleteOutlined />} loading={deleteHistoryItem.isPending}>{t('common.delete')}</Button>
           </Popconfirm>
         ) : null}
       >
         {selectedItem ? (
           <div className={styles.detailContent}>
             <Descriptions column={1} bordered size="small">
-              <Descriptions.Item label="Actor">{selectedItem.actorFullName || selectedItem.actorUsername}</Descriptions.Item>
-              <Descriptions.Item label="Roles">{selectedItem.actorRoles.join(', ') || '--'}</Descriptions.Item>
-              <Descriptions.Item label="Status">{selectedItem.blocked ? 'Blocked' : 'Answered'}</Descriptions.Item>
-              <Descriptions.Item label="Time">{formatDateTime(selectedItem.createdAt)}</Descriptions.Item>
-              <Descriptions.Item label="Scope notice">{selectedItem.scopeNotice}</Descriptions.Item>
+              <Descriptions.Item label={t('aiHistory.detail.actor')}>{selectedItem.actorFullName || selectedItem.actorUsername}</Descriptions.Item>
+              <Descriptions.Item label={t('aiHistory.detail.roles')}>{selectedItem.actorRoles.join(', ') || '--'}</Descriptions.Item>
+              <Descriptions.Item label={t('common.status')}>{selectedItem.blocked ? t('aiHistory.status.blocked') : t('aiHistory.status.answered')}</Descriptions.Item>
+              <Descriptions.Item label={t('common.time')}>{formatDateTime(selectedItem.createdAt)}</Descriptions.Item>
+              <Descriptions.Item label={t('aiHistory.detail.scopeNotice')}>{selectedItem.scopeNotice}</Descriptions.Item>
             </Descriptions>
 
             <section>
-              <Typography.Title level={5}>Question</Typography.Title>
+              <Typography.Title level={5}>{t('aiHistory.detail.question')}</Typography.Title>
               <div className={styles.detailBox}>{selectedItem.question}</div>
             </section>
 
             <section>
-              <Typography.Title level={5}>Answer</Typography.Title>
+              <Typography.Title level={5}>{t('aiHistory.detail.answer')}</Typography.Title>
               <div className={styles.detailBox}>{selectedItem.answer}</div>
             </section>
 
             <section>
-              <Typography.Title level={5}>Related Modules</Typography.Title>
+              <Typography.Title level={5}>{t('aiHistory.detail.relatedModules')}</Typography.Title>
               <div className={styles.tagList}>
                 {selectedItem.relatedModules.length > 0
                   ? selectedItem.relatedModules.map((module) => <Tag color="purple" key={module}>{module}</Tag>)
-                  : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No module context" />}
+                  : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('aiHistory.noModuleContext')} />}
               </div>
             </section>
           </div>

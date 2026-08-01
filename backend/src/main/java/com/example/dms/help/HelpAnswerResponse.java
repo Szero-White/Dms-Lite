@@ -7,6 +7,7 @@ public record HelpAnswerResponse(
     List<String> steps,
     List<String> relatedModules,
     List<String> guardrails,
-    String scopeNotice
+    String scopeNotice,
+    boolean blocked
 ) {
 }

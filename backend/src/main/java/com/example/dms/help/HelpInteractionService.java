@@ -43,7 +43,7 @@ public class HelpInteractionService {
             .relatedModules(join(answer.relatedModules()))
             .guardrails(join(answer.guardrails()))
             .scopeNotice(answer.scopeNotice())
-            .blocked(answer.scopeNotice() != null && answer.scopeNotice().startsWith("Requested area blocked:"))
+            .blocked(answer.blocked())
             .build();
 
         return toResponse(interactions.save(interaction));

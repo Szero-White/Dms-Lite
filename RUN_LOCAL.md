@@ -25,6 +25,7 @@ Nếu bạn dùng user `postgres/123456`, sửa biến môi trường hoặc fil
 
 ```bash
 cd backend
+$env:GEMINI_API_KEY="dán_api_key_của_bạn_vào_đây"
 mvn spring-boot:run "-Dspring-boot.run.arguments=--spring.profiles.active=local"
 ```
 

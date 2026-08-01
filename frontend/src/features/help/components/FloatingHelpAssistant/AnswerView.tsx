@@ -6,6 +6,7 @@ import {
   Tag,
   Typography,
 } from 'antd';
+import { useTranslation } from 'react-i18next';
 import type { HelpAnswer } from '../../types/help.types';
 import styles from './FloatingHelpAssistant.module.css';
 
@@ -14,6 +15,8 @@ interface AnswerViewProps {
 }
 
 export function AnswerView({ answer }: AnswerViewProps) {
+  const { t } = useTranslation();
+
   return (
     <div className={styles.answerPanel}>
       <div className={styles.answerIntro}>
@@ -22,18 +25,18 @@ export function AnswerView({ answer }: AnswerViewProps) {
       </div>
 
       <div className={styles.answerSection}>
-        <Typography.Text strong>Next steps</Typography.Text>
+        <Typography.Text strong>{t('assistant.answer.nextSteps')}</Typography.Text>
         <ol>
           {answer.steps.map((step) => <li key={step}>{step}</li>)}
         </ol>
       </div>
 
       <div className={styles.answerSection}>
-        <Typography.Text strong>Allowed context</Typography.Text>
+        <Typography.Text strong>{t('assistant.answer.allowedContext')}</Typography.Text>
         <div className={styles.tagList}>
           {answer.relatedModules.length > 0 ? answer.relatedModules.map((module) => (
             <Tag color="purple" key={module}>{module}</Tag>
-          )) : <Tag>Limited access</Tag>}
+          )) : <Tag>{t('assistant.answer.limitedAccess')}</Tag>}
         </div>
       </div>
 

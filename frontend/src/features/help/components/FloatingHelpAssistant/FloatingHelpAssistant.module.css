@@ -47,6 +47,22 @@
   font-size: 12px;
 }
 
+.headerActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.headerActions :global(.ant-btn) {
+  color: #1f2937;
+}
+
+.headerActions :global(.ant-btn:hover) {
+  color: #5b4df6;
+  background: rgba(124, 103, 255, 0.1);
+}
+
 .promptStrip {
   display: grid;
   grid-template-columns: 1fr;
@@ -88,6 +104,58 @@
   min-height: 260px;
   overflow-y: auto;
   padding: 16px;
+}
+
+.messageList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chatMessage {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.userMessage {
+  align-self: flex-end;
+  max-width: 86%;
+  padding: 10px 13px;
+  border: 1px solid rgba(124, 103, 255, 0.22);
+  border-radius: 18px 18px 6px 18px;
+  color: #312e81;
+  background: rgba(124, 103, 255, 0.1);
+}
+
+.assistantMessage {
+  align-self: flex-start;
+  width: 100%;
+}
+
+.thinkingMessage {
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(124, 103, 255, 0.16);
+  border-radius: 18px;
+  color: #5b6475;
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.thinkingMessage::after {
+  content: '';
+  width: 28px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(124, 103, 255, 0.2), rgba(124, 103, 255, 0.85), rgba(124, 103, 255, 0.2));
+  animation: thinkingPulse 900ms ease-in-out infinite;
+}
+
+@keyframes thinkingPulse {
+  0%, 100% { opacity: 0.35; transform: scaleX(0.82); }
+  50% { opacity: 1; transform: scaleX(1); }
 }
 
 .emptyState {

@@ -37,6 +37,12 @@ management:
         include: health,info,metrics,prometheus
 
 app:
+  ai:
+    gemini:
+      enabled: ${GEMINI_ENABLED:true}
+      api-key: ${GEMINI_API_KEY:}
+      model: ${GEMINI_MODEL:gemini-2.5-flash}
+      max-output-tokens: ${GEMINI_MAX_OUTPUT_TOKENS:900}
   jwt:
     secret: ${APP_JWT_SECRET:dms-lite-secret-key-must-be-at-least-32-characters}
     minutes: ${APP_JWT_MINUTES:180}
