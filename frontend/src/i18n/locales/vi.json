@@ -542,6 +542,7 @@
   "sales.confirm.ok": "Xác nhận đơn",
   "sales.confirm.title": "Xác nhận {{code}}?",
   "sales.create.addProduct": "Thêm sản phẩm",
+  "sales.create.availableStock": "Tồn",
   "sales.create.back": "Quay lại",
   "sales.create.backToOrders": "Quay lại đơn hàng",
   "sales.create.breadcrumbCreate": "Tạo mới",
@@ -693,6 +694,5 @@
   "toast.team.memberUpdated": "Đã cập nhật thành viên.",
   "toast.team.roleCreated": "Đã tạo vai trò.",
   "toast.team.roleDeleted": "Đã xóa vai trò.",
-  "toast.team.roleUpdated": "Đã cập nhật vai trò.",
-  "sales.create.availableStock": "Tồn có thể bán"
+  "toast.team.roleUpdated": "Đã cập nhật vai trò."
 }

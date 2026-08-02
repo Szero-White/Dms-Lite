@@ -209,7 +209,7 @@ export function CreateSalesOrderPage() {
                             className={`line-item-card ${styles.lineItem}`}
                           >
                             <Row gutter={[12, 12]} align="bottom">
-                              <Col xs={24} xl={9}>
+                              <Col xs={24} xl={10}>
                                 <Form.Item
                                   {...field}
                                   name={[field.name, 'productId']}
@@ -225,13 +225,14 @@ export function CreateSalesOrderPage() {
                                   />
                                 </Form.Item>
                               </Col>
-                              <Col xs={12} sm={8} xl={4}>
-                                <div className={styles.readonlyFieldGroup}>
-                                  <label className={styles.readonlyLabel}>{t('sales.create.availableStock')}</label>
-                                  <div className={styles.readonlyValue}>
-                                    {selectedProduct ? availableStock : '--'}
-                                  </div>
-                                </div>
+                              <Col xs={12} sm={8} xl={3}>
+                                <Form.Item label={t('sales.create.availableStock')}>
+                                  <InputNumber
+                                    className={styles.fullWidth}
+                                    value={selectedProduct ? availableStock : undefined}
+                                    readOnly
+                                  />
+                                </Form.Item>
                               </Col>
                               <Col xs={12} sm={8} xl={4}>
                                 <Form.Item
@@ -247,7 +248,7 @@ export function CreateSalesOrderPage() {
                                   />
                                 </Form.Item>
                               </Col>
-                              <Col xs={12} sm={8} xl={5}>
+                              <Col xs={12} sm={8} xl={4}>
                                 <Form.Item
                                   {...field}
                                   name={[field.name, 'discountAmount']}
@@ -256,7 +257,7 @@ export function CreateSalesOrderPage() {
                                   <InputNumber className={styles.fullWidth} min={0} />
                                 </Form.Item>
                               </Col>
-                              <Col xs={12} sm={8} xl={2} className={styles.removeColumn}>
+                              <Col xs={12} sm={8} xl={3} className={styles.removeColumn}>
                                 <Button
                                   danger
                                   className={styles.removeButton}

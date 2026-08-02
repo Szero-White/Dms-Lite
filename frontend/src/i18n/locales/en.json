@@ -542,6 +542,7 @@
   "sales.confirm.ok": "Confirm Order",
   "sales.confirm.title": "Confirm {{code}}?",
   "sales.create.addProduct": "Add Product",
+  "sales.create.availableStock": "Stock",
   "sales.create.back": "Back",
   "sales.create.backToOrders": "Back to Orders",
   "sales.create.breadcrumbCreate": "Create",
@@ -693,6 +694,5 @@
   "toast.team.memberUpdated": "Team member updated.",
   "toast.team.roleCreated": "Role created.",
   "toast.team.roleDeleted": "Role deleted.",
-  "toast.team.roleUpdated": "Role updated.",
-  "sales.create.availableStock": "Available"
+  "toast.team.roleUpdated": "Role updated."
 }
