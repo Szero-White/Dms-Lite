@@ -40,6 +40,12 @@
 .activityItem:global(.ant-list-item:last-child) { border-bottom: none !important; }
 .activityItem:global(.ant-list-item:hover) { background: var(--color-surface-muted); }
 
+.interactiveItem:global(.ant-list-item) { cursor: pointer; }
+.interactiveItem:global(.ant-list-item:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
 /* Unread state — left accent + subtle bg */
 .unread:global(.ant-list-item) {
   background: linear-gradient(to right, rgba(99,102,241,0.06) 0%, transparent 40%);

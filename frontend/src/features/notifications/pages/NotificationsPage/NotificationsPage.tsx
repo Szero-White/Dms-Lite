@@ -12,14 +12,17 @@ import {
   Segmented,
   Typography,
 } from 'antd';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { NotificationTypeTag } from '../../../../components/common/StatusTag';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatDateTime } from '../../../../lib/format';
-import { useNotifications } from '../../hooks/useNotificationQueries';
+import {
+  useMarkNotificationRead,
+  useNotifications,
+} from '../../hooks/useNotificationQueries';
 import styles from './NotificationsPage.module.css';
 
 type NotificationCategory = 'ALL' | 'UNREAD' | 'INVENTORY' | 'RECEIVABLES' | 'ORDERS';
@@ -44,7 +47,7 @@ function categoryForType(type: string): Exclude<NotificationCategory, 'ALL' | 'U
   return null;
 }
 
-function relativeTime(value: string, t: TFunction) {
+function relativeTime(value: string, t: TFunction, language?: string) {
   const elapsedSeconds = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 1000));
 
   if (elapsedSeconds < 60) {
@@ -60,7 +63,7 @@ function relativeTime(value: string, t: TFunction) {
     return t('notifications.relative.daysAgo', { count: Math.floor(elapsedSeconds / 86400) });
   }
 
-  return formatDateTime(value);
+  return formatDateTime(value, language);
 }
 
 function iconForType(type: string) {
@@ -79,9 +82,50 @@ function iconForType(type: string) {
   return <BellOutlined />;
 }
 
+function localizedNotificationTitle(type: string, fallback: string, t: TFunction) {
+  return t(`notifications.types.${type}.title`, fallback);
+}
+
+function localizedNotificationMessage(item: { type: string; message: string }, t: TFunction) {
+  const lowStockMatch = item.message.match(/^(.+) is at (\d+) units, below minimum (\d+)\.$/);
+  if (item.type === 'LOW_STOCK' && lowStockMatch) {
+    return t('notifications.types.LOW_STOCK.message', {
+      product: lowStockMatch[1],
+      quantity: lowStockMatch[2],
+      minimum: lowStockMatch[3],
+    });
+  }
+
+  const overdueDebtMatch = item.message.match(/^(.+) has overdue receivable of (.+) VND\.$/);
+  if (item.type === 'OVERDUE_DEBT' && overdueDebtMatch) {
+    return t('notifications.types.OVERDUE_DEBT.message', {
+      customer: overdueDebtMatch[1],
+      amount: overdueDebtMatch[2],
+    });
+  }
+
+  const paymentMatch = item.message.match(/^(.+) paid (.+) VND\.$/);
+  if (item.type === 'PAYMENT_RECORDED' && paymentMatch) {
+    return t('notifications.types.PAYMENT_RECORDED.message', {
+      customer: paymentMatch[1],
+      amount: paymentMatch[2],
+    });
+  }
+
+  const salesOrderMatch = item.message.match(/^Inventory updated for product #(.+) after sales order confirmation\.$/);
+  if (item.type === 'SALES_ORDER_CONFIRMED' && salesOrderMatch) {
+    return t('notifications.types.SALES_ORDER_CONFIRMED.message', {
+      productId: salesOrderMatch[1],
+    });
+  }
+
+  return item.message;
+}
+
 export function NotificationsPage() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const notificationsQuery = useNotifications();
+  const markReadMutation = useMarkNotificationRead();
   const [activeCategory, setActiveCategory] = useState<NotificationCategory>('ALL');
   const [keyword, setKeyword] = useState('');
   const notifications = notificationsQuery.data ?? [];
@@ -89,9 +133,15 @@ export function NotificationsPage() {
   const availableCategories = new Set(
     notifications.map((item) => categoryForType(item.type)).filter(Boolean),
   );
+  useEffect(() => {
+    if (activeCategory === 'UNREAD' && unreadCount === 0) {
+      setActiveCategory('ALL');
+    }
+  }, [activeCategory, unreadCount]);
+
   const categoryOptions = [
     { label: t('notifications.filter.all'), value: 'ALL' },
-    ...(unreadCount > 0 ? [{ label: `Unread (${unreadCount})`, value: 'UNREAD' }] : []),
+    ...(unreadCount > 0 ? [{ label: t('notifications.filter.unreadCount', { count: unreadCount }), value: 'UNREAD' }] : []),
     ...(availableCategories.has('INVENTORY') ? [{ label: t('notifications.filter.inventory'), value: 'INVENTORY' }] : []),
     ...(availableCategories.has('RECEIVABLES') ? [{ label: t('notifications.filter.receivables'), value: 'RECEIVABLES' }] : []),
     ...(availableCategories.has('ORDERS') ? [{ label: t('notifications.filter.orders'), value: 'ORDERS' }] : []),
@@ -99,7 +149,9 @@ export function NotificationsPage() {
   const filteredNotifications = useMemo(
     () => notifications.filter((item) => {
       const normalizedKeyword = keyword.trim().toLowerCase();
-      const matchesKeyword = !normalizedKeyword || [item.title, item.message, item.type]
+      const localizedTitle = localizedNotificationTitle(item.type, item.title, t);
+      const localizedMessage = localizedNotificationMessage(item, t);
+      const matchesKeyword = !normalizedKeyword || [item.title, item.message, localizedTitle, localizedMessage, item.type]
         .some((value) => value.toLowerCase().includes(normalizedKeyword));
       const matchesCategory = activeCategory === 'ALL' ||
         (activeCategory === 'UNREAD' && item.readFlag === false) ||
@@ -107,7 +159,7 @@ export function NotificationsPage() {
 
       return matchesKeyword && matchesCategory;
     }),
-    [activeCategory, keyword, notifications],
+    [activeCategory, keyword, notifications, t],
   );
 
   return (
@@ -147,37 +199,53 @@ export function NotificationsPage() {
           <List
             className={styles.activityList}
             dataSource={filteredNotifications}
-            renderItem={(item) => (
-              <List.Item className={`${styles.activityItem} ${item.readFlag === false ? styles.unread : ''}`}>
-                <div className={`${styles.activityIcon} ${styles[categoryForType(item.type)?.toLowerCase() || 'defaultIcon']}`}>
-                  {iconForType(item.type)}
-                </div>
-                <div className={styles.activityContent}>
-                  <div className={styles.activityHeader}>
-                    <div className={styles.titleGroup}>
-                      <Typography.Text className={styles.title}>
-                        {item.title}
+            renderItem={(item) => {
+              const isUnread = item.readFlag === false;
+
+              return (
+                <List.Item
+                  className={`${styles.activityItem} ${isUnread ? styles.unread : ''} ${styles.interactiveItem}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={isUnread ? t('notifications.action.markRead') : undefined}
+                  onClick={() => markReadMutation.mutate(item)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      markReadMutation.mutate(item);
+                    }
+                  }}
+                >
+                  <div className={`${styles.activityIcon} ${styles[categoryForType(item.type)?.toLowerCase() || 'defaultIcon']}`}>
+                    {iconForType(item.type)}
+                  </div>
+                  <div className={styles.activityContent}>
+                    <div className={styles.activityHeader}>
+                      <div className={styles.titleGroup}>
+                        <Typography.Text className={styles.title}>
+                          {localizedNotificationTitle(item.type, item.title, t)}
+                        </Typography.Text>
+                        {isUnread && <span className={styles.unreadDot} aria-label={t('notifications.unread')} />}
+                        <NotificationTypeTag type={item.type} />
+                      </div>
+                      <Typography.Text
+                        type="secondary"
+                        className={styles.timestamp}
+                        title={formatDateTime(item.createdAt, i18n.language)}
+                      >
+                        {relativeTime(item.createdAt, t, i18n.language)}
                       </Typography.Text>
-                      {item.readFlag === false && <span className={styles.unreadDot} aria-label={t('notifications.unread')} />}
-                      <NotificationTypeTag type={item.type} />
                     </div>
-                    <Typography.Text
-                      type="secondary"
-                      className={styles.timestamp}
-                      title={formatDateTime(item.createdAt)}
-                    >
-                      {relativeTime(item.createdAt, t)}
+                    <Typography.Paragraph className={styles.message}>
+                      {localizedNotificationMessage(item, t)}
+                    </Typography.Paragraph>
+                    <Typography.Text type="secondary" className={styles.source}>
+                      {t('notifications.source.label', { source: item.source === 'api' ? t('notifications.source.api') : t('notifications.source.derived') })}
                     </Typography.Text>
                   </div>
-                  <Typography.Paragraph className={styles.message}>
-                    {item.message}
-                  </Typography.Paragraph>
-                  <Typography.Text type="secondary" className={styles.source}>
-                    {t('notifications.source.label', { source: item.source === 'api' ? t('notifications.source.api') : t('notifications.source.derived') })}
-                  </Typography.Text>
-                </div>
-              </List.Item>
-            )}
+                </List.Item>
+              );
+            }}
           />
         </QueryState>
       </Card>

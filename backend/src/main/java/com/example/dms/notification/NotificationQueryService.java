@@ -1,5 +1,6 @@
 package com.example.dms.notification;
 
+import com.example.dms.common.BusinessException;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
@@ -29,6 +30,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +64,7 @@ public class NotificationQueryService {
 
     private final InventoryTransactionRepository inventoryTransactions;
 
+    @Transactional(readOnly = true)
     public List<NotificationFeedItem> listRecent(int size, Authentication authentication) {
         Long tenantId = TenantContext.tenantRequired();
         Set<String> permissions = authentication.getAuthorities()
@@ -89,6 +92,19 @@ public class NotificationQueryService {
             .sorted(Comparator.comparing(NotificationFeedItem::createdAt).reversed())
             .limit(boundedSize)
             .toList();
+    }
+
+    @Transactional
+    public void markRead(Long notificationId) {
+        Notification notification = notificationRepository.findByIdAndTenantId(
+                notificationId,
+                TenantContext.tenantRequired()
+            )
+            .orElseThrow(() -> new BusinessException("Notification not found"));
+
+        if (!notification.isReadFlag()) {
+            notification.setReadFlag(true);
+        }
     }
 
     private List<NotificationFeedItem> apiNotifications(Long tenantId) {
