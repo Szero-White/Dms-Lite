@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
+import { downloadCsvContent } from '../../../../lib/csvExport';
+import { downloadXlsx } from '../../../../lib/xlsxExport';
 import { QueryState } from '../../../../components/common/QueryState';
 import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
@@ -13,6 +15,11 @@ import { useDashboardData } from '../../hooks/useDashboardQueries';
 import { DashboardAttentionSection } from './components/DashboardAttentionSection';
 import { DashboardCommercialSection } from './components/DashboardCommercialSection';
 import { DashboardHeaderActions } from './components/DashboardHeaderActions';
+import {
+  buildDashboardExportCsv,
+  buildDashboardExportFilename,
+  buildDashboardExportSheet,
+} from './dashboardExport';
 import { DashboardPerformanceSection } from './components/DashboardPerformanceSection';
 import { DashboardWelcomePanel } from './components/DashboardWelcomePanel';
 import { useDashboardPageData } from './hooks/useDashboardPageData';
@@ -32,6 +39,7 @@ export function DashboardPage() {
   const productsQuery = useProducts({ enabled: canViewInventoryProducts });
   const [range, setRange] = useState<DashboardRange>('7_DAYS');
   const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const orders = canViewOrders ? ordersQuery.data ?? [] : [];
   const customers = canViewCustomers ? customersQuery.data ?? [] : [];
@@ -39,8 +47,6 @@ export function DashboardPage() {
   const {
     activeCustomers,
     attentionOrders,
-    buildExportCsv,
-    buildExportFilename,
     confirmedOrders,
     customersMap,
     filteredOrders,
@@ -88,17 +94,18 @@ export function DashboardPage() {
     }
   }
 
-  function handleExport() {
-    const csv = buildExportCsv(t);
-    const url = URL.createObjectURL(
-      new Blob([csv], { type: 'text/csv;charset=utf-8' }),
-    );
-    const anchor = document.createElement('a');
+  async function handleExport(format: 'csv' | 'xlsx') {
+    if (format === 'csv') {
+      downloadCsvContent(buildDashboardExportFilename(range, 'csv'), buildDashboardExportCsv({ customersMap, filteredOrders, range, t }));
+      return;
+    }
 
-    anchor.href = url;
-    anchor.download = buildExportFilename();
-    anchor.click();
-    URL.revokeObjectURL(url);
+    setExporting(true);
+    try {
+      await downloadXlsx(buildDashboardExportFilename(range, 'xlsx'), [buildDashboardExportSheet({ customersMap, filteredOrders, range, t })]);
+    } finally {
+      setExporting(false);
+    }
   }
 
   return (
@@ -109,7 +116,10 @@ export function DashboardPage() {
         extra={
           <DashboardHeaderActions
             canExport={filteredOrders.length > 0}
-            onExport={handleExport}
+            exporting={exporting}
+            onExport={(format) => {
+              void handleExport(format);
+            }}
             onRangeChange={setRange}
             onRefresh={() => {
               void handleRefresh();

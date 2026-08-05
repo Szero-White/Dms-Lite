@@ -606,7 +606,7 @@
   "sales.create.breadcrumbSalesOrders": "Sales Orders",
   "sales.create.confirmNow": "Confirm Order Now",
   "sales.create.createdSuccess": "Order #{{id}} created successfully",
-  "sales.create.customerDebtLabel": "{{name}} ? Debt {{debt}}",
+  "sales.create.customerDebtLabel": "{{name}} - Debt {{debt}}",
   "sales.create.customerWarehouse": "Customer & Warehouse",
   "sales.create.customerWarehouseHint": "Select the customer and review the fulfillment location.",
   "sales.create.debtAmount": "Debt Amount",
@@ -617,7 +617,7 @@
   "sales.create.orderTotal": "Order Total",
   "sales.create.payment": "Payment",
   "sales.create.paymentHint": "Record the amount received now; the balance becomes debt.",
-  "sales.create.productLabel": "{{name}} ? {{price}} ? Stock {{stock}}",
+  "sales.create.productLabel": "{{name}} - {{price}} - Stock: {{stock}}",
   "sales.create.remove": "Remove",
   "sales.create.stockWarningItem": "{{name}}: requested {{quantity}}, available {{stock}}",
   "sales.create.stockWarningTitle": "Requested quantity exceeds current stock",
@@ -754,5 +754,11 @@
   "toast.team.roleUpdated": "Role updated.",
   "common.somethingWentWrong": "Something went wrong",
   "sales.drawer.product": "Product",
-  "notifications.action.markRead": "Mark notification as read"
+  "notifications.action.markRead": "Mark notification as read",
+  "common.exportCsv": "Export CSV",
+  "common.exportXlsx": "Export Excel (.xlsx)",
+  "reports.export.salesTitle": "Sales report",
+  "reports.export.inventoryTitle": "Inventory report",
+  "reports.export.receivablesTitle": "Receivables report",
+  "reports.export.generatedAt": "Generated at {{time}}"
 }

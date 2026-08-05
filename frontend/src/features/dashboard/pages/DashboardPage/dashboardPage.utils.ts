@@ -21,7 +21,3 @@ export function getRangeStart(range: DashboardRange) {
 
   return start;
 }
-
-export function escapeCsv(value: string | number) {
-  return `"${String(value).replace(/"/g, '""')}"`;
-}

@@ -2,9 +2,7 @@
 
 .reportContent { display: grid; gap: 0; }
 
-/* ══════════════════════════════════════════
-   TABS – styled navigation
-   ══════════════════════════════════════════ */
+/* Tabs */
 .reportTabs :global(.ant-tabs-nav) {
   margin-bottom: 0;
   padding: 0 2px;
@@ -37,9 +35,7 @@
 
 .tabContent { display: grid; gap: 20px; }
 
-/* ══════════════════════════════════════════
-   STAT STRIP  – replaces 4 boring cards
-   ══════════════════════════════════════════ */
+/* Stat strip */
 .statStrip {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -96,9 +92,7 @@
   margin-top: 2px;
 }
 
-/* ══════════════════════════════════════════
-   CHART GRID
-   ══════════════════════════════════════════ */
+/* Chart grid */
 .chartGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.85fr);
@@ -106,9 +100,7 @@
   gap: 16px;
 }
 
-/* ══════════════════════════════════════════
-   DEBT BAR LIST  (receivables tab)
-   ══════════════════════════════════════════ */
+/* Debt bar list */
 .debtBarList {
   display: flex;
   flex-direction: column;
@@ -177,9 +169,7 @@
   transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
 }
 
-/* ══════════════════════════════════════════
-   CREDIT USAGE (table cell)
-   ══════════════════════════════════════════ */
+/* Credit usage */
 .creditUsage {
   display: grid;
   grid-template-columns: minmax(80px, 1fr) auto;
@@ -195,9 +185,7 @@
   font-weight: 600;
 }
 
-/* ══════════════════════════════════════════
-   RESPONSIVE
-   ══════════════════════════════════════════ */
+/* Responsive */
 @media (max-width: 1100px) {
   .chartGrid { grid-template-columns: 1fr; }
 }

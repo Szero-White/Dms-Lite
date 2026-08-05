@@ -1,11 +1,9 @@
 import { useMemo } from 'react';
-import type { TFunction } from 'i18next';
 import type { Customer } from '../../../../customers';
 import type { ProductRow } from '../../../../products';
 import type { SalesOrder } from '../../../../sales';
-import { toNumber } from '../../../../../lib/format';
 import type { DashboardRange } from '../dashboardPage.types';
-import { escapeCsv, getRangeStart } from '../dashboardPage.utils';
+import { getRangeStart } from '../dashboardPage.utils';
 
 interface UseDashboardPageDataParams {
   customers: Customer[];
@@ -93,40 +91,10 @@ export function useDashboardPageData({
           ? new Date().getDate()
           : 7;
 
-  function buildExportFilename() {
-    return `dms-dashboard-${range.toLowerCase()}.csv`;
-  }
-
-  function buildExportCsv(t: TFunction) {
-    const rows = [
-      [
-        t('dashboard.export.orderCode'),
-        t('reports.table.status'),
-        t('reports.table.customer'),
-        t('reports.table.total'),
-        t('reports.table.paid'),
-        t('reports.table.debt'),
-        t('reports.table.createdAt'),
-      ],
-      ...filteredOrders.map((order) => [
-        order.code,
-        t(`status.sales.${order.status}`, order.status),
-        customersMap.get(order.customerId) || t('dashboard.attention.customerFallback', { id: order.customerId }),
-        toNumber(order.totalAmount),
-        toNumber(order.paidAmount),
-        toNumber(order.debtAmount),
-        order.createdAt,
-      ]),
-    ];
-
-    return rows.map((row) => row.map(escapeCsv).join(',')).join('\n');
-  }
 
   return {
     activeCustomers,
     attentionOrders,
-    buildExportCsv,
-    buildExportFilename,
     confirmedOrders,
     customersMap,
     filteredOrders,

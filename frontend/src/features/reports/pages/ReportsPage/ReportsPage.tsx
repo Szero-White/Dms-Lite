@@ -2,6 +2,7 @@ import {
   BarChartOutlined,
   CheckCircleOutlined,
   DollarOutlined,
+  DownOutlined,
   DownloadOutlined,
   InboxOutlined,
   ReloadOutlined,
@@ -13,6 +14,7 @@ import {
   Button,
   Card,
   DatePicker,
+  Dropdown,
   Progress,
   Space,
   Table,
@@ -28,11 +30,7 @@ import {
   ProductStatusTag,
   SalesOrderStatusTag,
 } from '../../../../components/common/StatusTag';
-import {
-  formatCurrency,
-  formatDateTime,
-  toNumber,
-} from '../../../../lib/format';
+import { formatCurrency, formatDateTime, toNumber } from '../../../../lib/format';
 import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
 import { useDashboardData } from '../../../dashboard';
@@ -43,23 +41,10 @@ import {
   OrderStatusChart,
   RevenueByOrderChart,
 } from '../../components';
+import { exportReport, type ReportExportFormat, type ReportTab } from './reportsExport';
 import styles from './ReportsPage.module.css';
 
-type ReportTab = 'sales' | 'inventory' | 'receivables';
 
-function downloadCsv(filename: string, rows: Array<Array<string | number>>) {
-  const content = rows
-    .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
-    .join('\n');
-  const url = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-/** Compact inline stat used inside tab headers */
 function StatStrip({ items }: {
   items: { icon: React.ReactNode; label: string; value: string | number; color?: string }[];
 }) {
@@ -94,6 +79,7 @@ export function ReportsPage() {
   const ordersQuery = useSalesOrders({ enabled: canViewOrders });
   const [activeTab, setActiveTab] = useState<ReportTab>('sales');
   const [dateRange, setDateRange] = useState<[number, number] | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const customers = canViewCustomers ? customersQuery.data ?? [] : [];
   const products = canViewInventoryProducts ? productsQuery.data ?? [] : [];
@@ -134,27 +120,21 @@ export function ReportsPage() {
     ]);
   }
 
-  function exportActiveReport() {
-    if (activeTab === 'sales') {
-      downloadCsv('dms-sales-report.csv', [
-        [t('reports.table.order'), t('reports.table.createdAt'), t('reports.table.status'), t('reports.table.total'), t('reports.table.paid'), t('reports.table.debt')],
-        ...filteredOrders.map((o) => [o.code, o.createdAt, t(`status.sales.${o.status}`), toNumber(o.totalAmount), toNumber(o.paidAmount), toNumber(o.debtAmount)]),
-      ]);
-      return;
-    }
-    if (activeTab === 'inventory') {
-      downloadCsv('dms-inventory-report.csv', [
-        [t('reports.table.sku'), t('reports.table.product'), t('reports.table.onHand'), t('reports.table.minimum'), t('reports.table.costPrice'), t('reports.table.status')],
-        ...products.map((p) => [p.sku, p.name, p.stock, p.minStock, toNumber(p.costPrice), p.isLowStock ? t('status.product.lowStock') : t('inventory.status.healthy')]),
-      ]);
-      return;
-    }
-    downloadCsv('dms-receivables-report.csv', [
-      [t('reports.table.customer'), t('reports.table.phone'), t('reports.table.debtBalance'), t('reports.table.creditLimit'), t('reports.table.paymentTermDays')],
-      ...customers.map((c) => [c.name, c.phone ?? '', toNumber(c.debtBalance), toNumber(c.creditLimit), c.paymentTermDays]),
-    ]);
-  }
+  async function handleExport(format: ReportExportFormat) {
+    setExporting(true);
 
+    try {
+      await exportReport(format, {
+        activeTab,
+        customers,
+        filteredOrders,
+        products,
+        t,
+      });
+    } finally {
+      setExporting(false);
+    }
+  }
   return (
     <div className={styles.page}>
       <PageHeader
@@ -170,7 +150,21 @@ export function ReportsPage() {
               }}
             />
             <Button icon={<ReloadOutlined />} onClick={refreshReports}>{t('reports.action.refresh')}</Button>
-            <Button type="primary" icon={<DownloadOutlined />} onClick={exportActiveReport}>{t('reports.action.exportCsv')}</Button>
+            <Dropdown
+              menu={{
+                items: [
+                  { key: 'csv', label: t('common.exportCsv') },
+                  { key: 'xlsx', label: t('common.exportXlsx') },
+                ],
+                onClick: ({ key }) => {
+                  void handleExport(key as ReportExportFormat);
+                },
+              }}
+            >
+              <Button type="primary" icon={<DownloadOutlined />} loading={exporting}>
+                {t('common.export')} <DownOutlined />
+              </Button>
+            </Dropdown>
           </Space>
         )}
       />
@@ -190,9 +184,7 @@ export function ReportsPage() {
               className={styles.reportTabs}
               activeKey={activeTab}
               onChange={(key) => setActiveTab(key as ReportTab)}
-              items={[
-                /* Sales tab */
-                {
+              items={[                {
                   key: 'sales',
                   label: (
                     <span className={styles.tabLabel}>
@@ -200,9 +192,7 @@ export function ReportsPage() {
                     </span>
                   ),
                   children: (
-                    <div className={styles.tabContent}>
-                      {/* Stat strip replaces 4 boring cards */}
-                      <StatStrip items={[
+                    <div className={styles.tabContent}>                      <StatStrip items={[
                         { icon: <DollarOutlined />, label: t('reports.metric.revenue'), value: formatCurrency(salesRevenue), color: '#6366f1' },
                         { icon: <ShoppingCartOutlined />, label: t('reports.metric.orders'), value: filteredOrders.length, color: '#3b82f6' },
                         { icon: <BarChartOutlined />, label: t('reports.metric.avgOrder'), value: formatCurrency(averageOrderValue), color: '#8b5cf6' },
@@ -229,9 +219,7 @@ export function ReportsPage() {
                       </Card>
                     </div>
                   ),
-                },
-                /* Inventory tab */
-                {
+                },                {
                   key: 'inventory',
                   label: (
                     <span className={styles.tabLabel}>
@@ -265,9 +253,7 @@ export function ReportsPage() {
                       </Card>
                     </div>
                   ),
-                },
-                /* Receivables tab */
-                {
+                },                {
                   key: 'receivables',
                   label: (
                     <span className={styles.tabLabel}>
@@ -281,10 +267,7 @@ export function ReportsPage() {
                         { icon: <TeamOutlined />, label: t('reports.metric.debtorAccounts'), value: debtorCount, color: '#f97316' },
                         { icon: <BarChartOutlined />, label: t('reports.metric.creditExposure'), value: formatCurrency(creditExposure), color: '#6366f1' },
                         { icon: <WarningOutlined />, label: t('reports.metric.highRisk'), value: highRiskCustomers.length, color: highRiskCustomers.length > 0 ? '#ef4444' : '#10b981' },
-                      ]} />
-
-                      {/* Horizontal debt bars for top customers */}
-                      {debtorCount > 0 && (
+                      ]} />                      {debtorCount > 0 && (
                         <Card title={t('reports.title')} className="panel-card">
                           <div className={styles.debtBarList}>
                             {[...customers]

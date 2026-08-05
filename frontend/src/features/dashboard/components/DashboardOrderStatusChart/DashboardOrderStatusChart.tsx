@@ -25,12 +25,14 @@ export function DashboardOrderStatusChart({
     {},
   );
 
-  const chartData = Object.entries(statusMap).map(
-    ([status, count]) => ({
+  const statusOrder = ['DRAFT', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
+  const chartData = statusOrder
+    .filter((status) => statusMap[status])
+    .map((status) => ({
       status,
-      count,
-    }),
-  );
+      label: t(`status.sales.${status}`, status),
+      count: statusMap[status],
+    }));
 
   return (
     <Card
