@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../components/common/QueryState';
 import type { RoleOption } from '../../../types/team.types';
 import styles from '../TeamPage.module.css';
+import { permissionLabel } from '../permissionDisplay';
 import { roleLabel } from '../teamPage.utils';
 
 interface RolesTableProps {
@@ -104,9 +105,18 @@ export function RolesTable({
               render: (_, record) => (
                 <Space size={[6, 6]} wrap>
                   {record.permissions.slice(0, 5).map((permission) => (
-                    <Tag key={permission}>{permission}</Tag>
+                    <Tag key={permission}>{permissionLabel(permission, t)}</Tag>
                   ))}
-                  {record.permissions.length > 5 ? <Tag>+{record.permissions.length - 5}</Tag> : null}
+                  {record.permissions.length > 5 ? (
+                    <Tooltip
+                      title={record.permissions
+                        .slice(5)
+                        .map((permission) => permissionLabel(permission, t))
+                        .join(', ')}
+                    >
+                      <Tag>+{record.permissions.length - 5}</Tag>
+                    </Tooltip>
+                  ) : null}
                 </Space>
               ),
             },

@@ -13,6 +13,11 @@ import type {
   RoleFormValues,
   RoleOption,
 } from '../../../types/team.types';
+import {
+  permissionDescription,
+  permissionGroupLabel,
+  permissionLabel,
+} from '../permissionDisplay';
 import styles from '../TeamPage.module.css';
 
 export type RoleDrawerMode = 'create' | 'edit' | 'view';
@@ -105,13 +110,13 @@ export function RoleDrawer({
           <Checkbox.Group className={styles.permissionGroup}>
             {Object.entries(permissionsByGroup).map(([group, groupPermissionsValue]) => (
               <div key={group} className={styles.permissionSection}>
-                <Typography.Text strong>{group}</Typography.Text>
+                <Typography.Text strong>{permissionGroupLabel(group, t)}</Typography.Text>
                 <div className={styles.permissionGrid}>
                   {groupPermissionsValue.map((permission) => (
                     <Checkbox key={permission.name} value={permission.name}>
                       <span className={styles.permissionOption}>
-                        <strong>{permission.label}</strong>
-                        <small>{permission.description}</small>
+                        <strong>{permissionLabel(permission.name, t)}</strong>
+                        <small>{permissionDescription(permission, t)}</small>
                       </span>
                     </Checkbox>
                   ))}
