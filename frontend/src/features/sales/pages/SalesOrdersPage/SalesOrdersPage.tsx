@@ -1,13 +1,9 @@
 import {
   CheckCircleOutlined,
-  ClockCircleOutlined,
-  DollarOutlined,
   MoreOutlined,
   PlusOutlined,
   SearchOutlined,
   StopOutlined,
-  TrophyOutlined,
-  ShoppingCartOutlined,
 } from '@ant-design/icons';
 import {
   App,
@@ -59,55 +55,9 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-const STATUS_CONFIG = {
-  DRAFT: {
-    label: 'Draft',
-    color: '#b45309',
-    bg: '#f59e0b',
-    gradient: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(255,255,255,0.92))',
-    glow: 'rgba(245,158,11,0.14)',
-    border: 'rgba(245,158,11,0.32)',
-    countColor: '#78350f',
-    labelColor: '#92400e',
-    icon: <ClockCircleOutlined />,
-  },
-  CONFIRMED: {
-    label: 'Confirmed',
-    color: '#4f46e5',
-    bg: '#6366f1',
-    gradient: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(255,255,255,0.92))',
-    glow: 'rgba(99,102,241,0.14)',
-    border: 'rgba(99,102,241,0.30)',
-    countColor: '#312e81',
-    labelColor: '#4338ca',
-    icon: <CheckCircleOutlined />,
-  },
-  COMPLETED: {
-    label: 'Completed',
-    color: '#047857',
-    bg: '#10b981',
-    gradient: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(255,255,255,0.92))',
-    glow: 'rgba(16,185,129,0.14)',
-    border: 'rgba(16,185,129,0.30)',
-    countColor: '#064e3b',
-    labelColor: '#047857',
-    icon: <TrophyOutlined />,
-  },
-  CANCELLED: {
-    label: 'Cancelled',
-    color: '#dc2626',
-    bg: '#ef4444',
-    gradient: 'linear-gradient(135deg, rgba(239,68,68,0.11), rgba(255,255,255,0.92))',
-    glow: 'rgba(239,68,68,0.13)',
-    border: 'rgba(239,68,68,0.28)',
-    countColor: '#7f1d1d',
-    labelColor: '#b91c1c',
-    icon: <StopOutlined />,
-  },
-} as const;
 
 export function SalesOrdersPage() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { user } = useAuth();
   const canCreateSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE);
   const canViewCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_VIEW);
@@ -296,7 +246,7 @@ export function SalesOrdersPage() {
         {hasFilters && (
           <div className={styles.filterChips}>
             {keyword && <Tag closable onClose={() => setKeyword('')}>{t('sales.filters.searchChip', { keyword })}</Tag>}
-            {statusFilter !== 'ALL' && <Tag closable onClose={() => setStatusFilter('ALL')}>{t('sales.filters.statusChip', { status: t(`status.sales.`, statusFilter) })}</Tag>}
+            {statusFilter !== 'ALL' && <Tag closable onClose={() => setStatusFilter('ALL')}>{t('sales.filters.statusChip', { status: t(`status.sales.${statusFilter}`) })}</Tag>}
             {customerFilter !== 'ALL' && (
               <Tag closable onClose={() => setCustomerFilter('ALL')}>
                 {t('sales.filters.customerChip', { customer: customersMap.get(customerFilter)?.name || customerFilter })}
@@ -364,7 +314,7 @@ export function SalesOrdersPage() {
                   </div>
                 ),
               },
-              { title: t('sales.column.created'), dataIndex: 'createdAt', width: 160, render: (v) => formatDateTime(v) },
+              { title: t('sales.column.created'), dataIndex: 'createdAt', width: 160, render: (v) => formatDateTime(v, i18n.language) },
               { title: t('common.status'), width: 130, render: (_, r) => <SalesOrderStatusTag status={r.status} /> },
               ...(canViewSalesOrderFinancials ? [
                 { title: t('sales.column.total'), dataIndex: 'totalAmount', align: 'right' as const, width: 150, render: (v: string | number | null) => <span className={styles.money}>{formatCurrency(v)}</span> },
@@ -403,7 +353,7 @@ export function SalesOrdersPage() {
       </Card>
       {/* Detail drawer */}
       <Drawer
-        title={selectedOrder ? `Order ${selectedOrder.code}` : 'Order Details'}
+        title={selectedOrder ? t('sales.drawer.orderTitle', { code: selectedOrder.code }) : t('sales.drawer.detailsTitle')}
         width={720}
         open={Boolean(selectedOrder)}
         onClose={() => setSelectedOrder(null)}
@@ -430,12 +380,12 @@ export function SalesOrdersPage() {
                 rowKey={(item, i) => item.id ?? `${item.productId}-${i}`}
                 dataSource={selectedOrder.items ?? []}
                 columns={[
-                  { title: 'Product', render: (_, item) => productsMap.get(item.productId)?.name || `#${item.productId}` },
+                  { title: t('sales.drawer.product'), render: (_, item) => productsMap.get(item.productId)?.name || `#${item.productId}` },
                   { title: t('inventory.history.qty'), dataIndex: 'quantity', align: 'right' },
                   ...(canViewSalesOrderFinancials ? [
-                    { title: t('sales.drawer.unitPrice'), dataIndex: 'unitPrice', align: 'right' as const, render: formatCurrency },
-                    { title: t('sales.drawer.discount'), dataIndex: 'discountAmount', align: 'right' as const, render: formatCurrency },
-                    { title: t('sales.drawer.lineTotal'), dataIndex: 'lineTotal', align: 'right' as const, render: formatCurrency },
+                    { title: t('sales.drawer.unitPrice'), dataIndex: 'unitPrice', align: 'right' as const, render: (value) => formatCurrency(value) },
+                    { title: t('sales.drawer.discount'), dataIndex: 'discountAmount', align: 'right' as const, render: (value) => formatCurrency(value) },
+                    { title: t('sales.drawer.lineTotal'), dataIndex: 'lineTotal', align: 'right' as const, render: (value) => formatCurrency(value) },
                   ] : []),
                 ]}
               />
@@ -443,9 +393,9 @@ export function SalesOrdersPage() {
             <div>
               <Typography.Title level={5}>{t('sales.drawer.timeline')}</Typography.Title>
               <Timeline items={[
-                { color: 'blue', children: t('sales.timeline.created', { time: formatDateTime(selectedOrder.createdAt) }) },
-                ...(selectedOrder.confirmedAt ? [{ color: 'green', children: `Confirmed ${formatDateTime(selectedOrder.confirmedAt)}` }] : []),
-                { color: selectedOrder.status === 'CANCELLED' ? 'red' : 'gray', children: `Status: ${selectedOrder.status}` },
+                { color: 'blue', children: t('sales.timeline.created', { time: formatDateTime(selectedOrder.createdAt, i18n.language) }) },
+                ...(selectedOrder.confirmedAt ? [{ color: 'green', children: t('sales.timeline.confirmed', { time: formatDateTime(selectedOrder.confirmedAt, i18n.language) }) }] : []),
+                { color: selectedOrder.status === 'CANCELLED' ? 'red' : 'gray', children: t('sales.timeline.status', { status: t(`status.sales.${selectedOrder.status}`) }) },
               ]} />
             </div>
             {selectedOrder.status === 'DRAFT' && (

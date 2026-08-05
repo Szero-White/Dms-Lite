@@ -220,10 +220,10 @@ export function ReportsPage() {
                           locale={{ emptyText: t('reports.empty.noSalesOrders') }}
                           columns={[
                             { title: t('reports.table.order'), dataIndex: 'code' },
-                            { title: t('reports.table.created'), dataIndex: 'createdAt', render: formatDateTime },
+                            { title: t('reports.table.created'), dataIndex: 'createdAt', render: (value) => formatDateTime(value) },
                             { title: t('reports.table.status'), dataIndex: 'status', render: (v) => <SalesOrderStatusTag status={v} /> },
-                            { title: t('reports.table.revenue'), dataIndex: 'totalAmount', align: 'right', render: formatCurrency },
-                            { title: t('reports.table.debt'), dataIndex: 'debtAmount', align: 'right', render: formatCurrency },
+                            { title: t('reports.table.revenue'), dataIndex: 'totalAmount', align: 'right', render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.debt'), dataIndex: 'debtAmount', align: 'right', render: (value) => formatCurrency(value) },
                           ]}
                         />
                       </Card>
@@ -339,8 +339,8 @@ export function ReportsPage() {
                           columns={[
                             { title: t('reports.table.customer'), dataIndex: 'name' },
                             { title: t('reports.table.term'), dataIndex: 'paymentTermDays', render: (v) => t('reports.table.days', { count: v }) },
-                            { title: t('reports.table.debt'), dataIndex: 'debtBalance', align: 'right', render: formatCurrency },
-                            { title: t('reports.table.creditLimit'), dataIndex: 'creditLimit', align: 'right', render: formatCurrency },
+                            { title: t('reports.table.debt'), dataIndex: 'debtBalance', align: 'right', render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.creditLimit'), dataIndex: 'creditLimit', align: 'right', render: (value) => formatCurrency(value) },
                             {
                               title: t('reports.table.utilization'), width: 220,
                               render: (_, r) => {

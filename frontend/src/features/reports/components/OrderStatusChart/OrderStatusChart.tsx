@@ -26,6 +26,7 @@ export function OrderStatusChart({
   const chartData = Object.entries(statusMap).map(
     ([status, count]) => ({
       status,
+      label: t(`status.sales.${status}`, status),
       count,
     }),
   );
@@ -39,7 +40,7 @@ export function OrderStatusChart({
         <Pie
           data={chartData}
           angleField="count"
-          colorField="status"
+          colorField="label"
           height={280}
           innerRadius={0.62}
           radius={0.9}
@@ -53,17 +54,17 @@ export function OrderStatusChart({
           }}
           label={{
             text: (datum: {
-              status: string;
+              label: string;
               count: number;
-            }) => `${datum.status}: ${datum.count}`,
+            }) => `${datum.label}: ${datum.count}`,
             position: 'outside',
           }}
           tooltip={{
-            title: 'status',
+            title: 'label',
             items: [
               {
                 field: 'count',
-                name: 'Orders',
+                name: t('reports.metric.orders'),
               },
             ],
           }}
@@ -83,7 +84,7 @@ export function OrderStatusChart({
             {
               type: 'text',
               style: {
-                text: 'Orders',
+                text: t('reports.metric.orders'),
                 x: '50%',
                 y: '57%',
                 textAlign: 'center',

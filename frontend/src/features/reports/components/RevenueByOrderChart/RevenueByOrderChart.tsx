@@ -4,7 +4,7 @@ import {
   Empty,
 } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { toNumber } from '../../../../lib/format';
+import { getIntlLocale, toNumber } from '../../../../lib/format';
 import type { SalesOrder } from '../../../sales';
 import styles from './RevenueByOrderChart.module.css';
 
@@ -15,7 +15,8 @@ interface RevenueByOrderChartProps {
 export function RevenueByOrderChart({
   orders,
 }: RevenueByOrderChartProps) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const locale = getIntlLocale(i18n.language);
   const chartData = orders
     .filter((order) => order.status !== 'CANCELLED')
     .map((order) => ({
@@ -45,7 +46,7 @@ export function RevenueByOrderChart({
             y: {
               title: t('reports.metric.revenue'),
               labelFormatter: (value: number) =>
-                new Intl.NumberFormat('vi-VN', {
+                new Intl.NumberFormat(locale, {
                   notation: 'compact',
                   maximumFractionDigits: 1,
                 }).format(value),
@@ -58,7 +59,7 @@ export function RevenueByOrderChart({
                 field: 'revenue',
                 name: t('reports.metric.revenue'),
                 valueFormatter: (value: number) =>
-                  new Intl.NumberFormat('vi-VN', {
+                  new Intl.NumberFormat(locale, {
                     style: 'currency',
                     currency: 'VND',
                     maximumFractionDigits: 0,

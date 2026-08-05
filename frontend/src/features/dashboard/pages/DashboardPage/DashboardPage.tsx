@@ -89,7 +89,7 @@ export function DashboardPage() {
   }
 
   function handleExport() {
-    const csv = buildExportCsv();
+    const csv = buildExportCsv(t);
     const url = URL.createObjectURL(
       new Blob([csv], { type: 'text/csv;charset=utf-8' }),
     );

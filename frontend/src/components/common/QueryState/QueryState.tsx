@@ -1,6 +1,7 @@
 import { ReloadOutlined } from '@ant-design/icons';
 import { Alert, Button, Empty, Skeleton } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { getErrorMessage } from '../../../lib/format';
 import styles from './QueryState.module.css';
 
 interface QueryStateProps {
@@ -47,8 +48,8 @@ export function QueryState({
           type="error"
           message={t('common.unableToLoadData')}
           description={
-            error instanceof Error
-              ? error.message
+            error
+              ? getErrorMessage(error, t('common.somethingWentWrong'))
               : t('common.tryAgain')
           }
           showIcon

@@ -4,7 +4,7 @@ import {
   Empty,
 } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { toNumber } from '../../../../lib/format';
+import { getIntlLocale, toNumber } from '../../../../lib/format';
 import type { SalesOrder } from '../../../sales';
 import styles from './DashboardRevenueChart.module.css';
 
@@ -23,7 +23,8 @@ export function DashboardRevenueChart({
   orders,
   rangeDays = 7,
 }: DashboardRevenueChartProps) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const locale = getIntlLocale(i18n.language);
   const today = new Date();
 
   const chartData: RevenueChartItem[] = Array.from(
@@ -36,7 +37,7 @@ export function DashboardRevenueChart({
 
       return {
         dateKey: date.toISOString().slice(0, 10),
-        dateLabel: date.toLocaleDateString('vi-VN', {
+        dateLabel: date.toLocaleDateString(locale, {
           day: '2-digit',
           month: '2-digit',
         }),
@@ -130,7 +131,7 @@ export function DashboardRevenueChart({
             y: {
               title: t('reports.metric.revenue'),
               labelFormatter: (value: number) =>
-                new Intl.NumberFormat('vi-VN', {
+                new Intl.NumberFormat(locale, {
                   notation: 'compact',
                   maximumFractionDigits: 1,
                 }).format(value),
@@ -156,7 +157,7 @@ export function DashboardRevenueChart({
                 field: 'revenue',
                 name: t('reports.metric.revenue'),
                 valueFormatter: (value: number) =>
-                  new Intl.NumberFormat('vi-VN', {
+                  new Intl.NumberFormat(locale, {
                     style: 'currency',
                     currency: 'VND',
                     maximumFractionDigits: 0,
@@ -175,7 +176,7 @@ export function DashboardRevenueChart({
         <div className={styles.empty}>
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={`No confirmed revenue in the last ${rangeDays} day${rangeDays === 1 ? '' : 's'}`}
+            description={t('dashboard.chart.noConfirmedRevenue', { count: rangeDays })}
           />
         </div>
       )}

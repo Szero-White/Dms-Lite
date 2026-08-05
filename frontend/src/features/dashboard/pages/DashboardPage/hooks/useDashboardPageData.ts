@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import type { TFunction } from 'i18next';
 import type { Customer } from '../../../../customers';
 import type { ProductRow } from '../../../../products';
 import type { SalesOrder } from '../../../../sales';
@@ -96,13 +97,21 @@ export function useDashboardPageData({
     return `dms-dashboard-${range.toLowerCase()}.csv`;
   }
 
-  function buildExportCsv() {
+  function buildExportCsv(t: TFunction) {
     const rows = [
-      ['Order code', 'Status', 'Customer', 'Total', 'Paid', 'Debt', 'Created at'],
+      [
+        t('dashboard.export.orderCode'),
+        t('reports.table.status'),
+        t('reports.table.customer'),
+        t('reports.table.total'),
+        t('reports.table.paid'),
+        t('reports.table.debt'),
+        t('reports.table.createdAt'),
+      ],
       ...filteredOrders.map((order) => [
         order.code,
-        order.status,
-        customersMap.get(order.customerId) || `Customer #${order.customerId}`,
+        t(`status.sales.${order.status}`, order.status),
+        customersMap.get(order.customerId) || t('dashboard.attention.customerFallback', { id: order.customerId }),
         toNumber(order.totalAmount),
         toNumber(order.paidAmount),
         toNumber(order.debtAmount),

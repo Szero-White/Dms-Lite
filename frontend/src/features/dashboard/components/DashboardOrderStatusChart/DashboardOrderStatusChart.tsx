@@ -41,7 +41,7 @@ export function DashboardOrderStatusChart({
         <Pie
           data={chartData}
           angleField="count"
-          colorField="status"
+          colorField="label"
           height={280}
           innerRadius={0.65}
           radius={0.85}
@@ -66,7 +66,7 @@ export function DashboardOrderStatusChart({
                 fontSize: 14,
                 color: '#64748b',
               },
-              content: 'Total Orders',
+              content: t('dashboard.chart.totalOrders'),
             },
             content: {
               style: {
@@ -78,11 +78,11 @@ export function DashboardOrderStatusChart({
             },
           }}
           tooltip={{
-            title: 'status',
+            title: 'label',
             items: [
               {
                 field: 'count',
-                name: 'Orders',
+                name: t('reports.metric.orders'),
               },
             ],
           }}

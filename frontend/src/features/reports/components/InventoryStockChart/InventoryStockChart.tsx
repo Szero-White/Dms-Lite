@@ -41,7 +41,7 @@ export function InventoryStockChart({
               title: false,
             },
             y: {
-              title: 'Quantity on hand',
+              title: t('charts.inventoryStock.axis.onHand'),
             },
           }}
           label={{
@@ -53,11 +53,11 @@ export function InventoryStockChart({
             items: [
               {
                 field: 'stock',
-                name: 'On hand',
+                name: t('reports.table.onHand'),
               },
               {
                 field: 'minimumStock',
-                name: 'Minimum stock',
+                name: t('reports.table.minimum'),
               },
             ],
           }}
