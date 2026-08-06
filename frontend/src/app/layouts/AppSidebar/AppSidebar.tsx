@@ -182,7 +182,7 @@ export function AppSidebar({
           <Avatar size={32} icon={<UserOutlined />} />
           <div className={styles.userCopy}>
             <span>{user?.fullName || user?.username}</span>
-            <small>{user?.roles?.[0] || 'USER'}</small>
+            <small>{user?.roles?.[0] || t('common.userRoleFallback')}</small>
           </div>
         </div>
 
@@ -194,7 +194,7 @@ export function AppSidebar({
             onClick={onToggleCollapse}
           >
             {collapsed ? <DoubleRightOutlined /> : <DoubleLeftOutlined />}
-            <span>{collapsed ? '>>' : t('sidebar.collapse')}</span>
+            <span>{collapsed ? t('sidebar.expand') : t('sidebar.collapse')}</span>
           </button>
         ) : null}
       </div>

@@ -1,6 +1,4 @@
-/* =========================================================
-   PANEL CARD  – dùng chung cho toàn bộ card nội dung
-   ========================================================= */
+/* Panel card */
 
 .panel-card {
   overflow: hidden;
@@ -27,8 +25,8 @@
   padding: 16px 0;
   color: var(--color-text-primary);
   font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.1px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.06px;
   line-height: var(--line-height-body);
 }
 
@@ -36,9 +34,7 @@
   padding: 20px 22px;
 }
 
-/* =========================================================
-   TABLE PANEL  – card chứa table
-   ========================================================= */
+/* Table panel */
 
 .table-panel-card .ant-table-wrapper {
   width: 100%;
@@ -62,9 +58,7 @@
   background: #f8f9fc;
 }
 
-/* =========================================================
-   TOOLBAR  – search + filters row
-   ========================================================= */
+/* Toolbar */
 
 .toolbar-row {
   display: flex;
@@ -82,9 +76,7 @@
   gap: var(--spacing-xs);
 }
 
-/* =========================================================
-   MODERN TABLE  – hover, sort, pagination
-   ========================================================= */
+/* Modern table */
 
 .modern-table :global(.ant-table) {
   border-radius: 12px;
@@ -95,9 +87,9 @@
   background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
   border-bottom: 1px solid var(--color-border-subtle);
   color: var(--color-text-secondary);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   font-size: 11.5px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.035em;
   text-transform: uppercase;
   padding: 12px 16px;
 }
@@ -120,12 +112,10 @@
   margin-top: 18px;
 }
 
-/* =========================================================
-   MODERN FORM
-   ========================================================= */
+/* Modern form */
 
 .modern-form :global(.ant-form-item-label > label) {
-  font-weight: 500;
+  font-weight: var(--font-weight-label);
   color: var(--color-text-secondary);
   font-size: 13.5px;
 }
@@ -154,7 +144,7 @@
 .modern-form :global(.ant-btn-primary) {
   background: var(--gradient-primary);
   border: none;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
 }
 
@@ -163,9 +153,7 @@
   box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
 }
 
-/* =========================================================
-   ALERT ROW  – watchlist, low-stock
-   ========================================================= */
+/* Alert row */
 
 .alert-row {
   display: flex;
@@ -188,9 +176,7 @@
   padding-bottom: 0;
 }
 
-/* =========================================================
-   EMPTY STATE
-   ========================================================= */
+/* Empty state */
 
 .panel-empty {
   min-height: 160px;

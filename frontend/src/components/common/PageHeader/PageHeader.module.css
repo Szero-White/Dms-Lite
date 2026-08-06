@@ -18,10 +18,10 @@
 .title:global(.ant-typography) {
   margin: 0 0 4px !important;
   color: var(--color-text-primary) !important;
-  font-size: 26px !important;
-  font-weight: 700 !important;
+  font-size: 25px !important;
+  font-weight: var(--font-weight-bold) !important;
   line-height: 34px !important;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.15px;
 }
 
 .subtitle:global(.ant-typography) {

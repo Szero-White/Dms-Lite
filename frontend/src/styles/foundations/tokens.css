@@ -13,8 +13,8 @@
   --text-base: 14px;
   --text-md:   15px;
   --text-lg:   19px;
-  --text-xl:   24px;
-  --text-2xl:  28px;
+  --text-xl:   23px;
+  --text-2xl:  27px;
 
   --leading-xs:   16px;
   --leading-sm:   20px;
@@ -27,8 +27,8 @@
   --font-weight-regular:  400;
   --font-weight-medium:   500;
   --font-weight-semibold: 600;
-  --font-weight-bold:     700;
-  --font-weight-black:    800;
+  --font-weight-bold:     650;
+  --font-weight-black:    700;
 
   --font-size-meta:         var(--text-xs);
   --font-size-secondary:    var(--text-sm);

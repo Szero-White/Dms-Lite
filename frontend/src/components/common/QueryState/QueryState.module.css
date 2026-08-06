@@ -34,7 +34,7 @@
 .emptyContent strong {
   color: var(--color-text-primary);
   font-size: 15px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .emptyContent span {

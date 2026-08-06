@@ -39,6 +39,9 @@ class HelpIntentDetector {
         if (containsAny(question, "ban hang", "sales", "don hang", "order", "bao gia")) {
             return HelpIntent.SALES;
         }
+        if (containsAny(question, "hoa don", "invoice", "bill", "phat hanh hoa don", "huy hoa don", "ghi nhan thanh toan hoa don")) {
+            return HelpIntent.INVOICE;
+        }
         if (containsAny(question, "kho", "ton kho", "inventory", "stock", "nhap hang", "warehouse")) {
             return HelpIntent.INVENTORY;
         }

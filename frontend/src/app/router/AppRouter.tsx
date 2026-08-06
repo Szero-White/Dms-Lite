@@ -54,6 +54,15 @@ const CreateSalesOrderPage = lazy(() => import('../../features/sales').then((mod
 const SalesOrdersPage = lazy(() => import('../../features/sales').then((module) => ({
   default: module.SalesOrdersPage,
 })));
+const InvoicesPage = lazy(() => import('../../features/invoice').then((module) => ({
+  default: module.InvoicesPage,
+})));
+const CreateInvoicePage = lazy(() => import('../../features/invoice').then((module) => ({
+  default: module.CreateInvoicePage,
+})));
+const InvoiceDetailPage = lazy(() => import('../../features/invoice').then((module) => ({
+  default: module.InvoiceDetailPage,
+})));
 const TeamPage = lazy(() => import('../../features/team').then((module) => ({
   default: module.TeamPage,
 })));
@@ -104,6 +113,9 @@ const router = createBrowserRouter([
       { path: 'dashboard', element: routeElement(<DashboardPage />) },
       { path: 'sales-orders', element: routeElement(<SalesOrdersPage />) },
       { path: 'sales-orders/new', element: routeElement(<CreateSalesOrderPage />) },
+      { path: 'invoices', element: routeElement(<InvoicesPage />) },
+      { path: 'invoices/new', element: routeElement(<CreateInvoicePage />) },
+      { path: 'invoices/:id', element: routeElement(<InvoiceDetailPage />) },
       { path: 'products', element: routeElement(<ProductsPage />) },
       { path: 'customers', element: routeElement(<CustomersPage />) },
       { path: 'customers/:customerId', element: routeElement(<CustomerDetailPage />) },

@@ -13,6 +13,7 @@ public record SalesOrderResponse(
     BigDecimal paidAmount,
     BigDecimal debtAmount,
     Instant createdAt,
-    Instant confirmedAt
+    Instant confirmedAt,
+    Long invoiceId
 ) {
 }

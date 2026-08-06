@@ -8,6 +8,8 @@ import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
 import com.example.dms.inventory.InventoryService;
+import com.example.dms.invoice.Invoice;
+import com.example.dms.invoice.InvoiceRepository;
 import com.example.dms.notification.NotificationProducer;
 import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
@@ -17,7 +19,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
@@ -54,14 +58,30 @@ public class SalesOrderService {
     private final AuditService auditService;
     private final NotificationProducer notificationProducer;
     private final SalesOrderMapper salesOrderMapper;
+    private final InvoiceRepository invoiceRepository;
 
     @Transactional(readOnly = true)
     public Page<SalesOrderResponse> listOrders(int page) {
         Long tenantId = TenantContext.tenantRequired();
-        return salesOrderRepository.findByTenantIdOrderByCreatedAtDesc(
+        boolean includeFinancials = canViewOrderFinancials();
+        Page<SalesOrder> ordersPage = salesOrderRepository.findByTenantIdOrderByCreatedAtDesc(
             tenantId,
             PageRequest.of(page, 20)
-        ).map(salesOrder -> salesOrderMapper.toResponse(salesOrder, canViewOrderFinancials()));
+        );
+
+        // Batch-fetch invoice IDs for all sales orders in this page
+        List<Long> orderIds = ordersPage.getContent().stream()
+            .map(SalesOrder::getId)
+            .toList();
+        Map<Long, Long> salesOrderInvoiceMap = orderIds.isEmpty()
+            ? Map.of()
+            : invoiceRepository.findByTenantIdAndSalesOrderIdIn(tenantId, orderIds)
+                .stream()
+                .collect(Collectors.toMap(Invoice::getSalesOrderId, Invoice::getId, (a, b) -> a));
+
+        return ordersPage.map(salesOrder ->
+            salesOrderMapper.toResponse(salesOrder, includeFinancials, salesOrderInvoiceMap.get(salesOrder.getId()))
+        );
     }
 
     @Transactional

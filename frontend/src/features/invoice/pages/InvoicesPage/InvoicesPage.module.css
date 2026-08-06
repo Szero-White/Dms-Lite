@@ -1,0 +1,100 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.draftAlert {
+  margin-top: 4px;
+}
+
+.tableCard :global(.ant-card-body) {
+  padding: 0;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px 0;
+}
+
+.table {
+  margin-top: 16px;
+}
+
+.invoiceCell,
+.customerCell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 4px;
+}
+
+.rowActions {
+  display: inline-flex;
+  justify-content: flex-end;
+}
+
+.remainingAmount {
+  color: var(--color-danger);
+  font-weight: var(--font-weight-semibold);
+}
+
+.zeroAmount {
+  color: var(--color-success);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px 24px 24px;
+}
+
+.pageInfo {
+  color: var(--color-text-secondary);
+}
+
+:global(.panel-card) :global(.ant-table-thead > tr > th) {
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+:global(.panel-card) :global(.ant-table-tbody > tr > td) {
+  vertical-align: top;
+}
+
+@media (max-width: 1120px) {
+  .summaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar,
+  .pagination {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .toolbar,
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

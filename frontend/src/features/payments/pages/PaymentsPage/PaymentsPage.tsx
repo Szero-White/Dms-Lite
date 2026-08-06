@@ -195,7 +195,7 @@ export function PaymentsPage() {
                     );
                   })}
                   {debtors.length === 0 && (
-                    <div className={heroStyles.barEmpty}>No outstanding debts 🎉</div>
+                    <div className={heroStyles.barEmpty}>{t('payments.hero.noOutstandingDebts')}</div>
                   )}
                 </div>
               </div>

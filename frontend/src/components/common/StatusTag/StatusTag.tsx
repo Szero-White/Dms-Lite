@@ -22,6 +22,9 @@ const NOTIFICATION_STATUS_MAP: Record<string, StatusTone> = {
   PAYMENT_RECORDED: 'info',
   SALES_ORDER_CONFIRMED: 'success',
   SALES_ORDER_CANCELLED: 'neutral',
+  INVOICE_ISSUED: 'success',
+  INVOICE_PAID: 'info',
+  INVOICE_CANCELLED: 'danger',
 };
 
 function statusClass(tone: StatusTone) {

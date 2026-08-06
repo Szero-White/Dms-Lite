@@ -155,6 +155,11 @@ export function CreateSalesOrderPage() {
                   });
 
                   setCreatedOrderId(order.id);
+                  navigate('/sales-orders', {
+                    state: {
+                      highlightOrderId: order.id,
+                    },
+                  });
                 }}
               >
                 <div className={styles.formSectionHeading}>
@@ -358,7 +363,9 @@ export function CreateSalesOrderPage() {
                         {t('sales.create.confirmNow')}
                       </Button>
                     ) : null}
-                    <Button onClick={() => navigate('/sales-orders')}>{t('sales.create.backToOrders')}</Button>
+                    <Button onClick={() => navigate('/sales-orders', { state: { highlightOrderId: createdOrderId } })}>
+                      {t('sales.create.backToOrders')}
+                    </Button>
                   </Space>
                 )}
               />

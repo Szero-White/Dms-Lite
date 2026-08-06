@@ -7,10 +7,14 @@ import org.springframework.stereotype.Component;
 public class SalesOrderMapper {
 
     public SalesOrderResponse toResponse(SalesOrder salesOrder) {
-        return toResponse(salesOrder, true);
+        return toResponse(salesOrder, true, null);
     }
 
     public SalesOrderResponse toResponse(SalesOrder salesOrder, boolean includeFinancials) {
+        return toResponse(salesOrder, includeFinancials, null);
+    }
+
+    public SalesOrderResponse toResponse(SalesOrder salesOrder, boolean includeFinancials, Long invoiceId) {
         return new SalesOrderResponse(
             salesOrder.getId(),
             salesOrder.getCustomerId(),
@@ -21,7 +25,8 @@ public class SalesOrderMapper {
             includeFinancials ? salesOrder.getPaidAmount() : null,
             includeFinancials ? salesOrder.getDebtAmount() : null,
             salesOrder.getCreatedAt(),
-            salesOrder.getConfirmedAt()
+            salesOrder.getConfirmedAt(),
+            invoiceId
         );
     }
 

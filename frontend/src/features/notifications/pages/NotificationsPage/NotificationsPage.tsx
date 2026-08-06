@@ -40,7 +40,7 @@ function categoryForType(type: string): Exclude<NotificationCategory, 'ALL' | 'U
   ) {
     return 'RECEIVABLES';
   }
-  if (normalizedType.includes('ORDER') || normalizedType.includes('SALES')) {
+  if (normalizedType.includes('ORDER') || normalizedType.includes('SALES') || normalizedType.includes('INVOICE')) {
     return 'ORDERS';
   }
 
@@ -116,6 +116,27 @@ function localizedNotificationMessage(item: { type: string; message: string }, t
   if (item.type === 'SALES_ORDER_CONFIRMED' && salesOrderMatch) {
     return t('notifications.types.SALES_ORDER_CONFIRMED.message', {
       productId: salesOrderMatch[1],
+    });
+  }
+
+  const invoiceIssuedMatch = item.message.match(/^Invoice (.+) has been issued$/);
+  if (item.type === 'INVOICE_ISSUED' && invoiceIssuedMatch) {
+    return t('notifications.types.INVOICE_ISSUED.message', {
+      number: invoiceIssuedMatch[1],
+    });
+  }
+
+  const invoicePaidMatch = item.message.match(/^Invoice (.+) has been fully paid$/);
+  if (item.type === 'INVOICE_PAID' && invoicePaidMatch) {
+    return t('notifications.types.INVOICE_PAID.message', {
+      number: invoicePaidMatch[1],
+    });
+  }
+
+  const invoiceCancelledMatch = item.message.match(/^Invoice (.+) has been cancelled$/);
+  if (item.type === 'INVOICE_CANCELLED' && invoiceCancelledMatch) {
+    return t('notifications.types.INVOICE_CANCELLED.message', {
+      number: invoiceCancelledMatch[1],
     });
   }
 

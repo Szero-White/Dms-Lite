@@ -1,7 +1,11 @@
 .dashboardPage {
   width: 100%;
   display: grid;
-  gap: 32px;
+  gap: 24px;
+}
+
+.dashboardPage > :first-child {
+  margin-bottom: 6px;
 }
 
 .section {
@@ -23,9 +27,9 @@
   margin: 0 !important;
   color: var(--color-text-primary);
   font-size: 19px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   line-height: 26px;
-  letter-spacing: -0.2px;
+  letter-spacing: -0.1px;
 }
 
 .sectionHeading :global(.ant-typography-secondary) {

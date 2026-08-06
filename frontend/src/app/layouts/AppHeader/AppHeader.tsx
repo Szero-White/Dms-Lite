@@ -205,7 +205,7 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
                 type="secondary"
                 className={styles.userMeta}
               >
-                {user?.roles?.[0] || 'USER'}
+                {user?.roles?.[0] || t('common.userRoleFallback')}
               </Typography.Text>
             </div>
           </button>

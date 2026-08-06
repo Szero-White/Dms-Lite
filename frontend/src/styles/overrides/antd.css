@@ -46,8 +46,8 @@
   padding: 16px 0 !important;
   color: var(--color-text-primary) !important;
   font-size: 15px !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.15px;
+  font-weight: var(--font-weight-bold) !important;
+  letter-spacing: -0.08px;
 }
 
 .ant-card-body {
@@ -66,9 +66,9 @@
   border-bottom: 1px solid var(--color-border-subtle) !important;
   color: var(--color-text-secondary) !important;
   font-size: 11.5px !important;
-  font-weight: 600 !important;
+  font-weight: var(--font-weight-semibold) !important;
   line-height: var(--line-height-meta) !important;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.035em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -104,7 +104,7 @@
 .ant-pagination .ant-pagination-item {
   border-radius: 8px;
   border-color: var(--color-border-subtle);
-  font-weight: 500;
+  font-weight: var(--font-weight-label);
   transition: all 0.2s ease;
 }
 
@@ -177,7 +177,7 @@
 /* ===================== Buttons ===================== */
 .ant-btn {
   font-size: var(--font-size-body);
-  font-weight: 500;
+  font-weight: var(--font-weight-label);
   border-radius: 10px;
   box-shadow: none;
   transition: all 0.2s ease;
@@ -225,7 +225,7 @@
 .ant-tag {
   border-radius: 999px;
   font-size: 11.5px;
-  font-weight: 500;
+  font-weight: var(--font-weight-label);
   line-height: 20px;
   padding: 0 10px;
   border: none;
@@ -246,9 +246,9 @@
 
 .ant-modal-title {
   font-size: 16px !important;
-  font-weight: 700 !important;
+  font-weight: var(--font-weight-bold) !important;
   color: var(--color-text-primary) !important;
-  letter-spacing: -0.1px;
+  letter-spacing: -0.06px;
 }
 
 .ant-modal-body {
@@ -274,7 +274,7 @@
 
 .ant-drawer-title {
   font-size: 16px !important;
-  font-weight: 700 !important;
+  font-weight: var(--font-weight-bold) !important;
   color: var(--color-text-primary) !important;
 }
 
@@ -299,7 +299,7 @@
 .ant-dropdown-menu-item {
   border-radius: 8px !important;
   font-size: 13.5px !important;
-  font-weight: 500;
+  font-weight: var(--font-weight-label);
   padding: 8px 12px !important;
   transition: background 0.15s ease;
 }
@@ -320,14 +320,14 @@
 .ant-select-item {
   border-radius: 8px !important;
   font-size: 13.5px !important;
-  font-weight: 500;
+  font-weight: var(--font-weight-label);
   padding: 7px 12px !important;
 }
 
 .ant-select-item-option-selected {
   background: var(--color-primary-light) !important;
   color: var(--color-primary) !important;
-  font-weight: 600 !important;
+  font-weight: var(--font-weight-semibold) !important;
 }
 
 .ant-select-item-option-active {
@@ -344,7 +344,7 @@
 
 .ant-segmented-item {
   border-radius: 8px !important;
-  font-weight: 500;
+  font-weight: var(--font-weight-label);
   font-size: 13px;
   transition: all 0.2s ease;
 }
@@ -353,19 +353,19 @@
   background: var(--color-card-background) !important;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
   color: var(--color-primary) !important;
-  font-weight: 600 !important;
+  font-weight: var(--font-weight-semibold) !important;
 }
 
 /* ===================== Tabs ===================== */
 .ant-tabs-tab {
   font-size: 14px !important;
-  font-weight: 500;
+  font-weight: var(--font-weight-label);
   transition: color 0.2s ease;
 }
 
 .ant-tabs-tab-active .ant-tabs-tab-btn {
   color: var(--color-primary) !important;
-  font-weight: 600 !important;
+  font-weight: var(--font-weight-semibold) !important;
 }
 
 .ant-tabs-ink-bar {
@@ -377,7 +377,7 @@
 /* ===================== Descriptions ===================== */
 .ant-descriptions-bordered .ant-descriptions-item-label {
   background: var(--color-surface-muted) !important;
-  font-weight: 500;
+  font-weight: var(--font-weight-label);
   color: var(--color-text-secondary);
   font-size: 13px;
 }
@@ -390,7 +390,7 @@
 /* ===================== Badge ===================== */
 .ant-badge-count {
   font-size: 10px !important;
-  font-weight: 700 !important;
+  font-weight: var(--font-weight-bold) !important;
   min-width: 18px !important;
   height: 18px !important;
   line-height: 18px !important;
@@ -399,7 +399,7 @@
 
 /* ===================== Avatar ===================== */
 .ant-avatar {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 /* ===================== Empty ===================== */
@@ -496,7 +496,7 @@
   border-radius: 12px !important;
   box-shadow: 0 8px 24px rgba(0,0,0,0.1) !important;
   border: 1px solid var(--color-border-subtle);
-  font-weight: 500;
+  font-weight: var(--font-weight-label);
 }
 
 /* ===================== Collapse ===================== */
@@ -507,7 +507,7 @@
 }
 
 .ant-collapse-header {
-  font-weight: 600 !important;
+  font-weight: var(--font-weight-semibold) !important;
 }
 
 /* ===================== Steps ===================== */

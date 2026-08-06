@@ -1,6 +1,4 @@
-/* ============================================================
-   SUMMARY CARD — vibrant enterprise card
-   ============================================================ */
+/* Summary card */
 .card {
   position: relative;
   display: flex;
@@ -86,9 +84,9 @@
 /* ---- title ---- */
 .title {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: #7c8db0;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -96,9 +94,9 @@
 /* ---- value ---- */
 .value {
   font-size: 27px;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold);
   color: var(--accent, #0f172a);
-  letter-spacing: -0.6px;
+  letter-spacing: -0.25px;
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
   margin-top: 0;
@@ -122,13 +120,13 @@
 
 .trendUp {
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: #059669;
 }
 
 .trendDown {
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: #dc2626;
 }
 

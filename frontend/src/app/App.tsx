@@ -61,8 +61,8 @@ function AppShell() {
           fontSizeSM: 12,
           fontSizeLG: 16,
           fontSizeXL: 18,
-          fontSizeHeading1: 32,
-          fontSizeHeading2: 26,
+          fontSizeHeading1: 30,
+          fontSizeHeading2: 25,
           fontSizeHeading3: 20,
           fontSizeHeading4: 16,
           fontSizeHeading5: 14,
@@ -119,7 +119,7 @@ function AppShell() {
             controlHeight: 40,
             controlHeightSM: 32,
             controlHeightLG: 48,
-            fontWeight: 600,
+            fontWeight: 500,
             paddingInline: 18,
             paddingInlineSM: 12,
             paddingInlineLG: 22,
@@ -175,7 +175,7 @@ function AppShell() {
           Pagination: {
             itemSize: 36,
             borderRadius: 8,
-            fontWeightStrong: 600,
+            fontWeightStrong: 500,
           },
           Select: {
             controlHeight: 40,

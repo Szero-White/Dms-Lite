@@ -1,5 +1,6 @@
 import {
   CheckCircleOutlined,
+  FileTextOutlined,
   MoreOutlined,
   PlusOutlined,
   SearchOutlined,
@@ -22,9 +23,9 @@ import {
   Timeline,
   Typography,
 } from 'antd';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { PERMISSIONS, canViewOrderFinancials, hasPermission, useAuth } from '../../../auth';
@@ -36,6 +37,7 @@ import {
   useConfirmSalesOrder,
   useSalesOrders,
 } from '../../hooks/useSalesQueries';
+import { useCreateInvoiceFromSalesOrder } from '../../../invoice';
 import {
   formatCurrency,
   formatDateTime,
@@ -67,17 +69,20 @@ export function SalesOrdersPage() {
   const canCancelSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CANCEL);
   const { modal } = App.useApp();
   const navigate = useNavigate();
+  const location = useLocation();
   const ordersQuery = useSalesOrders();
   const customersQuery = useCustomers({ enabled: canViewCustomers });
   const productsQuery = useProductList({ enabled: canViewProducts });
   const confirmMutation = useConfirmSalesOrder();
   const cancelMutation = useCancelSalesOrder();
+  const createInvoiceMutation = useCreateInvoiceFromSalesOrder();
   const [keyword, setKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [customerFilter, setCustomerFilter] = useState<number | 'ALL'>('ALL');
   const [dateRange, setDateRange] = useState<[string, string] | null>(null);
   const [datePickerKey, setDatePickerKey] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<SalesOrder | null>(null);
+  const highlightOrderId = (location.state as { highlightOrderId?: number } | null)?.highlightOrderId;
 
   const customers = canViewCustomers ? customersQuery.data ?? [] : [];
   const products = canViewProducts ? productsQuery.data ?? [] : [];
@@ -132,6 +137,17 @@ export function SalesOrdersPage() {
 
   const hasFilters = Boolean(keyword || statusFilter !== 'ALL' || customerFilter !== 'ALL' || dateRange);
 
+  useEffect(() => {
+    if (!highlightOrderId || selectedOrder || !orders.length) {
+      return;
+    }
+
+    const highlightedOrder = orders.find((order) => order.id === highlightOrderId);
+    if (highlightedOrder) {
+      setSelectedOrder(highlightedOrder);
+    }
+  }, [highlightOrderId, orders, selectedOrder]);
+
   function clearFilters() {
     setKeyword('');
     setStatusFilter('ALL');
@@ -164,6 +180,33 @@ export function SalesOrdersPage() {
       okText: t('sales.cancel.ok'),
       okButtonProps: { danger: true },
       onOk: () => cancelMutation.mutateAsync(order.id),
+    });
+  }
+
+  function handleCreateInvoice(salesOrderId: number) {
+    modal.confirm({
+      title: t('sales.invoice.confirmTitle'),
+      content: t('sales.invoice.confirmContent'),
+      okText: t('sales.invoice.confirmOk'),
+      onOk: () => {
+        createInvoiceMutation.mutate(salesOrderId, {
+          onSuccess: (invoice) => {
+            modal.success({
+              title: t('sales.invoice.successTitle'),
+              content: t('sales.invoice.successContent', { number: invoice.invoiceNumber }),
+              onOk: () => navigate(`/invoices/${invoice.id}`),
+            });
+          },
+          onError: (error: unknown) => {
+            const axiosError = error as { response?: { data?: { message?: string } } };
+            const errorMessage = axiosError.response?.data?.message || (error as Error).message || t('sales.invoice.errorContent');
+            modal.error({
+              title: t('sales.invoice.errorTitle'),
+              content: errorMessage,
+            });
+          },
+        });
+      },
     });
   }
 
@@ -336,11 +379,15 @@ export function SalesOrdersPage() {
                       ...(record.status === 'DRAFT' && canCancelSalesOrder ? [
                         { key: 'cancel', label: t('sales.action.cancelOrder'), icon: <StopOutlined />, danger: true },
                       ] : []),
+                      ...(record.status === 'COMPLETED' ? [
+                        { key: 'createInvoice', label: t('sales.invoice.createAction'), icon: <FileTextOutlined /> },
+                      ] : []),
                     ],
                     onClick: ({ key }) => {
                       if (key === 'view') setSelectedOrder(record);
                       if (key === 'confirm') confirmOrder(record);
                       if (key === 'cancel') cancelOrder(record);
+                      if (key === 'createInvoice') handleCreateInvoice(record.id);
                     },
                   }}>
                     <Button type="text" icon={<MoreOutlined />} aria-label={t('sales.action.actionsFor', { code: record.code })} />

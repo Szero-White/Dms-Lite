@@ -43,6 +43,14 @@ public class HelpPermissionScope {
             || has(PermissionNames.SALES_ORDER_CANCEL);
     }
 
+    public boolean canUseInvoices() {
+        return has(PermissionNames.INVOICE_VIEW)
+            || has(PermissionNames.INVOICE_CREATE)
+            || has(PermissionNames.INVOICE_ISSUE)
+            || has(PermissionNames.INVOICE_CANCEL)
+            || has(PermissionNames.INVOICE_RECORD_PAYMENT);
+    }
+
     public boolean canUseInventory() {
         return has(PermissionNames.INVENTORY_VIEW)
             || has(PermissionNames.INVENTORY_MANAGE);
@@ -71,6 +79,9 @@ public class HelpPermissionScope {
         List<String> modules = new ArrayList<>();
         addIfAllowed(modules, PermissionNames.REPORT_VIEW, "Dashboard/Reports");
         addIfAllowed(modules, PermissionNames.SALES_ORDER_VIEW, "Sales Orders");
+        if (canUseInvoices()) {
+            modules.add("Invoices");
+        }
         addIfAllowed(modules, PermissionNames.PRODUCT_VIEW, "Products");
         addIfAllowed(modules, PermissionNames.CUSTOMER_VIEW, "Customers");
         addIfAllowed(modules, PermissionNames.INVENTORY_VIEW, "Inventory");

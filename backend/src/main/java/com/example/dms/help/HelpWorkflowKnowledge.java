@@ -105,6 +105,68 @@ public class HelpWorkflowKnowledge {
         );
     }
 
+    public HelpAnswerResponse invoiceAnswer(HelpPermissionScope scope, HelpLocale locale) {
+        if (locale == HelpLocale.VI) {
+            List<String> steps = new ArrayList<>();
+            steps.add("Kiểm tra khách hàng, dòng hàng và thuế suất trước khi tạo hóa đơn.");
+            if (scope.has(PermissionNames.INVOICE_CREATE)) {
+                steps.add("Mở Hóa đơn và tạo nháp từ đơn bán hàng hoặc dữ liệu khách hàng đã xác minh.");
+            } else {
+                steps.add("Bạn có thể xem hóa đơn được cấp quyền, nhưng tạo hóa đơn cần quyền INVOICE_CREATE.");
+            }
+            if (scope.has(PermissionNames.INVOICE_ISSUE)) {
+                steps.add("Chỉ phát hành khi số tiền, mặt hàng và ngày lập đã đúng.");
+            }
+            if (scope.has(PermissionNames.INVOICE_CANCEL)) {
+                steps.add("Hủy hóa đơn sai theo quy trình được phép và không hủy hóa đơn đã thanh toán.");
+            }
+            if (scope.has(PermissionNames.INVOICE_RECORD_PAYMENT)) {
+                steps.add("Ghi nhận thanh toán chỉ khi tiền thực tế đã thu và số còn lại khớp.");
+            }
+
+            return response(
+                "Quy trình hóa đơn giữ dữ liệu bán hàng, công nợ và thanh toán nhất quán.",
+                steps,
+                List.of("Invoices", "Sales Orders", "Payments", "Customers"),
+                List.of(
+                    "Không phát hành hóa đơn khi thông tin khách hàng hoặc dòng hàng còn sai.",
+                    "Chỉ ghi nhận thanh toán khi tiền thật đã được nhận.",
+                    "Không hủy hóa đơn đã thanh toán."
+                ),
+                locale
+            );
+        }
+
+        List<String> steps = new ArrayList<>();
+        steps.add("Review customer details, line items and tax rate before creating an invoice.");
+        if (scope.has(PermissionNames.INVOICE_CREATE)) {
+            steps.add("Open Invoices and create a draft from a sales order or verified customer data.");
+        } else {
+            steps.add("You can view permitted invoices, but creating one requires INVOICE_CREATE.");
+        }
+        if (scope.has(PermissionNames.INVOICE_ISSUE)) {
+            steps.add("Issue the invoice only after the amounts, items and issue date are correct.");
+        }
+        if (scope.has(PermissionNames.INVOICE_CANCEL)) {
+            steps.add("Cancel an incorrect invoice through the approved workflow and never cancel a paid invoice.");
+        }
+        if (scope.has(PermissionNames.INVOICE_RECORD_PAYMENT)) {
+            steps.add("Record payment only after money is actually received and the remaining balance matches.");
+        }
+
+        return response(
+            "Invoice workflow keeps sales data, receivables and payments consistent.",
+            steps,
+            List.of("Invoices", "Sales Orders", "Payments", "Customers"),
+            List.of(
+                "Do not issue an invoice while customer or line-item data is still wrong.",
+                "Only record payment when cash has actually been received.",
+                "Do not cancel a paid invoice."
+            ),
+            locale
+        );
+    }
+
     public HelpAnswerResponse inventoryAnswer(HelpPermissionScope scope, HelpLocale locale) {
         if (locale == HelpLocale.VI) {
             List<String> steps = new ArrayList<>();
