@@ -7,6 +7,7 @@ import { QueryState } from '../../../../components/common/QueryState';
 import { useProducts } from '../../../../features/products';
 import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
 import {
+  useDefaultWarehouse,
   useInventoryHistory,
   useReceiveStock,
 } from '../../hooks/useInventoryQueries';
@@ -32,6 +33,7 @@ export function InventoryPage() {
   const receivedQuantity = Form.useWatch('quantity', form);
 
   const productsQuery = useProducts();
+  const warehouseQuery = useDefaultWarehouse();
   const historyQuery = useInventoryHistory();
   const receiveStockMutation = useReceiveStock();
 
@@ -66,7 +68,7 @@ export function InventoryPage() {
     }
 
     form.setFieldsValue({
-      warehouseId: 1,
+      warehouseId: warehouseQuery.data?.id,
       quantity: 1,
       note: '',
     });
@@ -110,14 +112,18 @@ export function InventoryPage() {
       />
 
       <QueryState
-        isLoading={productsQuery.isLoading || historyQuery.isLoading}
-        isError={productsQuery.isError || historyQuery.isError}
-        error={productsQuery.error || historyQuery.error}
+        isLoading={productsQuery.isLoading || warehouseQuery.isLoading || historyQuery.isLoading}
+        isError={productsQuery.isError || warehouseQuery.isError || historyQuery.isError}
+        error={productsQuery.error || warehouseQuery.error || historyQuery.error}
         hasData={Boolean(productsQuery.data?.length)}
         emptyTitle={t('inventory.title')}
         emptyDescription={t('inventory.empty.description')}
         onRetry={() => {
-          void Promise.all([productsQuery.refetch(), historyQuery.refetch()]);
+          void Promise.all([
+            productsQuery.refetch(),
+            warehouseQuery.refetch(),
+            historyQuery.refetch(),
+          ]);
         }}
       >
         <div className={styles.contentStack}>
@@ -164,6 +170,7 @@ export function InventoryPage() {
           projectedStock={projectedStock}
           receivedQuantity={receivedQuantity}
           selectedProduct={selectedProduct}
+          warehouse={warehouseQuery.data}
         />
       ) : null}
     </div>

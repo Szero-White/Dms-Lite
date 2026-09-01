@@ -27,6 +27,12 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
 
+    @GetMapping("/default-warehouse")
+    @PreAuthorize("hasAnyAuthority('INVENTORY_VIEW','SALES_ORDER_CREATE')")
+    public ApiResponse<WarehouseResponse> defaultWarehouse() {
+        return ApiResponse.ok(inventoryService.defaultWarehouse());
+    }
+
     @GetMapping("/stock")
     @PreAuthorize("hasAuthority('INVENTORY_VIEW')")
     public ApiResponse<List<StockItem>> stock() {

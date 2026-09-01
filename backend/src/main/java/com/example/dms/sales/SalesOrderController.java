@@ -23,9 +23,16 @@ public class SalesOrderController {
     @GetMapping
     @PreAuthorize("hasAuthority('SALES_ORDER_VIEW')")
     public ApiResponse<Page<SalesOrderResponse>> list(
-        @RequestParam(defaultValue = "0") int page
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(required = false) Long customerId
     ) {
-        return ApiResponse.ok(salesOrderService.listOrders(page));
+        return ApiResponse.ok(salesOrderService.listOrders(page, customerId));
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('SALES_ORDER_VIEW')")
+    public ApiResponse<SalesOrderDetailResponse> get(@PathVariable Long id) {
+        return ApiResponse.ok(salesOrderService.getOrder(id));
     }
 
     @PostMapping

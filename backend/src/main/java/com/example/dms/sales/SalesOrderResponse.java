@@ -8,7 +8,7 @@ public record SalesOrderResponse(
     Long customerId,
     Long warehouseId,
     String code,
-    String status,
+    SalesOrderStatus status,
     BigDecimal totalAmount,
     BigDecimal paidAmount,
     BigDecimal debtAmount,

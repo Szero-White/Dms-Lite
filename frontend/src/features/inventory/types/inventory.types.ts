@@ -1,3 +1,8 @@
+export interface Warehouse {
+  id: number;
+  name: string;
+}
+
 export interface StockItem {
   id: number;
   warehouseId: number;

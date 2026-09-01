@@ -1,4 +1,5 @@
-﻿export {
+export {
+  fetchDefaultWarehouse,
   fetchInventoryHistory,
   fetchInventoryHistoryPage,
   fetchInventoryStock,

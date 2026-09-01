@@ -5,6 +5,7 @@ import com.example.dms.common.BusinessException;
 import com.example.dms.common.TenantContext;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -22,17 +23,22 @@ public class ProductService {
         return productRepository.findByTenantIdAndDeletedAtIsNullAndNameContainingIgnoreCase(
             TenantContext.tenantRequired(),
             keyword,
-            PageRequest.of(page, 20)
+            PageRequest.of(Math.max(page, 0), 20)
         );
     }
 
     @Transactional
+    @CacheEvict(value = "dashboard", key = "T(com.example.dms.common.TenantContext).tenantRequired()")
     public Product create(ProductRequest request) {
+        Long tenantId = TenantContext.tenantRequired();
+        String sku = request.sku().trim();
+        ensureSkuAvailable(tenantId, sku, null);
+
         Product savedProduct = productRepository.save(
             Product.builder()
-                .tenantId(TenantContext.tenantRequired())
+                .tenantId(tenantId)
                 .name(request.name())
-                .sku(request.sku())
+                .sku(sku)
                 .barcode(request.barcode())
                 .costPrice(request.costPrice())
                 .sellingPrice(request.sellingPrice())
@@ -46,10 +52,14 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "dashboard", key = "T(com.example.dms.common.TenantContext).tenantRequired()")
     public Product update(Long id, ProductRequest request) {
         Product product = find(id);
+        String sku = request.sku().trim();
+        ensureSkuAvailable(product.getTenantId(), sku, id);
+
         product.setName(request.name());
-        product.setSku(request.sku());
+        product.setSku(sku);
         product.setBarcode(request.barcode());
         product.setCostPrice(request.costPrice());
         product.setSellingPrice(request.sellingPrice());
@@ -61,6 +71,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "dashboard", key = "T(com.example.dms.common.TenantContext).tenantRequired()")
     public void delete(Long id) {
         Product product = find(id);
         product.setDeletedAt(Instant.now());
@@ -74,4 +85,12 @@ public class ProductService {
             TenantContext.tenantRequired()
         ).orElseThrow(() -> new BusinessException("Product not found"));
     }
+    private void ensureSkuAvailable(Long tenantId, String sku, Long currentProductId) {
+        productRepository.findFirstByTenantIdAndDeletedAtIsNullAndSkuIgnoreCase(tenantId, sku)
+            .filter(existing -> currentProductId == null || !existing.getId().equals(currentProductId))
+            .ifPresent(existing -> {
+                throw new BusinessException("SKU already exists");
+            });
+    }
+
 }

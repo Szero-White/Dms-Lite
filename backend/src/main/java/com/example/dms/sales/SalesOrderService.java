@@ -11,13 +11,17 @@ import com.example.dms.inventory.InventoryService;
 import com.example.dms.notification.NotificationProducer;
 import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
-import com.example.dms.user.PermissionNames;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
@@ -31,21 +35,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SalesOrderService {
 
-    private static final String STATUS_DRAFT = "DRAFT";
-    private static final String STATUS_COMPLETED = "COMPLETED";
-    private static final String STATUS_CANCELLED = "CANCELLED";
+    private static final int DEFAULT_PAGE_SIZE = 20;
     private static final String SALES_ORDER_ENTITY = "SalesOrder";
     private static final String SALES_ORDER_SOURCE = "SALES_ORDER";
     private static final String DEBT_DIRECTION_INCREASE = "INCREASE";
     private static final String NOTIFICATION_TYPE_CONFIRMED = "SALES_ORDER_CONFIRMED";
     private static final String NOTIFICATION_TYPE_CANCELLED = "SALES_ORDER_CANCELLED";
-    private static final Set<String> ORDER_FINANCIAL_PERMISSIONS = Set.of(
-        PermissionNames.DEBT_VIEW,
-        PermissionNames.PAYMENT_CREATE,
-        PermissionNames.REPORT_VIEW,
-        PermissionNames.SALES_ORDER_CREATE
-    );
-
     private final SalesOrderRepository salesOrderRepository;
     private final ProductRepository productRepository;
     private final CustomerRepository customerRepository;
@@ -56,27 +51,46 @@ public class SalesOrderService {
     private final SalesOrderMapper salesOrderMapper;
 
     @Transactional(readOnly = true)
-    public Page<SalesOrderResponse> listOrders(int page) {
+    public Page<SalesOrderResponse> listOrders(int page, Long customerId) {
         Long tenantId = TenantContext.tenantRequired();
-        return salesOrderRepository.findByTenantIdOrderByCreatedAtDesc(
-            tenantId,
-            PageRequest.of(page, 20)
-        ).map(salesOrder -> salesOrderMapper.toResponse(salesOrder, canViewOrderFinancials()));
+        PageRequest pageRequest = PageRequest.of(Math.max(page, 0), DEFAULT_PAGE_SIZE);
+        Page<SalesOrder> orders = customerId == null
+            ? salesOrderRepository.findByTenantIdOrderByCreatedAtDesc(tenantId, pageRequest)
+            : salesOrderRepository.findByTenantIdAndCustomerIdOrderByCreatedAtDesc(
+                tenantId,
+                customerId,
+                pageRequest
+            );
+
+        boolean includeFinancials = canViewOrderFinancials();
+        return orders.map(order -> salesOrderMapper.toResponse(order, includeFinancials));
+    }
+
+    @Transactional(readOnly = true)
+    public SalesOrderDetailResponse getOrder(Long salesOrderId) {
+        SalesOrder salesOrder = salesOrderRepository.findDetailByIdAndTenantId(
+            salesOrderId,
+            TenantContext.tenantRequired()
+        ).orElseThrow(() -> new BusinessException("Order not found"));
+
+        return salesOrderMapper.toDetailResponse(salesOrder, canViewOrderFinancials());
     }
 
     @Transactional
     public SalesOrderDetailResponse createOrder(CreateSalesOrderRequest request) {
         Long tenantId = TenantContext.tenantRequired();
-        validateCustomerExists(request.customerId(), tenantId);
+        findCustomer(request.customerId(), tenantId);
+        inventoryService.validateWarehouse(tenantId, request.warehouseId());
 
         SalesOrder salesOrder = buildDraftOrder(request, tenantId);
+        Map<Long, Product> productsById = loadProducts(request.items(), tenantId);
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         for (SalesOrderItemRequest itemRequest : request.items()) {
             SalesOrderItem salesOrderItem = buildSalesOrderItem(
                 salesOrder,
                 itemRequest,
-                tenantId
+                productsById
             );
             salesOrder.getItems().add(salesOrderItem);
             totalAmount = totalAmount.add(salesOrderItem.getLineTotal());
@@ -96,12 +110,15 @@ public class SalesOrderService {
     }
 
     @Transactional
-    @CacheEvict(value = "dashboard", allEntries = true)
+    @CacheEvict(
+        value = "dashboard",
+        key = "T(com.example.dms.common.TenantContext).tenantRequired()"
+    )
     public SalesOrderDetailResponse confirmOrder(Long salesOrderId) {
         Long tenantId = TenantContext.tenantRequired();
         SalesOrder salesOrder = findSalesOrder(salesOrderId, tenantId);
 
-        if (!STATUS_DRAFT.equals(salesOrder.getStatus())) {
+        if (salesOrder.getStatus() != SalesOrderStatus.DRAFT) {
             throw new BusinessException("Only DRAFT can be confirmed");
         }
 
@@ -117,14 +134,20 @@ public class SalesOrderService {
             );
         }
 
-        salesOrder.setStatus(STATUS_COMPLETED);
+        // Current MVP combines confirmation and warehouse fulfillment in one transaction.
+        salesOrder.setStatus(SalesOrderStatus.COMPLETED);
         salesOrder.setConfirmedAt(Instant.now());
 
         if (salesOrder.getDebtAmount().signum() > 0) {
             customerDebtRepository.save(buildDebtTransaction(salesOrder, tenantId));
         }
 
-        auditService.log("SALES_ORDER_CONFIRMED", SALES_ORDER_ENTITY, salesOrder.getId(), salesOrder.getCode());
+        auditService.log(
+            "SALES_ORDER_CONFIRMED",
+            SALES_ORDER_ENTITY,
+            salesOrder.getId(),
+            salesOrder.getCode()
+        );
         notificationProducer.publish(
             tenantId,
             NOTIFICATION_TYPE_CONFIRMED,
@@ -136,18 +159,26 @@ public class SalesOrderService {
     }
 
     @Transactional
-    @CacheEvict(value = "dashboard", allEntries = true)
+    @CacheEvict(
+        value = "dashboard",
+        key = "T(com.example.dms.common.TenantContext).tenantRequired()"
+    )
     public SalesOrderDetailResponse cancelOrder(Long salesOrderId) {
         Long tenantId = TenantContext.tenantRequired();
         SalesOrder salesOrder = findSalesOrder(salesOrderId, tenantId);
 
-        if (!STATUS_DRAFT.equals(salesOrder.getStatus())) {
+        if (salesOrder.getStatus() != SalesOrderStatus.DRAFT) {
             throw new BusinessException("Only DRAFT can be cancelled");
         }
 
-        salesOrder.setStatus(STATUS_CANCELLED);
+        salesOrder.setStatus(SalesOrderStatus.CANCELLED);
 
-        auditService.log("SALES_ORDER_CANCELLED", SALES_ORDER_ENTITY, salesOrder.getId(), salesOrder.getCode());
+        auditService.log(
+            "SALES_ORDER_CANCELLED",
+            SALES_ORDER_ENTITY,
+            salesOrder.getId(),
+            salesOrder.getCode()
+        );
         notificationProducer.publish(
             tenantId,
             NOTIFICATION_TYPE_CANCELLED,
@@ -160,9 +191,9 @@ public class SalesOrderService {
     private boolean canViewOrderFinancials() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        return authentication != null && authentication.getAuthorities()
-            .stream()
-            .anyMatch(authority -> ORDER_FINANCIAL_PERMISSIONS.contains(authority.getAuthority()));
+        return authentication != null && SalesOrderAccessPolicy.canViewFinancials(
+            authentication.getAuthorities().stream().map(authority -> authority.getAuthority()).toList()
+        );
     }
 
     private SalesOrder buildDraftOrder(CreateSalesOrderRequest request, Long tenantId) {
@@ -170,8 +201,8 @@ public class SalesOrderService {
             .tenantId(tenantId)
             .customerId(request.customerId())
             .warehouseId(request.warehouseId())
-            .code("SO-" + tenantId + "-" + (salesOrderRepository.countByTenantId(tenantId) + 1))
-            .status(STATUS_DRAFT)
+            .code(generateOrderCode(tenantId))
+            .status(SalesOrderStatus.DRAFT)
             .paidAmount(defaultIfNull(request.paidAmount()))
             .totalAmount(BigDecimal.ZERO)
             .debtAmount(BigDecimal.ZERO)
@@ -179,17 +210,33 @@ public class SalesOrderService {
             .build();
     }
 
+    private String generateOrderCode(Long tenantId) {
+        String suffix = UUID.randomUUID()
+            .toString()
+            .replace("-", "")
+            .substring(0, 8)
+            .toUpperCase(Locale.ROOT);
+        return "SO-" + tenantId + "-" + suffix;
+    }
+
     private SalesOrderItem buildSalesOrderItem(
         SalesOrder salesOrder,
         SalesOrderItemRequest itemRequest,
-        Long tenantId
+        Map<Long, Product> productsById
     ) {
-        Product product = findProduct(itemRequest.productId(), tenantId);
+        Product product = productsById.get(itemRequest.productId());
+        if (product == null) {
+            throw new BusinessException("Product not found: " + itemRequest.productId());
+        }
         BigDecimal discountAmount = defaultIfNull(itemRequest.discountAmount());
-        BigDecimal lineTotal = product.getSellingPrice()
-            .multiply(BigDecimal.valueOf(itemRequest.quantity()))
-            .subtract(discountAmount);
+        BigDecimal grossAmount = product.getSellingPrice()
+            .multiply(BigDecimal.valueOf(itemRequest.quantity()));
 
+        if (discountAmount.compareTo(grossAmount) > 0) {
+            throw new BusinessException("Discount exceeds line amount");
+        }
+
+        BigDecimal lineTotal = grossAmount.subtract(discountAmount);
         return SalesOrderItem.builder()
             .order(salesOrder)
             .productId(product.getId())
@@ -226,23 +273,32 @@ public class SalesOrderService {
             .build();
     }
 
-    private void validateCustomerExists(Long customerId, Long tenantId) {
-        customerRepository.findByIdAndTenantIdAndDeletedAtIsNull(customerId, tenantId)
-            .orElseThrow(() -> new BusinessException("Customer not found"));
-    }
-
     private Customer findCustomer(Long customerId, Long tenantId) {
         return customerRepository.findByIdAndTenantIdAndDeletedAtIsNull(customerId, tenantId)
             .orElseThrow(() -> new BusinessException("Customer not found"));
     }
 
-    private Product findProduct(Long productId, Long tenantId) {
-        return productRepository.findByIdAndTenantIdAndDeletedAtIsNull(productId, tenantId)
-            .orElseThrow(() -> new BusinessException("Product not found"));
+    private Map<Long, Product> loadProducts(
+        List<SalesOrderItemRequest> itemRequests,
+        Long tenantId
+    ) {
+        Set<Long> productIds = itemRequests.stream()
+            .map(SalesOrderItemRequest::productId)
+            .collect(Collectors.toSet());
+
+        Map<Long, Product> productsById = productRepository
+            .findByTenantIdAndIdInAndDeletedAtIsNull(tenantId, productIds)
+            .stream()
+            .collect(Collectors.toMap(Product::getId, Function.identity()));
+
+        if (productsById.size() != productIds.size()) {
+            throw new BusinessException("One or more products were not found");
+        }
+        return productsById;
     }
 
     private SalesOrder findSalesOrder(Long salesOrderId, Long tenantId) {
-        return salesOrderRepository.findByIdAndTenantId(salesOrderId, tenantId)
+        return salesOrderRepository.findDetailByIdAndTenantId(salesOrderId, tenantId)
             .orElseThrow(() -> new BusinessException("Order not found"));
     }
 

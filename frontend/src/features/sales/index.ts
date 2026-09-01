@@ -3,6 +3,7 @@ export {
   useCancelSalesOrder,
   useConfirmSalesOrder,
   useCreateSalesOrder,
+  useSalesOrderDetail,
   useSalesOrders,
 } from './hooks/useSalesQueries';
 export { CreateSalesOrderPage } from './pages/CreateSalesOrderPage';

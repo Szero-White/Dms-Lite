@@ -1,9 +1,4 @@
-export type SalesOrderStatus =
-  | 'DRAFT'
-  | 'CONFIRMED'
-  | 'COMPLETED'
-  | 'CANCELLED'
-  | string;
+export type SalesOrderStatus = 'DRAFT' | 'COMPLETED' | 'CANCELLED';
 
 export interface SalesOrderItem {
   id?: number;
@@ -25,7 +20,7 @@ export interface SalesOrder {
   debtAmount: string | number | null;
   createdAt: string;
   confirmedAt?: string;
-  items: SalesOrderItem[];
+  items?: SalesOrderItem[];
 }
 
 export interface CreateSalesOrderPayload {

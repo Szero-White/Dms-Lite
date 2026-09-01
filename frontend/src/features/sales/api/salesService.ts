@@ -5,8 +5,16 @@ import type {
   SalesOrder,
 } from '../types/sales.types';
 
-export async function fetchSalesOrders() {
-  return unwrapResponse<PageResponse<SalesOrder>>(apiClient.get('/sales-orders'));
+export async function fetchSalesOrders(customerId?: number) {
+  return unwrapResponse<PageResponse<SalesOrder>>(
+    apiClient.get('/sales-orders', {
+      params: customerId ? { customerId } : undefined,
+    }),
+  );
+}
+
+export async function fetchSalesOrderDetail(orderId: number) {
+  return unwrapResponse<SalesOrder>(apiClient.get(`/sales-orders/${orderId}`));
 }
 
 export async function createSalesOrder(payload: CreateSalesOrderPayload) {

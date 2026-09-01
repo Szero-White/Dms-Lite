@@ -2,6 +2,7 @@ package com.example.dms.inventory;
 
 import com.example.dms.common.BusinessException;
 import com.example.dms.common.TenantContext;
+import com.example.dms.product.ProductRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -18,8 +19,26 @@ public class InventoryService {
 
     private final InventoryTransactionRepository inventoryTransactionRepository;
 
+    private final WarehouseRepository warehouseRepository;
+
+    private final ProductRepository productRepository;
+
+    @Transactional(readOnly = true)
+    public WarehouseResponse defaultWarehouse() {
+        return warehouseRepository.findFirstByTenantIdOrderByIdAsc(TenantContext.tenantRequired())
+            .map(WarehouseResponse::from)
+            .orElseThrow(() -> new BusinessException("Warehouse is not configured"));
+    }
+
+    @Transactional(readOnly = true)
+    public void validateWarehouse(Long tenantId, Long warehouseId) {
+        if (!warehouseRepository.existsByIdAndTenantId(warehouseId, tenantId)) {
+            throw new BusinessException("Warehouse not found");
+        }
+    }
+
     @Transactional
-    @CacheEvict(value = "dashboard", allEntries = true)
+    @CacheEvict(value = "dashboard", key = "#tenantId")
     public void increase(
         Long tenantId,
         Long warehouseId,
@@ -29,6 +48,11 @@ public class InventoryService {
         Long sourceId,
         String note
     ) {
+        validateWarehouse(tenantId, warehouseId);
+        if (!productRepository.existsByIdAndTenantIdAndDeletedAtIsNull(productId, tenantId)) {
+            throw new BusinessException("Product not found");
+        }
+
         StockItem stockItem = stockItemRepository.lock(tenantId, warehouseId, productId)
             .orElseGet(() -> stockItemRepository.save(
                 StockItem.builder()
@@ -57,7 +81,7 @@ public class InventoryService {
     }
 
     @Transactional
-    @CacheEvict(value = "dashboard", allEntries = true)
+    @CacheEvict(value = "dashboard", key = "#tenantId")
     public void deduct(
         Long tenantId,
         Long warehouseId,

@@ -34,6 +34,7 @@ import { useProductList } from '../../../products';
 import {
   useCancelSalesOrder,
   useConfirmSalesOrder,
+  useSalesOrderDetail,
   useSalesOrders,
 } from '../../hooks/useSalesQueries';
 import {
@@ -78,6 +79,8 @@ export function SalesOrdersPage() {
   const [dateRange, setDateRange] = useState<[string, string] | null>(null);
   const [datePickerKey, setDatePickerKey] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<SalesOrder | null>(null);
+  const selectedOrderDetailQuery = useSalesOrderDetail(selectedOrder?.id);
+  const selectedOrderDetail = selectedOrderDetailQuery.data ?? selectedOrder;
 
   const customers = canViewCustomers ? customersQuery.data ?? [] : [];
   const products = canViewProducts ? productsQuery.data ?? [] : [];
@@ -93,24 +96,24 @@ export function SalesOrdersPage() {
 
   const statusCounts = useMemo(() => ({
     DRAFT:     orders.filter((o) => o.status === 'DRAFT').length,
-    CONFIRMED: orders.filter((o) => o.status === 'CONFIRMED').length,
     COMPLETED: orders.filter((o) => o.status === 'COMPLETED').length,
     CANCELLED: orders.filter((o) => o.status === 'CANCELLED').length,
   }), [orders]);
 
   const totalOrders = orders.length;
-  const activeOrders = orders.filter((o) => o.status === 'CONFIRMED').length;
+  const activeOrders = orders.filter((o) => o.status === 'DRAFT').length;
   const totalRevenue = useMemo(
-    () => orders.filter((o) => o.status !== 'CANCELLED')
+    () => orders.filter((o) => o.status === 'COMPLETED')
       .reduce((s, o) => s + toNumber(o.totalAmount), 0),
     [orders],
   );
   const outstandingDebt = useMemo(
-    () => orders.reduce((s, o) => s + toNumber(o.debtAmount), 0),
-    [orders],
+    () => customers.reduce((sum, customer) => sum + toNumber(customer.debtBalance), 0),
+    [customers],
   );
   const paidAmount = useMemo(
-    () => orders.reduce((s, o) => s + toNumber(o.paidAmount), 0),
+    () => orders.filter((o) => o.status === 'COMPLETED')
+      .reduce((s, o) => s + toNumber(o.paidAmount), 0),
     [orders],
   );
 
@@ -186,7 +189,6 @@ export function SalesOrdersPage() {
         activeOrders={activeOrders}
         cancelledCount={statusCounts.CANCELLED}
         completedCount={statusCounts.COMPLETED}
-        confirmedCount={statusCounts.CONFIRMED}
         draftCount={statusCounts.DRAFT}
         onStatusFilterChange={setStatusFilter}
         outstandingDebt={outstandingDebt}
@@ -215,7 +217,6 @@ export function SalesOrdersPage() {
               options={[
                 { value: 'ALL', label: t('sales.filters.allStatuses') },
                 { value: 'DRAFT', label: t('status.sales.DRAFT') },
-                { value: 'CONFIRMED', label: t('status.sales.CONFIRMED') },
                 { value: 'COMPLETED', label: t('status.sales.COMPLETED') },
                 { value: 'CANCELLED', label: t('status.sales.CANCELLED') },
               ]}
@@ -353,32 +354,32 @@ export function SalesOrdersPage() {
       </Card>
       {/* Detail drawer */}
       <Drawer
-        title={selectedOrder ? t('sales.drawer.orderTitle', { code: selectedOrder.code }) : t('sales.drawer.detailsTitle')}
+        title={selectedOrderDetail ? t('sales.drawer.orderTitle', { code: selectedOrderDetail.code }) : t('sales.drawer.detailsTitle')}
         width={720}
         open={Boolean(selectedOrder)}
         onClose={() => setSelectedOrder(null)}
       >
-        {selectedOrder && (
+        {selectedOrderDetail && (
           <div className={styles.drawerContent}>
             <Descriptions bordered size="small" column={{ xs: 1, sm: 2 }}>
               <Descriptions.Item label={t('sales.column.customer')}>
-                {customersMap.get(selectedOrder.customerId)?.name || `#${selectedOrder.customerId}`}
+                {customersMap.get(selectedOrderDetail.customerId)?.name || `#${selectedOrderDetail.customerId}`}
               </Descriptions.Item>
-              <Descriptions.Item label={t('common.status')}><SalesOrderStatusTag status={selectedOrder.status} /></Descriptions.Item>
+              <Descriptions.Item label={t('common.status')}><SalesOrderStatusTag status={selectedOrderDetail.status} /></Descriptions.Item>
               {canViewSalesOrderFinancials ? (
                 <>
-                  <Descriptions.Item label={t('sales.column.total')}>{formatCurrency(selectedOrder.totalAmount)}</Descriptions.Item>
-                  <Descriptions.Item label={t('sales.column.paid')}>{formatCurrency(selectedOrder.paidAmount)}</Descriptions.Item>
-                  <Descriptions.Item label={t('sales.column.debt')}>{formatCurrency(selectedOrder.debtAmount)}</Descriptions.Item>
+                  <Descriptions.Item label={t('sales.column.total')}>{formatCurrency(selectedOrderDetail.totalAmount)}</Descriptions.Item>
+                  <Descriptions.Item label={t('sales.column.paid')}>{formatCurrency(selectedOrderDetail.paidAmount)}</Descriptions.Item>
+                  <Descriptions.Item label={t('sales.column.debt')}>{formatCurrency(selectedOrderDetail.debtAmount)}</Descriptions.Item>
                 </>
               ) : null}
-              <Descriptions.Item label={t('sales.drawer.warehouse')}>#{selectedOrder.warehouseId}</Descriptions.Item>
+              <Descriptions.Item label={t('sales.drawer.warehouse')}>#{selectedOrderDetail.warehouseId}</Descriptions.Item>
             </Descriptions>
             <div>
               <Typography.Title level={5}>{t('sales.drawer.orderItems')}</Typography.Title>
               <Table size="small" pagination={false}
                 rowKey={(item, i) => item.id ?? `${item.productId}-${i}`}
-                dataSource={selectedOrder.items ?? []}
+                dataSource={selectedOrderDetail.items ?? []}
                 columns={[
                   { title: t('sales.drawer.product'), render: (_, item) => productsMap.get(item.productId)?.name || `#${item.productId}` },
                   { title: t('inventory.history.qty'), dataIndex: 'quantity', align: 'right' },
@@ -393,15 +394,15 @@ export function SalesOrdersPage() {
             <div>
               <Typography.Title level={5}>{t('sales.drawer.timeline')}</Typography.Title>
               <Timeline items={[
-                { color: 'blue', children: t('sales.timeline.created', { time: formatDateTime(selectedOrder.createdAt, i18n.language) }) },
-                ...(selectedOrder.confirmedAt ? [{ color: 'green', children: t('sales.timeline.confirmed', { time: formatDateTime(selectedOrder.confirmedAt, i18n.language) }) }] : []),
-                { color: selectedOrder.status === 'CANCELLED' ? 'red' : 'gray', children: t('sales.timeline.status', { status: t(`status.sales.${selectedOrder.status}`) }) },
+                { color: 'blue', children: t('sales.timeline.created', { time: formatDateTime(selectedOrderDetail.createdAt, i18n.language) }) },
+                ...(selectedOrderDetail.confirmedAt ? [{ color: 'green', children: t('sales.timeline.confirmed', { time: formatDateTime(selectedOrderDetail.confirmedAt, i18n.language) }) }] : []),
+                { color: selectedOrderDetail.status === 'CANCELLED' ? 'red' : 'gray', children: t('sales.timeline.status', { status: t(`status.sales.${selectedOrderDetail.status}`) }) },
               ]} />
             </div>
-            {selectedOrder.status === 'DRAFT' && (
+            {selectedOrderDetail.status === 'DRAFT' && (
               <Space>
-                <Button type="primary" loading={confirmMutation.isPending} onClick={() => confirmOrder(selectedOrder)}>{t('sales.confirm.ok')}</Button>
-                <Button danger loading={cancelMutation.isPending} onClick={() => cancelOrder(selectedOrder)}>{t('sales.cancel.ok')}</Button>
+                <Button type="primary" loading={confirmMutation.isPending} onClick={() => confirmOrder(selectedOrderDetail)}>{t('sales.confirm.ok')}</Button>
+                <Button danger loading={cancelMutation.isPending} onClick={() => cancelOrder(selectedOrderDetail)}>{t('sales.cancel.ok')}</Button>
               </Space>
             )}
           </div>
