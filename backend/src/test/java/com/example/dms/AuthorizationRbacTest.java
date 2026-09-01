@@ -163,6 +163,37 @@ class AuthorizationRbacTest {
             .andExpect(jsonPath("$.message").value("Team management permission is reserved for Owner accounts"));
     }
 
+
+    @Test
+    void ownerCannotCreatePaymentRoleWithoutCustomerViewDependency() throws Exception {
+        mvc.perform(post("/api/team/roles")
+                .header("Authorization", bearer("owner"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(Map.of(
+                    "name", "Cashier Only",
+                    "permissions", new String[] { "PAYMENT_CREATE" }
+                ))))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("PAYMENT_CREATE requires: CUSTOMER_VIEW"));
+    }
+
+    @Test
+    void salesCannotCreateOrderForUnknownWarehouse() throws Exception {
+        mvc.perform(post("/api/sales-orders")
+                .header("Authorization", bearer("sale"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(Map.of(
+                    "customerId", 1,
+                    "warehouseId", 999999,
+                    "paidAmount", 0,
+                    "items", new Object[] {
+                        Map.of("productId", 1, "quantity", 1, "discountAmount", 0)
+                    }
+                ))))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Warehouse not found"));
+    }
+
     @Test
     void helpAssistantRejectsTooManyQuestionsFromSameUser() throws Exception {
         String token = bearer("accountant");

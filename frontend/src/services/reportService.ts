@@ -5,7 +5,6 @@ interface DashboardResponse {
   revenueToday: string | number;
   revenueThisMonth: string | number;
   totalReceivable: string | number;
-  payableDebt: string | number;
   lowStockItems: number;
   productCount: number;
   topCustomersByDebt: DashboardSnapshot['topCustomersByDebt'];
@@ -33,7 +32,6 @@ export function normalizeDashboardSummary(summary: Partial<DashboardSummary>): D
     revenueToday: summary.revenueToday ?? 0,
     revenueThisMonth: summary.revenueThisMonth ?? 0,
     totalReceivable: summary.totalReceivable ?? 0,
-    payableDebt: summary.payableDebt ?? 0,
     lowStockItems: summary.lowStockItems ?? 0,
     productCount: summary.productCount ?? 0,
   };

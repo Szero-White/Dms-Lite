@@ -11,7 +11,6 @@ type StatusTone =
 
 const SALES_STATUS_MAP: Record<string, StatusTone> = {
   DRAFT: 'neutral',
-  CONFIRMED: 'info',
   COMPLETED: 'success',
   CANCELLED: 'danger',
 };

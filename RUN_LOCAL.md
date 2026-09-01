@@ -1,17 +1,15 @@
-# Chạy local trước, chưa cần Docker
+# Chạy DMS Lite local
 
-Cách này dùng trong giai đoạn code/sửa lỗi. Chỉ cần PostgreSQL local, chưa cần Redis/RabbitMQ.
+Local profile chỉ cần PostgreSQL. Redis/RabbitMQ không bắt buộc cho vòng code/test hằng ngày.
 
-## 1. Yêu cầu máy
+## 1. Yêu cầu
 
 - Java 17+
 - Maven 3.9+
 - Node.js 18+
 - PostgreSQL 14+
 
-## 2. Tạo database local
-
-Đăng nhập PostgreSQL rồi chạy:
+## 2. Database
 
 ```sql
 CREATE USER dms WITH PASSWORD 'dms';
@@ -19,52 +17,97 @@ CREATE DATABASE dms_lite OWNER dms;
 GRANT ALL PRIVILEGES ON DATABASE dms_lite TO dms;
 ```
 
-Nếu bạn dùng user `postgres/123456`, sửa biến môi trường hoặc file `backend/src/main/resources/application-local.yml`.
+Nếu dùng tài khoản PostgreSQL khác, cấu hình environment hoặc `backend/src/main/resources/application-local.yml`.
 
-## 3. Chạy backend local
+## 3. Cách nhanh trên Windows: một file mở hai terminal
 
-```bash
+Tại project root chạy:
+
+```powershell
+.\run-local.bat
+```
+
+Script sẽ mở:
+
+- terminal Backend: Spring Boot local profile;
+- terminal Frontend: Vite port `3000`.
+
+Nếu frontend chưa có `node_modules`, script chạy `npm ci` trước.
+
+**PostgreSQL phải đang chạy trước khi chạy script.**
+
+## 4. Chạy thủ công
+
+Backend:
+
+```powershell
 cd backend
-$env:GEMINI_API_KEY="dán_api_key_của_bạn_vào_đây"
 mvn spring-boot:run "-Dspring-boot.run.arguments=--spring.profiles.active=local"
 ```
 
-Backend sẽ chạy ở:
+Nếu dùng Gemini thật:
 
-- http://localhost:8080
-- Swagger: http://localhost:8080/swagger-ui/index.html
+```powershell
+$env:GEMINI_API_KEY="your_key"
+```
 
-## 4. Chạy frontend local
+Frontend, terminal khác:
 
-Mở terminal khác:
-
-```bash
+```powershell
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-Frontend chạy ở:
+## 5. URLs
 
-- http://localhost:3000
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8080`
+- Swagger: `http://localhost:8080/swagger-ui/index.html`
+- Health: `http://localhost:8080/actuator/health`
 
-## 5. Tài khoản demo
+## 6. Demo accounts
 
-- owner / 123456
-- sale / 123456
-- warehouse / 123456
-- accountant / 123456
+- `owner / 123456`
+- `sale / 123456`
+- `warehouse / 123456`
+- `accountant / 123456`
 
-## 6. Ghi chú quan trọng
+Các credential này chỉ dành cho local/demo data, không dùng cho dữ liệu production thực.
 
-Ở profile `local`:
+## 7. Local profile
 
-- Redis tạm dùng `simple cache`, không cần cài Redis.
-- RabbitMQ tắt, notification ghi thẳng vào database.
-- Docker Compose chưa cần chạy.
+- cache: Spring simple cache;
+- RabbitMQ messaging: không bắt buộc;
+- CORS mặc định: `http://localhost:3000`;
+- JWT local có default development secret, nhưng deployment public phải set secret riêng.
 
-Khi backend + frontend đã ổn mới chuyển sang:
+## 8. Docker Compose
 
-```bash
+Trước khi chạy Docker Compose, tạo `.env` và **bắt buộc** thay JWT secret:
+
+```env
+APP_JWT_SECRET=replace-with-a-strong-random-secret-at-least-32-characters
+APP_CORS_ALLOWED_ORIGINS=http://localhost:3000
+```
+
+Sau đó:
+
+```powershell
 docker compose up -d --build
 ```
+
+Docker Compose cố tình không fallback về JWT secret công khai trong repository.
+
+## 9. Check trước khi deploy
+
+```powershell
+cd backend
+mvn verify
+
+cd ..\frontend
+npm ci
+npm run build
+```
+
+CI cũng chạy backend tests + frontend build theo cùng nguyên tắc.

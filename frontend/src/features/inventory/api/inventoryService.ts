@@ -1,7 +1,8 @@
-﻿import { apiClient, unwrapResponse } from '../../../services/apiClient';
+import { apiClient, unwrapResponse } from '../../../services/apiClient';
 import { PageResponse } from '../../../types';
 import {
   InventoryTransaction,
+  Warehouse,
   ReceiveStockPayload,
   StockItem,
 } from '../types/inventory.types';
@@ -9,6 +10,10 @@ import {
 interface InventoryHistoryParams {
   page?: number;
   size?: number;
+}
+
+export async function fetchDefaultWarehouse() {
+  return unwrapResponse<Warehouse>(apiClient.get('/inventory/default-warehouse'));
 }
 
 export async function fetchInventoryStock() {

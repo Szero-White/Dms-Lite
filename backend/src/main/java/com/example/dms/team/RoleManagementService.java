@@ -35,6 +35,33 @@ public class RoleManagementService {
 
     private static final Set<String> OWNER_ONLY_PERMISSIONS = Set.of(PermissionNames.TEAM_MANAGE);
 
+    private static final Map<String, Set<String>> PERMISSION_DEPENDENCIES = Map.ofEntries(
+        Map.entry(
+            PermissionNames.PRODUCT_MANAGE,
+            Set.of(PermissionNames.PRODUCT_VIEW, PermissionNames.INVENTORY_VIEW)
+        ),
+        Map.entry(PermissionNames.CUSTOMER_MANAGE, Set.of(PermissionNames.CUSTOMER_VIEW)),
+        Map.entry(
+            PermissionNames.SALES_ORDER_CREATE,
+            Set.of(
+                PermissionNames.CUSTOMER_VIEW,
+                PermissionNames.PRODUCT_VIEW,
+                PermissionNames.INVENTORY_VIEW
+            )
+        ),
+        Map.entry(
+            PermissionNames.SALES_ORDER_CONFIRM,
+            Set.of(PermissionNames.SALES_ORDER_VIEW, PermissionNames.INVENTORY_VIEW)
+        ),
+        Map.entry(PermissionNames.SALES_ORDER_CANCEL, Set.of(PermissionNames.SALES_ORDER_VIEW)),
+        Map.entry(
+            PermissionNames.INVENTORY_MANAGE,
+            Set.of(PermissionNames.INVENTORY_VIEW, PermissionNames.PRODUCT_VIEW)
+        ),
+        Map.entry(PermissionNames.PAYMENT_CREATE, Set.of(PermissionNames.CUSTOMER_VIEW)),
+        Map.entry(PermissionNames.DEBT_VIEW, Set.of(PermissionNames.CUSTOMER_VIEW))
+    );
+
     private static final Map<String, PermissionMetadata> PERMISSION_METADATA = Map.ofEntries(
         entry(PermissionNames.PRODUCT_VIEW, "View products", "Catalog", "See product catalog and pricing."),
         entry(PermissionNames.PRODUCT_MANAGE, "Manage products", "Catalog", "Create, update and deactivate products."),
@@ -172,9 +199,25 @@ public class RoleManagementService {
             throw new BusinessException("Unknown permission selected");
         }
 
+        validatePermissionDependencies(names);
+
         return names.stream()
             .map(permissionMap::get)
             .collect(Collectors.toCollection(HashSet::new));
+    }
+
+    private void validatePermissionDependencies(Set<String> names) {
+        PERMISSION_DEPENDENCIES.forEach((permission, requiredPermissions) -> {
+            if (!names.contains(permission) || names.containsAll(requiredPermissions)) {
+                return;
+            }
+
+            String missing = requiredPermissions.stream()
+                .filter(required -> !names.contains(required))
+                .sorted()
+                .collect(Collectors.joining(", "));
+            throw new BusinessException(permission + " requires: " + missing);
+        });
     }
 
     private void ensureCustomRoleNameAvailable(String name, Long tenantId, Long currentRoleId) {

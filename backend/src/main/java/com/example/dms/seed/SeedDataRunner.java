@@ -14,7 +14,6 @@ import com.example.dms.user.PermissionNames;
 import com.example.dms.user.PermissionRepository;
 import com.example.dms.user.Role;
 import com.example.dms.user.RoleRepository;
-import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -58,7 +57,7 @@ public class SeedDataRunner implements CommandLineRunner {
 
     private final InventoryService inventory;
 
-    private final EntityManagerHelper emh;
+    private final DemoWarehouseSeeder warehouseSeeder;
 
     @Override
     @Transactional
@@ -100,11 +99,8 @@ public class SeedDataRunner implements CommandLineRunner {
         ensureDemoUser("warehouse", "Warehouse", tenant.getId(), warehouseRole);
         ensureDemoUser("accountant", "Accountant", tenant.getId(), accountantRole);
 
-        if (!emh.hasWarehouse(tenant.getId())) {
-            emh.insertWarehouse(tenant.getId());
-        }
-
-        seedBusinessData(tenant.getId());
+        Long warehouseId = warehouseSeeder.ensureWarehouse(tenant.getId());
+        seedBusinessData(tenant.getId(), warehouseId);
     }
 
     private Map<String, Permission> ensurePermissions() {
@@ -165,15 +161,16 @@ public class SeedDataRunner implements CommandLineRunner {
         users.save(user);
     }
 
-    private void seedBusinessData(Long tenantId) {
-        if (products.count() > 0 || customers.count() > 0) {
+    private void seedBusinessData(Long tenantId, Long warehouseId) {
+        if (products.countByTenantIdAndDeletedAtIsNull(tenantId) > 0
+            || customers.countByTenantIdAndDeletedAtIsNull(tenantId) > 0) {
             return;
         }
 
         Product firstProduct = products.save(
             Product.builder()
                 .tenantId(tenantId)
-                .name("Nuoc suoi thung 24 chai")
+                .name("Nước suối thùng 24 chai")
                 .sku("WATER-24")
                 .costPrice(new BigDecimal("65000"))
                 .sellingPrice(new BigDecimal("80000"))
@@ -185,7 +182,7 @@ public class SeedDataRunner implements CommandLineRunner {
         Product secondProduct = products.save(
             Product.builder()
                 .tenantId(tenantId)
-                .name("Tra xanh thung 24 chai")
+                .name("Trà xanh thùng 24 chai")
                 .sku("TEA-24")
                 .costPrice(new BigDecimal("120000"))
                 .sellingPrice(new BigDecimal("150000"))
@@ -196,7 +193,7 @@ public class SeedDataRunner implements CommandLineRunner {
 
         inventory.increase(
             tenantId,
-            1L,
+            warehouseId,
             firstProduct.getId(),
             50,
             "ADJUSTMENT",
@@ -205,7 +202,7 @@ public class SeedDataRunner implements CommandLineRunner {
         );
         inventory.increase(
             tenantId,
-            1L,
+            warehouseId,
             secondProduct.getId(),
             30,
             "ADJUSTMENT",
@@ -216,36 +213,13 @@ public class SeedDataRunner implements CommandLineRunner {
         customers.save(
             Customer.builder()
                 .tenantId(tenantId)
-                .name("Tap hoa Co Lan")
+                .name("Tạp hóa Cô Lan")
                 .phone("0909000001")
-                .address("Quan 1")
+                .address("Quận 1")
                 .creditLimit(new BigDecimal("20000000"))
                 .paymentTermDays(14)
                 .active(true)
                 .build()
         );
-    }
-}
-
-@Component
-@RequiredArgsConstructor
-class EntityManagerHelper {
-
-    private final EntityManager em;
-
-    boolean hasWarehouse(Long tenantId) {
-        Number count = (Number) em.createNativeQuery(
-                "select count(*) from warehouses where tenant_id=:tenantId"
-            )
-            .setParameter("tenantId", tenantId)
-            .getSingleResult();
-
-        return count.longValue() > 0;
-    }
-
-    void insertWarehouse(Long tenantId) {
-        em.createNativeQuery("insert into warehouses(tenant_id,name) values(:t,'Kho chinh')")
-            .setParameter("t", tenantId)
-            .executeUpdate();
     }
 }

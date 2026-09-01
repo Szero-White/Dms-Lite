@@ -196,7 +196,7 @@ public class HelpDataAnswerService {
 
         SalesOrder foundOrder = order.get();
         boolean asksFinance = containsAny(normalizedQuestion, "tien", "tong", "doanh thu", "cong no", "paid", "debt", "revenue", "amount");
-        if (asksFinance && !scope.canUseFinance()) {
+        if (asksFinance && !scope.canViewOrderFinancials()) {
             return blocked(scope, "Sales order finance", locale);
         }
 

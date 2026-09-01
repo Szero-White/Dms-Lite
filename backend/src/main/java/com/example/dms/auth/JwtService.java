@@ -51,9 +51,9 @@ public class JwtService {
         }
 
         boolean productionProfile = Arrays.stream(environment.getActiveProfiles())
-            .anyMatch("prod"::equalsIgnoreCase);
+            .anyMatch(profile -> "prod".equalsIgnoreCase(profile) || "docker".equalsIgnoreCase(profile));
         if (productionProfile && UNSAFE_PRODUCTION_SECRETS.contains(secret)) {
-            throw new IllegalStateException("APP_JWT_SECRET must be changed for production");
+            throw new IllegalStateException("APP_JWT_SECRET must be changed for docker/production deployments");
         }
     }
 

@@ -94,7 +94,7 @@ export function ReportsPage() {
     [dateRange, orders],
   );
 
-  const recognizedOrders  = filteredOrders.filter((o) => o.status !== 'CANCELLED');
+  const recognizedOrders  = filteredOrders.filter((o) => o.status === 'COMPLETED');
   const salesRevenue       = recognizedOrders.reduce((s, o) => s + toNumber(o.totalAmount), 0);
   const averageOrderValue  = recognizedOrders.length ? salesRevenue / recognizedOrders.length : 0;
   const completedCount     = filteredOrders.filter((o) => o.status === 'COMPLETED').length;

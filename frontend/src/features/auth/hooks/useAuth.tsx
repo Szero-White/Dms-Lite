@@ -27,7 +27,16 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 function readStoredUser() {
   const rawValue = localStorage.getItem(STORAGE_KEY);
-  return rawValue ? (JSON.parse(rawValue) as AuthUser) : null;
+  if (!rawValue) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawValue) as AuthUser;
+  } catch {
+    localStorage.removeItem(STORAGE_KEY);
+    return null;
+  }
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {

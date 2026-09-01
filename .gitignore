@@ -88,3 +88,4 @@ db-backups/
 *.dump.sql
 database*.sql
 db-backup*.sql
+/run-local.env.bat

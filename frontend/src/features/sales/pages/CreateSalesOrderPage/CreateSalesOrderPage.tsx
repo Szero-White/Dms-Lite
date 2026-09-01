@@ -17,6 +17,7 @@ import {
   Typography,
 } from 'antd';
 import {
+  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -26,6 +27,7 @@ import { QueryState } from '../../../../components/common/QueryState';
 import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
 import { useProducts } from '../../../products';
+import { useDefaultWarehouse } from '../../../inventory';
 import {
   formatCurrency,
   toNumber,
@@ -38,6 +40,7 @@ import styles from './CreateSalesOrderPage.module.css';
 
 interface OrderFormValues {
   customerId: number;
+  warehouseId: number;
   paidAmount: number;
   items: Array<{
     productId: number;
@@ -53,6 +56,7 @@ export function CreateSalesOrderPage() {
   const navigate = useNavigate();
   const customersQuery = useCustomers();
   const productsQuery = useProducts();
+  const warehouseQuery = useDefaultWarehouse();
   const createOrder = useCreateSalesOrder();
   const confirmOrder = useConfirmSalesOrder();
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
@@ -60,6 +64,12 @@ export function CreateSalesOrderPage() {
 
   const watchedItems = Form.useWatch('items', form) || [];
   const paidAmount = Form.useWatch('paidAmount', form) || 0;
+
+  useEffect(() => {
+    if (warehouseQuery.data?.id && !form.getFieldValue('warehouseId')) {
+      form.setFieldValue('warehouseId', warehouseQuery.data.id);
+    }
+  }, [form, warehouseQuery.data?.id]);
 
   const subtotal = useMemo(
     () => watchedItems.reduce((sum, item) => {
@@ -121,15 +131,18 @@ export function CreateSalesOrderPage() {
       />
 
       <QueryState
-        isLoading={customersQuery.isLoading || productsQuery.isLoading}
-        isError={customersQuery.isError || productsQuery.isError}
-        error={customersQuery.error || productsQuery.error}
-        hasData={Boolean(customersQuery.data?.length && productsQuery.data?.length)}
+        isLoading={customersQuery.isLoading || productsQuery.isLoading || warehouseQuery.isLoading}
+        isError={customersQuery.isError || productsQuery.isError || warehouseQuery.isError}
+        error={customersQuery.error || productsQuery.error || warehouseQuery.error}
+        hasData={Boolean(
+          customersQuery.data?.length && productsQuery.data?.length && warehouseQuery.data,
+        )}
         emptyTitle={t('sales.create.title')}
         emptyDescription={t('sales.create.emptyDescription')}
         onRetry={() => {
           customersQuery.refetch();
           productsQuery.refetch();
+          warehouseQuery.refetch();
         }}
       >
         <Row gutter={[16, 16]} className={styles.orderGrid}>
@@ -145,7 +158,7 @@ export function CreateSalesOrderPage() {
                 onFinish={async (values) => {
                   const order = await createOrder.mutateAsync({
                     customerId: values.customerId,
-                    warehouseId: 1,
+                    warehouseId: values.warehouseId,
                     paidAmount: Number(values.paidAmount || 0),
                     items: (values.items || []).map((item) => ({
                       productId: item.productId,
@@ -178,11 +191,16 @@ export function CreateSalesOrderPage() {
                   />
                 </Form.Item>
 
-                <Form.Item label={t('sales.drawer.warehouse')}>
+                <Form.Item
+                  name="warehouseId"
+                  label={t('sales.drawer.warehouse')}
+                  rules={[{ required: true }]}
+                >
                   <Select
                     disabled
-                    value={1}
-                    options={[{ value: 1, label: t('inventory.receive.mainWarehouse') }]}
+                    options={warehouseQuery.data
+                      ? [{ value: warehouseQuery.data.id, label: warehouseQuery.data.name }]
+                      : []}
                   />
                 </Form.Item>
 

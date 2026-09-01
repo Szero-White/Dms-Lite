@@ -64,9 +64,9 @@ public class HelpWorkflowKnowledge {
                 steps.add("Bạn có thể xem đơn bán được phép, nhưng tạo đơn cần quyền SALES_ORDER_CREATE.");
             }
             if (scope.has(PermissionNames.SALES_ORDER_CONFIRM)) {
-                steps.add("Chỉ xác nhận đơn khi khách hàng, tồn kho và giá đã đúng.");
+                steps.add("Chỉ confirm/fulfill đơn nháp khi khách hàng, tồn kho và giá đã đúng; thao tác này chuyển đơn sang Completed.");
             }
-            steps.add("Theo dõi vòng đời đơn: Draft, Confirmed, Completed hoặc Cancelled.");
+            steps.add("Theo dõi vòng đời hiện tại: Draft, Completed hoặc Cancelled; hệ thống không lưu trạng thái Confirmed riêng.");
 
             return response(
                 "Quy trình sales giúp đơn hàng chính xác, tồn kho khớp và công nợ rõ ràng.",
@@ -89,9 +89,9 @@ public class HelpWorkflowKnowledge {
             steps.add("You can review assigned sales orders, but creating orders requires SALES_ORDER_CREATE.");
         }
         if (scope.has(PermissionNames.SALES_ORDER_CONFIRM)) {
-            steps.add("Confirm the order only after customer, stock and price are correct.");
+            steps.add("Confirm/fulfill a draft only after customer, stock and price are correct; this moves it to Completed.");
         }
-        steps.add("Track the lifecycle: Draft, Confirmed, Completed or Cancelled.");
+        steps.add("Track the current lifecycle: Draft, Completed or Cancelled; Confirmed is not stored as a separate status.");
 
         return response(
             "Sales workflow keeps orders accurate, stock aligned and receivables clear.",
@@ -429,8 +429,8 @@ public class HelpWorkflowKnowledge {
         }
         if (scope.canUseSales()) {
             steps.add(locale == HelpLocale.VI
-                ? "Kiểm tra Đơn bán hàng: đơn nháp cần hoàn thiện, đơn đã xác nhận cần theo dõi giao hàng hoặc công nợ."
-                : "Check Sales Orders: finish drafts and follow confirmed orders through fulfillment or receivables.");
+                ? "Kiểm tra Đơn bán hàng: đơn nháp cần được confirm/fulfill; đơn Completed cần theo dõi công nợ nếu còn phải thu."
+                : "Check Sales Orders: confirm/fulfill drafts, then follow receivables for Completed orders when money is still due.");
         }
         if (scope.canUseInventory()) {
             steps.add(locale == HelpLocale.VI

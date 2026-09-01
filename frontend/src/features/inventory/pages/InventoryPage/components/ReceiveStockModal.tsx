@@ -3,7 +3,7 @@ import type { FormInstance } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { ProductRow } from '../../../../products';
 import { toNumber } from '../../../../../lib/format';
-import type { ReceiveStockPayload } from '../../../types/inventory.types';
+import type { ReceiveStockPayload, Warehouse } from '../../../types/inventory.types';
 import styles from './ReceiveStockModal.module.css';
 
 interface ReceiveStockModalProps {
@@ -16,6 +16,7 @@ interface ReceiveStockModalProps {
   projectedStock: number;
   receivedQuantity?: number;
   selectedProduct?: ProductRow;
+  warehouse?: Warehouse;
 }
 
 export function ReceiveStockModal({
@@ -28,6 +29,7 @@ export function ReceiveStockModal({
   projectedStock,
   receivedQuantity,
   selectedProduct,
+  warehouse,
 }: ReceiveStockModalProps) {
   const { t } = useTranslation();
 
@@ -56,12 +58,7 @@ export function ReceiveStockModal({
         >
           <Select
             disabled
-            options={[
-              {
-                value: 1,
-                label: t('inventory.receive.mainWarehouse'),
-              },
-            ]}
+            options={warehouse ? [{ value: warehouse.id, label: warehouse.name }] : []}
           />
         </Form.Item>
 

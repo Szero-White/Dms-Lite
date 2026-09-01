@@ -1,5 +1,6 @@
 package com.example.dms.help;
 
+import com.example.dms.sales.SalesOrderAccessPolicy;
 import com.example.dms.user.PermissionNames;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +52,10 @@ public class HelpPermissionScope {
     public boolean canUseFinance() {
         return has(PermissionNames.PAYMENT_CREATE)
             || has(PermissionNames.DEBT_VIEW);
+    }
+
+    public boolean canViewOrderFinancials() {
+        return SalesOrderAccessPolicy.canViewFinancials(permissions);
     }
 
     public boolean canUseProducts() {

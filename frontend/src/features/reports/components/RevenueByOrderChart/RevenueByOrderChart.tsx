@@ -18,7 +18,7 @@ export function RevenueByOrderChart({
   const { i18n, t } = useTranslation();
   const locale = getIntlLocale(i18n.language);
   const chartData = orders
-    .filter((order) => order.status !== 'CANCELLED')
+    .filter((order) => order.status === 'COMPLETED')
     .map((order) => ({
       orderCode: order.code,
       revenue: toNumber(order.totalAmount),

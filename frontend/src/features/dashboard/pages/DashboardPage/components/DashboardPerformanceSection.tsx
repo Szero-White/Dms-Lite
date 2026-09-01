@@ -3,7 +3,6 @@ import {
   AppstoreOutlined,
   CalendarOutlined,
   DollarOutlined,
-  InboxOutlined,
   ShoppingCartOutlined,
   TeamOutlined,
   WarningOutlined,
@@ -21,7 +20,7 @@ import styles from './DashboardPerformanceSection.module.css';
 
 interface DashboardPerformanceSectionProps {
   activeCustomers: number;
-  confirmedOrders: SalesOrder[];
+  completedOrders: SalesOrder[];
   dashboard: DashboardSnapshot;
   filteredOrders: SalesOrder[];
   lowStockProducts: ProductRow[];
@@ -64,7 +63,7 @@ function MiniGauge({ color, pct }: { color: string; pct: number }) {
 
 export function DashboardPerformanceSection({
   activeCustomers,
-  confirmedOrders,
+  completedOrders,
   dashboard,
   filteredOrders,
   lowStockProducts,
@@ -74,7 +73,7 @@ export function DashboardPerformanceSection({
   const { t } = useTranslation();
   const rangeLabel = t(`dashboard.range.${range}`);
   const totalOrders = filteredOrders.length || 1;
-  const confirmedPct = Math.round((confirmedOrders.length / totalOrders) * 100);
+  const completedPct = Math.round((completedOrders.length / totalOrders) * 100);
   const healthyPct = products.length
     ? Math.round(((products.length - lowStockProducts.length) / products.length) * 100)
     : 100;
@@ -97,14 +96,6 @@ export function DashboardPerformanceSection({
       value: String(formatNumber(dashboard.summary.productCount)),
     },
     {
-      color: '#8b5cf6',
-      icon: <InboxOutlined />,
-      label: t('dashboard.performance.payableDebt'),
-      showGauge: false,
-      subLabel: t('dashboard.performance.supplierObligations'),
-      value: formatCurrency(dashboard.summary.payableDebt),
-    },
-    {
       color: '#10b981',
       icon: <TeamOutlined />,
       label: t('dashboard.performance.activeCustomers'),
@@ -117,9 +108,9 @@ export function DashboardPerformanceSection({
       color: '#f59e0b',
       icon: <ShoppingCartOutlined />,
       label: t('dashboard.performance.ordersNeedAction'),
-      pct: confirmedPct,
+      pct: completedPct,
       showGauge: true,
-      subLabel: t('dashboard.performance.confirmedPercent', { percent: confirmedPct }),
+      subLabel: t('dashboard.performance.completedPercent', { percent: completedPct }),
       value: String(formatNumber(filteredOrders.filter((order) => order.status === 'DRAFT').length)),
     },
   ];
@@ -152,8 +143,8 @@ export function DashboardPerformanceSection({
           variant="orange"
         />
         <SummaryCard
-          title={t('dashboard.performance.confirmedCompleted')}
-          value={formatNumber(confirmedOrders.length)}
+          title={t('dashboard.performance.completedOrders')}
+          value={formatNumber(completedOrders.length)}
           note={t('dashboard.performance.ordersInRange', { range: rangeLabel.toLowerCase() })}
           icon={<ShoppingCartOutlined />}
           variant="green"

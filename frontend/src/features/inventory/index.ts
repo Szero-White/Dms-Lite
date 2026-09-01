@@ -1,5 +1,6 @@
-export { fetchInventoryHistory, fetchInventoryStock, receiveStock } from './api';
+export { fetchDefaultWarehouse, fetchInventoryHistory, fetchInventoryStock, receiveStock } from './api';
 export {
+  useDefaultWarehouse,
   useInventoryHistory,
   useInventoryStock,
   useReceiveStock,
@@ -7,6 +8,7 @@ export {
 export { InventoryPage } from './pages/InventoryPage';
 export type {
   InventoryTransaction,
+  Warehouse,
   ReceiveStockPayload,
   StockItem,
 } from './types/inventory.types';

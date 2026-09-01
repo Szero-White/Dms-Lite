@@ -2,7 +2,6 @@ export interface DashboardSummary {
   revenueToday: string | number;
   revenueThisMonth: string | number;
   totalReceivable: string | number;
-  payableDebt: string | number;
   lowStockItems: number;
   productCount: number;
 }

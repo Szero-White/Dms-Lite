@@ -1,31 +1,16 @@
-import { App } from 'antd';
-import { useTranslation } from 'react-i18next';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../../../lib/queryKeys';
-import { getErrorMessage } from '../../../lib/format';
+import { useMutationFeedback } from '../../../lib/useMutationFeedback';
 import {
   createCustomer,
   deleteCustomer,
+  fetchCustomer,
   fetchCustomerDebtStatement,
   fetchCustomersContent,
   updateCustomer,
 } from '../api/customerService';
 import { CustomerFormValues } from '../types/customer.types';
 
-function useMutationFeedback() {
-  const queryClient = useQueryClient();
-  const { message } = App.useApp();
-  const { t } = useTranslation();
-
-  return {
-    queryClient,
-    message,
-    t,
-    onError(error: unknown) {
-      message.error(getErrorMessage(error));
-    },
-  };
-}
 
 export function useCustomers(options: { enabled?: boolean } = {}) {
   return useQuery({
@@ -35,11 +20,22 @@ export function useCustomers(options: { enabled?: boolean } = {}) {
   });
 }
 
-export function useCustomerDebtStatement(customerId?: number) {
+export function useCustomer(customerId?: number, options: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: queryKeys.customer(customerId ?? 'missing'),
+    queryFn: () => fetchCustomer(customerId!),
+    enabled: Boolean(customerId) && (options.enabled ?? true),
+  });
+}
+
+export function useCustomerDebtStatement(
+  customerId?: number,
+  options: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: queryKeys.customerDebt(customerId ?? 'missing'),
     queryFn: () => fetchCustomerDebtStatement(customerId!),
-    enabled: Boolean(customerId),
+    enabled: Boolean(customerId) && (options.enabled ?? true),
   });
 }
 
@@ -50,7 +46,10 @@ export function useCreateCustomer() {
     mutationFn: (payload: CustomerFormValues) => createCustomer(payload),
     onSuccess: async () => {
       message.success(t('toast.customer.created'));
-      await queryClient.invalidateQueries({ queryKey: queryKeys.customers });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.customers }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard }),
+      ]);
     },
     onError,
   });
@@ -67,9 +66,13 @@ export function useUpdateCustomer() {
       customerId: number;
       payload: CustomerFormValues;
     }) => updateCustomer(customerId, payload),
-    onSuccess: async () => {
+    onSuccess: async (_, variables) => {
       message.success(t('toast.customer.updated'));
-      await queryClient.invalidateQueries({ queryKey: queryKeys.customers });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.customers }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.customer(variables.customerId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard }),
+      ]);
     },
     onError,
   });
@@ -80,9 +83,13 @@ export function useDeleteCustomer() {
 
   return useMutation({
     mutationFn: (customerId: number) => deleteCustomer(customerId),
-    onSuccess: async () => {
+    onSuccess: async (_, customerId) => {
       message.success(t('toast.customer.deleted'));
-      await queryClient.invalidateQueries({ queryKey: queryKeys.customers });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.customers }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.customer(customerId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard }),
+      ]);
     },
     onError,
   });

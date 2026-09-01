@@ -28,7 +28,8 @@ public class SalesOrder {
     @Column(unique = true)
     private String code;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private SalesOrderStatus status;
     private BigDecimal totalAmount;
     private BigDecimal paidAmount;
     private BigDecimal debtAmount;

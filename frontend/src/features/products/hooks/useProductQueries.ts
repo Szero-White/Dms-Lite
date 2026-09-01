@@ -1,8 +1,6 @@
-import { App } from 'antd';
-import { useTranslation } from 'react-i18next';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../../../lib/queryKeys';
-import { getErrorMessage } from '../../../lib/format';
+import { useMutationFeedback } from '../../../lib/useMutationFeedback';
 import {
   createProduct,
   deleteProduct,
@@ -16,20 +14,6 @@ interface QueryOptions {
   enabled?: boolean;
 }
 
-function useMutationFeedback() {
-  const queryClient = useQueryClient();
-  const { message } = App.useApp();
-  const { t } = useTranslation();
-
-  return {
-    queryClient,
-    message,
-    t,
-    onError(error: unknown) {
-      message.error(getErrorMessage(error));
-    },
-  };
-}
 
 export function useProductList(options: QueryOptions = {}) {
   return useQuery({
@@ -80,6 +64,7 @@ export function useUpdateProduct() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.products }),
         queryClient.invalidateQueries({ queryKey: queryKeys.productRows }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard }),
       ]);
     },
     onError,

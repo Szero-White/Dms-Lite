@@ -47,7 +47,7 @@ class SalesOrderMapperTest {
             .customerId(2L)
             .warehouseId(3L)
             .code("SO-TEST")
-            .status("DRAFT")
+            .status(SalesOrderStatus.DRAFT)
             .totalAmount(new BigDecimal("24000"))
             .paidAmount(new BigDecimal("10000"))
             .debtAmount(new BigDecimal("14000"))

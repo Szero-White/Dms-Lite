@@ -1,5 +1,4 @@
 import {
-  CheckCircleOutlined,
   ClockCircleOutlined,
   DollarOutlined,
   StopOutlined,
@@ -13,7 +12,6 @@ interface SalesOrdersPulseBarProps {
   totalOrders: number;
   activeOrders: number;
   draftCount: number;
-  confirmedCount: number;
   completedCount: number;
   cancelledCount: number;
   totalRevenue: number;
@@ -28,7 +26,6 @@ export function SalesOrdersPulseBar({
   totalOrders,
   activeOrders,
   draftCount,
-  confirmedCount,
   completedCount,
   cancelledCount,
   totalRevenue,
@@ -105,27 +102,6 @@ export function SalesOrdersPulseBar({
             />
           </div>
           <span className={styles.tierCount}>{draftCount}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.tierRow} ${statusFilter === 'CONFIRMED' ? styles.tierActive : ''}`}
-          onClick={() => onStatusFilterChange(statusFilter === 'CONFIRMED' ? 'ALL' : 'CONFIRMED')}
-        >
-          <div className={styles.tierDot} style={{ background: '#6366f1' }}>
-            <CheckCircleOutlined />
-          </div>
-          <span className={styles.tierLbl}>{t('status.sales.CONFIRMED')}</span>
-          <div className={styles.tierBar}>
-            <div
-              className={styles.tierFill}
-              style={{
-                width: `${totalOrders ? (confirmedCount / totalOrders) * 100 : 0}%`,
-                background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
-              }}
-            />
-          </div>
-          <span className={styles.tierCount}>{confirmedCount}</span>
         </button>
 
         <button

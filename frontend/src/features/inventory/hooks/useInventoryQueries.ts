@@ -1,28 +1,20 @@
-import { App } from 'antd';
-import { useTranslation } from 'react-i18next';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../../../lib/queryKeys';
-import { getErrorMessage } from '../../../lib/format';
+import { useMutationFeedback } from '../../../lib/useMutationFeedback';
 import {
+  fetchDefaultWarehouse,
   fetchInventoryHistory,
   fetchInventoryStock,
   receiveStock,
 } from '../api/inventoryService';
 import { ReceiveStockPayload } from '../types/inventory.types';
 
-function useMutationFeedback() {
-  const queryClient = useQueryClient();
-  const { message } = App.useApp();
-  const { t } = useTranslation();
 
-  return {
-    queryClient,
-    message,
-    t,
-    onError(error: unknown) {
-      message.error(getErrorMessage(error));
-    },
-  };
+export function useDefaultWarehouse() {
+  return useQuery({
+    queryKey: queryKeys.inventoryDefaultWarehouse,
+    queryFn: fetchDefaultWarehouse,
+  });
 }
 
 export function useInventoryStock() {

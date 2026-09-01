@@ -1,4 +1,4 @@
-﻿import type { AuthUser } from './types/auth.types';
+import type { AuthUser } from './types/auth.types';
 
 export const PERMISSIONS = {
   PRODUCT_VIEW: 'PRODUCT_VIEW',
@@ -33,11 +33,16 @@ const ORDER_FINANCIAL_PERMISSIONS: Permission[] = [
 export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
   '/dashboard': PERMISSIONS.REPORT_VIEW,
   '/sales-orders': PERMISSIONS.SALES_ORDER_VIEW,
-  '/sales-orders/new': PERMISSIONS.SALES_ORDER_CREATE,
+  '/sales-orders/new': [
+    PERMISSIONS.SALES_ORDER_CREATE,
+    PERMISSIONS.CUSTOMER_VIEW,
+    PERMISSIONS.PRODUCT_VIEW,
+    PERMISSIONS.INVENTORY_VIEW,
+  ],
   '/products': [PERMISSIONS.PRODUCT_VIEW, PERMISSIONS.INVENTORY_VIEW],
   '/customers': PERMISSIONS.CUSTOMER_VIEW,
-  '/inventory': PERMISSIONS.INVENTORY_VIEW,
-  '/payments': PERMISSIONS.PAYMENT_CREATE,
+  '/inventory': [PERMISSIONS.INVENTORY_VIEW, PERMISSIONS.PRODUCT_VIEW],
+  '/payments': [PERMISSIONS.PAYMENT_CREATE, PERMISSIONS.CUSTOMER_VIEW],
   '/reports': PERMISSIONS.REPORT_VIEW,
   '/audit-logs': PERMISSIONS.AUDIT_VIEW,
   '/notifications': PERMISSIONS.NOTIFICATION_VIEW,
