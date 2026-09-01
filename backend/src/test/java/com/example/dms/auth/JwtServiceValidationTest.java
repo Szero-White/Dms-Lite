@@ -19,7 +19,7 @@ class JwtServiceValidationTest {
 
         assertThatThrownBy(jwtService::validateSecret)
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("APP_JWT_SECRET must be changed for production");
+            .hasMessage("APP_JWT_SECRET must be changed for docker/production deployments");
     }
 
     @Test
@@ -32,7 +32,7 @@ class JwtServiceValidationTest {
 
         assertThatThrownBy(jwtService::validateSecret)
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("APP_JWT_SECRET must be changed for production");
+            .hasMessage("APP_JWT_SECRET must be changed for docker/production deployments");
     }
 
     @Test
