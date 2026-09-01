@@ -24,7 +24,7 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
@@ -39,7 +39,7 @@ import {
   toNumber,
 } from '../../../../lib/format';
 import {
-  useCustomers,
+  useCustomer,
   useCustomerDebtStatement,
 } from '../../hooks/useCustomerQueries';
 import { useRecordCustomerPayment } from '../../../../features/payments';
@@ -50,26 +50,25 @@ export function CustomerDetailPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const canRecordPayment = hasPermission(user, PERMISSIONS.PAYMENT_CREATE);
+  const canViewDebt = hasPermission(user, PERMISSIONS.DEBT_VIEW);
+  const canViewOrders = hasPermission(user, PERMISSIONS.SALES_ORDER_VIEW);
   const { customerId } = useParams();
   const navigate = useNavigate();
-  const customersQuery = useCustomers();
-  const salesOrdersQuery = useSalesOrders();
+  const numericCustomerId = Number(customerId);
+  const customerQuery = useCustomer(numericCustomerId);
+  const salesOrdersQuery = useSalesOrders({
+    customerId: numericCustomerId,
+    enabled: canViewOrders && Number.isFinite(numericCustomerId),
+  });
   const paymentMutation = useRecordCustomerPayment();
-  const debtStatementQuery = useCustomerDebtStatement(Number(customerId));
+  const debtStatementQuery = useCustomerDebtStatement(numericCustomerId, {
+    enabled: canViewDebt && Number.isFinite(numericCustomerId),
+  });
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [form] = Form.useForm<{ amount: number; note?: string }>();
 
-  const customer = useMemo(
-    () => customersQuery.data?.find((item) => String(item.id) === customerId),
-    [customerId, customersQuery.data],
-  );
-  const orderHistory = useMemo(
-    () =>
-      (salesOrdersQuery.data ?? []).filter(
-        (order) => String(order.customerId) === customerId,
-      ),
-    [customerId, salesOrdersQuery.data],
-  );
+  const customer = customerQuery.data;
+  const orderHistory = salesOrdersQuery.data ?? [];
   const debt = toNumber(customer?.debtBalance);
   const creditLimit = toNumber(customer?.creditLimit);
   const availableCredit = Math.max(creditLimit - debt, 0);
@@ -84,7 +83,7 @@ export function CustomerDetailPage() {
         extra={
           <Space wrap className={styles.headerActions}>
             <Button icon={<LeftOutlined />} onClick={() => navigate('/customers')}>
-              Back
+              {t('customers.detail.back')}
             </Button>
             {canRecordPayment ? (
               <Button
@@ -102,19 +101,19 @@ export function CustomerDetailPage() {
 
       <QueryState
         isLoading={
-          customersQuery.isLoading ||
-          debtStatementQuery.isLoading ||
-          salesOrdersQuery.isLoading
+          customerQuery.isLoading ||
+          (canViewDebt && debtStatementQuery.isLoading) ||
+          (canViewOrders && salesOrdersQuery.isLoading)
         }
         isError={
-          customersQuery.isError ||
-          debtStatementQuery.isError ||
-          salesOrdersQuery.isError
+          customerQuery.isError ||
+          (canViewDebt && debtStatementQuery.isError) ||
+          (canViewOrders && salesOrdersQuery.isError)
         }
         error={
-          customersQuery.error ||
-          debtStatementQuery.error ||
-          salesOrdersQuery.error
+          customerQuery.error ||
+          (canViewDebt ? debtStatementQuery.error : null) ||
+          (canViewOrders ? salesOrdersQuery.error : null)
         }
         hasData={Boolean(customer)}
         emptyTitle={t('customers.detail.notFoundTitle')}
@@ -122,9 +121,9 @@ export function CustomerDetailPage() {
         emptyAction={<Button onClick={() => navigate('/customers')}>{t('customers.detail.backToCustomers')}</Button>}
         onRetry={() => {
           void Promise.all([
-            customersQuery.refetch(),
-            debtStatementQuery.refetch(),
-            salesOrdersQuery.refetch(),
+            customerQuery.refetch(),
+            canViewDebt ? debtStatementQuery.refetch() : Promise.resolve(),
+            canViewOrders ? salesOrdersQuery.refetch() : Promise.resolve(),
           ]);
         }}
       >
@@ -193,7 +192,7 @@ export function CustomerDetailPage() {
               />
               <SummaryCard
                 title={t('customers.detail.paymentTerm')}
-                value={`${customer.paymentTermDays} days`}
+                value={t('customers.paymentTermDays', { count: customer.paymentTermDays })}
                 note={t('customers.detail.settlementPeriod')}
                 icon={<CalendarOutlined />}
                 variant="orange"
@@ -201,7 +200,8 @@ export function CustomerDetailPage() {
               />
             </div>
 
-            <Card className="panel-card" title={t('customers.detail.debtStatement')}>
+            {canViewDebt ? (
+              <Card className="panel-card" title={t('customers.detail.debtStatement')}>
               <Table
                 size="small"
                 rowKey="id"
@@ -216,7 +216,7 @@ export function CustomerDetailPage() {
                     width: 170,
                     render: (value) => formatDateTime(value),
                   },
-                  { title: t('customers.detail.type'), dataIndex: 'sourceType', width: 130 },
+                  { title: t('customers.detail.type'), dataIndex: 'sourceType', width: 130, render: (value: string) => t(`customers.detail.sourceType.${value}`, { defaultValue: value }) },
                   {
                     title: t('customers.detail.direction'),
                     dataIndex: 'direction',
@@ -226,7 +226,7 @@ export function CustomerDetailPage() {
 
                       return (
                         <Tag className={isIncrease ? styles.increaseTag : styles.decreaseTag}>
-                          {isIncrease ? <ArrowUpOutlined /> : <ArrowDownOutlined />} {value}
+                          {isIncrease ? <ArrowUpOutlined /> : <ArrowDownOutlined />} {t(`customers.detail.directionValue.${value}`, { defaultValue: value })}
                         </Tag>
                       );
                     },
@@ -259,9 +259,11 @@ export function CustomerDetailPage() {
                   { title: t('inventory.history.note'), dataIndex: 'note', width: 200, ellipsis: true },
                 ]}
               />
-            </Card>
+              </Card>
+            ) : null}
 
-            <Card className="panel-card" title={t('customers.detail.salesOrderHistory')}>
+            {canViewOrders ? (
+              <Card className="panel-card" title={t('customers.detail.salesOrderHistory')}>
               <Table
                 size="small"
                 rowKey="id"
@@ -298,7 +300,8 @@ export function CustomerDetailPage() {
                   },
                 ]}
               />
-            </Card>
+              </Card>
+            ) : null}
           </div>
         ) : null}
       </QueryState>

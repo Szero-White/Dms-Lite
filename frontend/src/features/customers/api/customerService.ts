@@ -14,8 +14,11 @@ export async function fetchCustomers(keyword = '') {
 
 export async function fetchCustomersContent(keyword = '') {
   const response = await fetchCustomers(keyword);
-
   return response.content;
+}
+
+export async function fetchCustomer(customerId: number) {
+  return unwrapResponse<Customer>(apiClient.get(`/customers/${customerId}`));
 }
 
 export async function createCustomer(payload: CustomerFormValues) {

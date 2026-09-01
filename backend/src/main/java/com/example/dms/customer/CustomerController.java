@@ -33,6 +33,12 @@ public class CustomerController {
         return ApiResponse.ok(customerService.list(keyword, page));
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('CUSTOMER_VIEW')")
+    public ApiResponse<CustomerResponse> get(@PathVariable Long id) {
+        return ApiResponse.ok(customerService.get(id));
+    }
+
     @PostMapping
     @PreAuthorize("hasAuthority('CUSTOMER_MANAGE')")
     public ApiResponse<Customer> create(@Valid @RequestBody CustomerRequest request) {

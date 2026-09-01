@@ -4,6 +4,7 @@ export {
 } from './api/customerService';
 export {
   useCreateCustomer,
+  useCustomer,
   useCustomerDebtStatement,
   useCustomers,
 } from './hooks/useCustomerQueries';
