@@ -31,7 +31,7 @@ DMS Lite addresses those problems with:
 - Centralized customer, product, and sales order management
 - Inventory transaction history for stock movement traceability
 - Sales order confirmation with stock deduction
-- Receivable debt tracking as ledger-style transactions
+- Receivable tracking with open-item allocation and ledger-style payment history
 - Customer payment recording and debt reconciliation
 - Audit log for important business actions
 - Dashboard for revenue, receivable debt, and low-stock visibility
@@ -85,19 +85,20 @@ DMS Lite addresses those problems with:
 ### Inventory Management
 
 - Stock items by product
+- Single operational warehouse in the current MVP; the UI resolves its database ID/name from the backend instead of hardcoding `1`
 - Inventory transaction history
 - Low-stock visibility
 
 ### Sales Order Management
 
 - Sales order creation
-- Sales order confirmation flow
-- Stock deduction during order confirmation
+- Sales order confirmation/fulfillment flow (`DRAFT -> COMPLETED`)
+- Stock deduction during confirmation inside one transaction
 
 ### Payment Management
 
 - Customer payment recording
-- Debt statement update through ledger logic
+- FIFO customer payment allocation against open receivables
 
 ### Audit Log
 
@@ -117,19 +118,22 @@ DMS Lite addresses those problems with:
 
 ## Key Business Flow
 
-`Login -> create customer/product -> check stock -> create sales order -> confirm sales order -> deduct stock inside transaction -> create receivable debt transaction if unpaid -> record customer payment -> update debt statement -> view dashboard/audit log`
+`Login -> create customer/product -> check stock -> create DRAFT sales order -> warehouse confirms/fulfills -> order becomes COMPLETED -> deduct stock inside transaction -> create open receivable if unpaid -> record customer payment FIFO -> update receivable statement -> view dashboard/audit log`
 
 This flow reflects a real B2B operational slice rather than isolated CRUD screens.
 
 ## Why This Is Not Just CRUD
 
 - Inventory cannot go negative during the confirmation flow.
-- Debt is tracked as ledger transactions, not by simply doing `customer.debt += amount`.
+- Receivable is tracked as open `INCREASE` items plus payment history; current balance is the sum of remaining open receivables, not a mutable `customer.debt` field.
 - Sales confirmation is handled inside a transaction.
 - Important business actions are stored in audit logs.
 - The data model is tenant-aware through `tenant_id`.
 - Local and Docker profiles are separated for different runtime needs.
 - Flyway is used for database schema versioning.
+- Customer list debt balances are aggregated per page instead of issuing one balance query per customer.
+- Sales order list/detail APIs are separated so list responses stay small and details fetch items only when needed.
+- Report SQL is isolated in a read repository; receivable formulas remain centralized in the debt repository.
 
 ## Architecture
 
@@ -205,6 +209,10 @@ The project models business operations through dedicated tables and flows instea
 
 Detailed step-by-step notes are also available in [RUN_LOCAL.md](RUN_LOCAL.md).
 
+Before publishing a portfolio release, use [docs/release-checklist.md](docs/release-checklist.md) for the role, business-flow, build, and deployment smoke tests.
+
+On Windows, `run-local.bat` in the project root opens backend and frontend terminals automatically. PostgreSQL must already be running.
+
 ### Prerequisites
 
 - Java 17+
@@ -235,7 +243,7 @@ Open another terminal:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
@@ -266,7 +274,7 @@ Swagger UI:
 
 ## Docker
 
-When you want a more production-like local environment:
+When you want a more production-like local environment, first set `APP_JWT_SECRET` (required) and `APP_CORS_ALLOWED_ORIGINS` in `.env`, then run:
 
 ```bash
 docker compose up -d --build
@@ -283,10 +291,20 @@ Main service URLs:
 
 ## Project Status
 
-This project is under active development. The current version focuses on local-first development and the main vertical slice: authentication, product, customer, inventory, sales order, receivable debt, payment, dashboard, audit, and notification.
+The current portfolio version focuses on a stable local/deployable vertical slice: authentication, product, customer, inventory, sales order, receivable debt, payment, dashboard, audit, and notification.
+
+## Current Business Invariants
+
+- Persisted sales order statuses are `DRAFT`, `COMPLETED`, and `CANCELLED`; current MVP confirm also performs fulfillment.
+- Revenue is recognized only for `COMPLETED` orders and dashboard time windows use `confirmed_at`.
+- Current receivable balance is `SUM(remaining_amount)` of open `INCREASE` transactions. `DECREASE` entries preserve payment history and are not subtracted twice.
+- Customer payments lock open receivables before validation/allocation.
+- Customer and sales-order detail screens use dedicated detail APIs instead of searching only the first list page.
+- Warehouse-dependent actions resolve and validate the configured tenant warehouse instead of assuming warehouse ID `1`.
 
 ## Roadmap
 
+- Complete end-to-end server-side pagination/search for high-volume list, lookup, statement, and report views
 - Improve frontend UX/UI
 - Add advanced dashboard charts
 - Add Excel import/export
@@ -300,7 +318,7 @@ This project is under active development. The current version focuses on local-f
 
 - Built a full-stack B2B distribution management SaaS using Java Spring Boot and React.
 - Designed a modular monolith backend with authentication, role-based permissions, product, customer, inventory, sales, debt, payment, audit, and reporting modules.
-- Implemented a receivable debt ledger instead of direct balance mutation.
+- Implemented open-item receivable tracking with FIFO payment allocation, payment history, and pessimistic locking for concurrent payment safety.
 - Used PostgreSQL and Flyway for schema versioning.
 - Designed inventory transaction history and stock deduction flow.
 - Added Swagger API documentation and a local-first development profile.
