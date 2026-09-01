@@ -613,8 +613,6 @@
   "sales.create.orderItems": "Sản phẩm trong đơn",
   "sales.create.orderItemsHint": "Thêm sản phẩm, số lượng và chiết khấu từng dòng.",
   "sales.create.orderTotal": "Tổng đơn",
-  "sales.create.payment": "Thanh toán",
-  "sales.create.paymentHint": "Ghi nhận số tiền thu ngay; phần còn lại thành công nợ.",
   "sales.create.productLabel": "{{name}} - {{price}} - Tồn: {{stock}}",
   "sales.create.remove": "Xóa",
   "sales.create.stockWarningItem": "{{name}}: yêu cầu {{quantity}}, còn {{stock}} trong kho",

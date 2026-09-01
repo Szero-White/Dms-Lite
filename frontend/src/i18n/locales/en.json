@@ -613,8 +613,6 @@
   "sales.create.orderItems": "Order Items",
   "sales.create.orderItemsHint": "Add products, quantities and line-level discounts.",
   "sales.create.orderTotal": "Order Total",
-  "sales.create.payment": "Payment",
-  "sales.create.paymentHint": "Record the amount received now; the balance becomes debt.",
   "sales.create.productLabel": "{{name}} - {{price}} - Stock: {{stock}}",
   "sales.create.remove": "Remove",
   "sales.create.stockWarningItem": "{{name}}: requested {{quantity}}, available {{stock}}",
