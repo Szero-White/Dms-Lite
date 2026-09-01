@@ -11,7 +11,7 @@ Kết quả:
 - validate customer, product và warehouse thuộc tenant hiện tại;
 - quantity phải dương;
 - discount không được vượt line gross amount;
-- paid amount không được vượt order total;
+- order mới luôn bắt đầu với `paidAmount = 0`; payment được ghi riêng qua module Accountant để không bypass `PAYMENT_CREATE`;
 - tạo order trạng thái `DRAFT`;
 - chưa trừ kho;
 - chưa phát sinh receivable.
@@ -30,7 +30,7 @@ Không lưu trạng thái `CONFIRMED` riêng.
 
 Trong transaction:
 
-1. load order đúng tenant;
+1. lock order row đúng tenant để chỉ một transition `DRAFT -> ...` được xử lý tại một thời điểm;
 2. kiểm tra order phải là `DRAFT`;
 3. lock stock row;
 4. kiểm tra đủ stock;
@@ -70,10 +70,11 @@ Quy trình:
 4. reject nếu payment lớn hơn current balance;
 5. phân bổ payment vào khoản cũ nhất trước;
 6. giảm `INCREASE.remainingAmount` tương ứng;
-7. lưu `payments`;
-8. tạo `DECREASE` transaction để giữ payment history;
-9. audit action `PAYMENT_RECORDED`;
-10. invalidate dashboard cache của đúng tenant.
+7. đồng bộ `sales_orders.paid_amount` và `debt_amount` của các order được phân bổ;
+8. lưu `payments`;
+9. tạo `DECREASE` transaction để giữ payment history;
+10. audit action `PAYMENT_RECORDED`;
+11. invalidate dashboard cache của đúng tenant.
 
 `DECREASE.amount` dùng cho statement/history và **không bị trừ thêm lần nữa khỏi balance**.
 

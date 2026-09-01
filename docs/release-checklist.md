@@ -50,6 +50,7 @@ Dùng một customer và một product có stock đủ:
 - Xem product/stock phục vụ bán hàng.
 - Xem/quản lý customer theo permission.
 - Tạo order `DRAFT`.
+- Không có `REPORT_VIEW`/`PAYMENT_CREATE` trong system Sales role.
 - Không được thao tác warehouse-only nếu không có permission.
 - Customer detail không lỗi chỉ vì thiếu `DEBT_VIEW`; finance section phải ẩn nếu không có quyền.
 
@@ -84,11 +85,14 @@ Dùng một customer và một product có stock đủ:
 
 ## 5. Deployment security
 
+- Backend public chạy với `SPRING_PROFILES_ACTIVE=prod` để production JWT guard được bật.
 - `APP_JWT_SECRET` là secret riêng, tối thiểu 32 ký tự, không dùng default trong repository.
 - `APP_CORS_ALLOWED_ORIGINS` đúng frontend domain public.
 - `/actuator/health` hoạt động; metrics không public anonymous.
 - Swagger chỉ chứa API contract hiện tại.
 - Demo account chỉ chứa demo data, không dùng dữ liệu thật.
+- Vercel có `VITE_API_BASE_URL` trỏ đúng public backend `/api`.
+- Refresh trực tiếp `/login`, `/dashboard` hoặc route con không được 404; SPA rewrite phải fallback về `index.html`.
 
 ## 6. Server smoke test
 
