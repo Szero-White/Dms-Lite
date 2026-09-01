@@ -1,8 +1,6 @@
-import { App } from 'antd';
-import { useTranslation } from 'react-i18next';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getErrorMessage } from '../../../lib/format';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../../../lib/queryKeys';
+import { useMutationFeedback } from '../../../lib/useMutationFeedback';
 import {
   createTeamMember,
   createTeamRole,
@@ -20,20 +18,6 @@ import type {
   TeamMemberUpdatePayload,
 } from '../types/team.types';
 
-function useTeamMutationFeedback() {
-  const queryClient = useQueryClient();
-  const { message } = App.useApp();
-  const { t } = useTranslation();
-
-  return {
-    queryClient,
-    message,
-    t,
-    onError(error: unknown) {
-      message.error(getErrorMessage(error));
-    },
-  };
-}
 
 export function useTeamMembers() {
   return useQuery({
@@ -57,7 +41,7 @@ export function useTeamPermissions() {
 }
 
 export function useCreateTeamRole() {
-  const { queryClient, message, t, onError } = useTeamMutationFeedback();
+  const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: (payload: RoleFormPayload) => createTeamRole(payload),
@@ -70,7 +54,7 @@ export function useCreateTeamRole() {
 }
 
 export function useUpdateTeamRole() {
-  const { queryClient, message, t, onError } = useTeamMutationFeedback();
+  const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: ({ roleId, payload }: { roleId: number; payload: RoleFormPayload }) =>
@@ -87,7 +71,7 @@ export function useUpdateTeamRole() {
 }
 
 export function useDeleteTeamRole() {
-  const { queryClient, message, t, onError } = useTeamMutationFeedback();
+  const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: (roleId: number) => deleteTeamRole(roleId),
@@ -100,7 +84,7 @@ export function useDeleteTeamRole() {
 }
 
 export function useCreateTeamMember() {
-  const { queryClient, message, t, onError } = useTeamMutationFeedback();
+  const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: (payload: TeamMemberCreatePayload) => createTeamMember(payload),
@@ -113,7 +97,7 @@ export function useCreateTeamMember() {
 }
 
 export function useUpdateTeamMember() {
-  const { queryClient, message, t, onError } = useTeamMutationFeedback();
+  const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: ({
@@ -132,7 +116,7 @@ export function useUpdateTeamMember() {
 }
 
 export function useDeactivateTeamMember() {
-  const { queryClient, message, t, onError } = useTeamMutationFeedback();
+  const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: (userId: number) => deactivateTeamMember(userId),
