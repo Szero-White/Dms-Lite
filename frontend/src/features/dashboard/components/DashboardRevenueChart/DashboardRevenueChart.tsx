@@ -52,7 +52,7 @@ export function DashboardRevenueChart({
 
   orders
     .filter((order) =>
-      ['COMPLETED', 'CONFIRMED'].includes(order.status),
+      order.status === 'COMPLETED',
     )
     .forEach((order) => {
       if (!order.createdAt) {

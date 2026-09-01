@@ -47,7 +47,7 @@ export function DashboardPage() {
   const {
     activeCustomers,
     attentionOrders,
-    confirmedOrders,
+    completedOrders,
     customersMap,
     filteredOrders,
     healthyProducts,
@@ -152,7 +152,7 @@ export function DashboardPage() {
 
             <DashboardPerformanceSection
               activeCustomers={activeCustomers}
-              confirmedOrders={confirmedOrders}
+              completedOrders={completedOrders}
               dashboard={dashboardQuery.data}
               filteredOrders={filteredOrders}
               lowStockProducts={lowStockProducts}

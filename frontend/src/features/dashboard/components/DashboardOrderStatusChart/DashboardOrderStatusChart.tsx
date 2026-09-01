@@ -25,7 +25,7 @@ export function DashboardOrderStatusChart({
     {},
   );
 
-  const statusOrder = ['DRAFT', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
+  const statusOrder = ['DRAFT', 'COMPLETED', 'CANCELLED'];
   const chartData = statusOrder
     .filter((status) => statusMap[status])
     .map((status) => ({

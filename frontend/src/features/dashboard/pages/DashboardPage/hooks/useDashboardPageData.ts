@@ -34,10 +34,10 @@ export function useDashboardPageData({
     [filteredOrders],
   );
 
-  const confirmedOrders = useMemo(
+  const completedOrders = useMemo(
     () =>
       filteredOrders.filter((order) =>
-        ['CONFIRMED', 'COMPLETED'].includes(order.status),
+        order.status === 'COMPLETED',
       ),
     [filteredOrders],
   );
@@ -95,7 +95,7 @@ export function useDashboardPageData({
   return {
     activeCustomers,
     attentionOrders,
-    confirmedOrders,
+    completedOrders,
     customersMap,
     filteredOrders,
     healthyProducts,

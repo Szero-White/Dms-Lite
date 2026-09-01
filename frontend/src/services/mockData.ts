@@ -32,7 +32,7 @@ export function buildDashboardSnapshot(
 
   const sellingMap = new Map<number, TopSellingProduct>();
   orders
-    .filter((order) => ['COMPLETED', 'CONFIRMED'].includes(order.status))
+    .filter((order) => order.status === 'COMPLETED')
     .forEach((order) => {
       (order.items ?? []).forEach((item) => {
         const product = products.find((candidate) => candidate.id === item.productId);
@@ -58,7 +58,6 @@ export function buildDashboardSnapshot(
       revenueToday: summary.revenueToday ?? 0,
       revenueThisMonth: summary.revenueThisMonth ?? 0,
       totalReceivable: summary.totalReceivable ?? 0,
-      payableDebt: summary.payableDebt ?? 8500000,
       lowStockItems: summary.lowStockItems ?? products.filter((product) => product.isLowStock).length,
       productCount: summary.productCount ?? products.length,
     },
