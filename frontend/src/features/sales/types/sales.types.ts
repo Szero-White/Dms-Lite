@@ -26,7 +26,6 @@ export interface SalesOrder {
 export interface CreateSalesOrderPayload {
   customerId: number;
   warehouseId: number;
-  paidAmount: number;
   items: Array<{
     productId: number;
     quantity: number;

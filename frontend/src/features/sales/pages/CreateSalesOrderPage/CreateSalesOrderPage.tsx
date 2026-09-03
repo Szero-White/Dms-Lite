@@ -41,7 +41,6 @@ import styles from './CreateSalesOrderPage.module.css';
 interface OrderFormValues {
   customerId: number;
   warehouseId: number;
-  paidAmount: number;
   items: Array<{
     productId: number;
     quantity: number;
@@ -63,7 +62,6 @@ export function CreateSalesOrderPage() {
   const [form] = Form.useForm<OrderFormValues>();
 
   const watchedItems = Form.useWatch('items', form) || [];
-  const paidAmount = Form.useWatch('paidAmount', form) || 0;
 
   useEffect(() => {
     if (warehouseQuery.data?.id && !form.getFieldValue('warehouseId')) {
@@ -90,7 +88,7 @@ export function CreateSalesOrderPage() {
   );
 
   const orderTotal = subtotal - discountTotal;
-  const debtAmount = Math.max(orderTotal - Number(paidAmount || 0), 0);
+  const debtAmount = Math.max(orderTotal, 0);
   const stockWarnings = watchedItems.flatMap((item) => {
     const product = productsQuery.data?.find(
       (candidate) => candidate.id === item?.productId,
@@ -153,13 +151,11 @@ export function CreateSalesOrderPage() {
                 layout="vertical"
                 initialValues={{
                   items: [{ quantity: 1, discountAmount: 0 }],
-                  paidAmount: 0,
                 }}
                 onFinish={async (values) => {
                   const order = await createOrder.mutateAsync({
                     customerId: values.customerId,
                     warehouseId: values.warehouseId,
-                    paidAmount: Number(values.paidAmount || 0),
                     items: (values.items || []).map((item) => ({
                       productId: item.productId,
                       quantity: Number(item.quantity),
@@ -306,17 +302,6 @@ export function CreateSalesOrderPage() {
                   />
                 ) : null}
 
-                <div className={styles.formSectionHeading}>
-                  <Typography.Text strong>{t('sales.create.payment')}</Typography.Text>
-                  <Typography.Text type="secondary">
-                    {t('sales.create.paymentHint')}
-                  </Typography.Text>
-                </div>
-
-                <Form.Item name="paidAmount" label={t('sales.column.paid')} className={styles.paidField}>
-                  <InputNumber className={styles.fullWidth} min={0} />
-                </Form.Item>
-
                 <Space>
                   <Button onClick={() => navigate('/sales-orders')}>{t('sales.create.back')}</Button>
                   <Button type="primary" htmlType="submit" loading={createOrder.isPending}>
@@ -342,10 +327,6 @@ export function CreateSalesOrderPage() {
                 <div className={`${styles.summaryTotal} flex-between`}>
                   <Typography.Text>{t('sales.create.orderTotal')}</Typography.Text>
                   <Typography.Text strong>{formatCurrency(orderTotal)}</Typography.Text>
-                </div>
-                <div className="flex-between">
-                  <Typography.Text>{t('sales.column.paid')}</Typography.Text>
-                  <Typography.Text strong>{formatCurrency(paidAmount)}</Typography.Text>
                 </div>
                 <div className="flex-between">
                   <Typography.Text>{t('sales.create.debtAmount')}</Typography.Text>

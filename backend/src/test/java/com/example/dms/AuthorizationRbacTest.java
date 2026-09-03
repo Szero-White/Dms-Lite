@@ -44,6 +44,13 @@ class AuthorizationRbacTest {
     }
 
     @Test
+    void salesCannotReadFinancialReports() throws Exception {
+        mvc.perform(get("/api/reports/dashboard")
+                .header("Authorization", bearer("sale")))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
     void salesCanReadInventoryButCannotReceiveStock() throws Exception {
         mvc.perform(get("/api/inventory/stock")
                 .header("Authorization", bearer("sale")))
@@ -73,7 +80,6 @@ class AuthorizationRbacTest {
                 .content(json(Map.of(
                     "customerId", 1,
                     "warehouseId", 1,
-                    "paidAmount", 0,
                     "items", new Object[] {
                         Map.of("productId", 1, "quantity", 1, "discountAmount", 0)
                     }
@@ -185,7 +191,6 @@ class AuthorizationRbacTest {
                 .content(json(Map.of(
                     "customerId", 1,
                     "warehouseId", 999999,
-                    "paidAmount", 0,
                     "items", new Object[] {
                         Map.of("productId", 1, "quantity", 1, "discountAmount", 0)
                     }

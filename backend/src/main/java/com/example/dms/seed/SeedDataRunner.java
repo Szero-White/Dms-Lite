@@ -82,7 +82,7 @@ public class SeedDataRunner implements CommandLineRunner {
             PermissionNames.CUSTOMER_VIEW, PermissionNames.CUSTOMER_MANAGE,
             PermissionNames.SALES_ORDER_VIEW, PermissionNames.SALES_ORDER_CREATE,
             PermissionNames.SALES_ORDER_CANCEL, PermissionNames.INVENTORY_VIEW,
-            PermissionNames.REPORT_VIEW, PermissionNames.NOTIFICATION_VIEW,
+            PermissionNames.NOTIFICATION_VIEW,
             PermissionNames.AI_HELP_VIEW);
         Role warehouseRole = ensureRole(WAREHOUSE, permissionMap, PermissionNames.PRODUCT_VIEW,
             PermissionNames.SALES_ORDER_VIEW, PermissionNames.SALES_ORDER_CONFIRM,

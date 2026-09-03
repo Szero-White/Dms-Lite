@@ -299,6 +299,7 @@ The current portfolio version focuses on a stable local/deployable vertical slic
 - Revenue is recognized only for `COMPLETED` orders and dashboard time windows use `confirmed_at`.
 - Current receivable balance is `SUM(remaining_amount)` of open `INCREASE` transactions. `DECREASE` entries preserve payment history and are not subtracted twice.
 - Customer payments lock open receivables before validation/allocation.
+- Sales-order `paidAmount`/`debtAmount` snapshots are synchronized in the same payment transaction; open receivable `remainingAmount` stays the canonical balance.
 - Customer and sales-order detail screens use dedicated detail APIs instead of searching only the first list page.
 - Warehouse-dependent actions resolve and validate the configured tenant warehouse instead of assuming warehouse ID `1`.
 

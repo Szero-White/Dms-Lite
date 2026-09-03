@@ -116,7 +116,7 @@ public class SalesOrderService {
     )
     public SalesOrderDetailResponse confirmOrder(Long salesOrderId) {
         Long tenantId = TenantContext.tenantRequired();
-        SalesOrder salesOrder = findSalesOrder(salesOrderId, tenantId);
+        SalesOrder salesOrder = findSalesOrderForUpdate(salesOrderId, tenantId);
 
         if (salesOrder.getStatus() != SalesOrderStatus.DRAFT) {
             throw new BusinessException("Only DRAFT can be confirmed");
@@ -165,7 +165,7 @@ public class SalesOrderService {
     )
     public SalesOrderDetailResponse cancelOrder(Long salesOrderId) {
         Long tenantId = TenantContext.tenantRequired();
-        SalesOrder salesOrder = findSalesOrder(salesOrderId, tenantId);
+        SalesOrder salesOrder = findSalesOrderForUpdate(salesOrderId, tenantId);
 
         if (salesOrder.getStatus() != SalesOrderStatus.DRAFT) {
             throw new BusinessException("Only DRAFT can be cancelled");
@@ -203,7 +203,7 @@ public class SalesOrderService {
             .warehouseId(request.warehouseId())
             .code(generateOrderCode(tenantId))
             .status(SalesOrderStatus.DRAFT)
-            .paidAmount(defaultIfNull(request.paidAmount()))
+            .paidAmount(BigDecimal.ZERO)
             .totalAmount(BigDecimal.ZERO)
             .debtAmount(BigDecimal.ZERO)
             .items(new ArrayList<>())
@@ -297,8 +297,8 @@ public class SalesOrderService {
         return productsById;
     }
 
-    private SalesOrder findSalesOrder(Long salesOrderId, Long tenantId) {
-        return salesOrderRepository.findDetailByIdAndTenantId(salesOrderId, tenantId)
+    private SalesOrder findSalesOrderForUpdate(Long salesOrderId, Long tenantId) {
+        return salesOrderRepository.lockByIdAndTenantId(salesOrderId, tenantId)
             .orElseThrow(() -> new BusinessException("Order not found"));
     }
 

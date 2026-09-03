@@ -6,6 +6,8 @@ import com.example.dms.common.TenantContext;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.sales.SalesOrder;
+import com.example.dms.sales.SalesOrderRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +21,13 @@ public class PaymentService {
 
     private static final String DEBT_DIRECTION_DECREASE = "DECREASE";
     private static final String SOURCE_TYPE_PAYMENT = "PAYMENT";
+    private static final String SOURCE_TYPE_SALES_ORDER = "SALES_ORDER";
     private static final String AUDIT_ACTION_PAYMENT_RECORDED = "PAYMENT_RECORDED";
 
     private final PaymentRepository paymentRepository;
     private final CustomerRepository customerRepository;
     private final CustomerDebtRepository customerDebtRepository;
+    private final SalesOrderRepository salesOrderRepository;
     private final AuditService auditService;
 
     @Transactional
@@ -47,7 +51,7 @@ public class PaymentService {
             throw new BusinessException("Payment exceeds debt");
         }
 
-        applyPaymentToOpenReceivables(openReceivables, request.amount());
+        applyPaymentToOpenReceivables(openReceivables, request.amount(), tenantId);
 
         Payment savedPayment = paymentRepository.save(
             Payment.builder()
@@ -85,7 +89,8 @@ public class PaymentService {
 
     private void applyPaymentToOpenReceivables(
         List<CustomerDebtTransaction> openReceivables,
-        BigDecimal paymentAmount
+        BigDecimal paymentAmount,
+        Long tenantId
     ) {
         BigDecimal remainingPaymentAmount = paymentAmount;
 
@@ -96,8 +101,31 @@ public class PaymentService {
 
             BigDecimal appliedAmount = remainingPaymentAmount.min(debtTransaction.getRemainingAmount());
             debtTransaction.setRemainingAmount(debtTransaction.getRemainingAmount().subtract(appliedAmount));
+            synchronizeSalesOrderAmounts(debtTransaction, appliedAmount, tenantId);
             remainingPaymentAmount = remainingPaymentAmount.subtract(appliedAmount);
         }
+    }
+
+    private void synchronizeSalesOrderAmounts(
+        CustomerDebtTransaction debtTransaction,
+        BigDecimal appliedAmount,
+        Long tenantId
+    ) {
+        if (
+            !SOURCE_TYPE_SALES_ORDER.equals(debtTransaction.getSourceType())
+                || debtTransaction.getSourceId() == null
+        ) {
+            return;
+        }
+
+        SalesOrder salesOrder = salesOrderRepository.findByIdAndTenantId(
+                debtTransaction.getSourceId(),
+                tenantId
+            )
+            .orElseThrow(() -> new BusinessException("Sales order for receivable not found"));
+
+        salesOrder.setPaidAmount(salesOrder.getPaidAmount().add(appliedAmount));
+        salesOrder.setDebtAmount(salesOrder.getDebtAmount().subtract(appliedAmount));
     }
 
     private void validateCustomerExists(Long customerId, Long tenantId) {

@@ -63,7 +63,7 @@ DMS Lite hiện dùng **open-item receivable model có ledger history**:
 - **Current receivable balance = SUM(remaining_amount) của các `INCREASE` còn mở.**
 - Transaction `DECREASE` không được trừ thêm lần nữa khi tính balance, tránh double-count.
 
-Khi record payment, các open receivable rows được lock bằng `PESSIMISTIC_WRITE` trước khi kiểm tra balance và phân bổ, nhằm tránh hai payment đồng thời làm sai công nợ.
+Khi record payment, các open receivable rows được lock bằng `PESSIMISTIC_WRITE` trước khi kiểm tra balance và phân bổ, nhằm tránh hai payment đồng thời làm sai công nợ. Sales-order `paidAmount`/`debtAmount` được đồng bộ trong cùng transaction để list/detail không hiển thị snapshot cũ; receivable `remainingAmount` vẫn là nguồn balance chuẩn.
 
 ## Reporting
 
