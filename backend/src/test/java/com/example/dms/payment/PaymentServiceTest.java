@@ -90,6 +90,47 @@ class PaymentServiceTest {
     }
 
     @Test
+    void synchronizesLegacyNullOrderSnapshotsFromCanonicalReceivableBalance() {
+        CustomerDebtTransaction debtTransaction = receivable(104L, 80);
+
+        SalesOrder legacyOrder = SalesOrder.builder()
+            .id(104L)
+            .tenantId(1L)
+            .totalAmount(new BigDecimal("100"))
+            .paidAmount(null)
+            .debtAmount(null)
+            .build();
+
+        when(customerDebtRepository.lockOpenReceivables(1L, 2L))
+            .thenReturn(List.of(debtTransaction));
+
+        when(salesOrderRepository.findByIdAndTenantId(104L, 1L))
+            .thenReturn(Optional.of(legacyOrder));
+
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> {
+            Payment payment = invocation.getArgument(0);
+            payment.setId(100L);
+            return payment;
+        });
+
+        paymentService.recordCustomerPayment(
+            new CustomerPaymentRequest(
+                2L,
+                new BigDecimal("30"),
+                "legacy snapshot"
+            )
+        );
+
+        assertThat(debtTransaction.getRemainingAmount())
+            .isEqualByComparingTo("50");
+
+        assertThat(legacyOrder.getPaidAmount())
+            .isEqualByComparingTo("50");
+
+        assertThat(legacyOrder.getDebtAmount())
+            .isEqualByComparingTo("50");
+    }
+    @Test
     void rejectsPaymentGreaterThanLockedOpenReceivableBalance() {
         when(customerDebtRepository.lockOpenReceivables(1L, 2L))
             .thenReturn(List.of(receivable(103L, 30)));
