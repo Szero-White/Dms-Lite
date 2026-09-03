@@ -124,8 +124,16 @@ public class PaymentService {
             )
             .orElseThrow(() -> new BusinessException("Sales order for receivable not found"));
 
-        salesOrder.setPaidAmount(salesOrder.getPaidAmount().add(appliedAmount));
-        salesOrder.setDebtAmount(salesOrder.getDebtAmount().subtract(appliedAmount));
+        BigDecimal remainingDebt = debtTransaction.getRemainingAmount();
+
+        BigDecimal synchronizedPaidAmount = salesOrder.getTotalAmount() == null
+            ? (salesOrder.getPaidAmount() == null
+                ? BigDecimal.ZERO
+                : salesOrder.getPaidAmount()).add(appliedAmount)
+            : salesOrder.getTotalAmount().subtract(remainingDebt);
+
+        salesOrder.setPaidAmount(synchronizedPaidAmount);
+        salesOrder.setDebtAmount(remainingDebt);
     }
 
     private void validateCustomerExists(Long customerId, Long tenantId) {
