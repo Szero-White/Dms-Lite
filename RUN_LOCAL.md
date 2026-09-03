@@ -73,7 +73,7 @@ npm run dev
 - `warehouse / 123456`
 - `accountant / 123456`
 
-Các credential này chỉ dành cho local/demo data, không dùng cho dữ liệu production thực.
+Các credential này chỉ dành cho local/demo data, không dùng cho dữ liệu production thực. Local profile bật demo mode mặc định; public recruiter demo dùng `APP_DEMO_ENABLED=true`, còn production thật nên đặt `APP_DEMO_ENABLED=false`.
 
 ## 7. Local profile
 
