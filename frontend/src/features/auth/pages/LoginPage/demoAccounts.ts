@@ -5,7 +5,7 @@ export type DemoAccount = {
   badge: string;
 };
 
-const DEMO_PASSWORD = '123456';
+const DEMO_PASSWORD = (import.meta.env.VITE_DEMO_PASSWORD ?? '').trim() || '123456';
 
 export const DEMO_ACCOUNTS: readonly DemoAccount[] = [
   { username: 'owner', password: DEMO_PASSWORD, role: 'Owner', badge: 'O' },

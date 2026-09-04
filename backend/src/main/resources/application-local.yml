@@ -8,6 +8,8 @@ spring:
     type: simple
 
 app:
+  demo:
+    enabled: true
   messaging:
     rabbitmq:
       enabled: false

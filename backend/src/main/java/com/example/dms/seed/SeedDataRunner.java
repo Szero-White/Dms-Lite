@@ -39,8 +39,6 @@ public class SeedDataRunner implements CommandLineRunner {
 
     private static final String ACCOUNTANT = "ACCOUNTANT";
 
-    private static final String DEMO_PASSWORD = "123456";
-
     private final TenantRepository tenants;
 
     private final PermissionRepository perms;
@@ -59,14 +57,11 @@ public class SeedDataRunner implements CommandLineRunner {
 
     private final DemoWarehouseSeeder warehouseSeeder;
 
+    private final DemoProperties demoProperties;
+
     @Override
     @Transactional
     public void run(String... args) {
-        Tenant tenant = tenants.findAll()
-            .stream()
-            .findFirst()
-            .orElseGet(() -> tenants.save(Tenant.builder().name("Demo Distributor").active(true).build()));
-
         Map<String, Permission> permissionMap = ensurePermissions();
         Role ownerRole = ensureRole(OWNER, permissionMap, PermissionNames.PRODUCT_VIEW,
             PermissionNames.PRODUCT_MANAGE, PermissionNames.CUSTOMER_VIEW,
@@ -93,6 +88,15 @@ public class SeedDataRunner implements CommandLineRunner {
             PermissionNames.PAYMENT_CREATE, PermissionNames.DEBT_VIEW,
             PermissionNames.REPORT_VIEW, PermissionNames.NOTIFICATION_VIEW,
             PermissionNames.AI_HELP_VIEW);
+
+        if (!demoProperties.isEnabled()) {
+            return;
+        }
+
+        Tenant tenant = tenants.findAll()
+            .stream()
+            .findFirst()
+            .orElseGet(() -> tenants.save(Tenant.builder().name("Demo Distributor").active(true).build()));
 
         ensureDemoUser("owner", "Owner", tenant.getId(), ownerRole);
         ensureDemoUser("sale", "Sale", tenant.getId(), salesRole);
@@ -151,9 +155,9 @@ public class SeedDataRunner implements CommandLineRunner {
         AppUser user = users.findByUsername(username)
             .orElseGet(() -> AppUser.builder()
                 .username(username)
-                .passwordHash(encoder.encode(DEMO_PASSWORD))
                 .build());
 
+        user.setPasswordHash(encoder.encode(demoProperties.getPassword()));
         user.setFullName(fullName);
         user.setTenantId(tenantId);
         user.setActive(true);

@@ -1,6 +1,7 @@
 package com.example.dms;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -17,7 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-@SpringBootTest
+@SpringBootTest(properties = "app.demo.enabled=true")
 @AutoConfigureMockMvc
 class AuthorizationRbacTest {
 
@@ -123,6 +124,30 @@ class AuthorizationRbacTest {
         mvc.perform(get("/api/team/members")
                 .header("Authorization", bearer("sale")))
             .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void ownerCannotDeactivateSeededDemoStaff() throws Exception {
+        MvcResult membersResult = mvc.perform(get("/api/team/members")
+                .header("Authorization", bearer("owner")))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonNode members = objectMapper.readTree(membersResult.getResponse().getContentAsString()).path("data");
+        long salesUserId = 0L;
+        for (JsonNode member : members) {
+            if ("sale".equals(member.path("username").asText())) {
+                salesUserId = member.path("id").asLong();
+                break;
+            }
+        }
+        assertThat(salesUserId).isPositive();
+
+        mvc.perform(delete("/api/team/members/{id}", salesUserId)
+                .header("Authorization", bearer("owner")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message")
+                .value("Demo accounts are protected while demo mode is enabled"));
     }
 
     @Test

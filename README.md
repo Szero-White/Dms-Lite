@@ -1,5 +1,9 @@
 # DMS Lite - B2B Sales, Inventory & Receivable Management SaaS
 
+[![CI](https://github.com/Szero-White/Dms-Lite/actions/workflows/ci.yml/badge.svg)](https://github.com/Szero-White/Dms-Lite/actions/workflows/ci.yml)
+![Java](https://img.shields.io/badge/Java-17-informational)
+![Release](https://img.shields.io/badge/release-v1.0.1-informational)
+
 DMS Lite is a mini distribution management system for small wholesalers and distributors. It helps businesses manage customers, products, stock, sales orders, receivable debt, customer payments, audit logs, notifications, and business dashboards.
 
 ## Overview
@@ -12,7 +16,7 @@ Small B2B distributors often need more than a product list and order form. They 
 - Who performed important actions in the system
 - How the business is performing across sales, debt, and stock
 
-DMS Lite is designed as a **local-first full-stack project** with a production-like extension path through Docker Compose, monitoring, and CI.
+DMS Lite is a **deployable full-stack portfolio system** built as a modular monolith. Local development stays lightweight, while public demo and production-style deployments are configured through environment-specific settings.
 
 ## Problem Statement
 
@@ -43,6 +47,33 @@ DMS Lite addresses those problems with:
 - Makes receivable debt visible and easier to reconcile
 - Helps business owners monitor staff actions and operational flow
 - Creates a foundation for a small distributor SaaS product instead of a simple internal CRUD demo
+
+## Portfolio Demo
+
+Current stable release: **v1.0.1**.
+
+The public recruiter deployment intentionally runs in demo mode so reviewers can test role-specific workflows without creating accounts first. **Live Demo:** https://dms-lite.vercel.app/
+
+| Role | Demo account | Main workflow |
+| --- | --- | --- |
+| Owner | `owner / 123456` | Dashboard, reports, audit, team access |
+| Sales | `sale / 123456` | Customers, products/stock visibility, draft sales orders |
+| Warehouse | `warehouse / 123456` | Inventory operations and order fulfillment |
+| Accountant | `accountant / 123456` | Receivables, payments, financial reports |
+
+Demo identities are protected from Team Management changes while demo mode is enabled. A real production deployment should set `APP_DEMO_ENABLED=false`, and `VITE_DEMO_MODE=false` hides demo-account cards in a non-demo frontend build.
+
+### Deployment Topology
+
+```text
+Browser
+  -> React / Vite static frontend
+  -> HTTPS REST API
+  -> Spring Boot application
+  -> PostgreSQL
+```
+
+Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode switches are supplied through deployment environment variables rather than committed secrets.
 
 ## Technical Value
 
@@ -261,10 +292,7 @@ npm run dev
 
 ## Demo Accounts
 
-- `owner / 123456`
-- `sale / 123456`
-- `warehouse / 123456`
-- `accountant / 123456`
+Local and recruiter-demo deployments use the four seeded accounts listed in **Portfolio Demo** above. Demo seeding can be disabled for a real production deployment with `APP_DEMO_ENABLED=false`.
 
 ## API Documentation
 
@@ -274,7 +302,9 @@ Swagger UI:
 
 ## Docker
 
-When you want a more production-like local environment, first set `APP_JWT_SECRET` (required) and `APP_CORS_ALLOWED_ORIGINS` in `.env`, then run:
+`docker-compose.yml` is a **local integration/demo stack**, not the public production manifest. It brings up PostgreSQL, Redis, RabbitMQ, the backend, frontend, Prometheus, and Grafana together for integration testing.
+
+Before starting it, set `APP_JWT_SECRET` (required) and `APP_CORS_ALLOWED_ORIGINS` in `.env`, then run:
 
 ```bash
 docker compose up -d --build
@@ -313,7 +343,7 @@ The current portfolio version focuses on a stable local/deployable vertical slic
 - Add more integration tests
 - Add inventory concurrency test coverage
 - Add fuller Redis/RabbitMQ Docker profile workflow
-- Add deployment guide
+- Maintain provider-specific deployment/runbook documentation
 
 ## CV Highlights
 

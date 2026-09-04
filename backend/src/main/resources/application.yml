@@ -37,6 +37,9 @@ management:
         include: health,info,metrics,prometheus
 
 app:
+  demo:
+    enabled: ${APP_DEMO_ENABLED:false}
+    password: ${APP_DEMO_PASSWORD:123456}
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
   ai:

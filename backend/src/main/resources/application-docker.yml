@@ -17,6 +17,8 @@ spring:
     password: ${SPRING_RABBITMQ_PASSWORD:guest}
 
 app:
+  demo:
+    enabled: ${APP_DEMO_ENABLED:true}
   messaging:
     rabbitmq:
       enabled: true

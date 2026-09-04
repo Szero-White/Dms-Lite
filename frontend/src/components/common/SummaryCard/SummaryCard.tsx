@@ -1,5 +1,6 @@
 import * as React from 'react';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './SummaryCard.module.css';
 
 interface SummaryCardProps {
@@ -30,6 +31,7 @@ export function SummaryCard({
   trend,
   variant = 'blue',
 }: SummaryCardProps) {
+  const { t } = useTranslation();
   const cfg = variantConfig[variant];
   const isPositive = trend !== undefined && trend >= 0;
 
@@ -55,7 +57,7 @@ export function SummaryCard({
         {trend !== undefined ? (
           <span className={isPositive ? styles.trendUp : styles.trendDown}>
             {isPositive ? '▲' : '▼'} {Math.abs(trend)}%
-            <span className={styles.trendLabel}>&nbsp;vs prev. period</span>
+            <span className={styles.trendLabel}>&nbsp;{t('common.previousPeriod')}</span>
           </span>
         ) : (
           <span className={styles.note}>{note}</span>

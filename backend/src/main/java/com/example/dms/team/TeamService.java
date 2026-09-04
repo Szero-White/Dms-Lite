@@ -3,6 +3,7 @@ package com.example.dms.team;
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
 import com.example.dms.common.TenantContext;
+import com.example.dms.seed.DemoProperties;
 import com.example.dms.user.AppUser;
 import com.example.dms.user.AppUserRepository;
 import com.example.dms.user.Permission;
@@ -27,6 +28,13 @@ public class TeamService {
 
     private static final String OWNER_ROLE = "OWNER";
 
+    private static final Set<String> DEMO_USERNAMES = Set.of(
+        "owner",
+        "sale",
+        "warehouse",
+        "accountant"
+    );
+
     private final AppUserRepository users;
 
     private final RoleRepository roles;
@@ -34,6 +42,8 @@ public class TeamService {
     private final PasswordEncoder passwordEncoder;
 
     private final AuditService auditService;
+
+    private final DemoProperties demoProperties;
 
     @Transactional(readOnly = true)
     public List<TeamMemberResponse> listMembers() {
@@ -97,6 +107,11 @@ public class TeamService {
     }
 
     private void ensureManageableStaff(AppUser user) {
+        if (demoProperties.isEnabled()
+            && DEMO_USERNAMES.contains(user.getUsername().toLowerCase(Locale.ROOT))) {
+            throw new BusinessException("Demo accounts are protected while demo mode is enabled");
+        }
+
         if (user.getId().equals(TenantContext.user())) {
             throw new BusinessException("You cannot change your own access from Team Management");
         }
