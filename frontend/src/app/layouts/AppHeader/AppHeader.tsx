@@ -30,6 +30,7 @@ import {
 } from '../../../features/auth';
 import { useNotifications } from '../../../features/notifications';
 import { LANGUAGE_STORAGE_KEY, type SupportedLanguage } from '../../../i18n';
+import { roleLabel } from '../../../lib/roleDisplay';
 import styles from './AppHeader.module.css';
 
 interface AppHeaderProps {
@@ -205,7 +206,7 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
                 type="secondary"
                 className={styles.userMeta}
               >
-                {user?.roles?.[0] || 'USER'}
+                {roleLabel(user?.roles?.[0], t)}
               </Typography.Text>
             </div>
           </button>

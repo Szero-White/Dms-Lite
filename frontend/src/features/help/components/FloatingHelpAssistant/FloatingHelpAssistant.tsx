@@ -25,6 +25,7 @@ import {
   hasPermission,
   useAuth,
 } from '../../../auth';
+import { roleLabel } from '../../../../lib/roleDisplay';
 import { useAskHelpAssistant } from '../../hooks/useHelpAssistant';
 import type {
   HelpAnswer,
@@ -275,7 +276,7 @@ export function FloatingHelpAssistant() {
               <div>
                 <Typography.Text strong>{t('assistant.title')}</Typography.Text>
                 <Typography.Paragraph type="secondary">
-                  {t('assistant.scopedTo', { role: user?.roles?.[0] ?? t('assistant.yourRole') })}
+                  {t('assistant.scopedTo', { role: roleLabel(user?.roles?.[0], t) })}
                 </Typography.Paragraph>
               </div>
             </div>

@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatDateTime } from '../../../../lib/format';
+import { roleListLabel } from '../../../../lib/roleDisplay';
 import {
   useDeleteHelpHistoryItem,
   useHelpHistory,
@@ -230,7 +231,7 @@ export function AIHistoryPage() {
                     <div>
                       <Typography.Text strong>{record.actorFullName || record.actorUsername}</Typography.Text>
                       <Typography.Paragraph type="secondary">
-                        {record.actorRoles.join(', ') || t('common.staff')}
+                        {record.actorRoles.length ? roleListLabel(record.actorRoles, t) : t('common.staff')}
                       </Typography.Paragraph>
                     </div>
                   </div>
@@ -317,7 +318,7 @@ export function AIHistoryPage() {
           <div className={styles.detailContent}>
             <Descriptions column={1} bordered size="small">
               <Descriptions.Item label={t('aiHistory.detail.actor')}>{selectedItem.actorFullName || selectedItem.actorUsername}</Descriptions.Item>
-              <Descriptions.Item label={t('aiHistory.detail.roles')}>{selectedItem.actorRoles.join(', ') || '--'}</Descriptions.Item>
+              <Descriptions.Item label={t('aiHistory.detail.roles')}>{selectedItem.actorRoles.length ? roleListLabel(selectedItem.actorRoles, t) : '--'}</Descriptions.Item>
               <Descriptions.Item label={t('common.status')}>{selectedItem.blocked ? t('aiHistory.status.blocked') : t('aiHistory.status.answered')}</Descriptions.Item>
               <Descriptions.Item label={t('common.time')}>{formatDateTime(selectedItem.createdAt)}</Descriptions.Item>
               <Descriptions.Item label={t('aiHistory.detail.scopeNotice')}>{selectedItem.scopeNotice}</Descriptions.Item>

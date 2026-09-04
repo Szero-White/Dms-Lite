@@ -2,6 +2,7 @@ import { CheckOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Form, Input } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { roleLabel } from '../../../../lib/roleDisplay';
 import { useAuth } from '../../hooks/useAuth';
 import styles from './LoginPage.module.css';
 import formStyles from './LoginFormPanel.module.css';
@@ -120,7 +121,7 @@ export function LoginPage() {
                         <span className={formStyles.demoBadge} aria-hidden="true">
                           {account.badge}
                         </span>
-                        <strong>{account.role}</strong>
+                        <strong>{roleLabel(account.role, t)}</strong>
                         {selected && (
                           <CheckOutlined
                             className={formStyles.demoSelectedIcon}

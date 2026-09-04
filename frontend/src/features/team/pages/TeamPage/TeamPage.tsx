@@ -2,6 +2,7 @@ import { Form, Tabs } from 'antd';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
+import { roleLabel } from '../../../../lib/roleDisplay';
 import {
   useCreateTeamMember,
   useCreateTeamRole,
@@ -29,7 +30,6 @@ import {
   OWNER_ONLY_PERMISSIONS,
   groupPermissions,
   isOwner,
-  roleLabel,
 } from './teamPage.utils';
 
 export function TeamPage() {
@@ -59,8 +59,8 @@ export function TeamPage() {
 
   const roleOptions = useMemo(() => roles.map((role) => ({
     value: role.name,
-    label: roleLabel(role.name),
-  })), [roles]);
+    label: roleLabel(role.name, t),
+  })), [roles, t]);
 
   const assignablePermissions = useMemo(
     () => permissions.filter((permission) => !OWNER_ONLY_PERMISSIONS.has(permission.name)),

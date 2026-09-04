@@ -30,7 +30,7 @@ import {
   ProductStatusTag,
   SalesOrderStatusTag,
 } from '../../../../components/common/StatusTag';
-import { formatCurrency, formatDateTime, toNumber } from '../../../../lib/format';
+import { formatCurrency, formatDateTime, formatNumber, toNumber } from '../../../../lib/format';
 import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
 import { useDashboardData } from '../../../dashboard';
@@ -230,7 +230,7 @@ export function ReportsPage() {
                     <div className={styles.tabContent}>
                       <StatStrip items={[
                         { icon: <InboxOutlined />, label: t('reports.metric.trackedSkus'), value: products.length, color: '#6366f1' },
-                        { icon: <BarChartOutlined />, label: t('reports.metric.totalUnits'), value: totalUnits.toLocaleString('vi-VN'), color: '#3b82f6' },
+                        { icon: <BarChartOutlined />, label: t('reports.metric.totalUnits'), value: formatNumber(totalUnits), color: '#3b82f6' },
                         { icon: <DollarOutlined />, label: t('reports.metric.inventoryValue'), value: formatCurrency(inventoryValue), color: '#8b5cf6' },
                         { icon: <WarningOutlined />, label: t('reports.metric.lowStock'), value: lowStockCount, color: lowStockCount > 0 ? '#f59e0b' : '#10b981' },
                       ]} />

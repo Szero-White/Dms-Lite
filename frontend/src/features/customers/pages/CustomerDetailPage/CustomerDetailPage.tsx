@@ -216,7 +216,7 @@ export function CustomerDetailPage() {
                     width: 170,
                     render: (value) => formatDateTime(value),
                   },
-                  { title: t('customers.detail.type'), dataIndex: 'sourceType', width: 130, render: (value: string) => t(`customers.detail.sourceType.${value}`, { defaultValue: value }) },
+                  { title: t('customers.detail.type'), dataIndex: 'sourceType', width: 130, render: (value: string) => t(`customers.detail.sourceType.${value}`, { defaultValue: t('customers.detail.sourceType.UNKNOWN') }) },
                   {
                     title: t('customers.detail.direction'),
                     dataIndex: 'direction',
@@ -226,7 +226,7 @@ export function CustomerDetailPage() {
 
                       return (
                         <Tag className={isIncrease ? styles.increaseTag : styles.decreaseTag}>
-                          {isIncrease ? <ArrowUpOutlined /> : <ArrowDownOutlined />} {t(`customers.detail.directionValue.${value}`, { defaultValue: value })}
+                          {isIncrease ? <ArrowUpOutlined /> : <ArrowDownOutlined />} {t(`customers.detail.directionValue.${value}`, { defaultValue: t('customers.detail.directionValue.UNKNOWN') })}
                         </Tag>
                       );
                     },

@@ -106,28 +106,20 @@ const GROUP_KEYS: Record<string, string> = {
   Workspace: 'permissions.group.workspace',
 };
 
-function enumFallback(value: string) {
-  return value
-    .toLowerCase()
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
-
 export function permissionLabel(permission: string, t: TFunction) {
   const display = PERMISSION_DISPLAY[permission];
 
-  return display ? t(display.labelKey) : enumFallback(permission);
+  return display ? t(display.labelKey) : t('permissions.unknown.label');
 }
 
 export function permissionDescription(permission: PermissionOption, t: TFunction) {
   const display = PERMISSION_DISPLAY[permission.name];
 
-  return display ? t(display.descriptionKey) : permission.description;
+  return display ? t(display.descriptionKey) : t('permissions.unknown.description');
 }
 
 export function permissionGroupLabel(group: string, t: TFunction) {
   const groupKey = GROUP_KEYS[group];
 
-  return groupKey ? t(groupKey) : group;
+  return groupKey ? t(groupKey) : t('permissions.group.other');
 }

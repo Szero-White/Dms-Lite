@@ -19,21 +19,10 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
-import { formatDateTime } from '../../../../lib/format';
+import { formatDateTime, formatNumber } from '../../../../lib/format';
 import { useAuditLogs } from '../../hooks/useAuditQueries';
 import { AuditLogRow } from '../../types/audit.types';
 import styles from './AuditLogsPage.module.css';
-
-function fallbackAuditLabel(value?: string) {
-  if (!value) {
-    return '--';
-  }
-  return value
-    .toLowerCase()
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
 
 // colour pool for actor avatars
 const ACTOR_COLORS = [
@@ -69,11 +58,11 @@ export function AuditLogsPage() {
   }
 
   function actionLabel(action: string) {
-    return t(`audit.actions.${action}`, fallbackAuditLabel(action));
+    return t(`audit.actions.${action}`, { defaultValue: t('audit.actions.UNKNOWN') });
   }
 
   function entityLabel(entity: string) {
-    return t(`audit.entities.${entity}`, fallbackAuditLabel(entity));
+    return t(`audit.entities.${entity}`, { defaultValue: t('audit.entities.UNKNOWN') });
   }
 
   const actorOptions = useMemo(() => {
@@ -136,7 +125,7 @@ export function AuditLogsPage() {
         <div className={styles.stripHero}>
           <div className={styles.stripHeroIcon}><AuditOutlined /></div>
           <div>
-            <div className={styles.stripHeroBig}>{auditLogs.length.toLocaleString('vi-VN')}</div>
+            <div className={styles.stripHeroBig}>{formatNumber(auditLogs.length)}</div>
             <div className={styles.stripHeroLbl}>{t('audit.summary.totalEvents')}</div>
           </div>
         </div>
