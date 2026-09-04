@@ -9,7 +9,7 @@ import visualStyles from './LoginVisualPanel.module.css';
 import previewStyles from './LoginPreview.module.css';
 import { DEFAULT_DEMO_ACCOUNT, DEMO_ACCOUNTS, type DemoAccount } from './demoAccounts';
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE !== 'false';
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 
 export function LoginPage() {
   const { t } = useTranslation();

@@ -155,7 +155,6 @@ public class SeedDataRunner implements CommandLineRunner {
         AppUser user = users.findByUsername(username)
             .orElseGet(() -> AppUser.builder()
                 .username(username)
-                .passwordHash(encoder.encode(demoProperties.getPassword()))
                 .build());
 
         user.setPasswordHash(encoder.encode(demoProperties.getPassword()));

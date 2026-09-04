@@ -18,7 +18,7 @@ spring:
 
 app:
   demo:
-    enabled: true
+    enabled: ${APP_DEMO_ENABLED:true}
   messaging:
     rabbitmq:
       enabled: true
