@@ -61,6 +61,7 @@ class HelpDataAnswerServiceAuthorizationTest {
 
         assertThat(scope.canUseSales()).isTrue();
         assertThat(scope.canViewSalesData()).isFalse();
+        assertThat(scope.visibleModules()).contains("Sales Orders");
 
         HelpAnswerResponse answer = service.answer(
                 new HelpAskRequest("Don hang SO-123 dang o trang thai nao?", "vi", List.of()),

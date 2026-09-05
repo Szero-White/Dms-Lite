@@ -72,16 +72,16 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
   );
   const quickCreateItems = useMemo(
     () => [
-      hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE)
+      hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE) && canAccessPath(user, '/sales-orders/new')
         ? { key: '/sales-orders/new', label: t('app.header.createSalesOrder') }
         : null,
-      hasPermission(user, PERMISSIONS.INVENTORY_MANAGE)
+      hasPermission(user, PERMISSIONS.INVENTORY_MANAGE) && canAccessPath(user, '/inventory')
         ? { key: '/inventory', label: t('app.header.receiveStock') }
         : null,
-      hasPermission(user, PERMISSIONS.PAYMENT_CREATE)
+      hasPermission(user, PERMISSIONS.PAYMENT_CREATE) && canAccessPath(user, '/payments')
         ? { key: '/payments', label: t('app.header.recordPayment') }
         : null,
-      hasPermission(user, PERMISSIONS.CUSTOMER_MANAGE)
+      hasPermission(user, PERMISSIONS.CUSTOMER_MANAGE) && canAccessPath(user, '/customers')
         ? { key: '/customers', label: t('app.header.manageCustomers') }
         : null,
     ].filter(Boolean),

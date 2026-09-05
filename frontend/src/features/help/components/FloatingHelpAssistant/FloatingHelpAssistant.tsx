@@ -106,7 +106,7 @@ export function FloatingHelpAssistant() {
   const canUseAssistant = hasPermission(user, PERMISSIONS.AI_HELP_VIEW);
   const prompts = useMemo(() => {
     const rolePrompts = ROLE_PROMPTS
-      .filter((item) => user?.permissions.includes(item.permission))
+      .filter((item) => item.permissions.some((permission) => user?.permissions.includes(permission)))
       .map((item) => t(item.promptKey));
 
     return [

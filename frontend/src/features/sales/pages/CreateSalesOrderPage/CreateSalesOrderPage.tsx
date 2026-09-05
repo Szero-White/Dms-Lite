@@ -24,7 +24,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
-import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
+import { PERMISSIONS, firstAuthorizedPath, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
 import { useProducts } from '../../../products';
 import { useDefaultWarehouse } from '../../../inventory';
@@ -52,6 +52,8 @@ export function CreateSalesOrderPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const canConfirmSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CONFIRM);
+  const canViewSalesOrders = hasPermission(user, PERMISSIONS.SALES_ORDER_VIEW);
+  const fallbackPath = firstAuthorizedPath(user);
   const navigate = useNavigate();
   const customersQuery = useCustomers();
   const productsQuery = useProducts();
@@ -303,7 +305,7 @@ export function CreateSalesOrderPage() {
                 ) : null}
 
                 <Space>
-                  <Button onClick={() => navigate('/sales-orders')}>{t('sales.create.back')}</Button>
+                  <Button onClick={() => navigate(canViewSalesOrders ? '/sales-orders' : fallbackPath)}>{t('sales.create.back')}</Button>
                   <Button type="primary" htmlType="submit" loading={createOrder.isPending}>
                     {t('sales.action.createOrder')}
                   </Button>
@@ -357,7 +359,9 @@ export function CreateSalesOrderPage() {
                         {t('sales.create.confirmNow')}
                       </Button>
                     ) : null}
-                    <Button onClick={() => navigate('/sales-orders')}>{t('sales.create.backToOrders')}</Button>
+                    {canViewSalesOrders ? (
+                      <Button onClick={() => navigate('/sales-orders')}>{t('sales.create.backToOrders')}</Button>
+                    ) : null}
                   </Space>
                 )}
               />

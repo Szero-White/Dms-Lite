@@ -105,7 +105,9 @@ public class HelpPermissionScope {
     public List<String> visibleModules() {
         List<String> modules = new ArrayList<>();
         addIfAllowed(modules, PermissionNames.REPORT_VIEW, "Dashboard/Reports");
-        addIfAllowed(modules, PermissionNames.SALES_ORDER_VIEW, "Sales Orders");
+        if (canUseSales()) {
+            modules.add("Sales Orders");
+        }
         addIfAllowed(modules, PermissionNames.PRODUCT_VIEW, "Products");
         addIfAllowed(modules, PermissionNames.CUSTOMER_VIEW, "Customers");
         addIfAllowed(modules, PermissionNames.INVENTORY_VIEW, "Inventory");

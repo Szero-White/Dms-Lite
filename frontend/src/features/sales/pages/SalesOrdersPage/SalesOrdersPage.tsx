@@ -27,7 +27,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
-import { PERMISSIONS, canViewOrderFinancials, hasPermission, useAuth } from '../../../auth';
+import { PERMISSIONS, canAccessPath, canViewOrderFinancials, hasPermission, useAuth } from '../../../auth';
 import { SalesOrderStatusTag } from '../../../../components/common/StatusTag';
 import { useCustomers } from '../../../customers';
 import { useProductList } from '../../../products';
@@ -60,7 +60,8 @@ function getInitials(name: string) {
 export function SalesOrdersPage() {
   const { i18n, t } = useTranslation();
   const { user } = useAuth();
-  const canCreateSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE);
+  const canCreateSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE)
+    && canAccessPath(user, '/sales-orders/new');
   const canViewCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_VIEW);
   const canViewProducts = hasPermission(user, PERMISSIONS.PRODUCT_VIEW);
   const canViewSalesOrderFinancials = canViewOrderFinancials(user);
@@ -398,12 +399,20 @@ export function SalesOrdersPage() {
                 { color: selectedOrderDetail.status === 'CANCELLED' ? 'red' : 'gray', children: t('sales.timeline.status', { status: t(`status.sales.${selectedOrderDetail.status}`) }) },
               ]} />
             </div>
-            {selectedOrderDetail.status === 'DRAFT' && (
+            {selectedOrderDetail.status === 'DRAFT' && (canConfirmSalesOrder || canCancelSalesOrder) ? (
               <Space>
-                <Button type="primary" loading={confirmMutation.isPending} onClick={() => confirmOrder(selectedOrderDetail)}>{t('sales.confirm.ok')}</Button>
-                <Button danger loading={cancelMutation.isPending} onClick={() => cancelOrder(selectedOrderDetail)}>{t('sales.cancel.ok')}</Button>
+                {canConfirmSalesOrder ? (
+                  <Button type="primary" loading={confirmMutation.isPending} onClick={() => confirmOrder(selectedOrderDetail)}>
+                    {t('sales.confirm.ok')}
+                  </Button>
+                ) : null}
+                {canCancelSalesOrder ? (
+                  <Button danger loading={cancelMutation.isPending} onClick={() => cancelOrder(selectedOrderDetail)}>
+                    {t('sales.cancel.ok')}
+                  </Button>
+                ) : null}
               </Space>
-            )}
+            ) : null}
           </div>
         )}
       </Drawer>
