@@ -7,6 +7,7 @@ enum HelpIntent {
     MISSING_SCREEN,
     TEAM_ACCESS,
     SALES,
+    INVOICE,
     INVENTORY,
     FINANCE,
     PRODUCT,

@@ -92,13 +92,27 @@ Quy trình:
 
 Không màn hình nào được trả `20`.
 
-## 5. Revenue
+## 5. Invoice document
+
+Invoice trong DMS Lite là **chứng từ bán hàng gắn với một order đã `COMPLETED`**, không phải một luồng kế toán thứ hai.
+
+- chỉ `COMPLETED` sales order mới tạo được invoice;
+- mỗi sales order có tối đa một invoice; gọi tạo lại trả invoice hiện có thay vì nhân bản;
+- tạo/phát hành/hủy invoice không tạo, tăng hoặc giảm receivable;
+- `paidAmount` và `remainingAmount` khi đọc invoice lấy theo trạng thái tài chính hiện tại của sales order;
+- customer payment vẫn chỉ được ghi qua `POST /api/payments/customer`;
+- invoice đã có payment không được hủy;
+- PDF chỉ tải được khi invoice đã phát hành và còn hiệu lực.
+
+Luồng: `COMPLETED order -> DRAFT invoice -> ISSUED -> PAID/OVERDUE` (trạng thái `PAID/OVERDUE` được suy ra từ receivable hiện tại).
+
+## 6. Revenue
 
 Revenue chỉ ghi nhận order `COMPLETED`.
 
 Dashboard dùng `confirmed_at`, không dùng `created_at`, để đơn tạo hôm trước nhưng confirm hôm nay được ghi nhận vào ngày confirm.
 
-## 6. Read APIs
+## 7. Read APIs
 
 - `GET /api/customers` -> customer page summary.
 - `GET /api/customers/{id}` -> customer detail.
@@ -107,3 +121,6 @@ Dashboard dùng `confirmed_at`, không dùng `created_at`, để đơn tạo hô
 - `GET /api/sales-orders/{id}` -> order detail + items.
 
 Frontend không được giả định list summary chứa order items.
+
+- `GET /api/invoices` -> paged invoice summary, yêu cầu `INVOICE_VIEW`.
+- `GET /api/invoices/{id}` -> invoice detail + snapshot items.

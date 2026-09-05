@@ -131,6 +131,13 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 - Customer payment recording
 - FIFO customer payment allocation against open receivables
 
+### Invoice Management
+
+- Invoice documents generated only from completed sales orders
+- Invoice issuance/cancellation is permission controlled and does not create a second receivable balance
+- Paid/remaining invoice amounts stay synchronized with the canonical sales-order payment workflow
+- PDF export for active issued invoices
+
 ### Audit Log
 
 - Tracks important user actions
@@ -149,7 +156,7 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 
 ## Key Business Flow
 
-`Login -> create customer/product -> check stock -> create DRAFT sales order -> warehouse confirms/fulfills -> order becomes COMPLETED -> deduct stock inside transaction -> create open receivable if unpaid -> record customer payment FIFO -> update receivable statement -> view dashboard/audit log`
+`Login -> create customer/product -> check stock -> create DRAFT sales order -> warehouse confirms/fulfills -> order becomes COMPLETED -> deduct stock inside transaction -> create open receivable if unpaid -> optionally generate/issue invoice -> record customer payment FIFO -> update receivable statement -> view dashboard/audit log`
 
 This flow reflects a real B2B operational slice rather than isolated CRUD screens.
 
@@ -183,6 +190,7 @@ This flow reflects a real B2B operational slice rather than isolated CRUD screen
 - `sales`
 - `debt`
 - `payment`
+- `invoice`
 - `audit`
 - `notification`
 - `report`
@@ -229,6 +237,8 @@ The project models business operations through dedicated tables and flows instea
   Tracks receivable debt as ledger entries.
 - `payments`
   Records customer payments explicitly.
+- `invoices`, `invoice_items`
+  Store sales-document snapshots linked to completed sales orders; financial balances remain owned by the sales/receivable flow.
 - `audit_logs`
   Stores important traceable actions.
 - `notifications`

@@ -45,6 +45,18 @@ class HelpIntentDetectorTest {
     }
 
     @Test
+    void detectsInvoiceQuestionsBeforeGenericSalesOrderTerms() {
+        HelpIntentMatch match = detector.detect(new HelpAskRequest(
+            "làm sao phát hành hóa đơn từ đơn hàng đã hoàn tất",
+            "vi",
+            List.of()
+        ));
+
+        assertThat(match.intent()).isEqualTo(HelpIntent.INVOICE);
+        assertThat(match.needsClarification()).isFalse();
+    }
+
+    @Test
     void detectsMissingSidebarScreenQuestions() {
         HelpIntentMatch match = detector.detect(new HelpAskRequest(
             "sao tôi không thấy màn hình thanh toán trong sidebar",

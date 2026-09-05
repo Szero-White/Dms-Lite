@@ -105,6 +105,52 @@ public class HelpWorkflowKnowledge {
         );
     }
 
+    public HelpAnswerResponse invoiceAnswer(HelpPermissionScope scope, HelpLocale locale) {
+        if (locale == HelpLocale.VI) {
+            List<String> steps = new ArrayList<>();
+            steps.add("Hóa đơn chỉ được tạo từ đơn bán hàng đã Hoàn tất; hóa đơn không tạo thêm một khoản công nợ mới.");
+            if (scope.has(PermissionNames.INVOICE_CREATE)) {
+                steps.add("Mở Đơn bán hàng, chọn một đơn Hoàn tất và dùng thao tác Tạo hóa đơn. Tạo lại cùng đơn sẽ mở hóa đơn hiện có thay vì nhân bản.");
+            }
+            if (scope.has(PermissionNames.INVOICE_ISSUE)) {
+                steps.add("Kiểm tra khách hàng, số tiền và hạn thanh toán rồi phát hành hóa đơn nháp.");
+            }
+            steps.add("Tiền đã thu và còn phải thu trên hóa đơn luôn lấy từ công nợ của đơn bán hàng; ghi nhận tiền tại mục Thanh toán.");
+
+            return response(
+                "Hóa đơn là chứng từ bán hàng gắn với đơn đã hoàn tất, còn thanh toán và công nợ vẫn dùng quy trình tài chính hiện tại.",
+                steps,
+                HelpDisplayNames.modules(locale, "Invoices", "Sales Orders", "Payments"),
+                List.of(
+                    "Không dùng hóa đơn để tạo hoặc điều chỉnh công nợ lần thứ hai.",
+                    "Không hủy hóa đơn sau khi đơn hàng đã được ghi nhận thanh toán."
+                ),
+                locale
+            );
+        }
+
+        List<String> steps = new ArrayList<>();
+        steps.add("Invoices can only be created from Completed sales orders and do not create a second receivable balance.");
+        if (scope.has(PermissionNames.INVOICE_CREATE)) {
+            steps.add("Open Sales Orders, choose a Completed order and use Create invoice. Repeating it for the same order returns the existing invoice instead of duplicating it.");
+        }
+        if (scope.has(PermissionNames.INVOICE_ISSUE)) {
+            steps.add("Review customer, amount and due date, then issue the draft invoice.");
+        }
+        steps.add("Collected and remaining amounts come from the linked sales-order receivable; record money only in Payments.");
+
+        return response(
+            "An invoice is a sales document linked to a completed order, while payments and receivables remain in the canonical finance workflow.",
+            steps,
+            HelpDisplayNames.modules(locale, "Invoices", "Sales Orders", "Payments"),
+            List.of(
+                "Do not use invoices to create or adjust receivables a second time.",
+                "Do not cancel an invoice after payment has been recorded for its order."
+            ),
+            locale
+        );
+    }
+
     public HelpAnswerResponse inventoryAnswer(HelpPermissionScope scope, HelpLocale locale) {
         if (locale == HelpLocale.VI) {
             List<String> steps = new ArrayList<>();

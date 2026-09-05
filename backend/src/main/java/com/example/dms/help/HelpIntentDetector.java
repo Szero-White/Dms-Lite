@@ -36,6 +36,9 @@ class HelpIntentDetector {
         if (containsAny(question, "nhan vien", "tai khoan", "role", "vai tro", "phan quyen", "permission", "user", "staff", "account")) {
             return HelpIntent.TEAM_ACCESS;
         }
+        if (containsAny(question, "hoa don", "invoice", "phat hanh hoa don", "huy hoa don")) {
+            return HelpIntent.INVOICE;
+        }
         if (containsAny(question, "ban hang", "sales", "don hang", "order", "bao gia")) {
             return HelpIntent.SALES;
         }

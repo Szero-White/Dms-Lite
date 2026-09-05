@@ -104,4 +104,11 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
         String sourceType,
         Pageable pageable
     );
+
+    java.util.Optional<CustomerDebtTransaction> findFirstByTenantIdAndSourceTypeAndSourceIdAndDirectionOrderByCreatedAtDesc(
+        Long tenantId,
+        String sourceType,
+        Long sourceId,
+        String direction
+    );
 }

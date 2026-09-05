@@ -10,6 +10,7 @@ export type {
 export {
   canAccessPath,
   canViewCustomerBalance,
+  canViewInvoiceReceivableState,
   canViewOrderFinancials,
   canViewProductFinancials,
   firstAuthorizedPath,

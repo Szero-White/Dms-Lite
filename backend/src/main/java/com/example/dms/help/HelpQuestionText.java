@@ -37,6 +37,8 @@ final class HelpQuestionText {
     static String normalize(String value) {
         return Normalizer.normalize(value == null ? "" : value.trim(), Normalizer.Form.NFD)
             .replaceAll("\\p{M}", "")
+            .replace('đ', 'd')
+            .replace('Đ', 'D')
             .toLowerCase(Locale.ROOT);
     }
 

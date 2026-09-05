@@ -1,5 +1,6 @@
 import {
   CheckCircleOutlined,
+  FileTextOutlined,
   MoreOutlined,
   PlusOutlined,
   SearchOutlined,
@@ -31,6 +32,7 @@ import { PERMISSIONS, canAccessPath, canViewOrderFinancials, hasPermission, useA
 import { SalesOrderStatusTag } from '../../../../components/common/StatusTag';
 import { useCustomers } from '../../../customers';
 import { useProductList } from '../../../products';
+import { useCreateInvoiceFromSalesOrder } from '../../../invoice';
 import {
   useCancelSalesOrder,
   useConfirmSalesOrder,
@@ -67,6 +69,7 @@ export function SalesOrdersPage() {
   const canViewSalesOrderFinancials = canViewOrderFinancials(user);
   const canConfirmSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CONFIRM);
   const canCancelSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CANCEL);
+  const canCreateInvoice = hasPermission(user, PERMISSIONS.INVOICE_CREATE);
   const { modal } = App.useApp();
   const navigate = useNavigate();
   const ordersQuery = useSalesOrders();
@@ -74,6 +77,7 @@ export function SalesOrdersPage() {
   const productsQuery = useProductList({ enabled: canViewProducts });
   const confirmMutation = useConfirmSalesOrder();
   const cancelMutation = useCancelSalesOrder();
+  const createInvoiceMutation = useCreateInvoiceFromSalesOrder();
   const [keyword, setKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [customerFilter, setCustomerFilter] = useState<number | 'ALL'>('ALL');
@@ -168,6 +172,16 @@ export function SalesOrdersPage() {
       okText: t('sales.cancel.ok'),
       okButtonProps: { danger: true },
       onOk: () => cancelMutation.mutateAsync(order.id),
+    });
+  }
+
+  function createInvoice(order: SalesOrder) {
+    if (!canCreateInvoice || order.status !== 'COMPLETED') {
+      return;
+    }
+
+    createInvoiceMutation.mutate(order.id, {
+      onSuccess: (invoice) => navigate(`/invoices/${invoice.id}`),
     });
   }
 
@@ -341,11 +355,15 @@ export function SalesOrdersPage() {
                       ...(record.status === 'DRAFT' && canCancelSalesOrder ? [
                         { key: 'cancel', label: t('sales.action.cancelOrder'), icon: <StopOutlined />, danger: true },
                       ] : []),
+                      ...(record.status === 'COMPLETED' && canCreateInvoice ? [
+                        { key: 'invoice', label: t('sales.action.createInvoice'), icon: <FileTextOutlined /> },
+                      ] : []),
                     ],
                     onClick: ({ key }) => {
                       if (key === 'view') setSelectedOrder(record);
                       if (key === 'confirm') confirmOrder(record);
                       if (key === 'cancel') cancelOrder(record);
+                      if (key === 'invoice') createInvoice(record);
                     },
                   }}>
                     <Button type="text" icon={<MoreOutlined />} aria-label={t('sales.action.actionsFor', { code: record.code })} />
@@ -420,6 +438,16 @@ export function SalesOrdersPage() {
                   </Button>
                 ) : null}
               </Space>
+            ) : null}
+            {selectedOrderDetail.status === 'COMPLETED' && canCreateInvoice ? (
+              <Button
+                type="primary"
+                icon={<FileTextOutlined />}
+                loading={createInvoiceMutation.isPending}
+                onClick={() => createInvoice(selectedOrderDetail)}
+              >
+                {t('sales.action.createInvoice')}
+              </Button>
             ) : null}
           </div>
         )}

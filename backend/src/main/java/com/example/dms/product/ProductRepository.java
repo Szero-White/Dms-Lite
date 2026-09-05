@@ -24,6 +24,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         Collection<Long> ids
     );
 
+    List<Product> findByTenantIdAndIdIn(
+        Long tenantId,
+        Collection<Long> ids
+    );
+
     Optional<Product> findFirstByTenantIdAndDeletedAtIsNullAndSkuIgnoreCase(Long tenantId, String sku);
 
     long countByTenantIdAndDeletedAtIsNull(Long tenantId);

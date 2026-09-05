@@ -123,11 +123,14 @@ class AuthorizationRbacTest {
         JsonNode permissions = objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
         JsonNode inventoryView = findPermission(permissions, "INVENTORY_VIEW");
         JsonNode productManage = findPermission(permissions, "PRODUCT_MANAGE");
+        JsonNode invoiceCreate = findPermission(permissions, "INVOICE_CREATE");
 
         assertThat(toTextList(inventoryView.path("requires")))
             .containsExactly("PRODUCT_VIEW");
         assertThat(toTextList(productManage.path("requires")))
             .containsExactly("PRODUCT_VIEW");
+        assertThat(toTextList(invoiceCreate.path("requires")))
+            .containsExactlyInAnyOrder("INVOICE_VIEW", "SALES_ORDER_VIEW");
     }
 
     @Test

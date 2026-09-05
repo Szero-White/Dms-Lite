@@ -1,6 +1,8 @@
 package com.example.dms.sales;
 
 import jakarta.persistence.LockModeType;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,8 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
     );
 
     Page<SalesOrder> findByTenantIdOrderByCreatedAtDesc(Long tenantId, Pageable pageable);
+
+    List<SalesOrder> findByTenantIdAndIdIn(Long tenantId, Collection<Long> ids);
 
     Page<SalesOrder> findByTenantIdAndCustomerIdOrderByCreatedAtDesc(
         Long tenantId,

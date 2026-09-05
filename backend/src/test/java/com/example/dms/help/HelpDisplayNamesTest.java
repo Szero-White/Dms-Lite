@@ -11,12 +11,12 @@ class HelpDisplayNamesTest {
 
     @Test
     void localizesVisibleModulesForVietnameseWithoutChangingAuthorizationKeys() {
-        HelpPermissionScope scope = scope("REPORT_VIEW", "SALES_ORDER_VIEW", "INVENTORY_VIEW");
+        HelpPermissionScope scope = scope("REPORT_VIEW", "SALES_ORDER_VIEW", "INVENTORY_VIEW", "INVOICE_VIEW");
 
-        assertThat(scope.visibleModules()).contains("Dashboard/Reports", "Sales Orders", "Inventory");
+        assertThat(scope.visibleModules()).contains("Dashboard/Reports", "Sales Orders", "Inventory", "Invoices");
         assertThat(scope.visibleModules(HelpLocale.VI))
-            .contains("Tổng quan/Báo cáo", "Đơn bán hàng", "Kho hàng")
-            .doesNotContain("Sales Orders", "Inventory");
+            .contains("Tổng quan/Báo cáo", "Đơn bán hàng", "Kho hàng", "Hóa đơn")
+            .doesNotContain("Sales Orders", "Inventory", "Invoices");
     }
 
     @Test
