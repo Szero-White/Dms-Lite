@@ -62,7 +62,7 @@ public class HelpDataAnswerService {
     }
 
     private HelpAnswerResponse stockAnswer(String question, String normalizedQuestion, HelpPermissionScope scope, HelpLocale locale) {
-        if (!scope.canUseInventory()) {
+        if (!scope.canViewInventoryData()) {
             return blocked(scope, "Inventory", locale);
         }
 
@@ -120,7 +120,7 @@ public class HelpDataAnswerService {
     }
 
     private HelpAnswerResponse debtAnswer(String question, String normalizedQuestion, HelpPermissionScope scope, HelpLocale locale) {
-        if (!scope.canUseFinance()) {
+        if (!scope.canViewDebtData()) {
             return blocked(scope, "Payments/Debt", locale);
         }
 
@@ -169,7 +169,7 @@ public class HelpDataAnswerService {
     }
 
     private HelpAnswerResponse orderAnswer(String question, String normalizedQuestion, HelpPermissionScope scope, HelpLocale locale) {
-        if (!scope.canUseSales()) {
+        if (!scope.canViewSalesData()) {
             return blocked(scope, "Sales Orders", locale);
         }
 
@@ -222,7 +222,7 @@ public class HelpDataAnswerService {
     }
 
     private HelpAnswerResponse productSummaryAnswer(HelpPermissionScope scope, HelpLocale locale) {
-        if (!scope.canUseProducts()) {
+        if (!scope.canViewProductData()) {
             return blocked(scope, "Products", locale);
         }
 
@@ -241,7 +241,7 @@ public class HelpDataAnswerService {
     }
 
     private HelpAnswerResponse customerSummaryAnswer(HelpPermissionScope scope, HelpLocale locale) {
-        if (!scope.canUseCustomers()) {
+        if (!scope.canViewCustomerData()) {
             return blocked(scope, "Customers", locale);
         }
 

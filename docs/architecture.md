@@ -137,3 +137,21 @@ Current MVP vận hành theo **một warehouse chính cho mỗi tenant**. Databa
 Các màn hình composite chỉ gọi API mà role hiện tại có permission; thiếu một permission phụ không được làm cả page bị 403 nếu section đó có thể ẩn độc lập.
 
 Các custom role cũng được validate dependency cho các workflow UI bắt buộc (ví dụ `PAYMENT_CREATE` cần `CUSTOMER_VIEW`, `INVENTORY_MANAGE` cần quyền xem inventory/product, `SALES_ORDER_CREATE` cần dữ liệu customer/product/inventory). Mục tiêu là không tạo ra role "có nút thao tác nhưng mở màn hình lại 403".
+
+### AI và Notification theo permission
+
+`AI_HELP_VIEW` và `NOTIFICATION_VIEW` chỉ là **gateway permission** để mở trợ lý hoặc feed thông báo; chúng không tự cấp quyền đọc dữ liệu nghiệp vụ.
+
+- AI workflow guidance có thể dựa trên action permission (ví dụ `PAYMENT_CREATE` để hướng dẫn ghi nhận thanh toán), nhưng dữ liệu thật phải có view permission tương ứng (`DEBT_VIEW`, `SALES_ORDER_VIEW`, `INVENTORY_VIEW`, `PRODUCT_VIEW`, `CUSTOMER_VIEW`).
+- Notification được lọc tiếp theo loại sự kiện và permission nghiệp vụ. Ví dụ payment event cần `PAYMENT_CREATE` + `CUSTOMER_VIEW`, overdue debt cần `DEBT_VIEW` + `CUSTOMER_VIEW`, sales-order event cần `SALES_ORDER_VIEW`.
+- Notification type chưa được khai báo policy bị **deny by default** để event mới không vô tình vượt RBAC.
+- Endpoint mark-read áp dụng cùng policy; notification ngoài scope được xử lý như không tồn tại để không làm lộ sự hiện diện của event bị giới hạn.
+
+### Notification signal-to-noise
+
+Notification feed ưu tiên **actionable signal**, không biến mọi row nghiệp vụ thành một thông báo riêng:
+
+- Sales-order confirm/cancel dùng persisted business event; không tạo thêm một notification cho từng inventory movement của cùng đơn.
+- Overdue receivables được gộp theo customer để một khách có nhiều hóa đơn quá hạn chỉ tạo một cảnh báo tổng hợp trong feed.
+- Derived alert được giới hạn theo nhóm và toàn feed vẫn có hard limit.
+- Persisted event có cửa sổ chống duplicate 5 phút theo `tenant + type + message` để retry/double-delivery không tạo notification trùng. Đây là retry suppression, không phải throttle nghiệp vụ dài hạn.

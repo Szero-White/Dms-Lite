@@ -6,7 +6,6 @@ import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
-import com.example.dms.inventory.InventoryTransactionRepository;
 import com.example.dms.inventory.StockItem;
 import com.example.dms.inventory.StockItemRepository;
 import com.example.dms.product.Product;
@@ -18,6 +17,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -26,7 +26,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -42,13 +41,11 @@ public class NotificationQueryService {
 
     private static final int DERIVED_GROUP_LIMIT = 4;
 
-    private static final int STOCK_MOVEMENT_LIMIT = 3;
+    private static final int DERIVED_SCAN_LIMIT = 20;
 
     private static final String DERIVED_SOURCE = "derived";
 
     private static final String API_SOURCE = "api";
-
-    private static final String SALES_ORDER_SOURCE = "SALES_ORDER";
 
     private static final String PAYMENT_SOURCE = "PAYMENT";
 
@@ -62,24 +59,16 @@ public class NotificationQueryService {
 
     private final CustomerRepository customers;
 
-    private final InventoryTransactionRepository inventoryTransactions;
-
     @Transactional(readOnly = true)
     public List<NotificationFeedItem> listRecent(int size, Authentication authentication) {
         Long tenantId = TenantContext.tenantRequired();
-        Set<String> permissions = authentication.getAuthorities()
-            .stream()
-            .map(GrantedAuthority::getAuthority)
-            .collect(Collectors.toSet());
+        Set<String> permissions = permissions(authentication);
         int boundedSize = Math.min(Math.max(size, 1), MAX_FEED_SIZE);
         List<NotificationFeedItem> feed = new ArrayList<>();
 
-        feed.addAll(apiNotifications(tenantId));
+        feed.addAll(apiNotifications(tenantId, permissions));
         if (canBuildStockNotifications(permissions)) {
             feed.addAll(lowStockNotifications(tenantId));
-        }
-        if (permissions.contains(PermissionNames.INVENTORY_VIEW)) {
-            feed.addAll(stockMovementNotifications(tenantId));
         }
         if (canBuildDebtNotifications(permissions)) {
             feed.addAll(overdueDebtNotifications(tenantId));
@@ -95,22 +84,34 @@ public class NotificationQueryService {
     }
 
     @Transactional
-    public void markRead(Long notificationId) {
+    public void markRead(Long notificationId, Authentication authentication) {
+        Set<String> permissions = permissions(authentication);
         Notification notification = notificationRepository.findByIdAndTenantId(
                 notificationId,
                 TenantContext.tenantRequired()
             )
             .orElseThrow(() -> new BusinessException("Notification not found"));
 
+        // Treat an out-of-scope notification as not found so the endpoint does not reveal its existence.
+        if (!NotificationPermissionPolicy.canView(notification.getType(), permissions)) {
+            throw new BusinessException("Notification not found");
+        }
+
         if (!notification.isReadFlag()) {
             notification.setReadFlag(true);
         }
     }
 
-    private List<NotificationFeedItem> apiNotifications(Long tenantId) {
-        return notificationRepository.findByTenantIdOrderByCreatedAtDesc(
+    private List<NotificationFeedItem> apiNotifications(Long tenantId, Set<String> permissions) {
+        Set<String> allowedTypes = NotificationPermissionPolicy.allowedPersistedTypes(permissions);
+        if (allowedTypes.isEmpty()) {
+            return List.of();
+        }
+
+        return notificationRepository.findByTenantIdAndTypeInOrderByCreatedAtDesc(
                 tenantId,
-                PageRequest.of(0, API_NOTIFICATION_LIMIT, Sort.by(Sort.Direction.DESC, "createdAt"))
+                allowedTypes,
+                PageRequest.of(0, API_NOTIFICATION_LIMIT)
             )
             .stream()
             .map(notification -> new NotificationFeedItem(
@@ -159,21 +160,53 @@ public class NotificationQueryService {
         List<CustomerDebtTransaction> overdueDebts = debts.overdue(
             tenantId,
             LocalDate.now(),
-            PageRequest.of(0, DERIVED_GROUP_LIMIT)
+            PageRequest.of(0, DERIVED_SCAN_LIMIT)
         );
-        Map<Long, Customer> customerMap = customersById(tenantId, overdueDebts.stream()
-            .map(CustomerDebtTransaction::getCustomerId)
+
+        // A customer may have several overdue sales orders. Show one actionable alert per
+        // customer instead of one row per receivable transaction to keep the feed useful.
+        Map<Long, OverdueDebtSummary> summaries = new LinkedHashMap<>();
+        for (CustomerDebtTransaction debt : overdueDebts) {
+            Long customerId = debt.getCustomerId();
+            if (customerId == null) {
+                continue;
+            }
+
+            BigDecimal remaining = debt.getRemainingAmount() == null
+                ? BigDecimal.ZERO
+                : debt.getRemainingAmount();
+            Instant createdAt = debt.getCreatedAt() == null ? Instant.EPOCH : debt.getCreatedAt();
+
+            summaries.merge(
+                customerId,
+                new OverdueDebtSummary(customerId, remaining, createdAt),
+                (current, incoming) -> new OverdueDebtSummary(
+                    customerId,
+                    current.amount().add(incoming.amount()),
+                    current.createdAt().isBefore(incoming.createdAt())
+                        ? current.createdAt()
+                        : incoming.createdAt()
+                )
+            );
+        }
+
+        List<OverdueDebtSummary> limitedSummaries = summaries.values()
+            .stream()
+            .limit(DERIVED_GROUP_LIMIT)
+            .toList();
+        Map<Long, Customer> customerMap = customersById(tenantId, limitedSummaries.stream()
+            .map(OverdueDebtSummary::customerId)
             .collect(Collectors.toSet()));
 
-        return overdueDebts.stream()
-            .map(debt -> new NotificationFeedItem(
-                "overdue-" + debt.getId(),
+        return limitedSummaries.stream()
+            .map(summary -> new NotificationFeedItem(
+                "overdue-customer-" + summary.customerId(),
                 "OVERDUE_DEBT",
                 "Overdue debt",
-                customerName(customerMap, debt.getCustomerId()) + " has overdue receivable of " +
-                    formatMoney(debt.getRemainingAmount()) + " VND.",
+                customerName(customerMap, summary.customerId()) + " has overdue receivable of " +
+                    formatMoney(summary.amount()) + " VND.",
                 false,
-                debt.getCreatedAt(),
+                summary.createdAt(),
                 DERIVED_SOURCE
             ))
             .toList();
@@ -198,26 +231,6 @@ public class NotificationQueryService {
                     formatMoney(payment.getAmount()) + " VND.",
                 false,
                 payment.getCreatedAt(),
-                DERIVED_SOURCE
-            ))
-            .toList();
-    }
-
-    private List<NotificationFeedItem> stockMovementNotifications(Long tenantId) {
-        return inventoryTransactions.findByTenantIdAndSourceTypeOrderByCreatedAtDesc(
-                tenantId,
-                SALES_ORDER_SOURCE,
-                PageRequest.of(0, STOCK_MOVEMENT_LIMIT)
-            )
-            .stream()
-            .map(transaction -> new NotificationFeedItem(
-                "sales-order-" + transaction.getId(),
-                "SALES_ORDER_CONFIRMED",
-                "Sales order confirmed",
-                "Inventory updated for product #" + transaction.getProductId() +
-                    " after sales order confirmation.",
-                false,
-                transaction.getCreatedAt(),
                 DERIVED_SOURCE
             ))
             .toList();
@@ -258,6 +271,20 @@ public class NotificationQueryService {
     private boolean canBuildPaymentNotifications(Set<String> permissions) {
         return permissions.contains(PermissionNames.CUSTOMER_VIEW)
             && permissions.contains(PermissionNames.PAYMENT_CREATE);
+    }
+
+    private record OverdueDebtSummary(
+        Long customerId,
+        BigDecimal amount,
+        Instant createdAt
+    ) {
+    }
+
+    private Set<String> permissions(Authentication authentication) {
+        return authentication.getAuthorities()
+            .stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.toSet());
     }
 
     private String customerName(Map<Long, Customer> customerMap, Long customerId) {

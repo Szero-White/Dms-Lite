@@ -10,18 +10,10 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(prefix = "app.messaging.rabbitmq", name = "enabled", havingValue = "true")
 class NotificationConsumer {
 
-    private final NotificationRepository notificationRepository;
+    private final NotificationPersistenceService notificationPersistenceService;
 
     @RabbitListener(queues = "${app.queue.notifications}")
     void on(NotificationEvent event) {
-        notificationRepository.save(
-            Notification.builder()
-                .tenantId(event.tenantId())
-                .type(event.type())
-                .title(event.title())
-                .message(event.message())
-                .readFlag(false)
-                .build()
-        );
+        notificationPersistenceService.store(event);
     }
 }
