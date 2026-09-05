@@ -107,20 +107,6 @@ export function SalesOrdersPage() {
 
   const totalOrders = orders.length;
   const activeOrders = orders.filter((o) => o.status === 'DRAFT').length;
-  const totalRevenue = useMemo(
-    () => orders.filter((o) => o.status === 'COMPLETED')
-      .reduce((s, o) => s + toNumber(o.totalAmount), 0),
-    [orders],
-  );
-  const outstandingDebt = useMemo(
-    () => customers.reduce((sum, customer) => sum + toNumber(customer.debtBalance), 0),
-    [customers],
-  );
-  const paidAmount = useMemo(
-    () => orders.filter((o) => o.status === 'COMPLETED')
-      .reduce((s, o) => s + toNumber(o.paidAmount), 0),
-    [orders],
-  );
 
   const filteredOrders = useMemo(() => {
     const kw = keyword.trim().toLowerCase();
@@ -206,12 +192,8 @@ export function SalesOrdersPage() {
         completedCount={statusCounts.COMPLETED}
         draftCount={statusCounts.DRAFT}
         onStatusFilterChange={setStatusFilter}
-        outstandingDebt={outstandingDebt}
-        paidAmount={paidAmount}
-        showFinancials={canViewSalesOrderFinancials}
         statusFilter={statusFilter}
         totalOrders={totalOrders}
-        totalRevenue={totalRevenue}
       />
       {/* Table card */}
       <Card className={`panel-card ${styles.tableCard}`}>
@@ -337,10 +319,20 @@ export function SalesOrdersPage() {
               { title: t('common.status'), width: 130, render: (_, r) => <SalesOrderStatusTag status={r.status} /> },
               ...(canViewSalesOrderFinancials ? [
                 { title: t('sales.column.total'), dataIndex: 'totalAmount', align: 'right' as const, width: 150, render: (v: string | number | null) => <span className={styles.money}>{formatCurrency(v)}</span> },
-                { title: t('sales.column.paid'), dataIndex: 'paidAmount', align: 'right' as const, width: 150, render: (v: string | number | null) => <span className={styles.money}>{formatCurrency(v)}</span> },
+                { title: t('sales.column.paid'), dataIndex: 'paidAmount', align: 'right' as const, width: 150, render: (_, record) => <span className={styles.money}>{record.status === 'COMPLETED' ? formatCurrency(record.paidAmount) : t('sales.financial.notApplicable')}</span> },
                 {
-                  title: t('sales.column.debt'), dataIndex: 'debtAmount', align: 'right' as const, width: 150,
-                  render: (v: string | number | null) => <span className={`${styles.money} ${toNumber(v) > 0 ? styles.debt : ''}`}>{formatCurrency(v)}</span>,
+                  title: t('sales.column.debt'), dataIndex: 'debtAmount', align: 'right' as const, width: 180,
+                  render: (_, record) => {
+                    if (record.status === 'COMPLETED') {
+                      return <span className={`${styles.money} ${toNumber(record.debtAmount) > 0 ? styles.debt : ''}`}>{formatCurrency(record.debtAmount)}</span>;
+                    }
+
+                    if (record.status === 'DRAFT') {
+                      return <span className={styles.money}>{t('sales.financial.projectedReceivable', { amount: formatCurrency(record.totalAmount) })}</span>;
+                    }
+
+                    return <span className={styles.money}>{t('sales.financial.notIncurred')}</span>;
+                  },
                 },
               ] : []),
               {
@@ -393,8 +385,18 @@ export function SalesOrdersPage() {
               {canViewSalesOrderFinancials ? (
                 <>
                   <Descriptions.Item label={t('sales.column.total')}>{formatCurrency(selectedOrderDetail.totalAmount)}</Descriptions.Item>
-                  <Descriptions.Item label={t('sales.column.paid')}>{formatCurrency(selectedOrderDetail.paidAmount)}</Descriptions.Item>
-                  <Descriptions.Item label={t('sales.column.debt')}>{formatCurrency(selectedOrderDetail.debtAmount)}</Descriptions.Item>
+                  <Descriptions.Item label={t('sales.column.paid')}>
+                    {selectedOrderDetail.status === 'COMPLETED'
+                      ? formatCurrency(selectedOrderDetail.paidAmount)
+                      : t('sales.financial.notApplicable')}
+                  </Descriptions.Item>
+                  <Descriptions.Item label={t('sales.column.debt')}>
+                    {selectedOrderDetail.status === 'COMPLETED'
+                      ? formatCurrency(selectedOrderDetail.debtAmount)
+                      : selectedOrderDetail.status === 'DRAFT'
+                        ? t('sales.financial.projectedReceivable', { amount: formatCurrency(selectedOrderDetail.totalAmount) })
+                        : t('sales.financial.notIncurred')}
+                  </Descriptions.Item>
                 </>
               ) : null}
               <Descriptions.Item label={t('sales.drawer.warehouse')}>

@@ -9,6 +9,7 @@ import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
 import com.example.dms.sales.SalesOrder;
 import com.example.dms.sales.SalesOrderRepository;
+import com.example.dms.sales.SalesOrderStatus;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.List;
@@ -201,9 +202,7 @@ public class HelpDataAnswerService {
         }
 
         String financeText = asksFinance
-            ? (locale == HelpLocale.VI
-                ? " Tổng tiền " + money(foundOrder.getTotalAmount(), locale) + ", đã thanh toán " + money(foundOrder.getPaidAmount(), locale) + ", công nợ " + money(foundOrder.getDebtAmount(), locale) + "."
-                : " Total " + money(foundOrder.getTotalAmount(), locale) + ", paid " + money(foundOrder.getPaidAmount(), locale) + ", debt " + money(foundOrder.getDebtAmount(), locale) + ".")
+            ? salesOrderFinanceText(foundOrder, locale)
             : "";
 
         return response(
@@ -219,6 +218,34 @@ public class HelpDataAnswerService {
             List.of(locale == HelpLocale.VI ? "Dữ liệu đơn hàng được máy chủ tra trực tiếp theo doanh nghiệp và quyền." : "Order data was looked up directly by tenant and permission."),
             locale
         );
+    }
+
+    private String salesOrderFinanceText(SalesOrder salesOrder, HelpLocale locale) {
+        BigDecimal totalAmount = salesOrder.getTotalAmount();
+
+        if (salesOrder.getStatus() == SalesOrderStatus.DRAFT) {
+            return locale == HelpLocale.VI
+                ? " Tổng đơn " + money(totalAmount, locale)
+                    + ". Khoản phải thu thực tế chưa phát sinh; giá trị đơn hiện chỉ được dùng để kiểm tra hạn mức tín dụng dự kiến cho tới khi kho hoàn tất đơn."
+                : " Order total " + money(totalAmount, locale)
+                    + ". No actual receivable has been recognized yet; this is projected credit exposure until warehouse fulfillment.";
+        }
+
+        if (salesOrder.getStatus() == SalesOrderStatus.CANCELLED) {
+            return locale == HelpLocale.VI
+                ? " Tổng đơn " + money(totalAmount, locale)
+                    + ". Đơn đã hủy nên không phát sinh doanh thu hoặc khoản phải thu."
+                : " Order total " + money(totalAmount, locale)
+                    + ". The order was cancelled, so it did not create recognized revenue or a receivable.";
+        }
+
+        return locale == HelpLocale.VI
+            ? " Tổng đơn " + money(totalAmount, locale)
+                + ", đã thu " + money(salesOrder.getPaidAmount(), locale)
+                + ", còn phải thu " + money(salesOrder.getDebtAmount(), locale) + "."
+            : " Order total " + money(totalAmount, locale)
+                + ", collected " + money(salesOrder.getPaidAmount(), locale)
+                + ", remaining receivable " + money(salesOrder.getDebtAmount(), locale) + ".";
     }
 
     private HelpAnswerResponse productSummaryAnswer(HelpPermissionScope scope, HelpLocale locale) {

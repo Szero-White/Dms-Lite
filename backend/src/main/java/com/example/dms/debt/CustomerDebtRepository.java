@@ -24,6 +24,11 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
         BigDecimal getBalance();
     }
 
+    interface SalesOrderReceivableView {
+        Long getSourceId();
+        BigDecimal getRemainingAmount();
+    }
+
     List<CustomerDebtTransaction> findByTenantIdAndCustomerIdOrderByCreatedAtDesc(
         Long tenantId,
         Long customerId
@@ -84,6 +89,19 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
     List<CustomerDebtLeaderView> topDebtLeaders(
         @Param("tenantId") Long tenantId,
         Pageable pageable
+    );
+
+
+    @Query(
+        "select debt.sourceId as sourceId, coalesce(sum(debt.remainingAmount),0) as remainingAmount " +
+        "from CustomerDebtTransaction debt " +
+        "where debt.tenantId=:tenantId and debt.sourceType='SALES_ORDER' " +
+        "and debt.direction='INCREASE' and debt.sourceId in :salesOrderIds " +
+        "group by debt.sourceId"
+    )
+    List<SalesOrderReceivableView> remainingForSalesOrders(
+        @Param("tenantId") Long tenantId,
+        @Param("salesOrderIds") Collection<Long> salesOrderIds
     );
 
     @Query(

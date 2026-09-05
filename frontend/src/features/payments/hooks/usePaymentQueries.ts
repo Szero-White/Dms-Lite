@@ -18,6 +18,7 @@ export function useRecordCustomerPayment() {
         queryClient.invalidateQueries({ queryKey: queryKeys.dashboard }),
         queryClient.invalidateQueries({ queryKey: queryKeys.notifications }),
         queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.salesReportRoot }),
         queryClient.invalidateQueries({ queryKey: queryKeys.invoicesRoot }),
         queryClient.invalidateQueries({ queryKey: queryKeys.auditLogs }),
       ]);

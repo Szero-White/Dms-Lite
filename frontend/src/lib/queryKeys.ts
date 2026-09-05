@@ -6,6 +6,8 @@ export const queryKeys = {
   customer: (customerId: number | string) => ['customers', customerId] as const,
   customerDebt: (customerId: number | string) => ['customers', customerId, 'debt'] as const,
   salesOrders: ['sales-orders'] as const,
+  salesReportRoot: ['reports', 'sales'] as const,
+  salesReport: (from: string | null, to: string | null) => ['reports', 'sales', { from, to }] as const,
   salesOrderDetail: (orderId: number | string) => ['sales-orders', orderId, 'detail'] as const,
   invoicesRoot: ['invoices'] as const,
   invoices: (page: number) => ['invoices', { page }] as const,

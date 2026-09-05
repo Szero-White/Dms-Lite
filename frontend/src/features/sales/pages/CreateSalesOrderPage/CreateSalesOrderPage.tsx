@@ -38,6 +38,11 @@ import {
 } from '../../hooks/useSalesQueries';
 import styles from './CreateSalesOrderPage.module.css';
 
+interface CreatedOrderReference {
+  id: number;
+  code: string;
+}
+
 interface OrderFormValues {
   customerId: number;
   warehouseId: number;
@@ -60,7 +65,7 @@ export function CreateSalesOrderPage() {
   const warehouseQuery = useDefaultWarehouse();
   const createOrder = useCreateSalesOrder();
   const confirmOrder = useConfirmSalesOrder();
-  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
+  const [createdOrder, setCreatedOrder] = useState<CreatedOrderReference | null>(null);
   const [form] = Form.useForm<OrderFormValues>();
 
   const watchedItems = Form.useWatch('items', form) || [];
@@ -91,13 +96,13 @@ export function CreateSalesOrderPage() {
   );
 
   const orderTotal = subtotal - discountTotal;
-  const debtAmount = Math.max(orderTotal, 0);
+  const orderExposure = Math.max(orderTotal, 0);
   const selectedCustomer = customersQuery.data?.find(
     (customer) => customer.id === selectedCustomerId,
   );
   const currentCustomerDebt = toNumber(selectedCustomer?.debtBalance);
   const customerCreditLimit = toNumber(selectedCustomer?.creditLimit);
-  const projectedCustomerDebt = currentCustomerDebt + debtAmount;
+  const projectedCustomerDebt = currentCustomerDebt + orderExposure;
   const exceedsCreditLimit = customerCreditLimit > 0 && projectedCustomerDebt > customerCreditLimit;
   const stockWarnings = watchedItems.flatMap((item) => {
     const product = productsQuery.data?.find(
@@ -173,7 +178,7 @@ export function CreateSalesOrderPage() {
                     })),
                   });
 
-                  setCreatedOrderId(order.id);
+                  setCreatedOrder({ id: order.id, code: order.code });
                 }}
               >
                 <div className={styles.formSectionHeading}>
@@ -321,7 +326,7 @@ export function CreateSalesOrderPage() {
                     description={t('sales.create.creditLimitWarningDescription', {
                       limit: formatCurrency(customerCreditLimit),
                       currentDebt: formatCurrency(currentCustomerDebt),
-                      orderDebt: formatCurrency(debtAmount),
+                      orderExposure: formatCurrency(orderExposure),
                       projectedDebt: formatCurrency(projectedCustomerDebt),
                     })}
                   />
@@ -354,30 +359,30 @@ export function CreateSalesOrderPage() {
                   <Typography.Text strong>{formatCurrency(orderTotal)}</Typography.Text>
                 </div>
                 <div className="flex-between">
-                  <Typography.Text>{t('sales.create.debtAmount')}</Typography.Text>
+                  <Typography.Text>{t('sales.create.orderExposure')}</Typography.Text>
                   <Typography.Text
                     strong
-                    className={debtAmount > 0 ? styles.debtAmount : undefined}
+                    className={orderExposure > 0 ? styles.exposureAmount : undefined}
                   >
-                    {formatCurrency(debtAmount)}
+                    {formatCurrency(orderExposure)}
                   </Typography.Text>
                 </div>
               </Space>
             </Card>
 
-            {createdOrderId ? (
+            {createdOrder ? (
               <Alert
                 className={styles.successAlert}
                 type="success"
                 showIcon
-                message={t('sales.create.createdSuccess', { id: createdOrderId })}
+                message={t('sales.create.createdSuccess', { code: createdOrder.code })}
                 description={(
                   <Space direction="vertical">
                     {canConfirmSalesOrder ? (
                       <Button
                         type="primary"
                         loading={confirmOrder.isPending}
-                        onClick={() => confirmOrder.mutate(createdOrderId)}
+                        onClick={() => confirmOrder.mutate(createdOrder.id)}
                       >
                         {t('sales.create.confirmNow')}
                       </Button>

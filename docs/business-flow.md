@@ -15,7 +15,7 @@ Kết quả:
 - tạo order trạng thái `DRAFT`;
 - chưa trừ kho;
 - chưa phát sinh receivable;
-- nếu `creditLimit > 0`, frontend cảnh báo khi `current receivable + draft debt` vượt hạn mức nhưng vẫn cho phép lưu `DRAFT`.
+- nếu `creditLimit > 0`, frontend cảnh báo khi `current receivable + projected order exposure` vượt hạn mức nhưng vẫn cho phép lưu `DRAFT`.
 
 Order code dùng random suffix thay vì `count + 1` để tránh race condition khi nhiều request tạo đơn đồng thời. Current MVP dùng một warehouse chính; frontend lấy warehouse này từ backend thay vì hardcode ID.
 
@@ -34,7 +34,7 @@ Trong transaction:
 1. lock order row đúng tenant để chỉ một transition `DRAFT -> ...` được xử lý tại một thời điểm;
 2. kiểm tra order phải là `DRAFT`;
 3. lock customer row để serialize các lần fulfill có thể cùng làm tăng exposure của một customer;
-4. nếu `creditLimit > 0`, tính `current receivable + order debt` và reject trước khi xuất kho nếu kết quả vượt hạn mức;
+4. nếu `creditLimit > 0`, tính `current receivable + projected order exposure` và reject trước khi xuất kho nếu kết quả vượt hạn mức;
 5. lock stock row;
 6. kiểm tra đủ stock;
 7. trừ stock;
@@ -112,15 +112,30 @@ Revenue chỉ ghi nhận order `COMPLETED`.
 
 Dashboard dùng `confirmed_at`, không dùng `created_at`, để đơn tạo hôm trước nhưng confirm hôm nay được ghi nhận vào ngày confirm.
 
-## 7. Read APIs
+## 7. Sales report semantics
+
+`GET /api/reports/sales`
+
+Sales report là read model riêng, không lấy page đầu của `GET /api/sales-orders` để tự tổng hợp ở browser. Dashboard analytics/export cũng dùng read model này; `GET /api/sales-orders` chỉ còn phục vụ operational preview như đơn gần đây/cần xử lý.
+
+- `DRAFT` và `CANCELLED` vẫn xuất hiện để theo dõi pipeline đơn hàng nhưng chưa được coi là receivable thực tế;
+- với các trạng thái chưa ghi nhận receivable, `collectedAmount`, `remainingReceivable` và `collectionProgress` là `null`;
+- `COMPLETED` mới được tính vào recognized revenue;
+- `reportDate` dùng `confirmedAt` cho `COMPLETED`, còn `DRAFT`/`CANCELLED` dùng `createdAt`, nên filter theo kỳ phản ánh đúng thời điểm ghi nhận nghiệp vụ;
+- `COMPLETED` lấy số còn phải thu từ `customer_debt_transactions.INCREASE.remainingAmount`, cùng source-of-truth với customer debt và payment;
+- payment làm thay đổi report thông qua receivable ledger, không tạo phép tính công nợ riêng ở frontend;
+- customer bị soft-delete sau khi tất toán vẫn không làm mất sales history khỏi report.
+
+## 8. Read APIs
 
 - `GET /api/customers` -> customer page summary.
 - `GET /api/customers/{id}` -> customer detail.
 - `GET /api/customers/{id}/debt-statement` -> statement, yêu cầu `DEBT_VIEW`.
 - `GET /api/sales-orders` -> paged order summary; hỗ trợ `customerId` filter.
 - `GET /api/sales-orders/{id}` -> order detail + items.
+- `GET /api/reports/sales` -> sales reporting read model; hỗ trợ `from` / `to` ISO-8601 và yêu cầu cả `REPORT_VIEW` + `SALES_ORDER_VIEW`.
 
-Frontend không được giả định list summary chứa order items.
+Frontend không được giả định list summary chứa order items. Với order chưa `COMPLETED`, API vẫn có thể trả `totalAmount` cho giá trị đơn nhưng `paidAmount`/`debtAmount` không được trình bày như khoản phải thu thực tế.
 
 - `GET /api/invoices` -> paged invoice summary, yêu cầu `INVOICE_VIEW`.
 - `GET /api/invoices/{id}` -> invoice detail + snapshot items.

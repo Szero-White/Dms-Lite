@@ -4,7 +4,7 @@ import { formatDateTime, toNumber } from '../../../../lib/format';
 import { downloadXlsx, type ExcelSheetData } from '../../../../lib/xlsxExport';
 import type { Customer } from '../../../customers';
 import type { ProductRow } from '../../../products';
-import type { SalesOrder } from '../../../sales';
+import type { SalesReportOrder } from '../../types/salesReport.types';
 
 export type ReportTab = 'sales' | 'inventory' | 'receivables';
 export type ReportExportFormat = 'csv' | 'xlsx';
@@ -12,7 +12,7 @@ export type ReportExportFormat = 'csv' | 'xlsx';
 interface ReportExportContext {
   activeTab: ReportTab;
   customers: Customer[];
-  filteredOrders: SalesOrder[];
+  salesOrders: SalesReportOrder[];
   products: ProductRow[];
   t: TFunction;
 }
@@ -25,23 +25,23 @@ function generatedAtText(t: TFunction) {
   return t('reports.export.generatedAt', { time: formatDateTime(new Date().toISOString()) });
 }
 
-function buildSalesRows({ filteredOrders, t }: ReportExportContext): CsvRow[] {
+function buildSalesRows({ salesOrders, t }: ReportExportContext): CsvRow[] {
   return [
     [
       t('reports.table.order'),
-      t('reports.table.createdAt'),
+      t('reports.table.reportDate'),
       t('reports.table.status'),
       t('reports.table.total'),
-      t('reports.table.paid'),
-      t('reports.table.debt'),
+      t('reports.table.collected'),
+      t('reports.table.remainingDebt'),
     ],
-    ...filteredOrders.map((order) => [
+    ...salesOrders.map((order) => [
       order.code,
-      formatDateTime(order.createdAt),
+      formatDateTime(order.reportDate),
       t(`status.sales.${order.status}`),
       toNumber(order.totalAmount),
-      toNumber(order.paidAmount),
-      toNumber(order.debtAmount),
+      order.receivableRecognized ? toNumber(order.collectedAmount) : '',
+      order.receivableRecognized ? toNumber(order.remainingReceivable) : '',
     ]),
   ];
 }
@@ -99,7 +99,7 @@ function buildReportRows(context: ReportExportContext): CsvRow[] {
 }
 
 function buildSalesSheet(context: ReportExportContext): ExcelSheetData {
-  const { filteredOrders, t } = context;
+  const { salesOrders, t } = context;
 
   return {
     name: t('reports.tabs.sales'),
@@ -107,19 +107,19 @@ function buildSalesSheet(context: ReportExportContext): ExcelSheetData {
     subtitle: generatedAtText(t),
     columns: [
       { header: t('reports.table.order'), width: 18 },
-      { header: t('reports.table.createdAt'), width: 22, type: 'date' },
+      { header: t('reports.table.reportDate'), width: 22, type: 'date' },
       { header: t('reports.table.status'), width: 18, type: 'status' },
       { header: t('reports.table.total'), width: 16, type: 'currency' },
-      { header: t('reports.table.paid'), width: 16, type: 'currency' },
-      { header: t('reports.table.debt'), width: 16, type: 'currency' },
+      { header: t('reports.table.collected'), width: 16, type: 'currency' },
+      { header: t('reports.table.remainingDebt'), width: 18, type: 'currency' },
     ],
-    rows: filteredOrders.map((order) => [
+    rows: salesOrders.map((order) => [
       order.code,
-      new Date(order.createdAt),
+      new Date(order.reportDate),
       t(`status.sales.${order.status}`),
       toNumber(order.totalAmount),
-      toNumber(order.paidAmount),
-      toNumber(order.debtAmount),
+      order.receivableRecognized ? toNumber(order.collectedAmount) : '',
+      order.receivableRecognized ? toNumber(order.remainingReceivable) : '',
     ]),
   };
 }

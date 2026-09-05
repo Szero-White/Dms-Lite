@@ -304,12 +304,22 @@ export function CustomerDetailPage() {
                     {
                       title: t('sales.column.paid'),
                       dataIndex: 'paidAmount',
-                      render: (value: string | number | null) => formatCurrency(value),
+                      render: (_: string | number | null, order) => order.status === 'COMPLETED'
+                        ? formatCurrency(order.paidAmount)
+                        : t('sales.financial.notApplicable'),
                     },
                     {
                       title: t('sales.column.debt'),
                       dataIndex: 'debtAmount',
-                      render: (value: string | number | null) => formatCurrency(value),
+                      render: (_: string | number | null, order) => {
+                        if (order.status === 'COMPLETED') {
+                          return formatCurrency(order.debtAmount);
+                        }
+
+                        return order.status === 'DRAFT'
+                          ? t('sales.financial.projectedReceivable', { amount: formatCurrency(order.totalAmount) })
+                          : t('sales.financial.notIncurred');
+                      },
                     },
                   ] : []),
                 ]}

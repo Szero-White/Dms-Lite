@@ -348,10 +348,10 @@ The current portfolio version focuses on a stable local/deployable vertical slic
 ## Current Business Invariants
 
 - Persisted sales order statuses are `DRAFT`, `COMPLETED`, and `CANCELLED`; current MVP confirm also performs fulfillment.
-- Revenue is recognized only for `COMPLETED` orders and dashboard time windows use `confirmed_at`.
+- Revenue is recognized only for `COMPLETED` orders; report/dashboard analytics use the backend reporting read model and `confirmed_at` as the recognition time for completed orders.
 - Current receivable balance is `SUM(remaining_amount)` of open `INCREASE` transactions. `DECREASE` entries preserve payment history and are not subtracted twice.
 - Customer payments lock open receivables before validation/allocation.
-- Sales-order `paidAmount`/`debtAmount` snapshots are synchronized in the same payment transaction; open receivable `remainingAmount` stays the canonical balance.
+- Sales-order `paidAmount`/`debtAmount` snapshots are synchronized in the same payment transaction; open receivable `remainingAmount` stays the canonical balance. Draft/cancelled orders are not exposed as actual receivables.
 - Customer and sales-order detail screens use dedicated detail APIs instead of searching only the first list page.
 - Warehouse-dependent actions resolve and validate the configured tenant warehouse instead of assuming warehouse ID `1`.
 

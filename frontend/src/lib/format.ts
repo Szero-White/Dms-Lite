@@ -139,7 +139,7 @@ function localizeKnownServerMessage(message: string): string | null {
     return i18n.t('errors.api.creditLimitExceeded', {
       limit: formatCurrency(match[1]),
       currentDebt: formatCurrency(match[2]),
-      orderDebt: formatCurrency(match[3]),
+      orderExposure: formatCurrency(match[3]),
       projectedDebt: formatCurrency(match[4]),
     });
   }

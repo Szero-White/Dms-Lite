@@ -14,7 +14,7 @@ import { SummaryCard } from '../../../../../components/common/SummaryCard/Summar
 import { formatCurrency, formatNumber } from '../../../../../lib/format';
 import type { DashboardSnapshot } from '../../../types/dashboard.types';
 import type { ProductRow } from '../../../../products';
-import type { SalesOrder } from '../../../../sales';
+import type { SalesReportOrder } from '../../../../reports/types/salesReport.types';
 import type { DashboardRange } from '../dashboardPage.types';
 import styles from './DashboardPerformanceSection.module.css';
 
@@ -23,9 +23,8 @@ interface DashboardPerformanceSectionProps {
   canViewCustomers: boolean;
   canViewInventory: boolean;
   canViewOrders: boolean;
-  completedOrders: SalesOrder[];
   dashboard: DashboardSnapshot;
-  filteredOrders: SalesOrder[];
+  analyticsOrders: SalesReportOrder[];
   lowStockProducts: ProductRow[];
   products: ProductRow[];
   range: DashboardRange;
@@ -69,16 +68,16 @@ export function DashboardPerformanceSection({
   canViewCustomers,
   canViewInventory,
   canViewOrders,
-  completedOrders,
   dashboard,
-  filteredOrders,
+  analyticsOrders,
   lowStockProducts,
   products,
   range,
 }: DashboardPerformanceSectionProps) {
   const { t } = useTranslation();
   const rangeLabel = t(`dashboard.range.${range}`);
-  const totalOrders = filteredOrders.length || 1;
+  const completedOrders = analyticsOrders.filter((order) => order.status === 'COMPLETED');
+  const totalOrders = analyticsOrders.length || 1;
   const completedPct = Math.round((completedOrders.length / totalOrders) * 100);
   const healthyPct = products.length
     ? Math.round(((products.length - lowStockProducts.length) / products.length) * 100)
@@ -108,7 +107,7 @@ export function DashboardPerformanceSection({
       pct: completedPct,
       showGauge: true,
       subLabel: t('dashboard.performance.completedPercent', { percent: completedPct }),
-      value: String(formatNumber(filteredOrders.filter((order) => order.status === 'DRAFT').length)),
+      value: String(formatNumber(analyticsOrders.filter((order) => order.status === 'DRAFT').length)),
     }] : []),
     ...(canViewInventory ? [{
       color: '#06b6d4',

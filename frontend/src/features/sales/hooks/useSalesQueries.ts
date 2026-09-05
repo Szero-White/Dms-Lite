@@ -42,7 +42,10 @@ export function useCreateSalesOrder() {
     mutationFn: (payload: CreateSalesOrderPayload) => createSalesOrder(payload),
     onSuccess: async () => {
       message.success(t('toast.sales.created'));
-      await queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.salesReportRoot }),
+      ]);
     },
     onError,
   });
@@ -57,6 +60,7 @@ export function useConfirmSalesOrder() {
       message.success(t('toast.sales.confirmed'));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.salesReportRoot }),
         queryClient.invalidateQueries({ queryKey: queryKeys.salesOrderDetail(orderId) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.inventoryStock }),
         queryClient.invalidateQueries({ queryKey: queryKeys.inventoryHistory }),
@@ -78,6 +82,7 @@ export function useCancelSalesOrder() {
       message.success(t('toast.sales.cancelled'));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.salesReportRoot }),
         queryClient.invalidateQueries({ queryKey: queryKeys.salesOrderDetail(orderId) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.notifications }),
       ]);

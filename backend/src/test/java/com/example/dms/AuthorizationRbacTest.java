@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.dms.customer.Customer;
+import com.example.dms.customer.CustomerRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
@@ -30,6 +32,9 @@ class AuthorizationRbacTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private CustomerRepository customerRepository;
+
     @Test
     void ownerCanReadAuditLogs() throws Exception {
         mvc.perform(get("/api/audit-logs")
@@ -47,6 +52,17 @@ class AuthorizationRbacTest {
     @Test
     void salesCannotReadFinancialReports() throws Exception {
         mvc.perform(get("/api/reports/dashboard")
+                .header("Authorization", bearer("sale")))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void accountantCanReadSalesReportWhileSalesCannot() throws Exception {
+        mvc.perform(get("/api/reports/sales")
+                .header("Authorization", bearer("accountant")))
+            .andExpect(status().isOk());
+
+        mvc.perform(get("/api/reports/sales")
                 .header("Authorization", bearer("sale")))
             .andExpect(status().isForbidden());
     }
@@ -244,11 +260,19 @@ class AuthorizationRbacTest {
 
     @Test
     void salesCannotCreateOrderForUnknownWarehouse() throws Exception {
+        Long activeCustomerId = customerRepository.findAll().stream()
+            .filter(customer -> Long.valueOf(1L).equals(customer.getTenantId()))
+            .filter(Customer::isActive)
+            .filter(customer -> customer.getDeletedAt() == null)
+            .map(Customer::getId)
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("RBAC test requires an active demo customer"));
+
         mvc.perform(post("/api/sales-orders")
                 .header("Authorization", bearer("sale"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of(
-                    "customerId", 1,
+                    "customerId", activeCustomerId,
                     "warehouseId", 999999,
                     "items", new Object[] {
                         Map.of("productId", 1, "quantity", 1, "discountAmount", 0)
