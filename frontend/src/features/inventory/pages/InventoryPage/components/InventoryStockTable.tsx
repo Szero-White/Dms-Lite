@@ -112,7 +112,6 @@ export function InventoryStockTable({
       <Table
         rowKey="id"
         className={styles.stockTable}
-        sticky
         scroll={{ x: 820, y: 520 }}
         locale={{
           emptyText: hasFilters

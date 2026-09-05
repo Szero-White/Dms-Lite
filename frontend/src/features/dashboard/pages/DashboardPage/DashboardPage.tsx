@@ -6,7 +6,7 @@ import { PageHeader } from '../../../../components/common/PageHeader';
 import { downloadCsvContent } from '../../../../lib/csvExport';
 import { downloadXlsx } from '../../../../lib/xlsxExport';
 import { QueryState } from '../../../../components/common/QueryState';
-import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
+import { PERMISSIONS, canAccessPath, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
 import { useProducts } from '../../../products';
 import { useSalesOrders } from '../../../sales';
@@ -33,6 +33,11 @@ export function DashboardPage() {
   const canViewCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_VIEW);
   const canViewOrders = hasPermission(user, PERMISSIONS.SALES_ORDER_VIEW);
   const canViewInventoryProducts = hasPermission(user, PERMISSIONS.PRODUCT_VIEW) && hasPermission(user, PERMISSIONS.INVENTORY_VIEW);
+  const canCreateOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE)
+    && canAccessPath(user, '/sales-orders/new');
+  const canReceiveStock = hasPermission(user, PERMISSIONS.INVENTORY_MANAGE);
+  const canRecordPayment = hasPermission(user, PERMISSIONS.PAYMENT_CREATE);
+  const canManageCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_MANAGE);
   const dashboardQuery = useDashboardData();
   const ordersQuery = useSalesOrders({ enabled: canViewOrders });
   const customersQuery = useCustomers({ enabled: canViewCustomers });
@@ -143,15 +148,18 @@ export function DashboardPage() {
           <>
             <DashboardWelcomePanel
               latestOrderCreatedAt={latestOrder?.createdAt}
-              onAddCustomer={() => navigate('/customers')}
-              onCreateOrder={() => navigate('/sales-orders/new')}
-              onReceiveStock={() => navigate('/inventory')}
-              onRecordPayment={() => navigate('/payments')}
+              onAddCustomer={canManageCustomers ? () => navigate('/customers') : undefined}
+              onCreateOrder={canCreateOrder ? () => navigate('/sales-orders/new') : undefined}
+              onReceiveStock={canReceiveStock ? () => navigate('/inventory') : undefined}
+              onRecordPayment={canRecordPayment ? () => navigate('/payments') : undefined}
               userDisplayName={user?.fullName || user?.username || 'team'}
             />
 
             <DashboardPerformanceSection
               activeCustomers={activeCustomers}
+              canViewCustomers={canViewCustomers}
+              canViewInventory={canViewInventoryProducts}
+              canViewOrders={canViewOrders}
               completedOrders={completedOrders}
               dashboard={dashboardQuery.data}
               filteredOrders={filteredOrders}
@@ -160,6 +168,7 @@ export function DashboardPage() {
               range={range}
             />
 
+            {canViewOrders ? (
             <section className={styles.section}>
               <div className={styles.sectionHeading}>
                 <div>
@@ -174,21 +183,26 @@ export function DashboardPage() {
                 <DashboardOrderStatusChart orders={filteredOrders} />
               </div>
             </section>
+            ) : null}
 
             <DashboardCommercialSection dashboard={dashboardQuery.data} />
 
-            <DashboardAttentionSection
-              attentionOrders={attentionOrders}
-              customersMap={customersMap}
-              healthyProducts={healthyProducts}
-              lowStockProducts={lowStockProducts}
-              onOpenInventory={() => navigate('/inventory')}
-              onReviewOrders={() => navigate('/sales-orders')}
-              onViewActivity={() => navigate('/sales-orders')}
-              outOfStockProducts={outOfStockProducts}
-              products={products}
-              recentOrders={recentOrders}
-            />
+            {canViewInventoryProducts || canViewOrders ? (
+              <DashboardAttentionSection
+                attentionOrders={attentionOrders}
+                customersMap={customersMap}
+                healthyProducts={healthyProducts}
+                lowStockProducts={lowStockProducts}
+                onOpenInventory={() => navigate('/inventory')}
+                onReviewOrders={() => navigate('/sales-orders')}
+                onViewActivity={() => navigate('/sales-orders')}
+                outOfStockProducts={outOfStockProducts}
+                products={products}
+                recentOrders={recentOrders}
+                showInventory={canViewInventoryProducts}
+                showOrders={canViewOrders}
+              />
+            ) : null}
           </>
         ) : null}
       </QueryState>

@@ -25,6 +25,7 @@ import {
   canAccessPath,
   useAuth,
 } from '../../../features/auth';
+import { roleLabel } from '../../../lib/roleDisplay';
 import styles from './AppSidebar.module.css';
 
 interface AppSidebarProps {
@@ -182,7 +183,7 @@ export function AppSidebar({
           <Avatar size={32} icon={<UserOutlined />} />
           <div className={styles.userCopy}>
             <span>{user?.fullName || user?.username}</span>
-            <small>{user?.roles?.[0] || 'USER'}</small>
+            <small>{roleLabel(user?.roles?.[0], t)}</small>
           </div>
         </div>
 

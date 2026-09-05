@@ -16,10 +16,10 @@ import {
 } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../components/common/QueryState';
+import { roleLabel } from '../../../../../lib/roleDisplay';
 import type { RoleOption } from '../../../types/team.types';
 import styles from '../TeamPage.module.css';
 import { permissionLabel } from '../permissionDisplay';
-import { roleLabel } from '../teamPage.utils';
 
 interface RolesTableProps {
   roles: RoleOption[];
@@ -83,7 +83,7 @@ export function RolesTable({
               render: (_, record) => (
                 <div className={styles.roleCell}>
                   <div>
-                    <Typography.Text strong>{roleLabel(record.name)}</Typography.Text>
+                    <Typography.Text strong>{roleLabel(record.name, t)}</Typography.Text>
                     <Typography.Text type="secondary">
                       {record.systemRole ? t('team.roles.systemRole') : t('team.roles.customRole')}
                     </Typography.Text>

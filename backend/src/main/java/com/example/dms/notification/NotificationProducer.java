@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class NotificationProducer {
     private final ObjectProvider<RabbitTemplate> rabbitTemplateProvider;
 
-    private final NotificationRepository notificationRepository;
+    private final NotificationPersistenceService notificationPersistenceService;
 
     @Value("${app.queue.notifications}")
     private String queue;
@@ -35,14 +35,8 @@ public class NotificationProducer {
             }
         }
 
-        notificationRepository.save(
-            Notification.builder()
-                .tenantId(tenantId)
-                .type(type)
-                .title(title)
-                .message(message)
-                .readFlag(false)
-                .build()
+        notificationPersistenceService.store(
+            new NotificationEvent(tenantId, type, title, message)
         );
     }
 }

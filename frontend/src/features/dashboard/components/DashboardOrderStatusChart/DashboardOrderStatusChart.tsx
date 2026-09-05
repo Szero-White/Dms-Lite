@@ -30,7 +30,7 @@ export function DashboardOrderStatusChart({
     .filter((status) => statusMap[status])
     .map((status) => ({
       status,
-      label: t(`status.sales.${status}`, status),
+      label: t(`status.sales.${status}`, { defaultValue: t('status.sales.UNKNOWN') }),
       count: statusMap[status],
     }));
 

@@ -7,14 +7,25 @@ import org.springframework.stereotype.Component;
 public class SalesOrderMapper {
 
     public SalesOrderResponse toResponse(SalesOrder salesOrder) {
-        return toResponse(salesOrder, true);
+        return toResponse(salesOrder, true, null, null);
     }
 
     public SalesOrderResponse toResponse(SalesOrder salesOrder, boolean includeFinancials) {
+        return toResponse(salesOrder, includeFinancials, null, null);
+    }
+
+    public SalesOrderResponse toResponse(
+        SalesOrder salesOrder,
+        boolean includeFinancials,
+        String customerName,
+        String warehouseName
+    ) {
         return new SalesOrderResponse(
             salesOrder.getId(),
             salesOrder.getCustomerId(),
+            customerName,
             salesOrder.getWarehouseId(),
+            warehouseName,
             salesOrder.getCode(),
             salesOrder.getStatus(),
             includeFinancials ? salesOrder.getTotalAmount() : null,
@@ -26,10 +37,19 @@ public class SalesOrderMapper {
     }
 
     public SalesOrderDetailResponse toDetailResponse(SalesOrder salesOrder) {
-        return toDetailResponse(salesOrder, true);
+        return toDetailResponse(salesOrder, true, null, null);
     }
 
     public SalesOrderDetailResponse toDetailResponse(SalesOrder salesOrder, boolean includeFinancials) {
+        return toDetailResponse(salesOrder, includeFinancials, null, null);
+    }
+
+    public SalesOrderDetailResponse toDetailResponse(
+        SalesOrder salesOrder,
+        boolean includeFinancials,
+        String customerName,
+        String warehouseName
+    ) {
         List<SalesOrderItemResponse> itemResponses = salesOrder.getItems()
             .stream()
             .map(item -> toItemResponse(item, includeFinancials))
@@ -38,7 +58,9 @@ public class SalesOrderMapper {
         return new SalesOrderDetailResponse(
             salesOrder.getId(),
             salesOrder.getCustomerId(),
+            customerName,
             salesOrder.getWarehouseId(),
+            warehouseName,
             salesOrder.getCode(),
             salesOrder.getStatus(),
             includeFinancials ? salesOrder.getTotalAmount() : null,

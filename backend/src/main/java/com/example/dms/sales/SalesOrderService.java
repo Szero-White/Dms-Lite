@@ -8,6 +8,8 @@ import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
 import com.example.dms.inventory.InventoryService;
+import com.example.dms.inventory.Warehouse;
+import com.example.dms.inventory.WarehouseRepository;
 import com.example.dms.notification.NotificationProducer;
 import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
@@ -45,6 +47,7 @@ public class SalesOrderService {
     private final ProductRepository productRepository;
     private final CustomerRepository customerRepository;
     private final InventoryService inventoryService;
+    private final WarehouseRepository warehouseRepository;
     private final CustomerDebtRepository customerDebtRepository;
     private final AuditService auditService;
     private final NotificationProducer notificationProducer;
@@ -63,7 +66,14 @@ public class SalesOrderService {
             );
 
         boolean includeFinancials = canViewOrderFinancials();
-        return orders.map(order -> salesOrderMapper.toResponse(order, includeFinancials));
+        Map<Long, String> customerNames = loadCustomerNames(orders.getContent(), tenantId);
+        Map<Long, String> warehouseNames = loadWarehouseNames(orders.getContent(), tenantId);
+        return orders.map(order -> salesOrderMapper.toResponse(
+            order,
+            includeFinancials,
+            customerNames.get(order.getCustomerId()),
+            warehouseNames.get(order.getWarehouseId())
+        ));
     }
 
     @Transactional(readOnly = true)
@@ -73,7 +83,11 @@ public class SalesOrderService {
             TenantContext.tenantRequired()
         ).orElseThrow(() -> new BusinessException("Order not found"));
 
-        return salesOrderMapper.toDetailResponse(salesOrder, canViewOrderFinancials());
+        return toDetailResponseWithDisplayNames(
+            salesOrder,
+            TenantContext.tenantRequired(),
+            canViewOrderFinancials()
+        );
     }
 
     @Transactional
@@ -106,7 +120,11 @@ public class SalesOrderService {
             savedSalesOrder.getCode()
         );
 
-        return salesOrderMapper.toDetailResponse(savedSalesOrder, canViewOrderFinancials());
+        return toDetailResponseWithDisplayNames(
+            savedSalesOrder,
+            tenantId,
+            canViewOrderFinancials()
+        );
     }
 
     @Transactional
@@ -121,6 +139,9 @@ public class SalesOrderService {
         if (salesOrder.getStatus() != SalesOrderStatus.DRAFT) {
             throw new BusinessException("Only DRAFT can be confirmed");
         }
+
+        Customer customer = lockCustomer(salesOrder.getCustomerId(), tenantId);
+        validateCreditLimit(salesOrder, customer, tenantId);
 
         for (SalesOrderItem salesOrderItem : salesOrder.getItems()) {
             inventoryService.deduct(
@@ -139,7 +160,7 @@ public class SalesOrderService {
         salesOrder.setConfirmedAt(Instant.now());
 
         if (salesOrder.getDebtAmount().signum() > 0) {
-            customerDebtRepository.save(buildDebtTransaction(salesOrder, tenantId));
+            customerDebtRepository.save(buildDebtTransaction(salesOrder, tenantId, customer));
         }
 
         auditService.log(
@@ -155,7 +176,11 @@ public class SalesOrderService {
             "Order " + salesOrder.getCode() + " has been confirmed"
         );
 
-        return salesOrderMapper.toDetailResponse(salesOrder, canViewOrderFinancials());
+        return toDetailResponseWithDisplayNames(
+            salesOrder,
+            tenantId,
+            canViewOrderFinancials()
+        );
     }
 
     @Transactional
@@ -185,7 +210,11 @@ public class SalesOrderService {
             "Order cancelled",
             "Order " + salesOrder.getCode() + " has been cancelled"
         );
-        return salesOrderMapper.toDetailResponse(salesOrder, canViewOrderFinancials());
+        return toDetailResponseWithDisplayNames(
+            salesOrder,
+            tenantId,
+            canViewOrderFinancials()
+        );
     }
 
     private boolean canViewOrderFinancials() {
@@ -256,9 +285,11 @@ public class SalesOrderService {
         salesOrder.setDebtAmount(totalAmount.subtract(salesOrder.getPaidAmount()));
     }
 
-    private CustomerDebtTransaction buildDebtTransaction(SalesOrder salesOrder, Long tenantId) {
-        Customer customer = findCustomer(salesOrder.getCustomerId(), tenantId);
-
+    private CustomerDebtTransaction buildDebtTransaction(
+        SalesOrder salesOrder,
+        Long tenantId,
+        Customer customer
+    ) {
         return CustomerDebtTransaction.builder()
             .tenantId(tenantId)
             .customerId(customer.getId())
@@ -273,8 +304,85 @@ public class SalesOrderService {
             .build();
     }
 
+    private SalesOrderDetailResponse toDetailResponseWithDisplayNames(
+        SalesOrder salesOrder,
+        Long tenantId,
+        boolean includeFinancials
+    ) {
+        String customerName = customerRepository
+            .findByIdAndTenantId(salesOrder.getCustomerId(), tenantId)
+            .map(Customer::getName)
+            .orElse(null);
+        String warehouseName = warehouseRepository
+            .findByIdAndTenantId(salesOrder.getWarehouseId(), tenantId)
+            .map(Warehouse::getName)
+            .orElse(null);
+
+        return salesOrderMapper.toDetailResponse(
+            salesOrder,
+            includeFinancials,
+            customerName,
+            warehouseName
+        );
+    }
+
+    private Map<Long, String> loadCustomerNames(List<SalesOrder> orders, Long tenantId) {
+        Set<Long> customerIds = orders.stream()
+            .map(SalesOrder::getCustomerId)
+            .collect(Collectors.toSet());
+        if (customerIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return customerRepository
+            .findByTenantIdAndIdIn(tenantId, customerIds)
+            .stream()
+            .collect(Collectors.toMap(Customer::getId, Customer::getName));
+    }
+
+    private Map<Long, String> loadWarehouseNames(List<SalesOrder> orders, Long tenantId) {
+        Set<Long> warehouseIds = orders.stream()
+            .map(SalesOrder::getWarehouseId)
+            .collect(Collectors.toSet());
+        if (warehouseIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return warehouseRepository
+            .findByTenantIdAndIdIn(tenantId, warehouseIds)
+            .stream()
+            .collect(Collectors.toMap(Warehouse::getId, Warehouse::getName));
+    }
+
     private Customer findCustomer(Long customerId, Long tenantId) {
         return customerRepository.findByIdAndTenantIdAndDeletedAtIsNull(customerId, tenantId)
+            .orElseThrow(() -> new BusinessException("Customer not found"));
+    }
+
+    private void validateCreditLimit(SalesOrder salesOrder, Customer customer, Long tenantId) {
+        BigDecimal creditLimit = defaultIfNull(customer.getCreditLimit());
+        BigDecimal orderDebt = defaultIfNull(salesOrder.getDebtAmount());
+
+        // Zero means no hard credit limit is configured for this customer.
+        if (creditLimit.signum() <= 0 || orderDebt.signum() <= 0) {
+            return;
+        }
+
+        BigDecimal currentDebt = customerDebtRepository.balance(tenantId, customer.getId());
+        BigDecimal projectedDebt = currentDebt.add(orderDebt);
+
+        if (projectedDebt.compareTo(creditLimit) > 0) {
+            throw new BusinessException(
+                "Credit limit exceeded. Limit: " + creditLimit.toPlainString()
+                    + ", current debt: " + currentDebt.toPlainString()
+                    + ", order debt: " + orderDebt.toPlainString()
+                    + ", projected debt: " + projectedDebt.toPlainString()
+            );
+        }
+    }
+
+    private Customer lockCustomer(Long customerId, Long tenantId) {
+        return customerRepository.lockByIdAndTenantIdAndDeletedAtIsNull(customerId, tenantId)
             .orElseThrow(() -> new BusinessException("Customer not found"));
     }
 

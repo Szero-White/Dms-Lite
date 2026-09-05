@@ -62,7 +62,7 @@ public class HelpDataAnswerService {
     }
 
     private HelpAnswerResponse stockAnswer(String question, String normalizedQuestion, HelpPermissionScope scope, HelpLocale locale) {
-        if (!scope.canUseInventory()) {
+        if (!scope.canViewInventoryData()) {
             return blocked(scope, "Inventory", locale);
         }
 
@@ -86,7 +86,7 @@ public class HelpDataAnswerService {
                         locale == HelpLocale.VI ? "Dùng ô tìm kiếm nếu bạn cần tra một mã hàng cụ thể." : "Use search when you need a specific product code.",
                         locale == HelpLocale.VI ? "Chỉ điều chỉnh tồn kho khi có quyền và có lý do nghiệp vụ rõ ràng." : "Only adjust stock with permission and a clear business reason."
                     ),
-                    List.of("Inventory", "Products"),
+                    HelpDisplayNames.modules(locale, "Inventory", "Products"),
                     List.of(locale == HelpLocale.VI ? "Dữ liệu tồn kho chỉ trả về khi tài khoản có quyền kho." : "Stock data is only returned to accounts with inventory access."),
                     locale
                 );
@@ -94,7 +94,7 @@ public class HelpDataAnswerService {
 
             return notFound(
                 locale == HelpLocale.VI ? "Mình chưa tìm thấy mã hàng trong câu hỏi. Hãy hỏi kèm mã như WATER-24." : "I could not find a product code in the question. Try asking with a code like WATER-24.",
-                List.of("Inventory", "Products"),
+                HelpDisplayNames.modules(locale, "Inventory", "Products"),
                 locale
             );
         }
@@ -113,14 +113,14 @@ public class HelpDataAnswerService {
                 locale == HelpLocale.VI ? "So sánh số tồn với mức tối thiểu: " + nullToZero(foundProduct.getMinStock()) + "." : "Compare on-hand stock with minimum stock: " + nullToZero(foundProduct.getMinStock()) + ".",
                 locale == HelpLocale.VI ? "Nếu số tồn sai, chỉ điều chỉnh khi đã kiểm tra chứng từ hoặc kiểm kho." : "If stock is wrong, adjust only after checking documents or physical count."
             ),
-            List.of("Inventory", "Products"),
-            List.of(locale == HelpLocale.VI ? "Không gửi dữ liệu tồn kho này ra Gemini; backend đã tự tra theo quyền của bạn." : "This stock data was answered by the backend without sending database data to Gemini."),
+            HelpDisplayNames.modules(locale, "Inventory", "Products"),
+            List.of(locale == HelpLocale.VI ? "Không gửi dữ liệu tồn kho này sang dịch vụ AI bên ngoài; máy chủ đã tự tra theo quyền của bạn." : "This stock data was answered by the backend without sending database data to Gemini."),
             locale
         );
     }
 
     private HelpAnswerResponse debtAnswer(String question, String normalizedQuestion, HelpPermissionScope scope, HelpLocale locale) {
-        if (!scope.canUseFinance()) {
+        if (!scope.canViewDebtData()) {
             return blocked(scope, "Payments/Debt", locale);
         }
 
@@ -145,7 +145,7 @@ public class HelpDataAnswerService {
                         locale == HelpLocale.VI ? "Kiểm tra sao kê công nợ trước khi ghi nhận thanh toán." : "Review the debt statement before recording payment.",
                         locale == HelpLocale.VI ? "Chỉ ghi nhận thanh toán khi tiền thực tế đã nhận." : "Record payment only when money is actually received."
                     ),
-                    List.of("Payments", "Customers"),
+                    HelpDisplayNames.modules(locale, "Payments", "Customers"),
                     List.of(locale == HelpLocale.VI ? "Công nợ là dữ liệu nhạy cảm và chỉ trả về cho tài khoản có quyền tài chính." : "Receivables are sensitive and only returned to finance-authorized accounts."),
                     locale
                 );
@@ -162,14 +162,14 @@ public class HelpDataAnswerService {
                 locale == HelpLocale.VI ? "Dùng tên khách hàng cụ thể nếu bạn muốn hỏi công nợ của một khách hàng." : "Use a specific customer name if you want one customer's balance.",
                 locale == HelpLocale.VI ? "Không chia sẻ công nợ cho vai trò không liên quan." : "Do not share receivables with unrelated roles."
             ),
-            List.of("Payments", "Customers", "Reports"),
-            List.of(locale == HelpLocale.VI ? "Backend tự tra công nợ theo quyền, không gửi số liệu này sang Gemini." : "The backend looked up receivables by permission without sending these numbers to Gemini."),
+            HelpDisplayNames.modules(locale, "Payments", "Customers", "Reports"),
+            List.of(locale == HelpLocale.VI ? "Máy chủ tự tra công nợ theo quyền, không gửi số liệu này sang dịch vụ AI bên ngoài." : "The backend looked up receivables by permission without sending these numbers to Gemini."),
             locale
         );
     }
 
     private HelpAnswerResponse orderAnswer(String question, String normalizedQuestion, HelpPermissionScope scope, HelpLocale locale) {
-        if (!scope.canUseSales()) {
+        if (!scope.canViewSalesData()) {
             return blocked(scope, "Sales Orders", locale);
         }
 
@@ -181,15 +181,15 @@ public class HelpDataAnswerService {
             long count = salesOrders.countByTenantId(tenantId);
             return response(
                 locale == HelpLocale.VI
-                    ? "Hiện hệ thống có " + count + " đơn bán hàng trong tenant này."
+                    ? "Hiện hệ thống có " + count + " đơn bán hàng trong doanh nghiệp này."
                     : "This tenant currently has " + count + " sales orders.",
                 List.of(
                     locale == HelpLocale.VI ? "Mở Đơn bán hàng để lọc theo trạng thái hoặc khách hàng." : "Open Sales Orders to filter by status or customer.",
                     locale == HelpLocale.VI ? "Hỏi kèm mã đơn nếu bạn muốn kiểm tra một đơn cụ thể." : "Ask with an order code if you need one specific order.",
                     locale == HelpLocale.VI ? "Thông tin tiền/công nợ của đơn chỉ hiển thị khi bạn có quyền tài chính phù hợp." : "Order financial fields are only shown with the right finance permissions."
                 ),
-                List.of("Sales Orders"),
-                List.of(locale == HelpLocale.VI ? "Backend tự trả lời số lượng đơn theo quyền sales." : "The backend answered order counts by sales permission."),
+                HelpDisplayNames.modules(locale, "Sales Orders"),
+                List.of(locale == HelpLocale.VI ? "Máy chủ tự trả lời số lượng đơn theo quyền bán hàng." : "The backend answered order counts by sales permission."),
                 locale
             );
         }
@@ -208,21 +208,21 @@ public class HelpDataAnswerService {
 
         return response(
             locale == HelpLocale.VI
-                ? "Đơn " + foundOrder.getCode() + " đang ở trạng thái " + foundOrder.getStatus() + "." + financeText
-                : "Order " + foundOrder.getCode() + " is currently " + foundOrder.getStatus() + "." + financeText,
+                ? "Đơn " + foundOrder.getCode() + " đang ở trạng thái " + HelpDisplayNames.salesOrderStatus(foundOrder.getStatus().name(), locale) + "." + financeText
+                : "Order " + foundOrder.getCode() + " is currently " + HelpDisplayNames.salesOrderStatus(foundOrder.getStatus().name(), locale) + "." + financeText,
             List.of(
                 locale == HelpLocale.VI ? "Mở Đơn bán hàng để xem chi tiết dòng hàng." : "Open Sales Orders to view line item details.",
                 locale == HelpLocale.VI ? "Chỉ xác nhận/hủy đơn nếu tài khoản có quyền thao tác tương ứng." : "Confirm or cancel only if your account has the matching action permission.",
                 locale == HelpLocale.VI ? "Nếu cần xem tiền/công nợ, tài khoản phải có quyền tài chính." : "Viewing payment/debt details requires finance permission."
             ),
-            List.of("Sales Orders"),
-            List.of(locale == HelpLocale.VI ? "Dữ liệu đơn hàng được backend tra trực tiếp theo tenant và quyền." : "Order data was looked up directly by tenant and permission."),
+            HelpDisplayNames.modules(locale, "Sales Orders"),
+            List.of(locale == HelpLocale.VI ? "Dữ liệu đơn hàng được máy chủ tra trực tiếp theo doanh nghiệp và quyền." : "Order data was looked up directly by tenant and permission."),
             locale
         );
     }
 
     private HelpAnswerResponse productSummaryAnswer(HelpPermissionScope scope, HelpLocale locale) {
-        if (!scope.canUseProducts()) {
+        if (!scope.canViewProductData()) {
             return blocked(scope, "Products", locale);
         }
 
@@ -234,14 +234,14 @@ public class HelpDataAnswerService {
                 locale == HelpLocale.VI ? "Dữ liệu giá vốn/giá bán nên chỉ mở cho vai trò liên quan." : "Cost and selling price should stay limited to relevant roles.",
                 locale == HelpLocale.VI ? "Dùng Kho hàng nếu bạn cần xem số tồn." : "Use Inventory if you need stock quantities."
             ),
-            List.of("Products"),
-            List.of(locale == HelpLocale.VI ? "Backend tự tra số lượng sản phẩm, không gửi DB sang Gemini." : "The backend counted products without sending DB data to Gemini."),
+            HelpDisplayNames.modules(locale, "Products"),
+            List.of(locale == HelpLocale.VI ? "Máy chủ tự tra số lượng sản phẩm, không gửi dữ liệu cơ sở dữ liệu sang dịch vụ AI bên ngoài." : "The backend counted products without sending DB data to Gemini."),
             locale
         );
     }
 
     private HelpAnswerResponse customerSummaryAnswer(HelpPermissionScope scope, HelpLocale locale) {
-        if (!scope.canUseCustomers()) {
+        if (!scope.canViewCustomerData()) {
             return blocked(scope, "Customers", locale);
         }
 
@@ -253,24 +253,25 @@ public class HelpDataAnswerService {
                 locale == HelpLocale.VI ? "Kiểm tra hạn mức và điều khoản công nợ trước khi bán chịu." : "Check credit limits and terms before selling on debt.",
                 locale == HelpLocale.VI ? "Không lưu dữ liệu cá nhân không cần thiết cho vận hành." : "Do not store personal data that is not needed for operations."
             ),
-            List.of("Customers"),
-            List.of(locale == HelpLocale.VI ? "Backend tự tra số lượng khách hàng theo quyền." : "The backend counted customers by permission."),
+            HelpDisplayNames.modules(locale, "Customers"),
+            List.of(locale == HelpLocale.VI ? "Máy chủ tự tra số lượng khách hàng theo quyền." : "The backend counted customers by permission."),
             locale
         );
     }
 
     private HelpAnswerResponse blocked(HelpPermissionScope scope, String requestedArea, HelpLocale locale) {
+        String requestedAreaLabel = HelpDisplayNames.module(requestedArea, locale);
         return response(
             locale == HelpLocale.VI
-                ? "Mình không thể tra dữ liệu " + requestedArea + " vì tài khoản hiện tại chưa có quyền phù hợp."
+                ? "Mình không thể tra dữ liệu " + requestedAreaLabel + " vì tài khoản hiện tại chưa có quyền phù hợp."
                 : "I cannot look up " + requestedArea + " data because this account does not have the required permission.",
             List.of(
                 locale == HelpLocale.VI ? "Chỉ dùng các màn hình đang hiển thị với tài khoản của bạn." : "Use only the screens visible to your account.",
-                locale == HelpLocale.VI ? "Nhờ Owner cấp thêm quyền nếu nhiệm vụ này thuộc công việc của bạn." : "Ask Owner to grant access if this task belongs to your job.",
+                locale == HelpLocale.VI ? "Nhờ Chủ doanh nghiệp cấp thêm quyền nếu nhiệm vụ này thuộc công việc của bạn." : "Ask Owner to grant access if this task belongs to your job.",
                 locale == HelpLocale.VI ? "Không dùng tài khoản người khác để xem dữ liệu bị giới hạn." : "Do not use another account to view restricted data."
             ),
-            scope.visibleModules(),
-            List.of(locale == HelpLocale.VI ? "Câu hỏi dữ liệu thật được chặn ở backend trước khi gọi AI bên ngoài." : "Real data questions are blocked in the backend before any external AI call."),
+            scope.visibleModules(locale),
+            List.of(locale == HelpLocale.VI ? "Câu hỏi dữ liệu thật được chặn ở máy chủ trước khi gọi dịch vụ AI bên ngoài." : "Real data questions are blocked in the backend before any external AI call."),
             locale,
             true
         );
@@ -285,7 +286,7 @@ public class HelpDataAnswerService {
                 locale == HelpLocale.VI ? "Nếu dữ liệu chưa có, hãy tạo hoặc yêu cầu người có quyền cập nhật." : "If the data is missing, create it or ask an authorized user to update it."
             ),
             modules,
-            List.of(locale == HelpLocale.VI ? "Không tìm thấy bản ghi phù hợp trong tenant hiện tại." : "No matching record was found in the current tenant."),
+            List.of(locale == HelpLocale.VI ? "Không tìm thấy bản ghi phù hợp trong doanh nghiệp hiện tại." : "No matching record was found in the current tenant."),
             locale
         );
     }

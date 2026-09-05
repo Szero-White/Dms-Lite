@@ -48,6 +48,7 @@ interface CustomersTableCardProps {
   onKeywordChange: (value: string) => void;
   onRetry: () => void;
   queryError: unknown;
+  showFinancials: boolean;
 }
 
 export function CustomersTableCard({
@@ -70,6 +71,7 @@ export function CustomersTableCard({
   onKeywordChange,
   onRetry,
   queryError,
+  showFinancials,
 }: CustomersTableCardProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -96,26 +98,30 @@ export function CustomersTableCard({
               { value: 'INACTIVE', label: t('common.inactive') },
             ]}
           />
-          <Select
-            className={styles.filter}
-            value={debtFilter}
-            onChange={onDebtFilterChange}
-            options={[
-              { value: 'ALL', label: t('customers.filters.allDebtStates') },
-              { value: 'WITH_DEBT', label: t('customers.filters.withDebt') },
-              { value: 'CLEAR', label: t('customers.filters.clearBalance') },
-            ]}
-          />
-          <Select
-            className={styles.filter}
-            value={creditFilter}
-            onChange={onCreditFilterChange}
-            options={[
-              { value: 'ALL', label: t('customers.filters.allCreditUsage') },
-              { value: 'NEAR_LIMIT', label: t('customers.filters.nearLimit') },
-              { value: 'OVER_LIMIT', label: t('customers.filters.overLimit') },
-            ]}
-          />
+          {showFinancials ? (
+            <>
+              <Select
+                className={styles.filter}
+                value={debtFilter}
+                onChange={onDebtFilterChange}
+                options={[
+                  { value: 'ALL', label: t('customers.filters.allDebtStates') },
+                  { value: 'WITH_DEBT', label: t('customers.filters.withDebt') },
+                  { value: 'CLEAR', label: t('customers.filters.clearBalance') },
+                ]}
+              />
+              <Select
+                className={styles.filter}
+                value={creditFilter}
+                onChange={onCreditFilterChange}
+                options={[
+                  { value: 'ALL', label: t('customers.filters.allCreditUsage') },
+                  { value: 'NEAR_LIMIT', label: t('customers.filters.nearLimit') },
+                  { value: 'OVER_LIMIT', label: t('customers.filters.overLimit') },
+                ]}
+              />
+            </>
+          ) : null}
         </div>
         <Button disabled={!hasFilters} onClick={onClearFilters}>
           {t('common.clearFilters')}
@@ -146,10 +152,13 @@ export function CustomersTableCard({
       >
         <Table
           rowKey="id"
-          sticky
           scroll={{ x: 1240 }}
           dataSource={filteredCustomers}
           rowClassName={(record) => {
+            if (!showFinancials) {
+              return '';
+            }
+
             const limit = toNumber(record.creditLimit);
             const usage = limit > 0 ? toNumber(record.debtBalance) / limit : 0;
 
@@ -195,53 +204,55 @@ export function CustomersTableCard({
               width: 150,
               render: (value) => t('customers.paymentTermDays', { count: value }),
             },
-            {
-              title: t('customers.column.creditUsage'),
-              width: 240,
-              render: (_, record) => {
-                const debt = toNumber(record.debtBalance);
-                const limit = toNumber(record.creditLimit);
-                const percent = limit > 0 ? Math.round((debt / limit) * 100) : 0;
+            ...(showFinancials ? [
+              {
+                title: t('customers.column.creditUsage'),
+                width: 240,
+                render: (_: unknown, record: Customer) => {
+                  const debt = toNumber(record.debtBalance);
+                  const limit = toNumber(record.creditLimit);
+                  const percent = limit > 0 ? Math.round((debt / limit) * 100) : 0;
 
-                return (
-                  <div className={styles.creditUsage}>
-                    <div>
-                      <span>{formatCurrency(debt)}</span>
-                      <span>
-                        {limit > 0
-                          ? t('customers.creditUsage.ofLimit', {
-                              amount: formatCurrency(limit),
-                            })
-                          : t('customers.creditUsage.noLimit')}
-                      </span>
+                  return (
+                    <div className={styles.creditUsage}>
+                      <div>
+                        <span>{formatCurrency(debt)}</span>
+                        <span>
+                          {limit > 0
+                            ? t('customers.creditUsage.ofLimit', {
+                                amount: formatCurrency(limit),
+                              })
+                            : t('customers.creditUsage.noLimit')}
+                        </span>
+                      </div>
+                      <Progress
+                        percent={Math.min(percent, 100)}
+                        showInfo={false}
+                        size="small"
+                        status={
+                          percent >= 100 ? 'exception' : percent >= 80 ? 'normal' : 'success'
+                        }
+                      />
                     </div>
-                    <Progress
-                      percent={Math.min(percent, 100)}
-                      showInfo={false}
-                      size="small"
-                      status={
-                        percent >= 100 ? 'exception' : percent >= 80 ? 'normal' : 'success'
-                      }
-                    />
-                  </div>
-                );
+                  );
+                },
               },
-            },
-            {
-              title: t('customers.column.debtBalance'),
-              dataIndex: 'debtBalance',
-              width: 190,
-              render: (value) => (
-                <Space direction="vertical" size={0}>
-                  <Typography.Text
-                    className={toNumber(value) > 0 ? styles.debtOutstanding : styles.debtClear}
-                  >
-                    {formatCurrency(value)}
-                  </Typography.Text>
-                  <CustomerDebtTag amount={toNumber(value)} />
-                </Space>
-              ),
-            },
+              {
+                title: t('customers.column.debtBalance'),
+                dataIndex: 'debtBalance',
+                width: 190,
+                render: (value: string | number | null) => (
+                  <Space direction="vertical" size={0}>
+                    <Typography.Text
+                      className={toNumber(value) > 0 ? styles.debtOutstanding : styles.debtClear}
+                    >
+                      {formatCurrency(value)}
+                    </Typography.Text>
+                    <CustomerDebtTag amount={toNumber(value)} />
+                  </Space>
+                ),
+              },
+            ] : []),
             {
               title: t('common.actions'),
               fixed: 'right',

@@ -4,6 +4,7 @@ import {
   DollarOutlined,
   DownOutlined,
   DownloadOutlined,
+  EyeOutlined,
   InboxOutlined,
   ReloadOutlined,
   ShoppingCartOutlined,
@@ -14,10 +15,13 @@ import {
   Button,
   Card,
   DatePicker,
+  Descriptions,
+  Drawer,
   Dropdown,
   Progress,
   Space,
   Table,
+  Tooltip,
   Tabs,
   Tag,
   Typography,
@@ -30,12 +34,12 @@ import {
   ProductStatusTag,
   SalesOrderStatusTag,
 } from '../../../../components/common/StatusTag';
-import { formatCurrency, formatDateTime, toNumber } from '../../../../lib/format';
-import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
+import { formatCurrency, formatDateTime, formatNumber, toNumber } from '../../../../lib/format';
+import { PERMISSIONS, canViewCustomerBalance, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
 import { useDashboardData } from '../../../dashboard';
 import { useProducts } from '../../../products';
-import { useSalesOrders } from '../../../sales';
+import { useSalesOrders, type SalesOrder } from '../../../sales';
 import {
   InventoryStockChart,
   OrderStatusChart,
@@ -73,15 +77,23 @@ export function ReportsPage() {
   const canViewCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_VIEW);
   const canViewOrders = hasPermission(user, PERMISSIONS.SALES_ORDER_VIEW);
   const canViewInventoryProducts = hasPermission(user, PERMISSIONS.PRODUCT_VIEW) && hasPermission(user, PERMISSIONS.INVENTORY_VIEW);
+  const canViewReceivables = canViewCustomers && canViewCustomerBalance(user);
+  const availableTabs = [
+    ...(canViewOrders ? ['sales' as const] : []),
+    ...(canViewInventoryProducts ? ['inventory' as const] : []),
+    ...(canViewReceivables ? ['receivables' as const] : []),
+  ];
   const dashboardQuery = useDashboardData();
-  const customersQuery = useCustomers({ enabled: canViewCustomers });
+  const customersQuery = useCustomers({ enabled: canViewReceivables });
   const productsQuery = useProducts({ enabled: canViewInventoryProducts });
   const ordersQuery = useSalesOrders({ enabled: canViewOrders });
   const [activeTab, setActiveTab] = useState<ReportTab>('sales');
   const [dateRange, setDateRange] = useState<[number, number] | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [selectedReportOrder, setSelectedReportOrder] = useState<SalesOrder | null>(null);
+  const resolvedActiveTab = availableTabs.includes(activeTab) ? activeTab : availableTabs[0] ?? 'sales';
 
-  const customers = canViewCustomers ? customersQuery.data ?? [] : [];
+  const customers = canViewReceivables ? customersQuery.data ?? [] : [];
   const products = canViewInventoryProducts ? productsQuery.data ?? [] : [];
   const orders = canViewOrders ? ordersQuery.data ?? [] : [];
 
@@ -93,6 +105,14 @@ export function ReportsPage() {
     }),
     [dateRange, orders],
   );
+
+  function paymentProgress(order: SalesOrder) {
+    const total = toNumber(order.totalAmount);
+    if (total <= 0) return 0;
+
+    const paid = Math.max(0, Math.min(toNumber(order.paidAmount), total));
+    return Math.min(100, Math.round((paid / total) * 100));
+  }
 
   const recognizedOrders  = filteredOrders.filter((o) => o.status === 'COMPLETED');
   const salesRevenue       = recognizedOrders.reduce((s, o) => s + toNumber(o.totalAmount), 0);
@@ -114,7 +134,7 @@ export function ReportsPage() {
   function refreshReports() {
     void Promise.all([
       dashboardQuery.refetch(),
-      canViewCustomers ? customersQuery.refetch() : Promise.resolve(),
+      canViewReceivables ? customersQuery.refetch() : Promise.resolve(),
       canViewInventoryProducts ? productsQuery.refetch() : Promise.resolve(),
       canViewOrders ? ordersQuery.refetch() : Promise.resolve(),
     ]);
@@ -125,7 +145,7 @@ export function ReportsPage() {
 
     try {
       await exportReport(format, {
-        activeTab,
+        activeTab: resolvedActiveTab,
         customers,
         filteredOrders,
         products,
@@ -142,13 +162,15 @@ export function ReportsPage() {
         subtitle={t('reports.subtitle')}
         extra={(
           <Space>
-            <DatePicker.RangePicker
-              allowClear
-              onChange={(vals) => {
-                if (!vals?.[0] || !vals[1]) { setDateRange(null); return; }
-                setDateRange([vals[0].startOf('day').valueOf(), vals[1].endOf('day').valueOf()]);
-              }}
-            />
+            {canViewOrders ? (
+              <DatePicker.RangePicker
+                allowClear
+                onChange={(vals) => {
+                  if (!vals?.[0] || !vals[1]) { setDateRange(null); return; }
+                  setDateRange([vals[0].startOf('day').valueOf(), vals[1].endOf('day').valueOf()]);
+                }}
+              />
+            ) : null}
             <Button icon={<ReloadOutlined />} onClick={refreshReports}>{t('reports.action.refresh')}</Button>
             <Dropdown
               menu={{
@@ -161,7 +183,7 @@ export function ReportsPage() {
                 },
               }}
             >
-              <Button type="primary" icon={<DownloadOutlined />} loading={exporting}>
+              <Button type="primary" icon={<DownloadOutlined />} loading={exporting} disabled={availableTabs.length === 0}>
                 {t('common.export')} <DownOutlined />
               </Button>
             </Dropdown>
@@ -170,9 +192,9 @@ export function ReportsPage() {
       />
 
       <QueryState
-        isLoading={dashboardQuery.isLoading || (canViewCustomers && customersQuery.isLoading) || (canViewInventoryProducts && productsQuery.isLoading) || (canViewOrders && ordersQuery.isLoading)}
-        isError={dashboardQuery.isError || (canViewCustomers && customersQuery.isError) || (canViewInventoryProducts && productsQuery.isError) || (canViewOrders && ordersQuery.isError)}
-        error={dashboardQuery.error || (canViewCustomers && customersQuery.error) || (canViewInventoryProducts && productsQuery.error) || (canViewOrders && ordersQuery.error)}
+        isLoading={dashboardQuery.isLoading || (canViewReceivables && customersQuery.isLoading) || (canViewInventoryProducts && productsQuery.isLoading) || (canViewOrders && ordersQuery.isLoading)}
+        isError={dashboardQuery.isError || (canViewReceivables && customersQuery.isError) || (canViewInventoryProducts && productsQuery.isError) || (canViewOrders && ordersQuery.isError)}
+        error={dashboardQuery.error || (canViewReceivables && customersQuery.error) || (canViewInventoryProducts && productsQuery.error) || (canViewOrders && ordersQuery.error)}
         hasData={Boolean(dashboardQuery.data)}
         emptyTitle={t('reports.title')}
         emptyDescription={t('reports.empty.description')}
@@ -180,11 +202,13 @@ export function ReportsPage() {
       >
         {dashboardQuery.data ? (
           <div className={styles.reportContent}>
-            <Tabs
+            {availableTabs.length > 0 ? (
+              <Tabs
               className={styles.reportTabs}
-              activeKey={activeTab}
+              activeKey={resolvedActiveTab}
               onChange={(key) => setActiveTab(key as ReportTab)}
-              items={[                {
+              items={[
+                ...(canViewOrders ? [{
                   key: 'sales',
                   label: (
                     <span className={styles.tabLabel}>
@@ -205,21 +229,60 @@ export function ReportsPage() {
                       </div>
 
                       <Card title={t('reports.title')} className="panel-card">
-                        <Table rowKey="id" size="small" sticky scroll={{ x: 760 }}
+                        <Table
+                          rowKey="id"
+                          size="small"
+                          scroll={{ x: 1180 }}
                           dataSource={[...filteredOrders].sort((a, b) => toNumber(b.totalAmount) - toNumber(a.totalAmount)).slice(0, 10)}
                           locale={{ emptyText: t('reports.empty.noSalesOrders') }}
                           columns={[
-                            { title: t('reports.table.order'), dataIndex: 'code' },
-                            { title: t('reports.table.created'), dataIndex: 'createdAt', render: (value) => formatDateTime(value) },
-                            { title: t('reports.table.status'), dataIndex: 'status', render: (v) => <SalesOrderStatusTag status={v} /> },
-                            { title: t('reports.table.revenue'), dataIndex: 'totalAmount', align: 'right', render: (value) => formatCurrency(value) },
-                            { title: t('reports.table.debt'), dataIndex: 'debtAmount', align: 'right', render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.order'), dataIndex: 'code', width: 160 },
+                            {
+                              title: t('reports.table.customer'),
+                              width: 230,
+                              render: (_, order) => order.customerName ?? `#${order.customerId}`,
+                            },
+                            { title: t('reports.table.created'), dataIndex: 'createdAt', width: 170, render: (value) => formatDateTime(value) },
+                            { title: t('reports.table.status'), dataIndex: 'status', width: 130, render: (v) => <SalesOrderStatusTag status={v} /> },
+                            { title: t('reports.table.orderTotal'), dataIndex: 'totalAmount', width: 150, align: 'right', render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.collected'), dataIndex: 'paidAmount', width: 150, align: 'right', render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.remainingDebt'), dataIndex: 'debtAmount', width: 150, align: 'right', render: (value) => formatCurrency(value) },
+                            {
+                              title: t('reports.table.collectionProgress'),
+                              width: 180,
+                              render: (_, order) => {
+                                const percent = paymentProgress(order);
+                                return (
+                                  <div className={styles.collectionProgress}>
+                                    <Progress percent={percent} size="small" showInfo={false} />
+                                    <span>{percent}%</span>
+                                  </div>
+                                );
+                              },
+                            },
+                            {
+                              title: '',
+                              width: 56,
+                              align: 'center',
+                              fixed: 'right',
+                              render: (_, order) => (
+                                <Tooltip title={t('reports.action.viewOrder')}>
+                                  <Button
+                                    type="text"
+                                    icon={<EyeOutlined />}
+                                    aria-label={t('reports.action.viewOrder')}
+                                    onClick={() => setSelectedReportOrder(order)}
+                                  />
+                                </Tooltip>
+                              ),
+                            },
                           ]}
                         />
                       </Card>
                     </div>
                   ),
-                },                {
+                }] : []),
+                ...(canViewInventoryProducts ? [{
                   key: 'inventory',
                   label: (
                     <span className={styles.tabLabel}>
@@ -230,7 +293,7 @@ export function ReportsPage() {
                     <div className={styles.tabContent}>
                       <StatStrip items={[
                         { icon: <InboxOutlined />, label: t('reports.metric.trackedSkus'), value: products.length, color: '#6366f1' },
-                        { icon: <BarChartOutlined />, label: t('reports.metric.totalUnits'), value: totalUnits.toLocaleString('vi-VN'), color: '#3b82f6' },
+                        { icon: <BarChartOutlined />, label: t('reports.metric.totalUnits'), value: formatNumber(totalUnits), color: '#3b82f6' },
                         { icon: <DollarOutlined />, label: t('reports.metric.inventoryValue'), value: formatCurrency(inventoryValue), color: '#8b5cf6' },
                         { icon: <WarningOutlined />, label: t('reports.metric.lowStock'), value: lowStockCount, color: lowStockCount > 0 ? '#f59e0b' : '#10b981' },
                       ]} />
@@ -238,7 +301,7 @@ export function ReportsPage() {
                       <InventoryStockChart products={products} />
 
                       <Card title={t('reports.title')} className="panel-card">
-                        <Table rowKey="id" size="small" sticky scroll={{ x: 820 }}
+                        <Table rowKey="id" size="small" scroll={{ x: 820 }}
                           dataSource={products}
                           locale={{ emptyText: t('reports.empty.noInventory') }}
                           columns={[
@@ -253,7 +316,8 @@ export function ReportsPage() {
                       </Card>
                     </div>
                   ),
-                },                {
+                }] : []),
+                ...(canViewReceivables ? [{
                   key: 'receivables',
                   label: (
                     <span className={styles.tabLabel}>
@@ -316,7 +380,7 @@ export function ReportsPage() {
                       )}
 
                       <Card title={t('reports.title')} className="panel-card">
-                        <Table rowKey="id" size="small" sticky scroll={{ x: 900 }}
+                        <Table rowKey="id" size="small" scroll={{ x: 900 }}
                           dataSource={[...customers].sort((a, b) => toNumber(b.debtBalance) - toNumber(a.debtBalance))}
                           locale={{ emptyText: t('reports.empty.noReceivables') }}
                           columns={[
@@ -345,12 +409,59 @@ export function ReportsPage() {
                       </Card>
                     </div>
                   ),
-                },
+                }] : []),
               ]}
-            />
+              />
+            ) : (
+              <Card className="panel-card" title={t('reports.title')}>
+                <StatStrip items={[
+                  { icon: <DollarOutlined />, label: t('reports.metric.revenue'), value: formatCurrency(dashboardQuery.data.summary.revenueThisMonth), color: '#6366f1' },
+                  { icon: <DollarOutlined />, label: t('reports.metric.receivables'), value: formatCurrency(dashboardQuery.data.summary.totalReceivable), color: '#f97316' },
+                  { icon: <InboxOutlined />, label: t('reports.metric.trackedSkus'), value: dashboardQuery.data.summary.productCount, color: '#3b82f6' },
+                  { icon: <WarningOutlined />, label: t('reports.metric.lowStock'), value: dashboardQuery.data.summary.lowStockItems, color: '#ef4444' },
+                ]} />
+              </Card>
+            )}
           </div>
         ) : null}
       </QueryState>
+
+      <Drawer
+        title={selectedReportOrder ? t('reports.detail.title', { code: selectedReportOrder.code }) : t('reports.detail.fallbackTitle')}
+        width={560}
+        open={Boolean(selectedReportOrder)}
+        onClose={() => setSelectedReportOrder(null)}
+      >
+        {selectedReportOrder ? (
+          <div className={styles.reportOrderDetail}>
+            <Descriptions bordered size="small" column={1}>
+              <Descriptions.Item label={t('reports.table.customer')}>
+                {selectedReportOrder.customerName ?? `#${selectedReportOrder.customerId}`}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('reports.table.created')}>
+                {formatDateTime(selectedReportOrder.createdAt)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('reports.table.status')}>
+                <SalesOrderStatusTag status={selectedReportOrder.status} />
+              </Descriptions.Item>
+              <Descriptions.Item label={t('reports.table.orderTotal')}>
+                {formatCurrency(selectedReportOrder.totalAmount)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('reports.table.collected')}>
+                {formatCurrency(selectedReportOrder.paidAmount)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('reports.table.remainingDebt')}>
+                {formatCurrency(selectedReportOrder.debtAmount)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('reports.table.collectionProgress')}>
+                <div className={styles.collectionProgressDetail}>
+                  <Progress percent={paymentProgress(selectedReportOrder)} />
+                </div>
+              </Descriptions.Item>
+            </Descriptions>
+          </div>
+        ) : null}
+      </Drawer>
     </div>
   );
 }

@@ -24,7 +24,7 @@ public class ProductController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('PRODUCT_VIEW')")
-    public ApiResponse<Page<Product>> list(
+    public ApiResponse<Page<ProductResponse>> list(
         @RequestParam(defaultValue = "") String keyword,
         @RequestParam(defaultValue = "0") int page
     ) {
@@ -33,13 +33,13 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('PRODUCT_MANAGE')")
-    public ApiResponse<Product> create(@Valid @RequestBody ProductRequest request) {
+    public ApiResponse<ProductResponse> create(@Valid @RequestBody ProductRequest request) {
         return ApiResponse.ok(productService.create(request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('PRODUCT_MANAGE')")
-    public ApiResponse<Product> update(
+    public ApiResponse<ProductResponse> update(
         @PathVariable Long id,
         @Valid @RequestBody ProductRequest request
     ) {

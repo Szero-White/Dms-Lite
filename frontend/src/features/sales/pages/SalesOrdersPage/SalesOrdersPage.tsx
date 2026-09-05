@@ -27,7 +27,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
-import { PERMISSIONS, canViewOrderFinancials, hasPermission, useAuth } from '../../../auth';
+import { PERMISSIONS, canAccessPath, canViewOrderFinancials, hasPermission, useAuth } from '../../../auth';
 import { SalesOrderStatusTag } from '../../../../components/common/StatusTag';
 import { useCustomers } from '../../../customers';
 import { useProductList } from '../../../products';
@@ -60,7 +60,8 @@ function getInitials(name: string) {
 export function SalesOrdersPage() {
   const { i18n, t } = useTranslation();
   const { user } = useAuth();
-  const canCreateSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE);
+  const canCreateSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE)
+    && canAccessPath(user, '/sales-orders/new');
   const canViewCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_VIEW);
   const canViewProducts = hasPermission(user, PERMISSIONS.PRODUCT_VIEW);
   const canViewSalesOrderFinancials = canViewOrderFinancials(user);
@@ -120,7 +121,7 @@ export function SalesOrdersPage() {
   const filteredOrders = useMemo(() => {
     const kw = keyword.trim().toLowerCase();
     return orders.filter((order) => {
-      const cName = canViewCustomers ? customersMap.get(order.customerId)?.name ?? '' : '';
+      const cName = order.customerName ?? customersMap.get(order.customerId)?.name ?? '';
       const matchesKeyword = !kw || order.code.toLowerCase().includes(kw) || cName.toLowerCase().includes(kw);
       const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
       const matchesCustomer = customerFilter === 'ALL' || order.customerId === customerFilter;
@@ -131,7 +132,7 @@ export function SalesOrdersPage() {
       );
       return matchesKeyword && matchesStatus && matchesCustomer && matchesDate;
     });
-  }, [canViewCustomers, customerFilter, customersMap, dateRange, keyword, orders, statusFilter]);
+  }, [customerFilter, customersMap, dateRange, keyword, orders, statusFilter]);
 
   const hasFilters = Boolean(keyword || statusFilter !== 'ALL' || customerFilter !== 'ALL' || dateRange);
 
@@ -285,7 +286,6 @@ export function SalesOrdersPage() {
         >
           <Table
             rowKey="id"
-            sticky
             scroll={{ x: 1120 }}
             dataSource={filteredOrders}
             columns={[
@@ -303,17 +303,21 @@ export function SalesOrdersPage() {
               {
                 title: t('sales.column.customer'),
                 width: 220,
-                render: (_, record) => (
-                  <div className={styles.customerCell}>
-                    <Avatar size={30} style={{ background: 'var(--gradient-primary)', color: '#fff', fontWeight: 700 }}>
-                      {getInitials(customersMap.get(record.customerId)?.name || `#${record.customerId}`)}
-                    </Avatar>
-                    <div>
-                      <strong>{customersMap.get(record.customerId)?.name || `#${record.customerId}`}</strong>
-                      <span>ID #{record.customerId}</span>
+                render: (_, record) => {
+                  const customerName = record.customerName
+                    ?? customersMap.get(record.customerId)?.name
+                    ?? `#${record.customerId}`;
+                  return (
+                    <div className={styles.customerCell}>
+                      <Avatar size={30} style={{ background: 'var(--gradient-primary)', color: '#fff', fontWeight: 700 }}>
+                        {getInitials(customerName)}
+                      </Avatar>
+                      <div>
+                        <strong>{customerName}</strong>
+                      </div>
                     </div>
-                  </div>
-                ),
+                  );
+                },
               },
               { title: t('sales.column.created'), dataIndex: 'createdAt', width: 160, render: (v) => formatDateTime(v, i18n.language) },
               { title: t('common.status'), width: 130, render: (_, r) => <SalesOrderStatusTag status={r.status} /> },
@@ -363,7 +367,9 @@ export function SalesOrdersPage() {
           <div className={styles.drawerContent}>
             <Descriptions bordered size="small" column={{ xs: 1, sm: 2 }}>
               <Descriptions.Item label={t('sales.column.customer')}>
-                {customersMap.get(selectedOrderDetail.customerId)?.name || `#${selectedOrderDetail.customerId}`}
+                {selectedOrderDetail.customerName
+                  ?? customersMap.get(selectedOrderDetail.customerId)?.name
+                  ?? `#${selectedOrderDetail.customerId}`}
               </Descriptions.Item>
               <Descriptions.Item label={t('common.status')}><SalesOrderStatusTag status={selectedOrderDetail.status} /></Descriptions.Item>
               {canViewSalesOrderFinancials ? (
@@ -373,7 +379,9 @@ export function SalesOrdersPage() {
                   <Descriptions.Item label={t('sales.column.debt')}>{formatCurrency(selectedOrderDetail.debtAmount)}</Descriptions.Item>
                 </>
               ) : null}
-              <Descriptions.Item label={t('sales.drawer.warehouse')}>#{selectedOrderDetail.warehouseId}</Descriptions.Item>
+              <Descriptions.Item label={t('sales.drawer.warehouse')}>
+                {selectedOrderDetail.warehouseName ?? `#${selectedOrderDetail.warehouseId}`}
+              </Descriptions.Item>
             </Descriptions>
             <div>
               <Typography.Title level={5}>{t('sales.drawer.orderItems')}</Typography.Title>
@@ -399,12 +407,20 @@ export function SalesOrdersPage() {
                 { color: selectedOrderDetail.status === 'CANCELLED' ? 'red' : 'gray', children: t('sales.timeline.status', { status: t(`status.sales.${selectedOrderDetail.status}`) }) },
               ]} />
             </div>
-            {selectedOrderDetail.status === 'DRAFT' && (
+            {selectedOrderDetail.status === 'DRAFT' && (canConfirmSalesOrder || canCancelSalesOrder) ? (
               <Space>
-                <Button type="primary" loading={confirmMutation.isPending} onClick={() => confirmOrder(selectedOrderDetail)}>{t('sales.confirm.ok')}</Button>
-                <Button danger loading={cancelMutation.isPending} onClick={() => cancelOrder(selectedOrderDetail)}>{t('sales.cancel.ok')}</Button>
+                {canConfirmSalesOrder ? (
+                  <Button type="primary" loading={confirmMutation.isPending} onClick={() => confirmOrder(selectedOrderDetail)}>
+                    {t('sales.confirm.ok')}
+                  </Button>
+                ) : null}
+                {canCancelSalesOrder ? (
+                  <Button danger loading={cancelMutation.isPending} onClick={() => cancelOrder(selectedOrderDetail)}>
+                    {t('sales.cancel.ok')}
+                  </Button>
+                ) : null}
               </Space>
-            )}
+            ) : null}
           </div>
         )}
       </Drawer>

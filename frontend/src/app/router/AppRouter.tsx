@@ -1,4 +1,4 @@
-import { Skeleton } from 'antd';
+import { Result, Skeleton } from 'antd';
 import {
   lazy,
   Suspense,
@@ -11,10 +11,12 @@ import {
   useLocation,
 } from 'react-router-dom';
 import {
+  NO_WORKSPACE_PATH,
   canAccessPath,
   firstAuthorizedPath,
   useAuth,
 } from '../../features/auth';
+import { useTranslation } from 'react-i18next';
 import { ProtectedRoute } from './ProtectedRoute';
 import { PublicRoute } from './PublicRoute';
 
@@ -57,6 +59,18 @@ const SalesOrdersPage = lazy(() => import('../../features/sales').then((module) 
 const TeamPage = lazy(() => import('../../features/team').then((module) => ({
   default: module.TeamPage,
 })));
+
+function NoWorkspacePage() {
+  const { t } = useTranslation();
+
+  return (
+    <Result
+      status="403"
+      title={t('access.noWorkspace.title')}
+      subTitle={t('access.noWorkspace.description')}
+    />
+  );
+}
 
 function RootRedirect() {
   const { user } = useAuth();
@@ -101,6 +115,7 @@ const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       { index: true, element: <RootRedirect /> },
+      { path: NO_WORKSPACE_PATH.slice(1), element: <NoWorkspacePage /> },
       { path: 'dashboard', element: routeElement(<DashboardPage />) },
       { path: 'sales-orders', element: routeElement(<SalesOrdersPage />) },
       { path: 'sales-orders/new', element: routeElement(<CreateSalesOrderPage />) },

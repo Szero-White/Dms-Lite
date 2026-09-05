@@ -8,7 +8,7 @@ export const PANEL_HEIGHT = 680;
 export const DEFAULT_LAUNCHER_SIZE = 76;
 
 interface PromptRule {
-  permission: string;
+  permissions: string[];
   promptKey: string;
 }
 
@@ -18,11 +18,14 @@ export const GENERAL_PROMPT_KEYS = [
 ];
 
 export const ROLE_PROMPTS: PromptRule[] = [
-  { permission: PERMISSIONS.TEAM_MANAGE, promptKey: 'assistant.prompt.team' },
-  { permission: PERMISSIONS.SALES_ORDER_VIEW, promptKey: 'assistant.prompt.sales' },
-  { permission: PERMISSIONS.INVENTORY_VIEW, promptKey: 'assistant.prompt.inventory' },
-  { permission: PERMISSIONS.PAYMENT_CREATE, promptKey: 'assistant.prompt.payment' },
-  { permission: PERMISSIONS.PRODUCT_VIEW, promptKey: 'assistant.prompt.product' },
-  { permission: PERMISSIONS.CUSTOMER_VIEW, promptKey: 'assistant.prompt.customer' },
-  { permission: PERMISSIONS.REPORT_VIEW, promptKey: 'assistant.prompt.report' },
+  { permissions: [PERMISSIONS.TEAM_MANAGE], promptKey: 'assistant.prompt.team' },
+  {
+    permissions: [PERMISSIONS.SALES_ORDER_VIEW, PERMISSIONS.SALES_ORDER_CREATE],
+    promptKey: 'assistant.prompt.sales',
+  },
+  { permissions: [PERMISSIONS.INVENTORY_VIEW], promptKey: 'assistant.prompt.inventory' },
+  { permissions: [PERMISSIONS.PAYMENT_CREATE], promptKey: 'assistant.prompt.payment' },
+  { permissions: [PERMISSIONS.PRODUCT_VIEW], promptKey: 'assistant.prompt.product' },
+  { permissions: [PERMISSIONS.CUSTOMER_VIEW], promptKey: 'assistant.prompt.customer' },
+  { permissions: [PERMISSIONS.REPORT_VIEW], promptKey: 'assistant.prompt.report' },
 ];

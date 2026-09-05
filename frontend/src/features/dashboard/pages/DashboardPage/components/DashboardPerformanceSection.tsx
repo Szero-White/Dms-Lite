@@ -20,6 +20,9 @@ import styles from './DashboardPerformanceSection.module.css';
 
 interface DashboardPerformanceSectionProps {
   activeCustomers: number;
+  canViewCustomers: boolean;
+  canViewInventory: boolean;
+  canViewOrders: boolean;
   completedOrders: SalesOrder[];
   dashboard: DashboardSnapshot;
   filteredOrders: SalesOrder[];
@@ -63,6 +66,9 @@ function MiniGauge({ color, pct }: { color: string; pct: number }) {
 
 export function DashboardPerformanceSection({
   activeCustomers,
+  canViewCustomers,
+  canViewInventory,
+  canViewOrders,
   completedOrders,
   dashboard,
   filteredOrders,
@@ -87,24 +93,15 @@ export function DashboardPerformanceSection({
       subLabel: t('dashboard.performance.vsThisMonth'),
       value: formatCurrency(dashboard.summary.revenueToday),
     },
-    {
-      color: '#06b6d4',
-      icon: <AppstoreOutlined />,
-      label: t('dashboard.performance.activeSkus'),
-      showGauge: false,
-      subLabel: t('dashboard.performance.lowStockCount', { count: lowStockProducts.length }),
-      value: String(formatNumber(dashboard.summary.productCount)),
-    },
-    {
+    ...(canViewCustomers ? [{
       color: '#10b981',
       icon: <TeamOutlined />,
       label: t('dashboard.performance.activeCustomers'),
-      pct: healthyPct,
-      showGauge: true,
-      subLabel: t('dashboard.performance.inventoryHealthy', { percent: healthyPct }),
+      showGauge: false,
+      subLabel: t('dashboard.performance.activeCustomers'),
       value: String(formatNumber(activeCustomers)),
-    },
-    {
+    }] : []),
+    ...(canViewOrders ? [{
       color: '#f59e0b',
       icon: <ShoppingCartOutlined />,
       label: t('dashboard.performance.ordersNeedAction'),
@@ -112,7 +109,16 @@ export function DashboardPerformanceSection({
       showGauge: true,
       subLabel: t('dashboard.performance.completedPercent', { percent: completedPct }),
       value: String(formatNumber(filteredOrders.filter((order) => order.status === 'DRAFT').length)),
-    },
+    }] : []),
+    ...(canViewInventory ? [{
+      color: '#06b6d4',
+      icon: <AppstoreOutlined />,
+      label: t('dashboard.performance.activeSkus'),
+      pct: healthyPct,
+      showGauge: true,
+      subLabel: t('dashboard.performance.inventoryHealthy', { percent: healthyPct }),
+      value: String(formatNumber(products.length)),
+    }] : []),
   ];
 
   return (
@@ -143,15 +149,15 @@ export function DashboardPerformanceSection({
           variant="orange"
         />
         <SummaryCard
-          title={t('dashboard.performance.completedOrders')}
-          value={formatNumber(completedOrders.length)}
-          note={t('dashboard.performance.ordersInRange', { range: rangeLabel.toLowerCase() })}
-          icon={<ShoppingCartOutlined />}
+          title={t('dashboard.performance.activeSkus')}
+          value={formatNumber(dashboard.summary.productCount)}
+          note={t('dashboard.performance.lowStockCount', { count: dashboard.summary.lowStockItems })}
+          icon={<AppstoreOutlined />}
           variant="green"
         />
         <SummaryCard
           title={t('dashboard.performance.lowStockProducts')}
-          value={formatNumber(lowStockProducts.length)}
+          value={formatNumber(dashboard.summary.lowStockItems)}
           note={t('dashboard.performance.lowStockProductsNote')}
           icon={<WarningOutlined />}
           variant="red"

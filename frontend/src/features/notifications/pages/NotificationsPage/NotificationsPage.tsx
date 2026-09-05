@@ -36,7 +36,8 @@ function categoryForType(type: string): Exclude<NotificationCategory, 'ALL' | 'U
   if (
     normalizedType.includes('DEBT') ||
     normalizedType.includes('PAYMENT') ||
-    normalizedType.includes('RECEIVABLE')
+    normalizedType.includes('RECEIVABLE') ||
+    normalizedType.includes('INVOICE')
   ) {
     return 'RECEIVABLES';
   }
@@ -82,44 +83,80 @@ function iconForType(type: string) {
   return <BellOutlined />;
 }
 
-function localizedNotificationTitle(type: string, fallback: string, t: TFunction) {
-  return t(`notifications.types.${type}.title`, fallback);
+function localizedNotificationTitle(type: string, t: TFunction) {
+  return t(`notifications.types.${type}.title`, {
+    defaultValue: t('notifications.types.UNKNOWN.title'),
+  });
+}
+
+function localizedEntityFallback(value: string, entity: 'product' | 'customer', t: TFunction) {
+  const prefix = entity === 'product' ? 'Product' : 'Customer';
+  const match = value.match(new RegExp(`^${prefix} #(\\d+)$`));
+
+  if (!match) {
+    return value;
+  }
+
+  return t(`notifications.entity.${entity}Fallback`, { id: match[1] });
 }
 
 function localizedNotificationMessage(item: { type: string; message: string }, t: TFunction) {
-  const lowStockMatch = item.message.match(/^(.+) is at (\d+) units, below minimum (\d+)\.$/);
+  const lowStockMatch = item.message.match(/^(.+) is at (\d+) units, below minimum (\d+)\.?$/);
   if (item.type === 'LOW_STOCK' && lowStockMatch) {
     return t('notifications.types.LOW_STOCK.message', {
-      product: lowStockMatch[1],
+      product: localizedEntityFallback(lowStockMatch[1], 'product', t),
       quantity: lowStockMatch[2],
       minimum: lowStockMatch[3],
     });
   }
 
-  const overdueDebtMatch = item.message.match(/^(.+) has overdue receivable of (.+) VND\.$/);
+  const overdueDebtMatch = item.message.match(/^(.+) has overdue receivable of (.+) VND\.?$/);
   if (item.type === 'OVERDUE_DEBT' && overdueDebtMatch) {
     return t('notifications.types.OVERDUE_DEBT.message', {
-      customer: overdueDebtMatch[1],
+      customer: localizedEntityFallback(overdueDebtMatch[1], 'customer', t),
       amount: overdueDebtMatch[2],
     });
   }
 
-  const paymentMatch = item.message.match(/^(.+) paid (.+) VND\.$/);
+  const paymentMatch = item.message.match(/^(.+) paid (.+) VND\.?$/);
   if (item.type === 'PAYMENT_RECORDED' && paymentMatch) {
     return t('notifications.types.PAYMENT_RECORDED.message', {
-      customer: paymentMatch[1],
+      customer: localizedEntityFallback(paymentMatch[1], 'customer', t),
       amount: paymentMatch[2],
     });
   }
 
-  const salesOrderMatch = item.message.match(/^Inventory updated for product #(.+) after sales order confirmation\.$/);
-  if (item.type === 'SALES_ORDER_CONFIRMED' && salesOrderMatch) {
-    return t('notifications.types.SALES_ORDER_CONFIRMED.message', {
-      productId: salesOrderMatch[1],
+  const confirmedOrderMatch = item.message.match(/^Order (.+) has been confirmed\.?$/);
+  if (item.type === 'SALES_ORDER_CONFIRMED' && confirmedOrderMatch) {
+    return t('notifications.types.SALES_ORDER_CONFIRMED.orderMessage', {
+      orderCode: confirmedOrderMatch[1],
     });
   }
 
-  return item.message;
+  const stockMovementMatch = item.message.match(/^Inventory updated for product #(.+) after sales order confirmation\.?$/);
+  if (item.type === 'SALES_ORDER_CONFIRMED' && stockMovementMatch) {
+    return t('notifications.types.SALES_ORDER_CONFIRMED.message', {
+      productId: stockMovementMatch[1],
+    });
+  }
+
+  const cancelledOrderMatch = item.message.match(/^Order (.+) has been cancelled\.?$/);
+  if (item.type === 'SALES_ORDER_CANCELLED' && cancelledOrderMatch) {
+    return t('notifications.types.SALES_ORDER_CANCELLED.message', {
+      orderCode: cancelledOrderMatch[1],
+    });
+  }
+
+  const invoiceIssuedMatch = item.message.match(/^Invoice (.+) has been issued\.?$/);
+  if (item.type === 'INVOICE_ISSUED' && invoiceIssuedMatch) {
+    return t('notifications.types.INVOICE_ISSUED.message', {
+      invoiceCode: invoiceIssuedMatch[1],
+    });
+  }
+
+  // Never render an unknown backend sentence directly. That would re-introduce
+  // mixed-language UI as soon as a new notification type is added server-side.
+  return t('notifications.types.UNKNOWN.message');
 }
 
 export function NotificationsPage() {
@@ -149,7 +186,7 @@ export function NotificationsPage() {
   const filteredNotifications = useMemo(
     () => notifications.filter((item) => {
       const normalizedKeyword = keyword.trim().toLowerCase();
-      const localizedTitle = localizedNotificationTitle(item.type, item.title, t);
+      const localizedTitle = localizedNotificationTitle(item.type, t);
       const localizedMessage = localizedNotificationMessage(item, t);
       const matchesKeyword = !normalizedKeyword || [item.title, item.message, localizedTitle, localizedMessage, item.type]
         .some((value) => value.toLowerCase().includes(normalizedKeyword));
@@ -223,7 +260,7 @@ export function NotificationsPage() {
                     <div className={styles.activityHeader}>
                       <div className={styles.titleGroup}>
                         <Typography.Text className={styles.title}>
-                          {localizedNotificationTitle(item.type, item.title, t)}
+                          {localizedNotificationTitle(item.type, t)}
                         </Typography.Text>
                         {isUnread && <span className={styles.unreadDot} aria-label={t('notifications.unread')} />}
                         <NotificationTypeTag type={item.type} />

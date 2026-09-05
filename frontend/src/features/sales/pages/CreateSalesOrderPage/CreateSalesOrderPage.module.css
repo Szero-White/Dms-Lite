@@ -98,6 +98,10 @@
   border-radius: 10px !important;
 }
 
+.formActions {
+  margin-top: 18px;
+}
+
 /* ===== Summary column ===== */
 .summaryColumn {
   position: sticky;

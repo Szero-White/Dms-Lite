@@ -34,8 +34,8 @@ public class NotificationController {
 
     @PutMapping("/{id}/read")
     @PreAuthorize("hasAuthority('NOTIFICATION_VIEW')")
-    public ApiResponse<Void> markRead(@PathVariable Long id) {
-        notificationQueryService.markRead(id);
+    public ApiResponse<Void> markRead(@PathVariable Long id, Authentication authentication) {
+        notificationQueryService.markRead(id, authentication);
 
         return ApiResponse.ok(null);
     }

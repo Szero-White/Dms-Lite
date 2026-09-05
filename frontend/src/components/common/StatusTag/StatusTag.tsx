@@ -19,20 +19,13 @@ const NOTIFICATION_STATUS_MAP: Record<string, StatusTone> = {
   LOW_STOCK: 'warning',
   OVERDUE_DEBT: 'danger',
   PAYMENT_RECORDED: 'info',
+  INVOICE_ISSUED: 'info',
   SALES_ORDER_CONFIRMED: 'success',
   SALES_ORDER_CANCELLED: 'neutral',
 };
 
 function statusClass(tone: StatusTone) {
   return `${styles.tag} ${styles[tone]}`;
-}
-
-function enumFallback(value: string) {
-  return value
-    .toLowerCase()
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
 }
 
 export function SalesOrderStatusTag({
@@ -44,7 +37,7 @@ export function SalesOrderStatusTag({
 
   return (
     <Tag className={statusClass(SALES_STATUS_MAP[status] || 'neutral')}>
-      {t(`status.sales.${status}`, enumFallback(status))}
+      {t(`status.sales.${status}`, { defaultValue: t('status.sales.UNKNOWN') })}
     </Tag>
   );
 }
@@ -98,7 +91,7 @@ export function NotificationTypeTag({
 
   return (
     <Tag className={statusClass(NOTIFICATION_STATUS_MAP[type] || 'info')}>
-      {t(`status.notification.${type}`, enumFallback(type))}
+      {t(`status.notification.${type}`, { defaultValue: t('status.notification.UNKNOWN') })}
     </Tag>
   );
 }

@@ -41,13 +41,13 @@ public class CustomerController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('CUSTOMER_MANAGE')")
-    public ApiResponse<Customer> create(@Valid @RequestBody CustomerRequest request) {
+    public ApiResponse<CustomerResponse> create(@Valid @RequestBody CustomerRequest request) {
         return ApiResponse.ok(customerService.create(request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('CUSTOMER_MANAGE')")
-    public ApiResponse<Customer> update(
+    public ApiResponse<CustomerResponse> update(
         @PathVariable Long id,
         @Valid @RequestBody CustomerRequest request
     ) {

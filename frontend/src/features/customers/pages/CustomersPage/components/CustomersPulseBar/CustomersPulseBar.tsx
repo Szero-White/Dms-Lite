@@ -11,6 +11,7 @@ interface CustomersPulseBarProps {
   overLimitCount: number;
   thresholdCustomers: number;
   totalReceivables: number;
+  showFinancials: boolean;
 }
 
 export function CustomersPulseBar({
@@ -21,6 +22,7 @@ export function CustomersPulseBar({
   overLimitCount,
   thresholdCustomers,
   totalReceivables,
+  showFinancials,
 }: CustomersPulseBarProps) {
   const { t } = useTranslation();
   const totalCustomers = customers.length;
@@ -64,66 +66,70 @@ export function CustomersPulseBar({
         </div>
       </div>
 
-      <div className={styles.pulseDivider} />
-      <div className={styles.pulseTiers}>
-        <div className={styles.tierTitle}>{t('customers.pulse.accountHealth')}</div>
-        <div className={styles.tierRow}>
-          <div className={styles.tierDot} style={{ background: '#10b981' }} />
-          <span className={styles.tierLbl}>{t('customers.pulse.clearBalance')}</span>
-          <div className={styles.tierBar}>
-            <div
-              className={styles.tierFill}
-              style={{
-                width: `${totalCustomers ? (clearCount / totalCustomers) * 100 : 0}%`,
-                background: 'linear-gradient(90deg, #10b981, #34d399)',
-              }}
-            />
+      {showFinancials ? (
+        <>
+          <div className={styles.pulseDivider} />
+          <div className={styles.pulseTiers}>
+            <div className={styles.tierTitle}>{t('customers.pulse.accountHealth')}</div>
+            <div className={styles.tierRow}>
+              <div className={styles.tierDot} style={{ background: '#10b981' }} />
+              <span className={styles.tierLbl}>{t('customers.pulse.clearBalance')}</span>
+              <div className={styles.tierBar}>
+                <div
+                  className={styles.tierFill}
+                  style={{
+                    width: `${totalCustomers ? (clearCount / totalCustomers) * 100 : 0}%`,
+                    background: 'linear-gradient(90deg, #10b981, #34d399)',
+                  }}
+                />
+              </div>
+              <span className={styles.tierCount} style={{ color: '#10b981' }}>{clearCount}</span>
+            </div>
+            <div className={styles.tierRow}>
+              <div className={styles.tierDot} style={{ background: '#f59e0b' }} />
+              <span className={styles.tierLbl}>{t('customers.pulse.hasDebt')}</span>
+              <div className={styles.tierBar}>
+                <div
+                  className={styles.tierFill}
+                  style={{
+                    width: `${totalCustomers ? (debtorCount / totalCustomers) * 100 : 0}%`,
+                    background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
+                  }}
+                />
+              </div>
+              <span className={styles.tierCount} style={{ color: '#f59e0b' }}>{debtorCount}</span>
+            </div>
+            <div className={styles.tierRow}>
+              <div className={styles.tierDot} style={{ background: '#ef4444' }} />
+              <span className={styles.tierLbl}>{t('customers.pulse.overLimit')}</span>
+              <div className={styles.tierBar}>
+                <div
+                  className={styles.tierFill}
+                  style={{
+                    width: `${totalCustomers ? (overLimitCount / totalCustomers) * 100 : 0}%`,
+                    background: 'linear-gradient(90deg, #ef4444, #f87171)',
+                  }}
+                />
+              </div>
+              <span className={styles.tierCount} style={{ color: '#ef4444' }}>{overLimitCount}</span>
+            </div>
           </div>
-          <span className={styles.tierCount} style={{ color: '#10b981' }}>{clearCount}</span>
-        </div>
-        <div className={styles.tierRow}>
-          <div className={styles.tierDot} style={{ background: '#f59e0b' }} />
-          <span className={styles.tierLbl}>{t('customers.pulse.hasDebt')}</span>
-          <div className={styles.tierBar}>
-            <div
-              className={styles.tierFill}
-              style={{
-                width: `${totalCustomers ? (debtorCount / totalCustomers) * 100 : 0}%`,
-                background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
-              }}
-            />
-          </div>
-          <span className={styles.tierCount} style={{ color: '#f59e0b' }}>{debtorCount}</span>
-        </div>
-        <div className={styles.tierRow}>
-          <div className={styles.tierDot} style={{ background: '#ef4444' }} />
-          <span className={styles.tierLbl}>{t('customers.pulse.overLimit')}</span>
-          <div className={styles.tierBar}>
-            <div
-              className={styles.tierFill}
-              style={{
-                width: `${totalCustomers ? (overLimitCount / totalCustomers) * 100 : 0}%`,
-                background: 'linear-gradient(90deg, #ef4444, #f87171)',
-              }}
-            />
-          </div>
-          <span className={styles.tierCount} style={{ color: '#ef4444' }}>{overLimitCount}</span>
-        </div>
-      </div>
 
-      <div className={styles.pulseDivider} />
-      <div className={styles.pulseReceivables}>
-        <div className={styles.prLabel}>{t('payments.hero.totalReceivables')}</div>
-        <div className={styles.prAmount} style={{ color: '#8b5cf6' }}>{formatCurrency(totalReceivables)}</div>
-        <div className={styles.prSub}>
-          {t('customers.pulse.acrossDebtors', { count: debtorCount })}
-        </div>
-        <div className={styles.prAlerts}>
-          {thresholdCustomers > 0 && (
-            <span className={styles.prAlertTag}>{t('customers.pulse.nearLimitAlert', { count: thresholdCustomers })}</span>
-          )}
-        </div>
-      </div>
+          <div className={styles.pulseDivider} />
+          <div className={styles.pulseReceivables}>
+            <div className={styles.prLabel}>{t('payments.hero.totalReceivables')}</div>
+            <div className={styles.prAmount} style={{ color: '#8b5cf6' }}>{formatCurrency(totalReceivables)}</div>
+            <div className={styles.prSub}>
+              {t('customers.pulse.acrossDebtors', { count: debtorCount })}
+            </div>
+            <div className={styles.prAlerts}>
+              {thresholdCustomers > 0 && (
+                <span className={styles.prAlertTag}>{t('customers.pulse.nearLimitAlert', { count: thresholdCustomers })}</span>
+              )}
+            </div>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

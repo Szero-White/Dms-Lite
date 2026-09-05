@@ -4,7 +4,12 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { toNumber } from '../../../../lib/format';
-import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
+import {
+  PERMISSIONS,
+  canViewCustomerBalance,
+  hasPermission,
+  useAuth,
+} from '../../../auth';
 import {
   useCreateCustomer,
   useCustomers,
@@ -20,6 +25,7 @@ export function CustomersPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const canManageCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_MANAGE);
+  const showCustomerFinancials = canViewCustomerBalance(user);
   const customersQuery = useCustomers();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
@@ -38,50 +44,65 @@ export function CustomersPage() {
         const matchesKeyword = [customer.name, customer.phone, customer.address].some((value) =>
           value?.toLowerCase().includes(keyword.toLowerCase()),
         );
-        const debt = toNumber(customer.debtBalance);
+        const debt = showCustomerFinancials ? toNumber(customer.debtBalance) : 0;
         const creditLimit = toNumber(customer.creditLimit);
-        const creditUsage = creditLimit > 0 ? debt / creditLimit : 0;
+        const creditUsage = showCustomerFinancials && creditLimit > 0 ? debt / creditLimit : 0;
         const matchesActive =
           activeFilter === 'ALL' ||
           (activeFilter === 'ACTIVE' && customer.active) ||
           (activeFilter === 'INACTIVE' && !customer.active);
         const matchesDebt =
+          !showCustomerFinancials ||
           debtFilter === 'ALL' ||
           (debtFilter === 'WITH_DEBT' && debt > 0) ||
           (debtFilter === 'CLEAR' && debt <= 0);
         const matchesCredit =
+          !showCustomerFinancials ||
           creditFilter === 'ALL' ||
           (creditFilter === 'NEAR_LIMIT' && creditLimit > 0 && creditUsage >= 0.8) ||
           (creditFilter === 'OVER_LIMIT' && creditLimit > 0 && creditUsage > 1);
 
         return matchesKeyword && matchesActive && matchesDebt && matchesCredit;
       }),
-    [activeFilter, creditFilter, customersQuery.data, debtFilter, keyword],
+    [activeFilter, creditFilter, customersQuery.data, debtFilter, keyword, showCustomerFinancials],
   );
 
   const customers = customersQuery.data ?? [];
-  const totalReceivables = customers.reduce(
-    (total, customer) => total + toNumber(customer.debtBalance),
-    0,
-  );
-  const thresholdCustomers = customers.filter((customer) => {
-    const limit = toNumber(customer.creditLimit);
+  const totalReceivables = showCustomerFinancials
+    ? customers.reduce(
+        (total, customer) => total + toNumber(customer.debtBalance),
+        0,
+      )
+    : 0;
+  const thresholdCustomers = showCustomerFinancials
+    ? customers.filter((customer) => {
+        const limit = toNumber(customer.creditLimit);
 
-    return limit > 0 && toNumber(customer.debtBalance) / limit >= 0.8;
-  }).length;
+        return limit > 0 && toNumber(customer.debtBalance) / limit >= 0.8;
+      }).length
+    : 0;
   const activeCount = customers.filter((customer) => customer.active).length;
-  const debtorCount = customers.filter((customer) => toNumber(customer.debtBalance) > 0).length;
-  const clearCount = customers.filter(
-    (customer) => customer.active && toNumber(customer.debtBalance) === 0,
-  ).length;
-  const overLimitCount = customers.filter((customer) => {
-    const limit = toNumber(customer.creditLimit);
+  const debtorCount = showCustomerFinancials
+    ? customers.filter((customer) => toNumber(customer.debtBalance) > 0).length
+    : 0;
+  const clearCount = showCustomerFinancials
+    ? customers.filter(
+        (customer) => customer.active && toNumber(customer.debtBalance) === 0,
+      ).length
+    : 0;
+  const overLimitCount = showCustomerFinancials
+    ? customers.filter((customer) => {
+        const limit = toNumber(customer.creditLimit);
 
-    return limit > 0 && toNumber(customer.debtBalance) / limit >= 1;
-  }).length;
+        return limit > 0 && toNumber(customer.debtBalance) / limit >= 1;
+      }).length
+    : 0;
 
   const hasFilters = Boolean(
-    keyword || activeFilter !== 'ALL' || debtFilter !== 'ALL' || creditFilter !== 'ALL',
+    keyword ||
+    activeFilter !== 'ALL' ||
+    (showCustomerFinancials && debtFilter !== 'ALL') ||
+    (showCustomerFinancials && creditFilter !== 'ALL'),
   );
 
   function clearFilters() {
@@ -161,6 +182,7 @@ export function CustomersPage() {
         overLimitCount={overLimitCount}
         thresholdCustomers={thresholdCustomers}
         totalReceivables={totalReceivables}
+        showFinancials={showCustomerFinancials}
       />
 
       <CustomersTableCard
@@ -185,6 +207,7 @@ export function CustomersPage() {
           void customersQuery.refetch();
         }}
         queryError={customersQuery.error}
+        showFinancials={showCustomerFinancials}
       />
 
       {canManageCustomers ? (

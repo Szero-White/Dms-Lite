@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,17 +21,19 @@ public class ProductService {
 
     private final AuditService auditService;
 
-    public Page<Product> list(String keyword, int page) {
+    public Page<ProductResponse> list(String keyword, int page) {
+        boolean includeCost = canViewCost();
+
         return productRepository.findByTenantIdAndDeletedAtIsNullAndNameContainingIgnoreCase(
             TenantContext.tenantRequired(),
             keyword,
             PageRequest.of(Math.max(page, 0), 20)
-        );
+        ).map(product -> toResponse(product, includeCost));
     }
 
     @Transactional
     @CacheEvict(value = "dashboard", key = "T(com.example.dms.common.TenantContext).tenantRequired()")
-    public Product create(ProductRequest request) {
+    public ProductResponse create(ProductRequest request) {
         Long tenantId = TenantContext.tenantRequired();
         String sku = request.sku().trim();
         ensureSkuAvailable(tenantId, sku, null);
@@ -48,12 +52,12 @@ public class ProductService {
         );
 
         auditService.log("PRODUCT_CREATED", "Product", savedProduct.getId(), savedProduct.getName());
-        return savedProduct;
+        return toResponse(savedProduct, true);
     }
 
     @Transactional
     @CacheEvict(value = "dashboard", key = "T(com.example.dms.common.TenantContext).tenantRequired()")
-    public Product update(Long id, ProductRequest request) {
+    public ProductResponse update(Long id, ProductRequest request) {
         Product product = find(id);
         String sku = request.sku().trim();
         ensureSkuAvailable(product.getTenantId(), sku, id);
@@ -67,7 +71,7 @@ public class ProductService {
 
         Product updatedProduct = productRepository.save(product);
         auditService.log("PRODUCT_UPDATED", "Product", updatedProduct.getId(), updatedProduct.getName());
-        return updatedProduct;
+        return toResponse(updatedProduct, true);
     }
 
     @Transactional
@@ -85,6 +89,27 @@ public class ProductService {
             TenantContext.tenantRequired()
         ).orElseThrow(() -> new BusinessException("Product not found"));
     }
+    private boolean canViewCost() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        return authentication != null && ProductAccessPolicy.canViewCost(
+            authentication.getAuthorities().stream().map(authority -> authority.getAuthority()).toList()
+        );
+    }
+
+    private ProductResponse toResponse(Product product, boolean includeCost) {
+        return new ProductResponse(
+            product.getId(),
+            product.getName(),
+            product.getSku(),
+            product.getBarcode(),
+            includeCost ? product.getCostPrice() : null,
+            product.getSellingPrice(),
+            product.getMinStock(),
+            product.isActive()
+        );
+    }
+
     private void ensureSkuAvailable(Long tenantId, String sku, Long currentProductId) {
         productRepository.findFirstByTenantIdAndDeletedAtIsNullAndSkuIgnoreCase(tenantId, sku)
             .filter(existing -> currentProductId == null || !existing.getId().equals(currentProductId))

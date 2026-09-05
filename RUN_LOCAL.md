@@ -82,7 +82,40 @@ Các credential này chỉ dành cho local/demo data, không dùng cho dữ li�
 - CORS mặc định: `http://localhost:3000`;
 - JWT local có default development secret, nhưng deployment public phải set secret riêng.
 
-## 8. Docker Compose
+## 8. Reset dữ liệu local về demo baseline
+
+Khi dữ liệu test đã lộn xộn và cần quay về bộ demo sạch, chạy từ project root:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\scripts\local\reset-dms-local-jdbc.ps1"
+```
+
+Điều kiện trước khi chạy:
+
+- PostgreSQL local đang chạy;
+- backend port `8080` đã dừng;
+- frontend port `3000` đã dừng.
+
+Khi script hỏi xác nhận, nhập chính xác:
+
+```text
+RESET
+```
+
+Script chỉ dành cho **local development/demo** và sẽ:
+
+- đọc cấu hình PostgreSQL từ `run-local.env.bat`;
+- dùng PostgreSQL JDBC driver có sẵn trong Maven cache (`~/.m2/repository`);
+- giữ nguyên database schema và `flyway_schema_history`;
+- `TRUNCATE` các bảng dữ liệu ứng dụng với `RESTART IDENTITY CASCADE`;
+- ghi CSV snapshot số dòng từng bảng vào thư mục `Downloads` trước khi reset;
+- chạy lại `run-local.bat` để backend seed demo baseline và mở frontend.
+
+> CSV snapshot chỉ là bản kiểm kê số dòng trước reset, **không phải full database backup có thể restore**. Nếu cần điểm phục hồi đầy đủ, tạo backup PostgreSQL bằng `pg_dump` trước.
+
+Sau khi backend startup và seed xong, dùng lại các demo account ở mục 6.
+
+## 9. Docker Compose
 
 Trước khi chạy Docker Compose, tạo `.env` và **bắt buộc** thay JWT secret:
 
@@ -99,7 +132,7 @@ docker compose up -d --build
 
 Docker Compose cố tình không fallback về JWT secret công khai trong repository.
 
-## 9. Check trước khi deploy
+## 10. Check trước khi deploy
 
 ```powershell
 cd backend

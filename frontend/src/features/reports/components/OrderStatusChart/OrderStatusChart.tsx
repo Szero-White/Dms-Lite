@@ -26,7 +26,7 @@ export function OrderStatusChart({
   const chartData = Object.entries(statusMap).map(
     ([status, count]) => ({
       status,
-      label: t(`status.sales.${status}`, status),
+      label: t(`status.sales.${status}`, { defaultValue: t('status.sales.UNKNOWN') }),
       count,
     }),
   );

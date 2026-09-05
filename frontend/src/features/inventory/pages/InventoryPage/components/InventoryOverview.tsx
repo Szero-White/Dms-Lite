@@ -8,6 +8,7 @@ interface InventoryOverviewProps {
   inventoryValue: number;
   lowStockItems: ProductRow[];
   products: ProductRow[];
+  showFinancials: boolean;
   totalUnits: number;
 }
 
@@ -15,6 +16,7 @@ export function InventoryOverview({
   inventoryValue,
   lowStockItems,
   products,
+  showFinancials,
   totalUnits,
 }: InventoryOverviewProps) {
   const { i18n, t } = useTranslation();
@@ -32,13 +34,13 @@ export function InventoryOverview({
       color: '#6366f1',
       bgColor: '#eef2ff',
     },
-    {
+    ...(showFinancials ? [{
       label: t('inventory.overview.inventoryValue'),
       value: formatCurrency(inventoryValue),
       icon: <DollarOutlined />,
       color: '#10b981',
       bgColor: '#ecfdf5',
-    },
+    }] : []),
     {
       label: t('inventory.overview.totalSkus'),
       value: products.length.toString(),

@@ -17,9 +17,10 @@ import {
 } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../components/common/QueryState';
+import { roleLabel } from '../../../../../lib/roleDisplay';
 import type { TeamMember } from '../../../types/team.types';
 import styles from '../TeamPage.module.css';
-import { isOwner, roleLabel } from '../teamPage.utils';
+import { isOwner } from '../teamPage.utils';
 
 interface MembersTableProps {
   members: TeamMember[];
@@ -96,7 +97,7 @@ export function MembersTable({
                 <Space size={[6, 6]} wrap>
                   {record.roles.map((role) => (
                     <Tag key={role} color={role === 'OWNER' ? 'purple' : 'blue'}>
-                      {roleLabel(role)}
+                      {roleLabel(role, t)}
                     </Tag>
                   ))}
                 </Space>

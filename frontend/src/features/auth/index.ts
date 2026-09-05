@@ -9,10 +9,13 @@ export type {
 } from './types/auth.types';
 export {
   canAccessPath,
+  canViewCustomerBalance,
   canViewOrderFinancials,
+  canViewProductFinancials,
   firstAuthorizedPath,
   hasAnyPermission,
   hasPermission,
+  NO_WORKSPACE_PATH,
   PERMISSIONS,
   ROUTE_PERMISSIONS,
 } from './authorization';

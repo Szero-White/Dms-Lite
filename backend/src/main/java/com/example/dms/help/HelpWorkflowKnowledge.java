@@ -16,18 +16,18 @@ public class HelpWorkflowKnowledge {
     public HelpAnswerResponse teamAccessAnswer(HelpLocale locale) {
         if (locale == HelpLocale.VI) {
             return response(
-                "Owner có thể tạo tài khoản nhân viên và gán vai trò theo trách nhiệm công việc, để nhân viên chỉ thấy dữ liệu cần cho nhiệm vụ của mình.",
+                "Chủ doanh nghiệp có thể tạo tài khoản nhân viên và gán vai trò theo trách nhiệm công việc, để nhân viên chỉ thấy dữ liệu cần cho nhiệm vụ của mình.",
                 List.of(
                     "Mở Quản lý truy cập.",
-                    "Chọn Tạo nhân viên mới, sau đó nhập username, họ tên và mật khẩu tạm thời.",
-                    "Gán role đúng với công việc như Sales, Warehouse hoặc Accountant.",
-                    "Chỉ tạo role tùy chỉnh khi role hệ thống chưa khớp với mô hình vận hành của khách hàng.",
+                    "Chọn Tạo nhân viên mới, sau đó nhập tên đăng nhập, họ tên và mật khẩu tạm thời.",
+                    "Gán vai trò đúng với công việc như Nhân viên bán hàng, Nhân viên kho hoặc Kế toán.",
+                    "Chỉ tạo vai trò tùy chỉnh khi vai trò hệ thống chưa khớp với mô hình vận hành của doanh nghiệp.",
                     "Khi nhân viên nghỉ việc, nên vô hiệu hóa tài khoản thay vì xóa dấu vết kiểm toán."
                 ),
-                List.of("Team Access", "Roles & Permissions", "Audit Logs"),
+                HelpDisplayNames.modules(locale, "Team Access", "Roles & Permissions", "Audit Logs"),
                 List.of(
-                    "Không cấp OWNER cho nhân viên vận hành thông thường.",
-                    "Kiểm tra kỹ TEAM_MANAGE vì quyền này có thể quản trị tài khoản khác.",
+                    "Không cấp quyền Chủ doanh nghiệp cho nhân viên vận hành thông thường.",
+                    "Kiểm tra kỹ quyền Quản lý truy cập vì quyền này có thể quản trị tài khoản khác.",
                     "Mỗi nhân viên nên dùng một tài khoản riêng."
                 ),
                 locale
@@ -43,7 +43,7 @@ public class HelpWorkflowKnowledge {
                 "Create a custom role only when the default system roles do not match the customer's operating model.",
                 "Deactivate staff who leave the company instead of deleting their audit trail."
             ),
-            List.of("Team Access", "Roles & Permissions", "Audit Logs"),
+            HelpDisplayNames.modules(locale, "Team Access", "Roles & Permissions", "Audit Logs"),
             List.of(
                 "Do not grant OWNER to operating staff.",
                 "Review TEAM_MANAGE carefully because it can administer other accounts.",
@@ -61,17 +61,17 @@ public class HelpWorkflowKnowledge {
                 steps.add("Mở Đơn bán hàng và chọn Tạo đơn mới.");
                 steps.add("Chọn khách hàng, sản phẩm, số lượng và kho xuất, sau đó kiểm tra lại trước khi lưu.");
             } else {
-                steps.add("Bạn có thể xem đơn bán được phép, nhưng tạo đơn cần quyền SALES_ORDER_CREATE.");
+                steps.add("Bạn có thể xem đơn bán được phép, nhưng tạo đơn cần quyền Tạo đơn bán hàng.");
             }
             if (scope.has(PermissionNames.SALES_ORDER_CONFIRM)) {
-                steps.add("Chỉ confirm/fulfill đơn nháp khi khách hàng, tồn kho và giá đã đúng; thao tác này chuyển đơn sang Completed.");
+                steps.add("Chỉ xác nhận và hoàn tất đơn nháp khi khách hàng, tồn kho và giá đã đúng; thao tác này chuyển đơn sang trạng thái Hoàn tất.");
             }
-            steps.add("Theo dõi vòng đời hiện tại: Draft, Completed hoặc Cancelled; hệ thống không lưu trạng thái Confirmed riêng.");
+            steps.add("Theo dõi vòng đời hiện tại: Nháp, Hoàn tất hoặc Đã hủy; hệ thống không lưu trạng thái Xác nhận riêng.");
 
             return response(
-                "Quy trình sales giúp đơn hàng chính xác, tồn kho khớp và công nợ rõ ràng.",
+                "Quy trình bán hàng giúp đơn hàng chính xác, tồn kho khớp và công nợ rõ ràng.",
                 steps,
-                List.of("Sales Orders", "Customers", "Inventory", "Payments"),
+                HelpDisplayNames.modules(locale, "Sales Orders", "Customers", "Inventory", "Payments"),
                 List.of(
                     "Không xác nhận đơn khi thiếu hoặc sai dữ liệu khách hàng/sản phẩm.",
                     "Đơn sai nên hủy bằng thao tác được phép thay vì che giấu lỗi."
@@ -96,7 +96,7 @@ public class HelpWorkflowKnowledge {
         return response(
             "Sales workflow keeps orders accurate, stock aligned and receivables clear.",
             steps,
-            List.of("Sales Orders", "Customers", "Inventory", "Payments"),
+            HelpDisplayNames.modules(locale, "Sales Orders", "Customers", "Inventory", "Payments"),
             List.of(
                 "Do not confirm an order with missing or incorrect customer/product data.",
                 "Cancel incorrect orders through the approved action instead of hiding mistakes."
@@ -113,13 +113,13 @@ public class HelpWorkflowKnowledge {
                 steps.add("Chỉ nhập hoặc điều chỉnh kho khi có phát sinh thật hoặc đã xác minh sai lệch.");
                 steps.add("Ghi chú rõ lý do để lần sau có thể kiểm tra lại.");
             } else {
-                steps.add("Nếu tồn kho sai, báo cho Warehouse hoặc Owner vì role của bạn không được điều chỉnh kho.");
+                steps.add("Nếu tồn kho sai, báo cho Nhân viên kho hoặc Chủ doanh nghiệp vì vai trò của bạn không được điều chỉnh kho.");
             }
 
             return response(
                 "Hướng dẫn kho tập trung vào việc giữ số tồn chính xác và có thể truy vết.",
                 steps,
-                List.of("Inventory", "Products", "Sales Orders"),
+                HelpDisplayNames.modules(locale, "Inventory", "Products", "Sales Orders"),
                 List.of(
                     "Không điều chỉnh kho khi không có lý do nghiệp vụ.",
                     "Kiểm tra SKU và đơn vị trước khi nhập số lượng lớn."
@@ -140,7 +140,7 @@ public class HelpWorkflowKnowledge {
         return response(
             "Inventory guidance focuses on keeping stock numbers accurate and traceable.",
             steps,
-            List.of("Inventory", "Products", "Sales Orders"),
+            HelpDisplayNames.modules(locale, "Inventory", "Products", "Sales Orders"),
             List.of(
                 "Do not adjust stock without a business reason.",
                 "Check SKU and unit before entering large quantities."
@@ -157,16 +157,16 @@ public class HelpWorkflowKnowledge {
                 steps.add("Mở Thanh toán và ghi đúng số tiền thực nhận cho đúng khách hàng.");
                 steps.add("Kiểm tra lại báo cáo công nợ sau khi ghi nhận thanh toán.");
             } else {
-                steps.add("Bạn có thể xem thông tin tài chính được cấp, nhưng ghi nhận thanh toán cần quyền PAYMENT_CREATE.");
+                steps.add("Bạn có thể xem thông tin tài chính được cấp, nhưng ghi nhận thanh toán cần quyền Ghi nhận thanh toán.");
             }
 
             return response(
                 "Quy trình tài chính giúp tiền thu và công nợ của doanh nghiệp luôn chính xác.",
                 steps,
-                List.of("Payments", "Customers", "Reports"),
+                HelpDisplayNames.modules(locale, "Payments", "Customers", "Reports"),
                 List.of(
                     "Không ghi nhận thanh toán trước khi tiền thật sự được nhận.",
-                    "Dữ liệu công nợ và doanh thu chỉ nên chia sẻ cho role thật sự cần."
+                    "Dữ liệu công nợ và doanh thu chỉ nên chia sẻ cho vai trò thật sự cần."
                 ),
                 locale
             );
@@ -184,7 +184,7 @@ public class HelpWorkflowKnowledge {
         return response(
             "Finance workflow keeps payments and receivables accurate for the business.",
             steps,
-            List.of("Payments", "Customers", "Reports"),
+            HelpDisplayNames.modules(locale, "Payments", "Customers", "Reports"),
             List.of(
                 "Do not record a payment before money is received.",
                 "Debt and revenue data should only be shared with roles that need it."
@@ -196,20 +196,20 @@ public class HelpWorkflowKnowledge {
     public HelpAnswerResponse productAnswer(HelpPermissionScope scope, HelpLocale locale) {
         if (locale == HelpLocale.VI) {
             List<String> steps = new ArrayList<>();
-            steps.add("Dùng quy tắc đặt SKU nhất quán để sales và kho nhận diện sản phẩm chính xác.");
+            steps.add("Dùng quy tắc đặt SKU nhất quán để bộ phận bán hàng và kho nhận diện sản phẩm chính xác.");
             if (scope.has(PermissionNames.PRODUCT_MANAGE)) {
                 steps.add("Mở Sản phẩm để tạo hoặc cập nhật tên, SKU, giá vốn, giá bán và tồn kho tối thiểu.");
             } else {
-                steps.add("Nếu tên, giá hoặc SKU sai, hãy yêu cầu người có quyền PRODUCT_MANAGE cập nhật.");
+                steps.add("Nếu tên, giá hoặc SKU sai, hãy yêu cầu người có quyền Quản lý sản phẩm cập nhật.");
             }
 
             return response(
-                "Danh mục sản phẩm là dữ liệu gốc cho sales và kho, nên mọi thay đổi phải được kiểm soát.",
+                "Danh mục sản phẩm là dữ liệu gốc cho bộ phận bán hàng và kho, nên mọi thay đổi phải được kiểm soát.",
                 steps,
-                List.of("Products", "Inventory", "Sales Orders"),
+                HelpDisplayNames.modules(locale, "Products", "Inventory", "Sales Orders"),
                 List.of(
                     "Tránh dùng trùng SKU cho nhiều ý nghĩa khác nhau.",
-                    "Giá vốn và giá bán có thể nhạy cảm, chỉ nên mở cho role liên quan."
+                    "Giá vốn và giá bán có thể nhạy cảm, chỉ nên mở cho vai trò liên quan."
                 ),
                 locale
             );
@@ -226,7 +226,7 @@ public class HelpWorkflowKnowledge {
         return response(
             "Product catalog is master data for sales and inventory, so changes must be controlled.",
             steps,
-            List.of("Products", "Inventory", "Sales Orders"),
+            HelpDisplayNames.modules(locale, "Products", "Inventory", "Sales Orders"),
             List.of(
                 "Avoid duplicate SKU meanings.",
                 "Cost and sale price can be sensitive and should only be available to relevant roles."
@@ -242,13 +242,13 @@ public class HelpWorkflowKnowledge {
             if (scope.has(PermissionNames.CUSTOMER_MANAGE)) {
                 steps.add("Chỉ cập nhật điện thoại, địa chỉ, hạn mức nợ và điều khoản công nợ từ thông tin đã xác minh.");
             } else {
-                steps.add("Nếu dữ liệu khách hàng sai, gửi yêu cầu chỉnh sửa cho role có quyền CUSTOMER_MANAGE.");
+                steps.add("Nếu dữ liệu khách hàng sai, gửi yêu cầu chỉnh sửa cho người có quyền Quản lý khách hàng.");
             }
 
             return response(
-                "Dữ liệu khách hàng giúp sales và kế toán theo dõi đơn hàng, hạn mức và công nợ chính xác.",
+                "Dữ liệu khách hàng giúp bộ phận bán hàng và kế toán theo dõi đơn hàng, hạn mức và công nợ chính xác.",
                 steps,
-                List.of("Customers", "Sales Orders", "Payments"),
+                HelpDisplayNames.modules(locale, "Customers", "Sales Orders", "Payments"),
                 List.of(
                     "Không lưu dữ liệu cá nhân không cần thiết cho vận hành.",
                     "Kiểm tra điều khoản công nợ trước khi bán chịu."
@@ -268,7 +268,7 @@ public class HelpWorkflowKnowledge {
         return response(
             "Customer data helps sales and accounting track orders, limits and receivables correctly.",
             steps,
-            List.of("Customers", "Sales Orders", "Payments"),
+            HelpDisplayNames.modules(locale, "Customers", "Sales Orders", "Payments"),
             List.of(
                 "Do not store personal data that is not needed for operations.",
                 "Check credit terms before selling on debt."
@@ -280,13 +280,13 @@ public class HelpWorkflowKnowledge {
     public HelpAnswerResponse reportAnswer(HelpLocale locale) {
         if (locale == HelpLocale.VI) {
             return response(
-                "Dashboard và Báo cáo dùng để theo dõi doanh thu, công nợ, tồn kho và hiệu quả vận hành.",
+                "Tổng quan và Báo cáo dùng để theo dõi doanh thu, công nợ, tồn kho và hiệu quả vận hành.",
                 List.of(
-                    "Mở Dashboard để xem nhanh tình hình kinh doanh.",
+                    "Mở Tổng quan để xem nhanh tình hình kinh doanh.",
                     "Dùng Báo cáo khi cần đối soát chi tiết.",
                     "Nếu số liệu bất thường, đối chiếu Đơn bán hàng, Kho hàng và Thanh toán."
                 ),
-                List.of("Dashboard", "Reports", "Audit Logs"),
+                HelpDisplayNames.modules(locale, "Dashboard", "Reports", "Audit Logs"),
                 List.of("Báo cáo chứa dữ liệu kinh doanh nhạy cảm và chỉ nên chia sẻ cho người có quyền."),
                 locale
             );
@@ -299,7 +299,7 @@ public class HelpWorkflowKnowledge {
                 "Use Reports when detailed reconciliation is needed.",
                 "If numbers look unusual, compare Sales Orders, Inventory and Payments."
             ),
-            List.of("Dashboard", "Reports", "Audit Logs"),
+            HelpDisplayNames.modules(locale, "Dashboard", "Reports", "Audit Logs"),
             List.of("Reports may contain sensitive business data and should only be shared with authorized users."),
             locale
         );
@@ -308,20 +308,20 @@ public class HelpWorkflowKnowledge {
     public HelpAnswerResponse testingGuideAnswer(HelpPermissionScope scope, HelpLocale locale) {
         if (locale == HelpLocale.VI) {
             return response(
-                "Để test toàn bộ hệ thống, bạn nên đi theo luồng vận hành thật từ dữ liệu gốc đến bán hàng, kho, thanh toán, báo cáo và phân quyền.",
+                "Để kiểm tra toàn bộ hệ thống, bạn nên đi theo luồng vận hành thật từ dữ liệu gốc đến bán hàng, kho, thanh toán, báo cáo và phân quyền.",
                 List.of(
-                    "Đăng nhập bằng Owner để kiểm tra Dashboard, Quản lý truy cập, Sản phẩm, Khách hàng, Kho hàng, Đơn bán hàng, Thanh toán, Báo cáo, Thông báo và Nhật ký kiểm toán.",
+                    "Đăng nhập bằng tài khoản Chủ doanh nghiệp để kiểm tra Tổng quan, Quản lý truy cập, Sản phẩm, Khách hàng, Kho hàng, Đơn bán hàng, Thanh toán, Báo cáo, Thông báo và Nhật ký hoạt động.",
                     "Tạo hoặc kiểm tra dữ liệu gốc: sản phẩm, mã hàng, tồn kho tối thiểu, khách hàng, hạn mức và điều khoản công nợ.",
                     "Chạy luồng bán hàng: tạo đơn nháp, xác nhận đơn, kiểm tra trừ kho, hoàn tất đơn hoặc hủy đơn sai.",
                     "Chạy luồng tài chính: ghi nhận thanh toán, kiểm tra công nợ còn lại và đối chiếu báo cáo.",
-                    "Đăng nhập từng role như Sales, Warehouse và Accountant để chắc sidebar, thao tác CRUD và dữ liệu nhạy cảm bị giới hạn đúng quyền.",
-                    "Kiểm tra AI, thông báo và audit log sau mỗi thao tác quan trọng để chắc hệ thống có thể giám sát được."
+                    "Đăng nhập từng vai trò như Nhân viên bán hàng, Nhân viên kho và Kế toán để chắc thanh điều hướng, thao tác tạo/sửa/xóa và dữ liệu nhạy cảm bị giới hạn đúng quyền.",
+                    "Kiểm tra Trợ lý AI, thông báo và nhật ký hoạt động sau mỗi thao tác quan trọng để chắc hệ thống có thể giám sát được."
                 ),
-                scope.visibleModules(),
+                scope.visibleModules(locale),
                 List.of(
-                    "Không test audit log bằng tài khoản dùng chung.",
-                    "Không dùng dữ liệu khách hàng thật trong môi trường demo hoặc local.",
-                    "Nếu một màn hình bị ẩn, hãy kiểm tra role trước khi xem đó là lỗi UI."
+                    "Không kiểm tra nhật ký hoạt động bằng tài khoản dùng chung.",
+                    "Không dùng dữ liệu khách hàng thật trong môi trường trình diễn hoặc máy cục bộ.",
+                    "Nếu một màn hình bị ẩn, hãy kiểm tra vai trò trước khi xem đó là lỗi giao diện."
                 ),
                 locale
             );
@@ -337,7 +337,7 @@ public class HelpWorkflowKnowledge {
                 "Sign in with Sales, Warehouse and Accountant roles to verify sidebar visibility, CRUD actions and sensitive data restrictions.",
                 "Check AI, notifications and audit logs after important actions to confirm traceability."
             ),
-            scope.visibleModules(),
+            scope.visibleModules(locale),
             List.of(
                 "Do not test audit-sensitive flows with shared accounts.",
                 "Do not use real customer data in local or demo environments.",
@@ -352,17 +352,17 @@ public class HelpWorkflowKnowledge {
             return response(
                 "Bạn nên bắt đầu bằng những màn hình mà tài khoản hiện tại được cấp quyền, rồi đi theo quy trình vận hành chính của doanh nghiệp.",
                 List.of(
-                    "Nhìn sidebar để biết tài khoản của bạn đang được phép dùng những module nào.",
-                    "Nếu là Owner, hãy kiểm tra Dashboard trước, sau đó cấu hình nhân viên, vai trò, sản phẩm, khách hàng và kho.",
-                    "Nếu là Sales, hãy bắt đầu từ Khách hàng và Đơn bán hàng.",
-                    "Nếu là Warehouse, hãy bắt đầu từ Sản phẩm, Kho hàng và lịch sử nhập/xuất kho.",
-                    "Nếu là Accountant, hãy bắt đầu từ Thanh toán, công nợ khách hàng và báo cáo liên quan.",
-                    "Nếu thiếu màn hình cần dùng, hãy nhờ Owner kiểm tra lại quyền trong Quản lý truy cập."
+                    "Nhìn thanh điều hướng để biết tài khoản của bạn đang được phép dùng những chức năng nào.",
+                    "Nếu là Chủ doanh nghiệp, hãy kiểm tra Tổng quan trước, sau đó cấu hình nhân viên, vai trò, sản phẩm, khách hàng và kho.",
+                    "Nếu là Nhân viên bán hàng, hãy bắt đầu từ Khách hàng và Đơn bán hàng.",
+                    "Nếu là Nhân viên kho, hãy bắt đầu từ Sản phẩm, Kho hàng và lịch sử nhập/xuất kho.",
+                    "Nếu là Kế toán, hãy bắt đầu từ Thanh toán, công nợ khách hàng và báo cáo liên quan.",
+                    "Nếu thiếu màn hình cần dùng, hãy nhờ Chủ doanh nghiệp kiểm tra lại quyền trong Quản lý truy cập."
                 ),
-                scope.visibleModules(),
+                scope.visibleModules(locale),
                 List.of(
                     "Trợ lý chỉ hướng dẫn trong phạm vi quyền hiện tại.",
-                    "Không chia sẻ tài khoản giữa nhiều nhân viên vì audit log sẽ mất ý nghĩa."
+                    "Không chia sẻ tài khoản giữa nhiều nhân viên vì nhật ký hoạt động sẽ mất ý nghĩa."
                 ),
                 locale
             );
@@ -378,7 +378,7 @@ public class HelpWorkflowKnowledge {
                 "If you are Accountant, start with Payments, customer receivables and related reports.",
                 "If a required screen is missing, ask Owner to review your permissions in Team Access."
             ),
-            scope.visibleModules(),
+            scope.visibleModules(locale),
             List.of(
                 "The assistant only guides you inside your current permissions.",
                 "Do not share accounts between employees because audit logs will become unreliable."
@@ -390,12 +390,12 @@ public class HelpWorkflowKnowledge {
     public HelpAnswerResponse assignedWorkAnswer(HelpPermissionScope scope, HelpLocale locale) {
         if (locale == HelpLocale.VI) {
             return response(
-                "Nhiệm vụ nên làm tiếp phụ thuộc vào vai trò và các module đang được cấp quyền cho tài khoản của bạn.",
+                "Nhiệm vụ nên làm tiếp phụ thuộc vào vai trò và các chức năng đang được cấp quyền cho tài khoản của bạn.",
                 assignedWorkSteps(scope, locale),
-                scope.visibleModules(),
+                scope.visibleModules(locale),
                 List.of(
                     "Chỉ thao tác trên dữ liệu thuộc công việc được giao.",
-                    "Nếu cần làm việc ngoài phạm vi đang thấy, hãy yêu cầu Owner cấp quyền thay vì dùng tài khoản khác."
+                    "Nếu cần làm việc ngoài phạm vi đang thấy, hãy yêu cầu Chủ doanh nghiệp cấp quyền thay vì dùng tài khoản khác."
                 ),
                 locale
             );
@@ -404,7 +404,7 @@ public class HelpWorkflowKnowledge {
         return response(
             "What you should do next depends on your role and the modules currently assigned to your account.",
             assignedWorkSteps(scope, locale),
-            scope.visibleModules(),
+            scope.visibleModules(locale),
             List.of(
                 "Only work with data related to your assigned responsibility.",
                 "If you need work outside your visible scope, ask Owner for access instead of using another account."
@@ -421,7 +421,7 @@ public class HelpWorkflowKnowledge {
         List<String> steps = new ArrayList<>();
         if (scope.canManageTeam()) {
             steps.add(locale == HelpLocale.VI
-                ? "Kiểm tra Dashboard để nắm tình hình tổng quan, sau đó xem cảnh báo hoặc báo cáo bất thường."
+                ? "Kiểm tra Tổng quan để nắm tình hình kinh doanh, sau đó xem cảnh báo hoặc báo cáo bất thường."
                 : "Review Dashboard for the business overview, then check alerts or unusual reports.");
             steps.add(locale == HelpLocale.VI
                 ? "Vào Quản lý truy cập để chắc nhân viên đang có đúng vai trò và quyền cần thiết."
@@ -429,7 +429,7 @@ public class HelpWorkflowKnowledge {
         }
         if (scope.canUseSales()) {
             steps.add(locale == HelpLocale.VI
-                ? "Kiểm tra Đơn bán hàng: đơn nháp cần được confirm/fulfill; đơn Completed cần theo dõi công nợ nếu còn phải thu."
+                ? "Kiểm tra Đơn bán hàng: đơn nháp cần được xác nhận và hoàn tất; đơn đã hoàn tất cần theo dõi công nợ nếu còn phải thu."
                 : "Check Sales Orders: confirm/fulfill drafts, then follow receivables for Completed orders when money is still due.");
         }
         if (scope.canUseInventory()) {
@@ -454,7 +454,7 @@ public class HelpWorkflowKnowledge {
         }
         if (steps.isEmpty()) {
             steps.add(locale == HelpLocale.VI
-                ? "Tài khoản hiện chưa có module nghiệp vụ rõ ràng; hãy nhờ Owner kiểm tra lại vai trò."
+                ? "Tài khoản hiện chưa có chức năng nghiệp vụ rõ ràng; hãy nhờ Chủ doanh nghiệp kiểm tra lại vai trò."
                 : "This account has no clear operational module yet; ask Owner to review the role.");
         }
         return steps.stream().limit(6).toList();
@@ -469,10 +469,10 @@ public class HelpWorkflowKnowledge {
                     "Bạn có thể hỏi theo kiểu: Tôi nên làm gì trước, kiểm kho thế nào, tạo đơn bán ra sao, hoặc vì sao không thấy một màn hình.",
                     "Nếu câu hỏi liên quan dữ liệu thật, hãy kèm mã đơn, mã hàng hoặc tên khách hàng khi bạn có quyền xem phần đó."
                 ),
-                scope.visibleModules(),
+                scope.visibleModules(locale),
                 List.of(
-                    "Mình chỉ dùng các module bạn được cấp quyền để trả lời.",
-                    "Không gửi mật khẩu, token, API key hoặc dữ liệu nhạy cảm vào câu hỏi."
+                    "Mình chỉ dùng các chức năng bạn được cấp quyền để trả lời.",
+                    "Không gửi mật khẩu, mã truy cập, khóa API hoặc dữ liệu nhạy cảm vào câu hỏi."
                 ),
                 locale
             );
@@ -485,7 +485,7 @@ public class HelpWorkflowKnowledge {
                 "You can ask things like: what should I do first, how to check stock, how to create a sales order, or why a screen is missing.",
                 "For real data questions, include an order code, product code or customer name only when you have permission to view that area."
             ),
-            scope.visibleModules(),
+            scope.visibleModules(locale),
             List.of(
                 "I only use modules assigned to your account when answering.",
                 "Do not send passwords, tokens, API keys or sensitive data in the question."
@@ -497,17 +497,17 @@ public class HelpWorkflowKnowledge {
     public HelpAnswerResponse missingScreenAnswer(HelpPermissionScope scope, HelpLocale locale) {
         if (locale == HelpLocale.VI) {
             return response(
-                "Nếu một màn hình không xuất hiện ở sidebar, thường là tài khoản hiện tại chưa được cấp quyền cho chức năng đó.",
+                "Nếu một màn hình không xuất hiện ở thanh điều hướng, thường là tài khoản hiện tại chưa được cấp quyền cho chức năng đó.",
                 List.of(
                     "Kiểm tra lại bạn đang đăng nhập đúng tài khoản cá nhân hay không.",
-                    "Nhìn các mục đang hiển thị ở sidebar để biết phạm vi công việc hiện tại.",
-                    "Nếu màn hình đó cần cho công việc, hãy nhờ Owner vào Quản lý truy cập để kiểm tra role và permission.",
-                    "Sau khi Owner cập nhật quyền, đăng xuất rồi đăng nhập lại để tải lại menu và token quyền mới."
+                    "Nhìn các mục đang hiển thị ở thanh điều hướng để biết phạm vi công việc hiện tại.",
+                    "Nếu màn hình đó cần cho công việc, hãy nhờ Chủ doanh nghiệp vào Quản lý truy cập để kiểm tra vai trò và quyền.",
+                    "Sau khi Chủ doanh nghiệp cập nhật quyền, đăng xuất rồi đăng nhập lại để tải lại thanh điều hướng và thông tin quyền mới."
                 ),
-                scope.visibleModules(),
+                scope.visibleModules(locale),
                 List.of(
                     "Không dùng tài khoản của người khác để mở màn hình bị ẩn.",
-                    "Ẩn menu chỉ là lớp trải nghiệm; backend vẫn phải chặn API theo permission."
+                    "Ẩn mục điều hướng chỉ là lớp trải nghiệm; máy chủ vẫn phải chặn API theo quyền."
                 ),
                 locale
             );
@@ -521,7 +521,7 @@ public class HelpWorkflowKnowledge {
                 "If the missing screen is required for your job, ask Owner to review your role and permissions in Team Access.",
                 "After permissions change, sign out and sign in again so the menu and token are refreshed."
             ),
-            scope.visibleModules(),
+            scope.visibleModules(locale),
             List.of(
                 "Do not use another employee's account to open hidden screens.",
                 "Menu hiding is only the user experience layer; backend APIs must still enforce permissions."
@@ -535,14 +535,14 @@ public class HelpWorkflowKnowledge {
             return response(
                 "Tôi không thể hỗ trợ phần " + requestedArea + " vì nội dung này nằm ngoài vai trò hoặc quyền được cấp của bạn.",
                 List.of(
-                    "Chỉ sử dụng các module đang hiển thị với tài khoản của bạn.",
-                    "Hãy yêu cầu Owner xem lại role nếu nhiệm vụ này thật sự thuộc công việc của bạn.",
+                    "Chỉ sử dụng các chức năng đang hiển thị với tài khoản của bạn.",
+                    "Hãy yêu cầu Chủ doanh nghiệp xem lại vai trò nếu nhiệm vụ này thật sự thuộc công việc của bạn.",
                     "Không dùng tài khoản của nhân viên khác để truy cập quy trình bị giới hạn."
                 ),
-                scope.visibleModules(),
+                scope.visibleModules(locale),
                 List.of(
                     "Ranh giới này bảo vệ dữ liệu công ty và ngăn vượt quyền.",
-                    "Thay đổi quyền phải được Owner thực hiện qua Quản lý truy cập."
+                    "Thay đổi quyền phải được Chủ doanh nghiệp thực hiện qua Quản lý truy cập."
                 ),
                 VI_SCOPE_NOTICE,
                 true
@@ -556,7 +556,7 @@ public class HelpWorkflowKnowledge {
                 "Ask Owner to review your role if this task is part of your job.",
                 "Do not use another employee's account to access restricted workflows."
             ),
-            scope.visibleModules(),
+            scope.visibleModules(locale),
             List.of(
                 "This boundary protects company data and prevents privilege bypass.",
                 "Access changes must be made through Team Access by an authorized Owner."

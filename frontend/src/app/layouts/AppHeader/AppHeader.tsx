@@ -30,6 +30,7 @@ import {
 } from '../../../features/auth';
 import { useNotifications } from '../../../features/notifications';
 import { LANGUAGE_STORAGE_KEY, type SupportedLanguage } from '../../../i18n';
+import { roleLabel } from '../../../lib/roleDisplay';
 import styles from './AppHeader.module.css';
 
 interface AppHeaderProps {
@@ -71,16 +72,16 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
   );
   const quickCreateItems = useMemo(
     () => [
-      hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE)
+      hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE) && canAccessPath(user, '/sales-orders/new')
         ? { key: '/sales-orders/new', label: t('app.header.createSalesOrder') }
         : null,
-      hasPermission(user, PERMISSIONS.INVENTORY_MANAGE)
+      hasPermission(user, PERMISSIONS.INVENTORY_MANAGE) && canAccessPath(user, '/inventory')
         ? { key: '/inventory', label: t('app.header.receiveStock') }
         : null,
-      hasPermission(user, PERMISSIONS.PAYMENT_CREATE)
+      hasPermission(user, PERMISSIONS.PAYMENT_CREATE) && canAccessPath(user, '/payments')
         ? { key: '/payments', label: t('app.header.recordPayment') }
         : null,
-      hasPermission(user, PERMISSIONS.CUSTOMER_MANAGE)
+      hasPermission(user, PERMISSIONS.CUSTOMER_MANAGE) && canAccessPath(user, '/customers')
         ? { key: '/customers', label: t('app.header.manageCustomers') }
         : null,
     ].filter(Boolean),
@@ -205,7 +206,7 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
                 type="secondary"
                 className={styles.userMeta}
               >
-                {user?.roles?.[0] || 'USER'}
+                {roleLabel(user?.roles?.[0], t)}
               </Typography.Text>
             </div>
           </button>
