@@ -38,6 +38,7 @@ public class RoleManagementService {
     private static final Map<String, Set<String>> PERMISSION_DEPENDENCIES = Map.ofEntries(
         Map.entry(PermissionNames.PRODUCT_MANAGE, Set.of(PermissionNames.PRODUCT_VIEW)),
         Map.entry(PermissionNames.CUSTOMER_MANAGE, Set.of(PermissionNames.CUSTOMER_VIEW)),
+        Map.entry(PermissionNames.CUSTOMER_DEACTIVATE, Set.of(PermissionNames.CUSTOMER_VIEW)),
         Map.entry(
             PermissionNames.SALES_ORDER_CREATE,
             Set.of(
@@ -71,6 +72,7 @@ public class RoleManagementService {
         entry(PermissionNames.PRODUCT_MANAGE, "Manage products", "Catalog", "Create, update and deactivate products."),
         entry(PermissionNames.CUSTOMER_VIEW, "View customers", "Customers", "See customer profiles and limits."),
         entry(PermissionNames.CUSTOMER_MANAGE, "Manage customers", "Customers", "Create and update customer records."),
+        entry(PermissionNames.CUSTOMER_DEACTIVATE, "Change customer status", "Customers", "Deactivate or reactivate customer accounts."),
         entry(PermissionNames.SALES_ORDER_VIEW, "View sales orders", "Sales", "See sales orders and statuses."),
         entry(PermissionNames.SALES_ORDER_CREATE, "Create sales orders", "Sales", "Create draft sales orders."),
         entry(PermissionNames.SALES_ORDER_CONFIRM, "Confirm sales orders", "Sales", "Confirm orders for fulfillment."),

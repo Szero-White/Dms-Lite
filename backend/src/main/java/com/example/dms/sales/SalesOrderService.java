@@ -93,7 +93,8 @@ public class SalesOrderService {
     @Transactional
     public SalesOrderDetailResponse createOrder(CreateSalesOrderRequest request) {
         Long tenantId = TenantContext.tenantRequired();
-        findCustomer(request.customerId(), tenantId);
+        Customer customer = lockCustomer(request.customerId(), tenantId);
+        validateCustomerActive(customer);
         inventoryService.validateWarehouse(tenantId, request.warehouseId());
 
         SalesOrder salesOrder = buildDraftOrder(request, tenantId);
@@ -141,6 +142,7 @@ public class SalesOrderService {
         }
 
         Customer customer = lockCustomer(salesOrder.getCustomerId(), tenantId);
+        validateCustomerActive(customer);
         validateCreditLimit(salesOrder, customer, tenantId);
 
         for (SalesOrderItem salesOrderItem : salesOrder.getItems()) {
@@ -354,9 +356,10 @@ public class SalesOrderService {
             .collect(Collectors.toMap(Warehouse::getId, Warehouse::getName));
     }
 
-    private Customer findCustomer(Long customerId, Long tenantId) {
-        return customerRepository.findByIdAndTenantIdAndDeletedAtIsNull(customerId, tenantId)
-            .orElseThrow(() -> new BusinessException("Customer not found"));
+    private void validateCustomerActive(Customer customer) {
+        if (!customer.isActive()) {
+            throw new BusinessException("Inactive customer cannot create or fulfill sales orders");
+        }
     }
 
     private void validateCreditLimit(SalesOrder salesOrder, Customer customer, Long tenantId) {

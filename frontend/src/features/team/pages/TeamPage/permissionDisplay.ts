@@ -23,6 +23,11 @@ const PERMISSION_DISPLAY: Record<string, PermissionDisplay> = {
     labelKey: 'permissions.CUSTOMER_MANAGE.label',
     descriptionKey: 'permissions.CUSTOMER_MANAGE.description',
   },
+  CUSTOMER_DEACTIVATE: {
+    groupKey: 'permissions.group.customers',
+    labelKey: 'permissions.CUSTOMER_DEACTIVATE.label',
+    descriptionKey: 'permissions.CUSTOMER_DEACTIVATE.description',
+  },
   CUSTOMER_VIEW: {
     groupKey: 'permissions.group.customers',
     labelKey: 'permissions.CUSTOMER_VIEW.label',

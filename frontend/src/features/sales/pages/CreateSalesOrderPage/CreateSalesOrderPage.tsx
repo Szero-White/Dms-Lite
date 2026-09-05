@@ -148,7 +148,9 @@ export function CreateSalesOrderPage() {
         isError={customersQuery.isError || productsQuery.isError || warehouseQuery.isError}
         error={customersQuery.error || productsQuery.error || warehouseQuery.error}
         hasData={Boolean(
-          customersQuery.data?.length && productsQuery.data?.length && warehouseQuery.data,
+          customersQuery.data?.some((customer) => customer.active)
+            && productsQuery.data?.length
+            && warehouseQuery.data,
         )}
         emptyTitle={t('sales.create.title')}
         emptyDescription={t('sales.create.emptyDescription')}
@@ -195,10 +197,12 @@ export function CreateSalesOrderPage() {
                 >
                   <Select
                     placeholder={t('payments.customerPlaceholder')}
-                    options={(customersQuery.data ?? []).map((customer) => ({
-                      value: customer.id,
-                      label: t('sales.create.customerDebtLabel', { name: customer.name, debt: formatCurrency(customer.debtBalance) }),
-                    }))}
+                    options={(customersQuery.data ?? [])
+                      .filter((customer) => customer.active)
+                      .map((customer) => ({
+                        value: customer.id,
+                        label: t('sales.create.customerDebtLabel', { name: customer.name, debt: formatCurrency(customer.debtBalance) }),
+                      }))}
                   />
                 </Form.Item>
 

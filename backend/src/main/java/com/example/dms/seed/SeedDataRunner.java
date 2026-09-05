@@ -65,7 +65,8 @@ public class SeedDataRunner implements CommandLineRunner {
         Map<String, Permission> permissionMap = ensurePermissions();
         Role ownerRole = ensureRole(OWNER, permissionMap, PermissionNames.PRODUCT_VIEW,
             PermissionNames.PRODUCT_MANAGE, PermissionNames.CUSTOMER_VIEW,
-            PermissionNames.CUSTOMER_MANAGE, PermissionNames.SALES_ORDER_VIEW,
+            PermissionNames.CUSTOMER_MANAGE, PermissionNames.CUSTOMER_DEACTIVATE,
+            PermissionNames.SALES_ORDER_VIEW,
             PermissionNames.SALES_ORDER_CREATE, PermissionNames.SALES_ORDER_CONFIRM,
             PermissionNames.SALES_ORDER_CANCEL, PermissionNames.INVOICE_VIEW,
             PermissionNames.INVOICE_CREATE, PermissionNames.INVOICE_ISSUE, PermissionNames.INVOICE_CANCEL,
@@ -117,6 +118,7 @@ public class SeedDataRunner implements CommandLineRunner {
             PermissionNames.PRODUCT_MANAGE,
             PermissionNames.CUSTOMER_VIEW,
             PermissionNames.CUSTOMER_MANAGE,
+            PermissionNames.CUSTOMER_DEACTIVATE,
             PermissionNames.SALES_ORDER_VIEW,
             PermissionNames.SALES_ORDER_CREATE,
             PermissionNames.SALES_ORDER_CONFIRM,

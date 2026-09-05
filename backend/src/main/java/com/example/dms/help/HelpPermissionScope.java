@@ -98,7 +98,8 @@ public class HelpPermissionScope {
 
     public boolean canUseCustomers() {
         return has(PermissionNames.CUSTOMER_VIEW)
-            || has(PermissionNames.CUSTOMER_MANAGE);
+            || has(PermissionNames.CUSTOMER_MANAGE)
+            || has(PermissionNames.CUSTOMER_DEACTIVATE);
     }
 
     public boolean canViewCustomerData() {

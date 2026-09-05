@@ -7,7 +7,9 @@ import {
   EnvironmentOutlined,
   LeftOutlined,
   PhoneOutlined,
+  PlayCircleOutlined,
   SafetyCertificateOutlined,
+  StopOutlined,
   WalletOutlined,
 } from '@ant-design/icons';
 import {
@@ -18,6 +20,7 @@ import {
   Input,
   InputNumber,
   Modal,
+  Popconfirm,
   Progress,
   Space,
   Table,
@@ -47,6 +50,8 @@ import {
 import {
   useCustomer,
   useCustomerDebtStatement,
+  useDeactivateCustomer,
+  useReactivateCustomer,
 } from '../../hooks/useCustomerQueries';
 import { useRecordCustomerPayment } from '../../../../features/payments';
 import { useSalesOrders } from '../../../../features/sales';
@@ -56,6 +61,7 @@ export function CustomerDetailPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const canRecordPayment = hasPermission(user, PERMISSIONS.PAYMENT_CREATE);
+  const canChangeCustomerStatus = hasPermission(user, PERMISSIONS.CUSTOMER_DEACTIVATE);
   const canViewDebt = hasPermission(user, PERMISSIONS.DEBT_VIEW);
   const showCustomerFinancials = canViewCustomerBalance(user);
   const canViewOrders = hasPermission(user, PERMISSIONS.SALES_ORDER_VIEW);
@@ -69,6 +75,8 @@ export function CustomerDetailPage() {
     enabled: canViewOrders && Number.isFinite(numericCustomerId),
   });
   const paymentMutation = useRecordCustomerPayment();
+  const deactivateCustomer = useDeactivateCustomer();
+  const reactivateCustomer = useReactivateCustomer();
   const debtStatementQuery = useCustomerDebtStatement(numericCustomerId, {
     enabled: canViewDebt && Number.isFinite(numericCustomerId),
   });
@@ -93,6 +101,33 @@ export function CustomerDetailPage() {
             <Button icon={<LeftOutlined />} onClick={() => navigate('/customers')}>
               {t('customers.detail.back')}
             </Button>
+            {canChangeCustomerStatus && customer ? (
+              customer.active ? (
+                <Popconfirm
+                  title={t('customers.deactivate.title')}
+                  description={t('customers.deactivate.description')}
+                  okText={t('customers.action.deactivate')}
+                  okButtonProps={{ danger: true }}
+                  onConfirm={() => deactivateCustomer.mutate(customer.id)}
+                >
+                  <Button
+                    danger
+                    icon={<StopOutlined />}
+                    loading={deactivateCustomer.isPending}
+                  >
+                    {t('customers.action.deactivate')}
+                  </Button>
+                </Popconfirm>
+              ) : (
+                <Button
+                  icon={<PlayCircleOutlined />}
+                  loading={reactivateCustomer.isPending}
+                  onClick={() => reactivateCustomer.mutate(customer.id)}
+                >
+                  {t('customers.action.reactivate')}
+                </Button>
+              )
+            ) : null}
             {canRecordPayment ? (
               <Button
                 type="primary"

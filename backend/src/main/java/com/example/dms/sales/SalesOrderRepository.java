@@ -38,5 +38,11 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
 
     long countByTenantId(Long tenantId);
 
+    boolean existsByTenantIdAndCustomerIdAndStatus(
+        Long tenantId,
+        Long customerId,
+        SalesOrderStatus status
+    );
+
     Optional<SalesOrder> findFirstByTenantIdAndCodeIgnoreCase(Long tenantId, String code);
 }

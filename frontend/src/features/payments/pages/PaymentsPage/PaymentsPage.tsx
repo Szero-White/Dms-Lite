@@ -44,6 +44,10 @@ export function PaymentsPage() {
   const selectedCustomerId = Form.useWatch('customerId', form);
   const paymentAmount = Form.useWatch('amount', form);
   const customers = customersQuery.data ?? [];
+  const activeCustomers = useMemo(
+    () => customers.filter((customer) => customer.active),
+    [customers],
+  );
   const debtors = useMemo(
     () => customers
       .filter((customer) => toNumber(customer.debtBalance) > 0)
@@ -59,15 +63,15 @@ export function PaymentsPage() {
     (total, customer) => total + toNumber(customer.debtBalance),
     0,
   );
-  const availableCredit = customers.reduce(
+  const availableCredit = activeCustomers.reduce(
     (total, customer) => total + Math.max(
       toNumber(customer.creditLimit) - toNumber(customer.debtBalance),
       0,
     ),
     0,
   );
-  const debtorRatio = customers.length > 0
-    ? customers.filter((c) => toNumber(c.debtBalance) > 0).length / customers.length
+  const debtorRatio = activeCustomers.length > 0
+    ? activeCustomers.filter((c) => toNumber(c.debtBalance) > 0).length / activeCustomers.length
     : 0;
   const topDebtors = debtors.slice(0, 5);
   const maxDebt = topDebtors.length > 0 ? toNumber(topDebtors[0].debtBalance) : 0;
@@ -158,7 +162,7 @@ export function PaymentsPage() {
                       <div className={heroStyles.miniStat}>
                         <span className={`${heroStyles.miniDot} ${heroStyles.blue}`}/>
                         <div>
-                          <strong>{customers.filter((c) => c.active).length}</strong>
+                          <strong>{activeCustomers.length}</strong>
                           <span>{t('payments.hero.activeAccounts')}</span>
                         </div>
                       </div>

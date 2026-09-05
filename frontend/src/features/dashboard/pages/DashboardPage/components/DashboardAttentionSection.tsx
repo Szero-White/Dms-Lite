@@ -105,7 +105,9 @@ export function DashboardAttentionSection({
                   <div>
                     <strong>{order.code}</strong>
                     <span>
-                      {customersMap.get(order.customerId) || t('dashboard.attention.customerFallback', { id: order.customerId })}
+                      {order.customerName
+                        || customersMap.get(order.customerId)
+                        || t('dashboard.attention.customerFallback', { id: order.customerId })}
                     </span>
                   </div>
                   <Typography.Text strong>{formatCurrency(order.totalAmount)}</Typography.Text>

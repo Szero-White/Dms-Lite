@@ -290,6 +290,9 @@ public class HelpWorkflowKnowledge {
             } else {
                 steps.add("Nếu dữ liệu khách hàng sai, gửi yêu cầu chỉnh sửa cho người có quyền Quản lý khách hàng.");
             }
+            if (scope.has(PermissionNames.CUSTOMER_DEACTIVATE)) {
+                steps.add("Chỉ ngừng hoạt động khi khách hàng không còn công nợ và không có đơn nháp; có thể kích hoạt lại khi giao dịch trở lại.");
+            }
 
             return response(
                 "Dữ liệu khách hàng giúp bộ phận bán hàng và kế toán theo dõi đơn hàng, hạn mức và công nợ chính xác.",
@@ -309,6 +312,9 @@ public class HelpWorkflowKnowledge {
             steps.add("Update phone, address, debt limit and credit terms from verified customer information.");
         } else {
             steps.add("If customer data is wrong, send a correction request to a role with CUSTOMER_MANAGE.");
+        }
+        if (scope.has(PermissionNames.CUSTOMER_DEACTIVATE)) {
+            steps.add("Deactivate only when the customer has no outstanding debt and no draft sales orders; reactivate when trading resumes.");
         }
 
         return response(
