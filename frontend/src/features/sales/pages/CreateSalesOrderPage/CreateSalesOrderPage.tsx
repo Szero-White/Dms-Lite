@@ -327,7 +327,7 @@ export function CreateSalesOrderPage() {
                   />
                 ) : null}
 
-                <Space>
+                <Space className={styles.formActions}>
                   <Button onClick={() => navigate(canViewSalesOrders ? '/sales-orders' : fallbackPath)}>{t('sales.create.back')}</Button>
                   <Button type="primary" htmlType="submit" loading={createOrder.isPending}>
                     {t('sales.action.createOrder')}

@@ -4,6 +4,7 @@ import {
   DollarOutlined,
   DownOutlined,
   DownloadOutlined,
+  EyeOutlined,
   InboxOutlined,
   ReloadOutlined,
   ShoppingCartOutlined,
@@ -14,10 +15,13 @@ import {
   Button,
   Card,
   DatePicker,
+  Descriptions,
+  Drawer,
   Dropdown,
   Progress,
   Space,
   Table,
+  Tooltip,
   Tabs,
   Tag,
   Typography,
@@ -35,7 +39,7 @@ import { PERMISSIONS, canViewCustomerBalance, hasPermission, useAuth } from '../
 import { useCustomers } from '../../../customers';
 import { useDashboardData } from '../../../dashboard';
 import { useProducts } from '../../../products';
-import { useSalesOrders } from '../../../sales';
+import { useSalesOrders, type SalesOrder } from '../../../sales';
 import {
   InventoryStockChart,
   OrderStatusChart,
@@ -86,6 +90,7 @@ export function ReportsPage() {
   const [activeTab, setActiveTab] = useState<ReportTab>('sales');
   const [dateRange, setDateRange] = useState<[number, number] | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [selectedReportOrder, setSelectedReportOrder] = useState<SalesOrder | null>(null);
   const resolvedActiveTab = availableTabs.includes(activeTab) ? activeTab : availableTabs[0] ?? 'sales';
 
   const customers = canViewReceivables ? customersQuery.data ?? [] : [];
@@ -100,6 +105,14 @@ export function ReportsPage() {
     }),
     [dateRange, orders],
   );
+
+  function paymentProgress(order: SalesOrder) {
+    const total = toNumber(order.totalAmount);
+    if (total <= 0) return 0;
+
+    const paid = Math.max(0, Math.min(toNumber(order.paidAmount), total));
+    return Math.min(100, Math.round((paid / total) * 100));
+  }
 
   const recognizedOrders  = filteredOrders.filter((o) => o.status === 'COMPLETED');
   const salesRevenue       = recognizedOrders.reduce((s, o) => s + toNumber(o.totalAmount), 0);
@@ -216,15 +229,53 @@ export function ReportsPage() {
                       </div>
 
                       <Card title={t('reports.title')} className="panel-card">
-                        <Table rowKey="id" size="small" scroll={{ x: 760 }}
+                        <Table
+                          rowKey="id"
+                          size="small"
+                          scroll={{ x: 1180 }}
                           dataSource={[...filteredOrders].sort((a, b) => toNumber(b.totalAmount) - toNumber(a.totalAmount)).slice(0, 10)}
                           locale={{ emptyText: t('reports.empty.noSalesOrders') }}
                           columns={[
-                            { title: t('reports.table.order'), dataIndex: 'code' },
-                            { title: t('reports.table.created'), dataIndex: 'createdAt', render: (value) => formatDateTime(value) },
-                            { title: t('reports.table.status'), dataIndex: 'status', render: (v) => <SalesOrderStatusTag status={v} /> },
-                            { title: t('reports.table.revenue'), dataIndex: 'totalAmount', align: 'right', render: (value) => formatCurrency(value) },
-                            { title: t('reports.table.debt'), dataIndex: 'debtAmount', align: 'right', render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.order'), dataIndex: 'code', width: 160 },
+                            {
+                              title: t('reports.table.customer'),
+                              width: 230,
+                              render: (_, order) => order.customerName ?? `#${order.customerId}`,
+                            },
+                            { title: t('reports.table.created'), dataIndex: 'createdAt', width: 170, render: (value) => formatDateTime(value) },
+                            { title: t('reports.table.status'), dataIndex: 'status', width: 130, render: (v) => <SalesOrderStatusTag status={v} /> },
+                            { title: t('reports.table.orderTotal'), dataIndex: 'totalAmount', width: 150, align: 'right', render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.collected'), dataIndex: 'paidAmount', width: 150, align: 'right', render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.remainingDebt'), dataIndex: 'debtAmount', width: 150, align: 'right', render: (value) => formatCurrency(value) },
+                            {
+                              title: t('reports.table.collectionProgress'),
+                              width: 180,
+                              render: (_, order) => {
+                                const percent = paymentProgress(order);
+                                return (
+                                  <div className={styles.collectionProgress}>
+                                    <Progress percent={percent} size="small" showInfo={false} />
+                                    <span>{percent}%</span>
+                                  </div>
+                                );
+                              },
+                            },
+                            {
+                              title: '',
+                              width: 56,
+                              align: 'center',
+                              fixed: 'right',
+                              render: (_, order) => (
+                                <Tooltip title={t('reports.action.viewOrder')}>
+                                  <Button
+                                    type="text"
+                                    icon={<EyeOutlined />}
+                                    aria-label={t('reports.action.viewOrder')}
+                                    onClick={() => setSelectedReportOrder(order)}
+                                  />
+                                </Tooltip>
+                              ),
+                            },
                           ]}
                         />
                       </Card>
@@ -374,6 +425,43 @@ export function ReportsPage() {
           </div>
         ) : null}
       </QueryState>
+
+      <Drawer
+        title={selectedReportOrder ? t('reports.detail.title', { code: selectedReportOrder.code }) : t('reports.detail.fallbackTitle')}
+        width={560}
+        open={Boolean(selectedReportOrder)}
+        onClose={() => setSelectedReportOrder(null)}
+      >
+        {selectedReportOrder ? (
+          <div className={styles.reportOrderDetail}>
+            <Descriptions bordered size="small" column={1}>
+              <Descriptions.Item label={t('reports.table.customer')}>
+                {selectedReportOrder.customerName ?? `#${selectedReportOrder.customerId}`}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('reports.table.created')}>
+                {formatDateTime(selectedReportOrder.createdAt)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('reports.table.status')}>
+                <SalesOrderStatusTag status={selectedReportOrder.status} />
+              </Descriptions.Item>
+              <Descriptions.Item label={t('reports.table.orderTotal')}>
+                {formatCurrency(selectedReportOrder.totalAmount)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('reports.table.collected')}>
+                {formatCurrency(selectedReportOrder.paidAmount)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('reports.table.remainingDebt')}>
+                {formatCurrency(selectedReportOrder.debtAmount)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('reports.table.collectionProgress')}>
+                <div className={styles.collectionProgressDetail}>
+                  <Progress percent={paymentProgress(selectedReportOrder)} />
+                </div>
+              </Descriptions.Item>
+            </Descriptions>
+          </div>
+        ) : null}
+      </Drawer>
     </div>
   );
 }
