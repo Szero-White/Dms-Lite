@@ -206,7 +206,6 @@ export function AIHistoryPage() {
           <Table<HelpInteraction>
             rowKey="id"
             size="small"
-            sticky
             scroll={{ x: 1080 }}
             dataSource={history}
             pagination={{

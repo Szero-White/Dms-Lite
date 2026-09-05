@@ -146,7 +146,6 @@ export function CustomersTableCard({
       >
         <Table
           rowKey="id"
-          sticky
           scroll={{ x: 1240 }}
           dataSource={filteredCustomers}
           rowClassName={(record) => {

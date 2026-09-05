@@ -205,7 +205,6 @@ export function CustomerDetailPage() {
               <Table
                 size="small"
                 rowKey="id"
-                sticky
                 scroll={{ x: 940 }}
                 locale={{ emptyText: t('customers.detail.noDebtTransactions') }}
                 dataSource={debtStatementQuery.data ?? []}
@@ -267,7 +266,6 @@ export function CustomerDetailPage() {
               <Table
                 size="small"
                 rowKey="id"
-                sticky
                 scroll={{ x: 800 }}
                 locale={{ emptyText: t('customers.detail.noSalesOrders') }}
                 dataSource={orderHistory}

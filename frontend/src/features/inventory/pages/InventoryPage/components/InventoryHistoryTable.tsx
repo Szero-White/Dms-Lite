@@ -57,7 +57,6 @@ export function InventoryHistoryTable({
     <Card className={`panel-card ${styles.historyCard}`} title={t('inventory.history.title')}>
       <Table
         rowKey="id"
-        sticky
         scroll={{ x: 1000 }}
         locale={{ emptyText: t('inventory.history.empty') }}
         dataSource={history}

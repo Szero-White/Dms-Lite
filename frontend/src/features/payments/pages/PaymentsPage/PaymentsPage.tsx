@@ -218,7 +218,6 @@ export function PaymentsPage() {
             </div>
             <Table
               rowKey="id"
-              sticky
               scroll={{ x: 960 }}
               locale={{ emptyText: keyword ? t('payments.noDebtorsFiltered') : t('payments.noReceivables') }}
               dataSource={debtors}

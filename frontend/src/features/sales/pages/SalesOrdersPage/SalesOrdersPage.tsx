@@ -285,7 +285,6 @@ export function SalesOrdersPage() {
         >
           <Table
             rowKey="id"
-            sticky
             scroll={{ x: 1120 }}
             dataSource={filteredOrders}
             columns={[

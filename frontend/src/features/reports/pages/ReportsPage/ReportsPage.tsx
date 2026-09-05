@@ -205,7 +205,7 @@ export function ReportsPage() {
                       </div>
 
                       <Card title={t('reports.title')} className="panel-card">
-                        <Table rowKey="id" size="small" sticky scroll={{ x: 760 }}
+                        <Table rowKey="id" size="small" scroll={{ x: 760 }}
                           dataSource={[...filteredOrders].sort((a, b) => toNumber(b.totalAmount) - toNumber(a.totalAmount)).slice(0, 10)}
                           locale={{ emptyText: t('reports.empty.noSalesOrders') }}
                           columns={[
@@ -238,7 +238,7 @@ export function ReportsPage() {
                       <InventoryStockChart products={products} />
 
                       <Card title={t('reports.title')} className="panel-card">
-                        <Table rowKey="id" size="small" sticky scroll={{ x: 820 }}
+                        <Table rowKey="id" size="small" scroll={{ x: 820 }}
                           dataSource={products}
                           locale={{ emptyText: t('reports.empty.noInventory') }}
                           columns={[
@@ -316,7 +316,7 @@ export function ReportsPage() {
                       )}
 
                       <Card title={t('reports.title')} className="panel-card">
-                        <Table rowKey="id" size="small" sticky scroll={{ x: 900 }}
+                        <Table rowKey="id" size="small" scroll={{ x: 900 }}
                           dataSource={[...customers].sort((a, b) => toNumber(b.debtBalance) - toNumber(a.debtBalance))}
                           locale={{ emptyText: t('reports.empty.noReceivables') }}
                           columns={[

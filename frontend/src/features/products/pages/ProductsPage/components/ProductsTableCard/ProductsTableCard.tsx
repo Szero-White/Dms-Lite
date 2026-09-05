@@ -165,7 +165,6 @@ export function ProductsTableCard({
       >
         <Table
           rowKey="id"
-          sticky
           scroll={{ x: 1260 }}
           dataSource={filteredProducts}
           rowClassName={(record) => (record.isLowStock ? styles.lowStockRow : '')}

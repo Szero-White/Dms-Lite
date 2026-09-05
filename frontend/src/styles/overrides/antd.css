@@ -516,3 +516,9 @@
   border-color: transparent !important;
   box-shadow: 0 2px 8px rgba(99,102,241,0.3);
 }
+
+/* Prevent Ant Design from rendering a second sticky horizontal scrollbar.
+   DMS tables use the native scrollbar provided by Table scroll.x. */
+.ant-table-wrapper .ant-table-sticky-scroll {
+  display: none !important;
+}

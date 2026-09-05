@@ -216,7 +216,6 @@ export function AuditLogsPage() {
           <Table<AuditLogRow>
             rowKey="id"
             size="small"
-            sticky
             scroll={{ x: 980 }}
             dataSource={dataSource}
             columns={[
