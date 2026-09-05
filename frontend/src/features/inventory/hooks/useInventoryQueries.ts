@@ -17,10 +17,11 @@ export function useDefaultWarehouse() {
   });
 }
 
-export function useInventoryStock() {
+export function useInventoryStock(options: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: queryKeys.inventoryStock,
     queryFn: fetchInventoryStock,
+    enabled: options.enabled ?? true,
   });
 }
 

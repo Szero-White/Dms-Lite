@@ -11,10 +11,10 @@ import styles from './DashboardWelcomePanel.module.css';
 
 interface DashboardWelcomePanelProps {
   latestOrderCreatedAt?: string;
-  onAddCustomer: () => void;
-  onCreateOrder: () => void;
-  onReceiveStock: () => void;
-  onRecordPayment: () => void;
+  onAddCustomer?: () => void;
+  onCreateOrder?: () => void;
+  onReceiveStock?: () => void;
+  onRecordPayment?: () => void;
   userDisplayName: string;
 }
 
@@ -27,6 +27,9 @@ export function DashboardWelcomePanel({
   userDisplayName,
 }: DashboardWelcomePanelProps) {
   const { t } = useTranslation();
+  const hasQuickActions = Boolean(
+    onCreateOrder || onReceiveStock || onRecordPayment || onAddCustomer,
+  );
 
   return (
     <section className={styles.welcomePanel}>
@@ -43,20 +46,30 @@ export function DashboardWelcomePanel({
             : t('dashboard.welcome.noActivity')}
         </Typography.Paragraph>
       </div>
-      <div className={styles.quickActions}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={onCreateOrder}>
-          {t('dashboard.action.createOrder')}
-        </Button>
-        <Button icon={<InboxOutlined />} onClick={onReceiveStock}>
-          {t('dashboard.action.receiveStock')}
-        </Button>
-        <Button icon={<WalletOutlined />} onClick={onRecordPayment}>
-          {t('dashboard.action.recordPayment')}
-        </Button>
-        <Button icon={<UserAddOutlined />} onClick={onAddCustomer}>
-          {t('dashboard.action.addCustomer')}
-        </Button>
-      </div>
+      {hasQuickActions ? (
+        <div className={styles.quickActions}>
+          {onCreateOrder ? (
+            <Button type="primary" icon={<PlusOutlined />} onClick={onCreateOrder}>
+              {t('dashboard.action.createOrder')}
+            </Button>
+          ) : null}
+          {onReceiveStock ? (
+            <Button icon={<InboxOutlined />} onClick={onReceiveStock}>
+              {t('dashboard.action.receiveStock')}
+            </Button>
+          ) : null}
+          {onRecordPayment ? (
+            <Button icon={<WalletOutlined />} onClick={onRecordPayment}>
+              {t('dashboard.action.recordPayment')}
+            </Button>
+          ) : null}
+          {onAddCustomer ? (
+            <Button icon={<UserAddOutlined />} onClick={onAddCustomer}>
+              {t('dashboard.action.addCustomer')}
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
     </section>
   );
 }

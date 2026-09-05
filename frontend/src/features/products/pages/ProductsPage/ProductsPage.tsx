@@ -3,13 +3,19 @@ import { Button } from 'antd';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
+import { useInventoryStock } from '../../../../features/inventory';
 import { toNumber } from '../../../../lib/format';
-import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
+import {
+  PERMISSIONS,
+  canViewProductFinancials,
+  hasPermission,
+  useAuth,
+} from '../../../auth';
 import { ProductFormDrawer } from '../../components/ProductFormDrawer';
 import {
   useCreateProduct,
   useDeleteProduct,
-  useProducts,
+  useProductList,
   useUpdateProduct,
 } from '../../hooks/useProductQueries';
 import type { ProductFormValues, ProductRow } from '../../types/product.types';
@@ -21,7 +27,10 @@ export function ProductsPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const canManageProducts = hasPermission(user, PERMISSIONS.PRODUCT_MANAGE);
-  const productsQuery = useProducts();
+  const canViewInventory = hasPermission(user, PERMISSIONS.INVENTORY_VIEW);
+  const showProductFinancials = canViewProductFinancials(user);
+  const productsQuery = useProductList();
+  const stockQuery = useInventoryStock({ enabled: canViewInventory });
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
@@ -34,8 +43,26 @@ export function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<ProductRow | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  const products = useMemo(() => {
+    const stockMap = new Map(
+      (canViewInventory ? stockQuery.data ?? [] : [])
+        .map((item) => [item.productId, item.quantityOnHand]),
+    );
+
+    return (productsQuery.data ?? []).map((product): ProductRow => {
+      const stock = canViewInventory ? stockMap.get(product.id) ?? 0 : 0;
+
+      return {
+        ...product,
+        stock,
+        status: product.active ? 'ACTIVE' : 'INACTIVE',
+        isLowStock: canViewInventory && stock <= product.minStock,
+      };
+    });
+  }, [canViewInventory, productsQuery.data, stockQuery.data]);
+
   const filteredProducts = useMemo(() => {
-    const products = (productsQuery.data ?? []).filter((product) => {
+    const filtered = products.filter((product) => {
       const matchesKeyword =
         !keyword ||
         [product.name, product.sku, product.barcode].some((value) =>
@@ -46,6 +73,7 @@ export function ProductsPage() {
         (statusFilter === 'ACTIVE' && product.active) ||
         (statusFilter === 'INACTIVE' && !product.active);
       const matchesStock =
+        !canViewInventory ||
         stockFilter === 'ALL' ||
         (stockFilter === 'HEALTHY' && !product.isLowStock) ||
         (stockFilter === 'LOW_STOCK' && product.isLowStock);
@@ -53,14 +81,14 @@ export function ProductsPage() {
       return matchesKeyword && matchesStatus && matchesStock;
     });
 
-    return [...products].sort((first, second) => {
+    return [...filtered].sort((first, second) => {
       if (sortBy === 'NAME') {
         return first.name.localeCompare(second.name);
       }
-      if (sortBy === 'STOCK_ASC') {
+      if (canViewInventory && sortBy === 'STOCK_ASC') {
         return first.stock - second.stock;
       }
-      if (sortBy === 'STOCK_DESC') {
+      if (canViewInventory && sortBy === 'STOCK_DESC') {
         return second.stock - first.stock;
       }
       if (sortBy === 'PRICE_DESC') {
@@ -69,16 +97,19 @@ export function ProductsPage() {
 
       return first.id - second.id;
     });
-  }, [keyword, productsQuery.data, sortBy, statusFilter, stockFilter]);
+  }, [canViewInventory, keyword, products, sortBy, statusFilter, stockFilter]);
 
-  const products = productsQuery.data ?? [];
-  const inventoryValue = products.reduce(
-    (total, product) => total + toNumber(product.costPrice) * product.stock,
-    0,
-  );
+  const inventoryValue = canViewInventory && showProductFinancials
+    ? products.reduce(
+        (total, product) => total + toNumber(product.costPrice) * product.stock,
+        0,
+      )
+    : 0;
   const activeCount = products.filter((product) => product.active).length;
-  const lowStockCount = products.filter((product) => product.isLowStock).length;
-  const avgMargin = products.length
+  const lowStockCount = canViewInventory
+    ? products.filter((product) => product.isLowStock).length
+    : 0;
+  const avgMargin = showProductFinancials && products.length
     ? products.reduce((sum, product) => {
         const sellingPrice = toNumber(product.sellingPrice);
 
@@ -89,7 +120,10 @@ export function ProductsPage() {
     : 0;
 
   const hasFilters = Boolean(
-    keyword || statusFilter !== 'ALL' || stockFilter !== 'ALL' || sortBy !== 'DEFAULT',
+    keyword ||
+    statusFilter !== 'ALL' ||
+    (canViewInventory && stockFilter !== 'ALL') ||
+    sortBy !== 'DEFAULT',
   );
 
   function clearFilters() {
@@ -117,6 +151,10 @@ export function ProductsPage() {
     setSelectedProduct(null);
   }
 
+  const isLoading = productsQuery.isLoading || (canViewInventory && stockQuery.isLoading);
+  const isError = productsQuery.isError || (canViewInventory && stockQuery.isError);
+  const queryError = productsQuery.error || (canViewInventory ? stockQuery.error : null);
+
   return (
     <div className={styles.page}>
       <PageHeader
@@ -141,6 +179,8 @@ export function ProductsPage() {
         avgMargin={avgMargin}
         inventoryValue={inventoryValue}
         lowStockCount={lowStockCount}
+        showFinancials={showProductFinancials}
+        showInventory={canViewInventory}
         totalProducts={products.length}
       />
 
@@ -148,13 +188,16 @@ export function ProductsPage() {
         canManageProducts={canManageProducts}
         filteredProducts={filteredProducts}
         hasFilters={hasFilters}
-        isError={productsQuery.isError}
-        isLoading={productsQuery.isLoading}
+        isError={isError}
+        isLoading={isLoading}
         keyword={keyword}
         onClearFilters={clearFilters}
         onKeywordChange={setKeyword}
         onRetry={() => {
           void productsQuery.refetch();
+          if (canViewInventory) {
+            void stockQuery.refetch();
+          }
         }}
         onSelectProduct={setSelectedProduct}
         onSetDrawerOpen={setDrawerOpen}
@@ -163,7 +206,9 @@ export function ProductsPage() {
         onSortByChange={setSortBy}
         onStatusFilterChange={setStatusFilter}
         onStockFilterChange={setStockFilter}
-        productsError={productsQuery.error}
+        productsError={queryError}
+        showFinancials={showProductFinancials}
+        showInventory={canViewInventory}
         sortBy={sortBy}
         statusFilter={statusFilter}
         stockFilter={stockFilter}

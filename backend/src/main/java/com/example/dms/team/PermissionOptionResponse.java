@@ -6,6 +6,7 @@ public record PermissionOptionResponse(
     String name,
     String label,
     String group,
-    String description
+    String description,
+    List<String> requires
 ) {
 }

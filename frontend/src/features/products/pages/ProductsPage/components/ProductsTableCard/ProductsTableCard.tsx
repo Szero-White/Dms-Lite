@@ -43,6 +43,8 @@ interface ProductsTableCardProps {
   onStatusFilterChange: (value: 'ALL' | 'ACTIVE' | 'INACTIVE') => void;
   onStockFilterChange: (value: 'ALL' | 'HEALTHY' | 'LOW_STOCK') => void;
   productsError: unknown;
+  showFinancials: boolean;
+  showInventory: boolean;
   sortBy: 'DEFAULT' | 'NAME' | 'STOCK_ASC' | 'STOCK_DESC' | 'PRICE_DESC';
   statusFilter: 'ALL' | 'ACTIVE' | 'INACTIVE';
   stockFilter: 'ALL' | 'HEALTHY' | 'LOW_STOCK';
@@ -66,6 +68,8 @@ export function ProductsTableCard({
   onStatusFilterChange,
   onStockFilterChange,
   productsError,
+  showFinancials,
+  showInventory,
   sortBy,
   statusFilter,
   stockFilter,
@@ -103,16 +107,18 @@ export function ProductsTableCard({
               { value: 'INACTIVE', label: t('common.inactive') },
             ]}
           />
-          <Select
-            className={styles.filter}
-            value={stockFilter}
-            onChange={onStockFilterChange}
-            options={[
-              { value: 'ALL', label: t('products.filters.allStockHealth') },
-              { value: 'HEALTHY', label: t('products.filters.healthyStock') },
-              { value: 'LOW_STOCK', label: t('status.product.lowStock') },
-            ]}
-          />
+          {showInventory ? (
+            <Select
+              className={styles.filter}
+              value={stockFilter}
+              onChange={onStockFilterChange}
+              options={[
+                { value: 'ALL', label: t('products.filters.allStockHealth') },
+                { value: 'HEALTHY', label: t('products.filters.healthyStock') },
+                { value: 'LOW_STOCK', label: t('status.product.lowStock') },
+              ]}
+            />
+          ) : null}
           <Select
             className={styles.sort}
             value={sortBy}
@@ -120,8 +126,10 @@ export function ProductsTableCard({
             options={[
               { value: 'DEFAULT', label: t('products.filters.defaultOrder') },
               { value: 'NAME', label: t('products.filters.nameAsc') },
-              { value: 'STOCK_ASC', label: t('products.filters.stockAsc') },
-              { value: 'STOCK_DESC', label: t('products.filters.stockDesc') },
+              ...(showInventory ? [
+                { value: 'STOCK_ASC', label: t('products.filters.stockAsc') },
+                { value: 'STOCK_DESC', label: t('products.filters.stockDesc') },
+              ] : []),
               { value: 'PRICE_DESC', label: t('products.filters.priceDesc') },
             ]}
           />
@@ -167,7 +175,7 @@ export function ProductsTableCard({
           rowKey="id"
           scroll={{ x: 1260 }}
           dataSource={filteredProducts}
-          rowClassName={(record) => (record.isLowStock ? styles.lowStockRow : '')}
+          rowClassName={(record) => (showInventory && record.isLowStock ? styles.lowStockRow : '')}
           onRow={(record) => ({
             onDoubleClick: canManageProducts ? () => openEditor(record) : undefined,
           })}
@@ -195,15 +203,15 @@ export function ProductsTableCard({
               width: 170,
               render: (value) => <span className={styles.sku}>{value}</span>,
             },
-            {
+            ...(showFinancials ? [{
               title: t('products.column.costPrice'),
               dataIndex: 'costPrice',
-              align: 'right',
+              align: 'right' as const,
               width: 160,
-              render: (value) => (
+              render: (value: string | number | null) => (
                 <span className={styles.money}>{formatCurrency(value)}</span>
               ),
-            },
+            }] : []),
             {
               title: t('products.column.sellingPrice'),
               dataIndex: 'sellingPrice',
@@ -213,11 +221,11 @@ export function ProductsTableCard({
                 <span className={styles.money}>{formatCurrency(value)}</span>
               ),
             },
-            {
+            ...(showFinancials ? [{
               title: t('products.column.margin'),
               width: 110,
-              align: 'right',
-              render: (_, record) => {
+              align: 'right' as const,
+              render: (_: unknown, record: ProductRow) => {
                 const sellingPrice = toNumber(record.sellingPrice);
                 const margin =
                   sellingPrice > 0
@@ -226,11 +234,11 @@ export function ProductsTableCard({
 
                 return <span className={styles.money}>{margin.toFixed(1)}%</span>;
               },
-            },
-            {
+            }] : []),
+            ...(showInventory ? [{
               title: t('products.column.stockHealth'),
               width: 210,
-              render: (_, record) => {
+              render: (_: unknown, record: ProductRow) => {
                 const stockPercent =
                   record.minStock > 0
                     ? Math.min(Math.round((record.stock / record.minStock) * 100), 100)
@@ -251,12 +259,12 @@ export function ProductsTableCard({
                   </div>
                 );
               },
-            },
+            }] : []),
             {
               title: t('common.status'),
               width: 150,
               render: (_, record) => (
-                <ProductStatusTag isLowStock={record.isLowStock} active={record.active} />
+                <ProductStatusTag isLowStock={showInventory && record.isLowStock} active={record.active} />
               ),
             },
             {

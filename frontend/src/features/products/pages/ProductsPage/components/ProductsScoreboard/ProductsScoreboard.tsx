@@ -14,6 +14,8 @@ interface ProductsScoreboardProps {
   avgMargin: number;
   inventoryValue: number;
   lowStockCount: number;
+  showFinancials: boolean;
+  showInventory: boolean;
   totalProducts: number;
 }
 
@@ -22,6 +24,8 @@ export function ProductsScoreboard({
   avgMargin,
   inventoryValue,
   lowStockCount,
+  showFinancials,
+  showInventory,
   totalProducts,
 }: ProductsScoreboardProps) {
   const { t } = useTranslation();
@@ -85,50 +89,60 @@ export function ProductsScoreboard({
         </div>
       </div>
 
-      <div className={styles.scoreDivider} />
+      {showInventory ? (
+        <>
+          <div className={styles.scoreDivider} />
 
-      <div className={styles.scoreAlert}>
-        <div className={styles.scoreAlertTop}>
-          <WarningOutlined
-            style={{
-              color: lowStockCount > 0 ? '#f59e0b' : '#10b981',
-              fontSize: 20,
-            }}
-          />
-          <span
-            className={styles.scoreAlertNum}
-            style={{ color: lowStockCount > 0 ? '#f59e0b' : '#10b981' }}
-          >
-            {lowStockCount}
-          </span>
-        </div>
-        <div className={styles.scoreAlertLbl}>{t('products.scoreboard.lowStockSkus')}</div>
-        <Progress
-          percent={healthyPct}
-          showInfo={false}
-          size="small"
-          strokeColor={lowStockCount > 0 ? '#f59e0b' : '#10b981'}
-        />
-      </div>
-
-      <div className={styles.scoreDivider} />
-
-      <div className={styles.scoreFinancials}>
-        <div className={styles.scoreFinRow}>
-          <DollarOutlined style={{ color: '#8b5cf6', fontSize: 16 }} />
-          <div>
-            <div className={styles.scoreFinVal}>{formatCurrency(inventoryValue)}</div>
-            <div className={styles.scoreFinLbl}>{t('products.scoreboard.inventoryValue')}</div>
+          <div className={styles.scoreAlert}>
+            <div className={styles.scoreAlertTop}>
+              <WarningOutlined
+                style={{
+                  color: lowStockCount > 0 ? '#f59e0b' : '#10b981',
+                  fontSize: 20,
+                }}
+              />
+              <span
+                className={styles.scoreAlertNum}
+                style={{ color: lowStockCount > 0 ? '#f59e0b' : '#10b981' }}
+              >
+                {lowStockCount}
+              </span>
+            </div>
+            <div className={styles.scoreAlertLbl}>{t('products.scoreboard.lowStockSkus')}</div>
+            <Progress
+              percent={healthyPct}
+              showInfo={false}
+              size="small"
+              strokeColor={lowStockCount > 0 ? '#f59e0b' : '#10b981'}
+            />
           </div>
-        </div>
-        <div className={styles.scoreFinRow}>
-          <EditOutlined style={{ color: '#6366f1', fontSize: 16 }} />
-          <div>
-            <div className={styles.scoreFinVal}>{avgMargin.toFixed(1)}%</div>
-            <div className={styles.scoreFinLbl}>{t('products.scoreboard.avgMargin')}</div>
+        </>
+      ) : null}
+
+      {showFinancials ? (
+        <>
+          <div className={styles.scoreDivider} />
+
+          <div className={styles.scoreFinancials}>
+            {showInventory ? (
+              <div className={styles.scoreFinRow}>
+                <DollarOutlined style={{ color: '#8b5cf6', fontSize: 16 }} />
+                <div>
+                  <div className={styles.scoreFinVal}>{formatCurrency(inventoryValue)}</div>
+                  <div className={styles.scoreFinLbl}>{t('products.scoreboard.inventoryValue')}</div>
+                </div>
+              </div>
+            ) : null}
+            <div className={styles.scoreFinRow}>
+              <EditOutlined style={{ color: '#6366f1', fontSize: 16 }} />
+              <div>
+                <div className={styles.scoreFinVal}>{avgMargin.toFixed(1)}%</div>
+                <div className={styles.scoreFinLbl}>{t('products.scoreboard.avgMargin')}</div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      ) : null}
     </div>
   );
 }

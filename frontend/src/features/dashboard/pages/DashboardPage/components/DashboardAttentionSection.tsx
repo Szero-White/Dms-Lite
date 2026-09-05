@@ -17,6 +17,8 @@ interface DashboardAttentionSectionProps {
   outOfStockProducts: ProductRow[];
   products: ProductRow[];
   recentOrders: SalesOrder[];
+  showInventory: boolean;
+  showOrders: boolean;
 }
 
 export function DashboardAttentionSection({
@@ -30,6 +32,8 @@ export function DashboardAttentionSection({
   outOfStockProducts,
   products,
   recentOrders,
+  showInventory,
+  showOrders,
 }: DashboardAttentionSectionProps) {
   const { t } = useTranslation();
 
@@ -44,6 +48,7 @@ export function DashboardAttentionSection({
         </div>
       </div>
       <div className={styles.actionGrid}>
+        {showInventory ? (
         <Card title={t('dashboard.attention.inventoryHealth')} className={`panel-card ${styles.actionCard}`}>
           <div className={styles.healthSummary}>
             <div>
@@ -87,7 +92,9 @@ export function DashboardAttentionSection({
             {t('dashboard.attention.openInventory')}
           </Button>
         </Card>
+        ) : null}
 
+        {showOrders ? (
         <Card title={t('dashboard.attention.ordersRequiringAttention')} className={`panel-card ${styles.actionCard}`}>
           <List
             dataSource={attentionOrders.slice(0, 4)}
@@ -110,7 +117,9 @@ export function DashboardAttentionSection({
             {t('dashboard.attention.reviewOrders')}
           </Button>
         </Card>
+        ) : null}
 
+        {showOrders ? (
         <Card title={t('dashboard.attention.recentActivity')} className={`panel-card ${styles.actionCard}`}>
           <List
             dataSource={recentOrders}
@@ -131,6 +140,7 @@ export function DashboardAttentionSection({
             {t('dashboard.attention.viewActivity')}
           </Button>
         </Card>
+        ) : null}
       </div>
     </section>
   );

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { useProducts } from '../../../../features/products';
-import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
+import { PERMISSIONS, canViewProductFinancials, hasPermission, useAuth } from '../../../auth';
 import {
   useDefaultWarehouse,
   useInventoryHistory,
@@ -25,6 +25,7 @@ export function InventoryPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const canManageInventory = hasPermission(user, PERMISSIONS.INVENTORY_MANAGE);
+  const showInventoryFinancials = canViewProductFinancials(user);
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [stockFilter, setStockFilter] = useState<StockFilter>('ALL');
@@ -131,6 +132,7 @@ export function InventoryPage() {
             inventoryValue={inventoryValue}
             lowStockItems={lowStockItems}
             products={products}
+            showFinancials={showInventoryFinancials}
             totalUnits={totalUnits}
           />
 

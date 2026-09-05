@@ -7,6 +7,7 @@ import {
   Typography,
 } from 'antd';
 import type { FormInstance } from 'antd';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type {
   PermissionOption,
@@ -53,6 +54,32 @@ export function RoleDrawer({
 }: RoleDrawerProps) {
   const { t } = useTranslation();
   const readOnly = mode === 'view';
+  const permissionDependencies = useMemo(() => {
+    const dependencyMap = new Map<string, string[]>();
+
+    Object.values(permissionsByGroup)
+      .flat()
+      .forEach((permission) => dependencyMap.set(permission.name, permission.requires ?? []));
+
+    return dependencyMap;
+  }, [permissionsByGroup]);
+
+  function expandPermissionDependencies(selectedPermissions: string[]) {
+    const expanded = new Set(selectedPermissions);
+    const queue = [...selectedPermissions];
+
+    while (queue.length > 0) {
+      const permission = queue.shift()!;
+      for (const requiredPermission of permissionDependencies.get(permission) ?? []) {
+        if (!expanded.has(requiredPermission)) {
+          expanded.add(requiredPermission);
+          queue.push(requiredPermission);
+        }
+      }
+    }
+
+    return Array.from(expanded);
+  }
 
   return (
     <Drawer
@@ -67,10 +94,7 @@ export function RoleDrawer({
             permissions: selectedRole.permissions,
           } : {
             name: '',
-            permissions: [
-              'AI_HELP_VIEW',
-              'NOTIFICATION_VIEW',
-            ],
+            permissions: [],
           });
         } else {
           form.resetFields();
@@ -105,6 +129,8 @@ export function RoleDrawer({
         <Form.Item
           label={t('team.drawer.permissions')}
           name="permissions"
+          extra={readOnly ? undefined : t('team.drawer.permissionDependenciesHint')}
+          getValueFromEvent={(values: string[]) => expandPermissionDependencies(values)}
           rules={[{ required: true, message: t('team.drawer.permissionRequired') }]}
         >
           <Checkbox.Group className={styles.permissionGroup}>

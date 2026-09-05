@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,10 +38,16 @@ public class CustomerService {
             PageRequest.of(Math.max(page, 0), DEFAULT_PAGE_SIZE)
         );
 
-        Map<Long, BigDecimal> debtByCustomerId = loadDebtBalances(tenantId, customers.getContent());
+        boolean includeDebtBalance = canViewDebtBalance();
+        Map<Long, BigDecimal> debtByCustomerId = includeDebtBalance
+            ? loadDebtBalances(tenantId, customers.getContent())
+            : Map.of();
+
         return customers.map(customer -> toResponse(
             customer,
-            debtByCustomerId.getOrDefault(customer.getId(), BigDecimal.ZERO)
+            includeDebtBalance
+                ? debtByCustomerId.getOrDefault(customer.getId(), BigDecimal.ZERO)
+                : null
         ));
     }
 
@@ -47,7 +55,10 @@ public class CustomerService {
     public CustomerResponse get(Long customerId) {
         Long tenantId = TenantContext.tenantRequired();
         Customer customer = find(customerId);
-        return toResponse(customer, customerDebtRepository.balance(tenantId, customerId));
+        BigDecimal debtBalance = canViewDebtBalance()
+            ? customerDebtRepository.balance(tenantId, customerId)
+            : null;
+        return toResponse(customer, debtBalance);
     }
 
     @Transactional
@@ -55,7 +66,7 @@ public class CustomerService {
         value = "dashboard",
         key = "T(com.example.dms.common.TenantContext).tenantRequired()"
     )
-    public Customer create(CustomerRequest request) {
+    public CustomerResponse create(CustomerRequest request) {
         Customer customer = Customer.builder()
             .tenantId(TenantContext.tenantRequired())
             .active(true)
@@ -69,7 +80,10 @@ public class CustomerService {
             savedCustomer.getId(),
             savedCustomer.getName()
         );
-        return savedCustomer;
+        return toResponse(
+            savedCustomer,
+            canViewDebtBalance() ? BigDecimal.ZERO : null
+        );
     }
 
     @Transactional
@@ -77,7 +91,7 @@ public class CustomerService {
         value = "dashboard",
         key = "T(com.example.dms.common.TenantContext).tenantRequired()"
     )
-    public Customer update(Long customerId, CustomerRequest request) {
+    public CustomerResponse update(Long customerId, CustomerRequest request) {
         Customer customer = find(customerId);
         applyCustomerRequest(customer, request);
 
@@ -87,7 +101,10 @@ public class CustomerService {
             customer.getId(),
             customer.getName()
         );
-        return customer;
+        BigDecimal debtBalance = canViewDebtBalance()
+            ? customerDebtRepository.balance(TenantContext.tenantRequired(), customerId)
+            : null;
+        return toResponse(customer, debtBalance);
     }
 
     @Transactional
@@ -132,6 +149,14 @@ public class CustomerService {
             customerId,
             TenantContext.tenantRequired()
         ).orElseThrow(() -> new BusinessException("Customer not found"));
+    }
+
+    private boolean canViewDebtBalance() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        return authentication != null && CustomerAccessPolicy.canViewBalance(
+            authentication.getAuthorities().stream().map(authority -> authority.getAuthority()).toList()
+        );
     }
 
     private Map<Long, BigDecimal> loadDebtBalances(Long tenantId, List<Customer> customers) {

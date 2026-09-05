@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { CustomerDebtTag } from '../../../../components/common/StatusTag';
+import { PERMISSIONS, hasAnyPermission, useAuth } from '../../../../features/auth';
 import { useCustomers } from '../../../../features/customers';
 import { formatCurrency, toNumber } from '../../../../lib/format';
 import { useRecordCustomerPayment } from '../../hooks/usePaymentQueries';
@@ -30,6 +31,11 @@ import heroStyles from './PaymentsHero.module.css';
 
 export function PaymentsPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const canViewReceivablesPortfolio = hasAnyPermission(user, [
+    PERMISSIONS.DEBT_VIEW,
+    PERMISSIONS.REPORT_VIEW,
+  ]);
   const customersQuery = useCustomers();
   const paymentMutation = useRecordCustomerPayment();
   const [form] = Form.useForm<RecordPaymentPayload>();
@@ -101,6 +107,7 @@ export function PaymentsPage() {
         onRetry={() => customersQuery.refetch()}
       >
         <div className={styles.contentStack}>
+          {canViewReceivablesPortfolio ? (
           <div className={heroStyles.heroRow}>
             {/* LEFT: Receivables Overview */}
             <div className={heroStyles.heroLeft}>
@@ -201,6 +208,7 @@ export function PaymentsPage() {
               </div>
             </div>
           </div>
+          ) : null}
 
           <Card className={`panel-card ${styles.watchlistCard}`} title={t('payments.title')}>
             <div className={styles.toolbar}>
@@ -328,10 +336,12 @@ export function PaymentsPage() {
               showSearch
               optionFilterProp="label"
               placeholder={t('payments.customerPlaceholder')}
-              options={customers.map((customer) => ({
-                value: customer.id,
-                label: t('payments.customerDebtLabel', { name: customer.name, debt: formatCurrency(customer.debtBalance) }),
-              }))}
+              options={customers
+                .filter((customer) => toNumber(customer.debtBalance) > 0)
+                .map((customer) => ({
+                  value: customer.id,
+                  label: t('payments.customerDebtLabel', { name: customer.name, debt: formatCurrency(customer.debtBalance) }),
+                }))}
             />
           </Form.Item>
           <Form.Item
@@ -339,7 +349,7 @@ export function PaymentsPage() {
             name="amount"
             rules={[{ required: true, message: t('payments.amountRequired') }]}
           >
-            <InputNumber className={styles.fullWidth} min={1} />
+            <InputNumber className={styles.fullWidth} min={1} max={currentDebt > 0 ? currentDebt : undefined} />
           </Form.Item>
 
           {selectedCustomer ? (

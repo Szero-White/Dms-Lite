@@ -31,7 +31,7 @@ import {
   SalesOrderStatusTag,
 } from '../../../../components/common/StatusTag';
 import { formatCurrency, formatDateTime, formatNumber, toNumber } from '../../../../lib/format';
-import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
+import { PERMISSIONS, canViewCustomerBalance, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
 import { useDashboardData } from '../../../dashboard';
 import { useProducts } from '../../../products';
@@ -73,15 +73,22 @@ export function ReportsPage() {
   const canViewCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_VIEW);
   const canViewOrders = hasPermission(user, PERMISSIONS.SALES_ORDER_VIEW);
   const canViewInventoryProducts = hasPermission(user, PERMISSIONS.PRODUCT_VIEW) && hasPermission(user, PERMISSIONS.INVENTORY_VIEW);
+  const canViewReceivables = canViewCustomers && canViewCustomerBalance(user);
+  const availableTabs = [
+    ...(canViewOrders ? ['sales' as const] : []),
+    ...(canViewInventoryProducts ? ['inventory' as const] : []),
+    ...(canViewReceivables ? ['receivables' as const] : []),
+  ];
   const dashboardQuery = useDashboardData();
-  const customersQuery = useCustomers({ enabled: canViewCustomers });
+  const customersQuery = useCustomers({ enabled: canViewReceivables });
   const productsQuery = useProducts({ enabled: canViewInventoryProducts });
   const ordersQuery = useSalesOrders({ enabled: canViewOrders });
   const [activeTab, setActiveTab] = useState<ReportTab>('sales');
   const [dateRange, setDateRange] = useState<[number, number] | null>(null);
   const [exporting, setExporting] = useState(false);
+  const resolvedActiveTab = availableTabs.includes(activeTab) ? activeTab : availableTabs[0] ?? 'sales';
 
-  const customers = canViewCustomers ? customersQuery.data ?? [] : [];
+  const customers = canViewReceivables ? customersQuery.data ?? [] : [];
   const products = canViewInventoryProducts ? productsQuery.data ?? [] : [];
   const orders = canViewOrders ? ordersQuery.data ?? [] : [];
 
@@ -114,7 +121,7 @@ export function ReportsPage() {
   function refreshReports() {
     void Promise.all([
       dashboardQuery.refetch(),
-      canViewCustomers ? customersQuery.refetch() : Promise.resolve(),
+      canViewReceivables ? customersQuery.refetch() : Promise.resolve(),
       canViewInventoryProducts ? productsQuery.refetch() : Promise.resolve(),
       canViewOrders ? ordersQuery.refetch() : Promise.resolve(),
     ]);
@@ -125,7 +132,7 @@ export function ReportsPage() {
 
     try {
       await exportReport(format, {
-        activeTab,
+        activeTab: resolvedActiveTab,
         customers,
         filteredOrders,
         products,
@@ -142,13 +149,15 @@ export function ReportsPage() {
         subtitle={t('reports.subtitle')}
         extra={(
           <Space>
-            <DatePicker.RangePicker
-              allowClear
-              onChange={(vals) => {
-                if (!vals?.[0] || !vals[1]) { setDateRange(null); return; }
-                setDateRange([vals[0].startOf('day').valueOf(), vals[1].endOf('day').valueOf()]);
-              }}
-            />
+            {canViewOrders ? (
+              <DatePicker.RangePicker
+                allowClear
+                onChange={(vals) => {
+                  if (!vals?.[0] || !vals[1]) { setDateRange(null); return; }
+                  setDateRange([vals[0].startOf('day').valueOf(), vals[1].endOf('day').valueOf()]);
+                }}
+              />
+            ) : null}
             <Button icon={<ReloadOutlined />} onClick={refreshReports}>{t('reports.action.refresh')}</Button>
             <Dropdown
               menu={{
@@ -161,7 +170,7 @@ export function ReportsPage() {
                 },
               }}
             >
-              <Button type="primary" icon={<DownloadOutlined />} loading={exporting}>
+              <Button type="primary" icon={<DownloadOutlined />} loading={exporting} disabled={availableTabs.length === 0}>
                 {t('common.export')} <DownOutlined />
               </Button>
             </Dropdown>
@@ -170,9 +179,9 @@ export function ReportsPage() {
       />
 
       <QueryState
-        isLoading={dashboardQuery.isLoading || (canViewCustomers && customersQuery.isLoading) || (canViewInventoryProducts && productsQuery.isLoading) || (canViewOrders && ordersQuery.isLoading)}
-        isError={dashboardQuery.isError || (canViewCustomers && customersQuery.isError) || (canViewInventoryProducts && productsQuery.isError) || (canViewOrders && ordersQuery.isError)}
-        error={dashboardQuery.error || (canViewCustomers && customersQuery.error) || (canViewInventoryProducts && productsQuery.error) || (canViewOrders && ordersQuery.error)}
+        isLoading={dashboardQuery.isLoading || (canViewReceivables && customersQuery.isLoading) || (canViewInventoryProducts && productsQuery.isLoading) || (canViewOrders && ordersQuery.isLoading)}
+        isError={dashboardQuery.isError || (canViewReceivables && customersQuery.isError) || (canViewInventoryProducts && productsQuery.isError) || (canViewOrders && ordersQuery.isError)}
+        error={dashboardQuery.error || (canViewReceivables && customersQuery.error) || (canViewInventoryProducts && productsQuery.error) || (canViewOrders && ordersQuery.error)}
         hasData={Boolean(dashboardQuery.data)}
         emptyTitle={t('reports.title')}
         emptyDescription={t('reports.empty.description')}
@@ -180,11 +189,13 @@ export function ReportsPage() {
       >
         {dashboardQuery.data ? (
           <div className={styles.reportContent}>
-            <Tabs
+            {availableTabs.length > 0 ? (
+              <Tabs
               className={styles.reportTabs}
-              activeKey={activeTab}
+              activeKey={resolvedActiveTab}
               onChange={(key) => setActiveTab(key as ReportTab)}
-              items={[                {
+              items={[
+                ...(canViewOrders ? [{
                   key: 'sales',
                   label: (
                     <span className={styles.tabLabel}>
@@ -219,7 +230,8 @@ export function ReportsPage() {
                       </Card>
                     </div>
                   ),
-                },                {
+                }] : []),
+                ...(canViewInventoryProducts ? [{
                   key: 'inventory',
                   label: (
                     <span className={styles.tabLabel}>
@@ -253,7 +265,8 @@ export function ReportsPage() {
                       </Card>
                     </div>
                   ),
-                },                {
+                }] : []),
+                ...(canViewReceivables ? [{
                   key: 'receivables',
                   label: (
                     <span className={styles.tabLabel}>
@@ -345,9 +358,19 @@ export function ReportsPage() {
                       </Card>
                     </div>
                   ),
-                },
+                }] : []),
               ]}
-            />
+              />
+            ) : (
+              <Card className="panel-card" title={t('reports.title')}>
+                <StatStrip items={[
+                  { icon: <DollarOutlined />, label: t('reports.metric.revenue'), value: formatCurrency(dashboardQuery.data.summary.revenueThisMonth), color: '#6366f1' },
+                  { icon: <DollarOutlined />, label: t('reports.metric.receivables'), value: formatCurrency(dashboardQuery.data.summary.totalReceivable), color: '#f97316' },
+                  { icon: <InboxOutlined />, label: t('reports.metric.trackedSkus'), value: dashboardQuery.data.summary.productCount, color: '#3b82f6' },
+                  { icon: <WarningOutlined />, label: t('reports.metric.lowStock'), value: dashboardQuery.data.summary.lowStockItems, color: '#ef4444' },
+                ]} />
+              </Card>
+            )}
           </div>
         ) : null}
       </QueryState>

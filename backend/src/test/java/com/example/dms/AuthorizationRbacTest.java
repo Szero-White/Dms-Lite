@@ -99,6 +99,37 @@ class AuthorizationRbacTest {
         assertThat(data.findValuesAsText("type"))
             .doesNotContain("OVERDUE_DEBT", "PAYMENT_RECORDED");
     }
+
+    @Test
+    void salesProductCatalogRedactsCostPriceButOwnerCanSeeIt() throws Exception {
+        mvc.perform(get("/api/products")
+                .header("Authorization", bearer("sale")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.content[0].costPrice").value(org.hamcrest.Matchers.nullValue()));
+
+        mvc.perform(get("/api/products")
+                .header("Authorization", bearer("owner")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.content[0].costPrice").isNumber());
+    }
+
+    @Test
+    void permissionCatalogPublishesDependenciesUsedByCustomRoleUi() throws Exception {
+        MvcResult result = mvc.perform(get("/api/team/permissions")
+                .header("Authorization", bearer("owner")))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonNode permissions = objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
+        JsonNode inventoryView = findPermission(permissions, "INVENTORY_VIEW");
+        JsonNode productManage = findPermission(permissions, "PRODUCT_MANAGE");
+
+        assertThat(toTextList(inventoryView.path("requires")))
+            .containsExactly("PRODUCT_VIEW");
+        assertThat(toTextList(productManage.path("requires")))
+            .containsExactly("PRODUCT_VIEW");
+    }
+
     @Test
     void accountantCanRecordPaymentButCannotManageProducts() throws Exception {
         mvc.perform(post("/api/products")
@@ -264,6 +295,23 @@ class AuthorizationRbacTest {
 
         JsonNode response = objectMapper.readTree(result.getResponse().getContentAsString());
         return response.path("data").path("accessToken").asText();
+    }
+
+
+    private JsonNode findPermission(JsonNode permissions, String name) {
+        for (JsonNode permission : permissions) {
+            if (name.equals(permission.path("name").asText())) {
+                return permission;
+            }
+        }
+
+        throw new AssertionError("Permission not found: " + name);
+    }
+
+    private java.util.List<String> toTextList(JsonNode array) {
+        java.util.List<String> values = new java.util.ArrayList<>();
+        array.forEach(node -> values.add(node.asText()));
+        return values;
     }
 
     private String json(Object value) throws Exception {

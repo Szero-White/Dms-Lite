@@ -29,7 +29,13 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
-import { PERMISSIONS, hasPermission, useAuth } from '../../../auth';
+import {
+  PERMISSIONS,
+  canViewCustomerBalance,
+  canViewOrderFinancials,
+  hasPermission,
+  useAuth,
+} from '../../../auth';
 import { SummaryCard } from '../../../../components/common/SummaryCard';
 import { SalesOrderStatusTag } from '../../../../components/common/StatusTag';
 import {
@@ -51,7 +57,9 @@ export function CustomerDetailPage() {
   const { user } = useAuth();
   const canRecordPayment = hasPermission(user, PERMISSIONS.PAYMENT_CREATE);
   const canViewDebt = hasPermission(user, PERMISSIONS.DEBT_VIEW);
+  const showCustomerFinancials = canViewCustomerBalance(user);
   const canViewOrders = hasPermission(user, PERMISSIONS.SALES_ORDER_VIEW);
+  const showOrderFinancials = canViewOrderFinancials(user);
   const { customerId } = useParams();
   const navigate = useNavigate();
   const numericCustomerId = Number(customerId);
@@ -147,33 +155,37 @@ export function CustomerDetailPage() {
                   </Space>
                 </div>
               </div>
-              <div className={styles.creditPanel}>
-                <div>
-                  <Typography.Text>{t('customers.detail.creditUtilization')}</Typography.Text>
-                  <Typography.Text strong>
-                    {creditLimit > 0 ? `${creditUsage}%` : t('customers.detail.noCreditLimit')}
+              {showCustomerFinancials ? (
+                <div className={styles.creditPanel}>
+                  <div>
+                    <Typography.Text>{t('customers.detail.creditUtilization')}</Typography.Text>
+                    <Typography.Text strong>
+                      {creditLimit > 0 ? `${creditUsage}%` : t('customers.detail.noCreditLimit')}
+                    </Typography.Text>
+                  </div>
+                  <Progress
+                    percent={Math.min(creditUsage, 100)}
+                    showInfo={false}
+                    status={creditUsage >= 100 ? 'exception' : creditUsage >= 80 ? 'normal' : 'success'}
+                  />
+                  <Typography.Text type="secondary">
+                    {t('customers.detail.creditUsed', { debt: formatCurrency(debt), limit: formatCurrency(creditLimit) })}
                   </Typography.Text>
                 </div>
-                <Progress
-                  percent={Math.min(creditUsage, 100)}
-                  showInfo={false}
-                  status={creditUsage >= 100 ? 'exception' : creditUsage >= 80 ? 'normal' : 'success'}
-                />
-                <Typography.Text type="secondary">
-                  {t('customers.detail.creditUsed', { debt: formatCurrency(debt), limit: formatCurrency(creditLimit) })}
-                </Typography.Text>
-              </div>
+              ) : null}
             </Card>
 
             <div className={styles.metricsGrid}>
-              <SummaryCard
-                title={t('customers.detail.currentDebt')}
-                value={formatCurrency(debt)}
-                note={debt > 0 ? t('customers.detail.outstandingReceivableBalance') : t('customers.detail.balanceClear')}
-                icon={<WalletOutlined />}
-                variant={debt > 0 ? 'red' : 'green'}
-                visual="dashboard"
-              />
+              {showCustomerFinancials ? (
+                <SummaryCard
+                  title={t('customers.detail.currentDebt')}
+                  value={formatCurrency(debt)}
+                  note={debt > 0 ? t('customers.detail.outstandingReceivableBalance') : t('customers.detail.balanceClear')}
+                  icon={<WalletOutlined />}
+                  variant={debt > 0 ? 'red' : 'green'}
+                  visual="dashboard"
+                />
+              ) : null}
               <SummaryCard
                 title={t('customers.detail.creditLimit')}
                 value={formatCurrency(creditLimit)}
@@ -182,14 +194,16 @@ export function CustomerDetailPage() {
                 variant="blue"
                 visual="dashboard"
               />
-              <SummaryCard
-                title={t('customers.detail.availableCredit')}
-                value={formatCurrency(availableCredit)}
-                note={t('customers.detail.remainingCredit')}
-                icon={<CheckCircleOutlined />}
-                variant="green"
-                visual="dashboard"
-              />
+              {showCustomerFinancials ? (
+                <SummaryCard
+                  title={t('customers.detail.availableCredit')}
+                  value={formatCurrency(availableCredit)}
+                  note={t('customers.detail.remainingCredit')}
+                  icon={<CheckCircleOutlined />}
+                  variant="green"
+                  visual="dashboard"
+                />
+              ) : null}
               <SummaryCard
                 title={t('customers.detail.paymentTerm')}
                 value={t('customers.paymentTermDays', { count: customer.paymentTermDays })}
@@ -281,21 +295,23 @@ export function CustomerDetailPage() {
                     dataIndex: 'status',
                     render: (value) => <SalesOrderStatusTag status={value} />,
                   },
-                  {
-                    title: t('sales.column.total'),
-                    dataIndex: 'totalAmount',
-                    render: (value) => formatCurrency(value),
-                  },
-                  {
-                    title: t('sales.column.paid'),
-                    dataIndex: 'paidAmount',
-                    render: (value) => formatCurrency(value),
-                  },
-                  {
-                    title: t('sales.column.debt'),
-                    dataIndex: 'debtAmount',
-                    render: (value) => formatCurrency(value),
-                  },
+                  ...(showOrderFinancials ? [
+                    {
+                      title: t('sales.column.total'),
+                      dataIndex: 'totalAmount',
+                      render: (value: string | number | null) => formatCurrency(value),
+                    },
+                    {
+                      title: t('sales.column.paid'),
+                      dataIndex: 'paidAmount',
+                      render: (value: string | number | null) => formatCurrency(value),
+                    },
+                    {
+                      title: t('sales.column.debt'),
+                      dataIndex: 'debtAmount',
+                      render: (value: string | number | null) => formatCurrency(value),
+                    },
+                  ] : []),
                 ]}
               />
               </Card>

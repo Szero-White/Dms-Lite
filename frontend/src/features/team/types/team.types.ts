@@ -20,6 +20,7 @@ export interface PermissionOption {
   label: string;
   group: string;
   description: string;
+  requires: string[];
 }
 
 export interface TeamMemberCreatePayload {

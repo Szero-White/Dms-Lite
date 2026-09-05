@@ -5,7 +5,7 @@ export interface Customer {
   address?: string;
   creditLimit: string | number;
   paymentTermDays: number;
-  debtBalance: string | number;
+  debtBalance: string | number | null;
   active: boolean;
 }
 

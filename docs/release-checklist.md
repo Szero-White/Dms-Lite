@@ -82,6 +82,21 @@ Dùng một customer và một product có stock đủ:
 
 - Custom role có dependency permission hợp lệ; không tạo role thao tác mà thiếu quyền đọc dữ liệu bắt buộc của màn hình.
 
+### Custom role permission coherence
+
+- Role mới không tự được tick AI/Notification hoặc quyền nghiệp vụ nào.
+- Chọn quyền có dependency phải tự bổ sung quyền bắt buộc trong UI và backend vẫn validate lại khi lưu.
+- `PRODUCT_VIEW`-only: mở được Sản phẩm, thấy catalog/giá bán; không thấy tồn kho, giá vốn hoặc margin.
+- `INVENTORY_VIEW`: dependency tự có `PRODUCT_VIEW`; thấy quantity/stock health nhưng không thấy inventory value từ giá vốn nếu thiếu quyền financial product.
+- `CUSTOMER_VIEW`-only: thấy hồ sơ/hạn mức nhưng không thấy balance công nợ hoặc debt statement.
+- `PAYMENT_CREATE + CUSTOMER_VIEW`: thu tiền được và thấy balance cần thiết cho customer đang thu; không thấy portfolio/top debtor analytics nếu thiếu `DEBT_VIEW`/`REPORT_VIEW`.
+- `SALES_ORDER_VIEW`-only: xem workflow order/status nhưng financial columns phải ẩn nếu thiếu finance/sales-create permission.
+- `REPORT_VIEW`-only: aggregate dashboard/report vẫn hoạt động; không render tab chi tiết cần permission module mà user không có.
+- Sidebar, search, route và quick action phải thống nhất; gõ URL của module không có quyền phải redirect về màn được phép.
+- Role không có business page nào phải vào màn `No workspace access`, không rơi vào redirect loop.
+- Route protected mới nhưng quên khai báo permission phải fail closed.
+- AI và Notification tiếp tục áp policy nghiệp vụ riêng; notification không được spam duplicate/retry.
+
 ## 5. API / data consistency
 
 - `GET /api/customers/{id}` trả đúng customer detail.

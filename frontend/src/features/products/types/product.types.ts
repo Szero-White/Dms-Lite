@@ -5,7 +5,7 @@ export interface Product {
   name: string;
   sku: string;
   barcode?: string;
-  costPrice: string | number;
+  costPrice: string | number | null;
   sellingPrice: string | number;
   minStock: number;
   active: boolean;

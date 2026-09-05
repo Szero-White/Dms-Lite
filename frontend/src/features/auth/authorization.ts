@@ -23,11 +23,25 @@ export const PERMISSIONS = {
 export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
 type RoutePermission = Permission | Permission[];
 
+export const NO_WORKSPACE_PATH = '/no-access';
+
 const ORDER_FINANCIAL_PERMISSIONS: Permission[] = [
   PERMISSIONS.DEBT_VIEW,
   PERMISSIONS.PAYMENT_CREATE,
   PERMISSIONS.REPORT_VIEW,
   PERMISSIONS.SALES_ORDER_CREATE,
+];
+
+const CUSTOMER_BALANCE_PERMISSIONS: Permission[] = [
+  PERMISSIONS.DEBT_VIEW,
+  PERMISSIONS.PAYMENT_CREATE,
+  PERMISSIONS.REPORT_VIEW,
+  PERMISSIONS.SALES_ORDER_CREATE,
+];
+
+const PRODUCT_FINANCIAL_PERMISSIONS: Permission[] = [
+  PERMISSIONS.PRODUCT_MANAGE,
+  PERMISSIONS.REPORT_VIEW,
 ];
 
 export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
@@ -39,7 +53,7 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
     PERMISSIONS.PRODUCT_VIEW,
     PERMISSIONS.INVENTORY_VIEW,
   ],
-  '/products': [PERMISSIONS.PRODUCT_VIEW, PERMISSIONS.INVENTORY_VIEW],
+  '/products': PERMISSIONS.PRODUCT_VIEW,
   '/customers': PERMISSIONS.CUSTOMER_VIEW,
   '/inventory': [PERMISSIONS.INVENTORY_VIEW, PERMISSIONS.PRODUCT_VIEW],
   '/payments': [PERMISSIONS.PAYMENT_CREATE, PERMISSIONS.CUSTOMER_VIEW],
@@ -88,15 +102,31 @@ export function canViewOrderFinancials(user: AuthUser | null | undefined) {
   return hasAnyPermission(user, ORDER_FINANCIAL_PERMISSIONS);
 }
 
+export function canViewCustomerBalance(user: AuthUser | null | undefined) {
+  return hasAnyPermission(user, CUSTOMER_BALANCE_PERMISSIONS);
+}
+
+export function canViewProductFinancials(user: AuthUser | null | undefined) {
+  return hasAnyPermission(user, PRODUCT_FINANCIAL_PERMISSIONS);
+}
+
 export function canAccessPath(user: AuthUser | null | undefined, path: string) {
   const normalizedPath = normalizePath(path);
+
+  if (normalizedPath === NO_WORKSPACE_PATH) {
+    return Boolean(user?.accessToken);
+  }
+
   const requiredPermission = ROUTE_PERMISSIONS[normalizedPath];
 
-  return requiredPermission ? hasEveryPermission(user, requiredPermission) : true;
+  // Fail closed: adding a new protected route without declaring its permission
+  // must never make that screen available by accident.
+  return requiredPermission ? hasEveryPermission(user, requiredPermission) : false;
 }
 
 export function firstAuthorizedPath(user: AuthUser | null | undefined) {
-  return DEFAULT_AUTHORIZED_PATHS.find((path) => canAccessPath(user, path)) ?? '/login';
+  return DEFAULT_AUTHORIZED_PATHS.find((path) => canAccessPath(user, path))
+    ?? (user?.accessToken ? NO_WORKSPACE_PATH : '/login');
 }
 
 function normalizePath(path: string) {

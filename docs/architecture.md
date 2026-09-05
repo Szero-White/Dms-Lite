@@ -138,6 +138,19 @@ Các màn hình composite chỉ gọi API mà role hiện tại có permission; 
 
 Các custom role cũng được validate dependency cho các workflow UI bắt buộc (ví dụ `PAYMENT_CREATE` cần `CUSTOMER_VIEW`, `INVENTORY_MANAGE` cần quyền xem inventory/product, `SALES_ORDER_CREATE` cần dữ liệu customer/product/inventory). Mục tiêu là không tạo ra role "có nút thao tác nhưng mở màn hình lại 403".
 
+### Permission coherence cho custom role
+
+Permission là nguồn sự thật chung cho cả frontend và backend, không suy quyền từ tên role custom:
+
+- Role mới bắt đầu với tập quyền rỗng (least privilege); frontend tự thêm dependency do backend công bố khi Owner chọn một quyền phụ thuộc.
+- Sidebar, page search, route guard và action button chỉ hiển thị/chạy khi permission tương ứng tồn tại. Protected route chưa khai báo permission bị **deny by default** thay vì tự mở.
+- User đã đăng nhập nhưng không có business page nào được đưa tới `/no-access`; gateway như AI vẫn có thể hoạt động nếu chính permission của gateway được cấp.
+- `PRODUCT_VIEW` cho xem catalog/giá bán; tồn kho cần `INVENTORY_VIEW`; giá vốn/margin chỉ dành cho `PRODUCT_MANAGE` hoặc `REPORT_VIEW`.
+- `CUSTOMER_VIEW` cho xem hồ sơ/hạn mức. Balance công nợ chỉ được trả cho workflow cần số dư (`DEBT_VIEW`, `PAYMENT_CREATE`, `REPORT_VIEW`, `SALES_ORDER_CREATE`); debt statement chi tiết vẫn chỉ có `DEBT_VIEW`.
+- `PAYMENT_CREATE` được dùng số dư cần thiết để thu tiền nhưng không tự mở dashboard/top-debtor analytics nếu thiếu `DEBT_VIEW`/`REPORT_VIEW`.
+- `REPORT_VIEW` cho aggregate dashboard/report; các tab/bảng chi tiết chỉ fetch module data khi user có thêm permission đọc module tương ứng, tránh bảng trống hoặc dữ liệu vượt scope.
+- DTO API redact dữ liệu nhạy cảm theo permission; frontend ẩn field chỉ là UX layer, backend vẫn là authorization boundary cuối cùng.
+
 ### AI và Notification theo permission
 
 `AI_HELP_VIEW` và `NOTIFICATION_VIEW` chỉ là **gateway permission** để mở trợ lý hoặc feed thông báo; chúng không tự cấp quyền đọc dữ liệu nghiệp vụ.

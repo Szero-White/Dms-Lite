@@ -36,10 +36,7 @@ public class RoleManagementService {
     private static final Set<String> OWNER_ONLY_PERMISSIONS = Set.of(PermissionNames.TEAM_MANAGE);
 
     private static final Map<String, Set<String>> PERMISSION_DEPENDENCIES = Map.ofEntries(
-        Map.entry(
-            PermissionNames.PRODUCT_MANAGE,
-            Set.of(PermissionNames.PRODUCT_VIEW, PermissionNames.INVENTORY_VIEW)
-        ),
+        Map.entry(PermissionNames.PRODUCT_MANAGE, Set.of(PermissionNames.PRODUCT_VIEW)),
         Map.entry(PermissionNames.CUSTOMER_MANAGE, Set.of(PermissionNames.CUSTOMER_VIEW)),
         Map.entry(
             PermissionNames.SALES_ORDER_CREATE,
@@ -54,6 +51,7 @@ public class RoleManagementService {
             Set.of(PermissionNames.SALES_ORDER_VIEW, PermissionNames.INVENTORY_VIEW)
         ),
         Map.entry(PermissionNames.SALES_ORDER_CANCEL, Set.of(PermissionNames.SALES_ORDER_VIEW)),
+        Map.entry(PermissionNames.INVENTORY_VIEW, Set.of(PermissionNames.PRODUCT_VIEW)),
         Map.entry(
             PermissionNames.INVENTORY_MANAGE,
             Set.of(PermissionNames.INVENTORY_VIEW, PermissionNames.PRODUCT_VIEW)
@@ -113,7 +111,11 @@ public class RoleManagementService {
                     permission.getName(),
                     metadata.label(),
                     metadata.group(),
-                    metadata.description()
+                    metadata.description(),
+                    PERMISSION_DEPENDENCIES.getOrDefault(permission.getName(), Set.of())
+                        .stream()
+                        .sorted()
+                        .toList()
                 );
             })
             .sorted(Comparator.comparing(PermissionOptionResponse::group)

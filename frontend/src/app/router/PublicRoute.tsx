@@ -1,11 +1,12 @@
 import { Navigate } from 'react-router-dom';
 import {
+  firstAuthorizedPath,
   LoginPage,
   useAuth,
 } from '../../features/auth';
 
 export function PublicRoute() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />;
+  return isAuthenticated ? <Navigate to={firstAuthorizedPath(user)} replace /> : <LoginPage />;
 }
