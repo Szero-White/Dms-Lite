@@ -21,7 +21,17 @@ npm run build
 
 Không deploy nếu một trong hai bước fail.
 
-## 2. Golden business flow
+## 2. Optional clean local baseline
+
+Nếu local database đã chứa nhiều dữ liệu test cũ và cần một baseline lặp lại được trước golden-flow QA, có thể chạy:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\scripts\local\reset-dms-local-jdbc.ps1"
+```
+
+Chỉ dùng utility này cho **local development/demo database**. Không chạy script reset này trên production. Script giữ `flyway_schema_history` và để demo seeder tạo lại baseline sau khi local app khởi động.
+
+## 3. Golden business flow
 
 Dùng một customer và một product có stock đủ:
 
@@ -36,7 +46,7 @@ Dùng một customer và một product có stock đủ:
 9. Dashboard total receivable và top customer debt phải cùng là `60` cho scenario này.
 10. Không nơi nào được tính thành `20`.
 
-## 3. Role smoke test
+## 4. Role smoke test
 
 ### Owner
 
@@ -72,7 +82,7 @@ Dùng một customer và một product có stock đủ:
 
 - Custom role có dependency permission hợp lệ; không tạo role thao tác mà thiếu quyền đọc dữ liệu bắt buộc của màn hình.
 
-## 4. API / data consistency
+## 5. API / data consistency
 
 - `GET /api/customers/{id}` trả đúng customer detail.
 - `GET /api/sales-orders/{id}` trả order detail + items.
@@ -83,7 +93,7 @@ Dùng một customer và một product có stock đủ:
 - Receivable balance dùng duy nhất tổng `remaining_amount` của open `INCREASE` rows.
 - Customer list không phát sinh một balance query cho từng customer.
 
-## 5. Deployment security
+## 6. Deployment security
 
 - Backend public chạy với `SPRING_PROFILES_ACTIVE=prod` để production JWT guard được bật.
 - `APP_JWT_SECRET` là secret riêng, tối thiểu 32 ký tự, không dùng default trong repository.
@@ -94,7 +104,7 @@ Dùng một customer và một product có stock đủ:
 - Vercel có `VITE_API_BASE_URL` trỏ đúng public backend `/api`.
 - Refresh trực tiếp `/login`, `/dashboard` hoặc route con không được 404; SPA rewrite phải fallback về `index.html`.
 
-## 6. Server smoke test
+## 7. Server smoke test
 
 Sau deploy:
 
@@ -107,7 +117,7 @@ Sau deploy:
 - Mở customer có id ngoài page đầu vẫn lấy được detail bằng API detail.
 - Dashboard refresh đúng sau product/customer/order/payment mutation.
 
-## 7. Documentation gate
+## 8. Documentation gate
 
 Trước khi tag release, rà đồng thời:
 

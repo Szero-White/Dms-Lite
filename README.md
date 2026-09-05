@@ -244,6 +244,18 @@ Before publishing a portfolio release, use [docs/release-checklist.md](docs/rele
 
 On Windows, `run-local.bat` in the project root opens backend and frontend terminals automatically. PostgreSQL must already be running.
 
+### Reset local demo data
+
+To clear local test data and return to a clean seeded demo baseline without dropping the schema or Flyway history:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\scripts\local\reset-dms-local-jdbc.ps1"
+```
+
+The reset utility is **local-only**. It preserves `flyway_schema_history`, truncates application tables with identity reset, writes a row-count snapshot to `Downloads`, and then starts `run-local.bat` so demo seed data is recreated.
+
+The CSV snapshot is not a restorable database backup. Use `pg_dump` separately when a full restore point is required.
+
 ### Prerequisites
 
 - Java 17+
