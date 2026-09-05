@@ -40,6 +40,24 @@ class SalesOrderMapperTest {
         assertThat(response.items().get(0).lineTotal()).isEqualByComparingTo("24000");
     }
 
+
+    @Test
+    void includesBusinessDisplayNamesWithoutChangingInternalIds() {
+        SalesOrder salesOrder = sampleSalesOrder();
+
+        SalesOrderDetailResponse response = mapper.toDetailResponse(
+            salesOrder,
+            false,
+            "Cửa hàng Bách hóa Hồng Phúc",
+            "Kho chính"
+        );
+
+        assertThat(response.customerId()).isEqualTo(2L);
+        assertThat(response.customerName()).isEqualTo("Cửa hàng Bách hóa Hồng Phúc");
+        assertThat(response.warehouseId()).isEqualTo(3L);
+        assertThat(response.warehouseName()).isEqualTo("Kho chính");
+    }
+
     private SalesOrder sampleSalesOrder() {
         SalesOrder salesOrder = SalesOrder.builder()
             .id(10L)

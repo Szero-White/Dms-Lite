@@ -116,6 +116,10 @@ public class HelpPermissionScope {
         return modules;
     }
 
+    public List<String> visibleModules(HelpLocale locale) {
+        return HelpDisplayNames.modules(locale, visibleModules());
+    }
+
     private void addIfAllowed(Collection<String> modules, String permission, String module) {
         if (has(permission)) {
             modules.add(module);

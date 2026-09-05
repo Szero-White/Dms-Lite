@@ -12,7 +12,9 @@ export interface SalesOrderItem {
 export interface SalesOrder {
   id: number;
   customerId: number;
+  customerName?: string | null;
   warehouseId: number;
+  warehouseName?: string | null;
   code: string;
   status: SalesOrderStatus;
   totalAmount: string | number | null;

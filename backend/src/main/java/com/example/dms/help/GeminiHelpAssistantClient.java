@@ -45,7 +45,7 @@ public class GeminiHelpAssistantClient {
                 .retrieve()
                 .body(JsonNode.class);
 
-            return parseAnswer(response).map(answer -> sanitizeAnswer(answer, scope, fallback));
+            return parseAnswer(response).map(answer -> sanitizeAnswer(answer, scope, locale, fallback));
         } catch (RestClientException | IllegalArgumentException | JsonProcessingException ex) {
             log.warn("Gemini assistant fallback used: {}", ex.getMessage());
             return Optional.empty();
@@ -158,6 +158,7 @@ public class GeminiHelpAssistantClient {
     private HelpAnswerResponse sanitizeAnswer(
         HelpAnswerResponse answer,
         HelpPermissionScope scope,
+        HelpLocale locale,
         HelpAnswerResponse fallback
     ) {
         List<String> allowedModules = scope.visibleModules();
@@ -165,11 +166,14 @@ public class GeminiHelpAssistantClient {
             .filter(allowedModules::contains)
             .distinct()
             .toList();
+        List<String> displayModules = relatedModules.isEmpty()
+            ? fallback.relatedModules()
+            : HelpDisplayNames.modules(locale, relatedModules);
 
         return new HelpAnswerResponse(
             blankToDefault(answer.answer(), fallback.answer()),
             safeList(answer.steps(), fallback.steps()),
-            relatedModules.isEmpty() ? fallback.relatedModules() : relatedModules,
+            displayModules,
             safeList(answer.guardrails(), fallback.guardrails()),
             blankToDefault(answer.scopeNotice(), fallback.scopeNotice()),
             answer.blocked()

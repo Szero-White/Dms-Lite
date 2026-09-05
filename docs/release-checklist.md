@@ -45,6 +45,8 @@ Dùng một customer và một product có stock đủ:
 8. Debt statement phải giữ cả receivable phát sinh và payment history.
 9. Dashboard total receivable và top customer debt phải cùng là `60` cho scenario này.
 10. Không nơi nào được tính thành `20`.
+11. Với customer có `creditLimit > 0`, tạo `DRAFT` vượt hạn mức phải chỉ cảnh báo; confirm/fulfill phải bị reject trước khi trừ stock hoặc tạo receivable.
+12. Confirm đúng bằng hạn mức phải được phép; `creditLimit = 0` phải tiếp tục được hiểu là chưa cấu hình hard limit.
 
 ## 4. Role smoke test
 
@@ -108,7 +110,16 @@ Dùng một customer và một product có stock đủ:
 - Receivable balance dùng duy nhất tổng `remaining_amount` của open `INCREASE` rows.
 - Customer list không phát sinh một balance query cho từng customer.
 
-## 6. Deployment security
+## 6. Localization / i18n
+
+- `en.json` và `vi.json` có cùng key; không có static `t(...)` key bị thiếu.
+- Enum/status/source do hệ thống sinh phải render theo locale, không in raw code như `SALES_ORDER`, `ADJUSTMENT`, `IN`, `OUT`.
+- Ghi chú hệ thống legacy như `Seed stock` / `Confirm SO-...` được localize ở tầng hiển thị.
+- Ghi chú do nhân viên tự nhập phải giữ nguyên nội dung khi đổi VI/EN; không tự dịch dữ liệu người dùng.
+- Trợ lý AI ở locale VI không trả module/status/permission code tiếng Anh trong phần hướng dẫn hoặc `relatedModules`.
+- Chuyển VI ↔ EN rồi kiểm tra Kho hàng, Công nợ, Thông báo, Nhật ký hoạt động và Trợ lý AI không bị trộn ngôn ngữ.
+
+## 7. Deployment security
 
 - Backend public chạy với `SPRING_PROFILES_ACTIVE=prod` để production JWT guard được bật.
 - `APP_JWT_SECRET` là secret riêng, tối thiểu 32 ký tự, không dùng default trong repository.
@@ -119,7 +130,7 @@ Dùng một customer và một product có stock đủ:
 - Vercel có `VITE_API_BASE_URL` trỏ đúng public backend `/api`.
 - Refresh trực tiếp `/login`, `/dashboard` hoặc route con không được 404; SPA rewrite phải fallback về `index.html`.
 
-## 7. Server smoke test
+## 8. Server smoke test
 
 Sau deploy:
 
@@ -132,7 +143,7 @@ Sau deploy:
 - Mở customer có id ngoài page đầu vẫn lấy được detail bằng API detail.
 - Dashboard refresh đúng sau product/customer/order/payment mutation.
 
-## 8. Documentation gate
+## 9. Documentation gate
 
 Trước khi tag release, rà đồng thời:
 

@@ -124,7 +124,19 @@ function localizeKnownServerMessage(message: string): string | null {
     return i18n.t(exactKey);
   }
 
-  let match = normalized.match(/^Product not found: (\d+)$/);
+  let match = normalized.match(
+    /^Credit limit exceeded\. Limit: ([0-9]+(?:\.[0-9]+)?), current debt: ([0-9]+(?:\.[0-9]+)?), order debt: ([0-9]+(?:\.[0-9]+)?), projected debt: ([0-9]+(?:\.[0-9]+)?)$/,
+  );
+  if (match) {
+    return i18n.t('errors.api.creditLimitExceeded', {
+      limit: formatCurrency(match[1]),
+      currentDebt: formatCurrency(match[2]),
+      orderDebt: formatCurrency(match[3]),
+      projectedDebt: formatCurrency(match[4]),
+    });
+  }
+
+  match = normalized.match(/^Product not found: (\d+)$/);
   if (match) {
     return i18n.t('errors.api.productNotFoundWithId', { id: match[1] });
   }

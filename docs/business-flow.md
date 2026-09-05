@@ -14,7 +14,8 @@ Kết quả:
 - order mới luôn bắt đầu với `paidAmount = 0`; payment được ghi riêng qua module Accountant để không bypass `PAYMENT_CREATE`;
 - tạo order trạng thái `DRAFT`;
 - chưa trừ kho;
-- chưa phát sinh receivable.
+- chưa phát sinh receivable;
+- nếu `creditLimit > 0`, frontend cảnh báo khi `current receivable + draft debt` vượt hạn mức nhưng vẫn cho phép lưu `DRAFT`.
 
 Order code dùng random suffix thay vì `count + 1` để tránh race condition khi nhiều request tạo đơn đồng thời. Current MVP dùng một warehouse chính; frontend lấy warehouse này từ backend thay vì hardcode ID.
 
@@ -32,16 +33,18 @@ Trong transaction:
 
 1. lock order row đúng tenant để chỉ một transition `DRAFT -> ...` được xử lý tại một thời điểm;
 2. kiểm tra order phải là `DRAFT`;
-3. lock stock row;
-4. kiểm tra đủ stock;
-5. trừ stock;
-6. ghi inventory transaction `OUT`;
-7. set order `COMPLETED` và `confirmed_at`;
-8. nếu `debtAmount > 0`, tạo receivable `INCREASE`;
-9. ghi audit;
-10. publish notification.
+3. lock customer row để serialize các lần fulfill có thể cùng làm tăng exposure của một customer;
+4. nếu `creditLimit > 0`, tính `current receivable + order debt` và reject trước khi xuất kho nếu kết quả vượt hạn mức;
+5. lock stock row;
+6. kiểm tra đủ stock;
+7. trừ stock;
+8. ghi inventory transaction `OUT`;
+9. set order `COMPLETED` và `confirmed_at`;
+10. nếu `debtAmount > 0`, tạo receivable `INCREASE`;
+11. ghi audit;
+12. publish notification.
 
-Nếu stock không đủ hoặc core operation fail, confirm không được hoàn thành một nửa.
+Nếu vượt hạn mức, stock không đủ hoặc core operation fail, confirm không được hoàn thành một nửa. `creditLimit = 0` tiếp tục có nghĩa là khách hàng chưa cấu hình hạn mức và không bị hard-block.
 
 ## 3. Receivable
 

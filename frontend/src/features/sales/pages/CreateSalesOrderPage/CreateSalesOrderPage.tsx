@@ -64,6 +64,7 @@ export function CreateSalesOrderPage() {
   const [form] = Form.useForm<OrderFormValues>();
 
   const watchedItems = Form.useWatch('items', form) || [];
+  const selectedCustomerId = Form.useWatch('customerId', form);
 
   useEffect(() => {
     if (warehouseQuery.data?.id && !form.getFieldValue('warehouseId')) {
@@ -91,6 +92,13 @@ export function CreateSalesOrderPage() {
 
   const orderTotal = subtotal - discountTotal;
   const debtAmount = Math.max(orderTotal, 0);
+  const selectedCustomer = customersQuery.data?.find(
+    (customer) => customer.id === selectedCustomerId,
+  );
+  const currentCustomerDebt = toNumber(selectedCustomer?.debtBalance);
+  const customerCreditLimit = toNumber(selectedCustomer?.creditLimit);
+  const projectedCustomerDebt = currentCustomerDebt + debtAmount;
+  const exceedsCreditLimit = customerCreditLimit > 0 && projectedCustomerDebt > customerCreditLimit;
   const stockWarnings = watchedItems.flatMap((item) => {
     const product = productsQuery.data?.find(
       (candidate) => candidate.id === item?.productId,
@@ -301,6 +309,21 @@ export function CreateSalesOrderPage() {
                     showIcon
                     message={t('sales.create.stockWarningTitle')}
                     description={stockWarnings.join('; ')}
+                  />
+                ) : null}
+
+                {exceedsCreditLimit ? (
+                  <Alert
+                    className={styles.stockAlert}
+                    type="warning"
+                    showIcon
+                    message={t('sales.create.creditLimitWarningTitle')}
+                    description={t('sales.create.creditLimitWarningDescription', {
+                      limit: formatCurrency(customerCreditLimit),
+                      currentDebt: formatCurrency(currentCustomerDebt),
+                      orderDebt: formatCurrency(debtAmount),
+                      projectedDebt: formatCurrency(projectedCustomerDebt),
+                    })}
                   />
                 ) : null}
 
