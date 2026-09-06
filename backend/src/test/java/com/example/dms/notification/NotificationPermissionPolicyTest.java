@@ -40,6 +40,32 @@ class NotificationPermissionPolicyTest {
     }
 
     @Test
+    void customInventoryMonitorOnlySeesLowStockEvents() {
+        Set<String> permissions = Set.of(
+            "NOTIFICATION_VIEW",
+            "PRODUCT_VIEW",
+            "INVENTORY_VIEW",
+            "AI_HELP_VIEW"
+        );
+
+        assertThat(NotificationPermissionPolicy.canView("LOW_STOCK", permissions)).isTrue();
+        assertThat(NotificationPermissionPolicy.canView("OVERDUE_DEBT", permissions)).isFalse();
+        assertThat(NotificationPermissionPolicy.canView("PAYMENT_RECORDED", permissions)).isFalse();
+        assertThat(NotificationPermissionPolicy.canView("SALES_ORDER_CONFIRMED", permissions)).isFalse();
+        assertThat(NotificationPermissionPolicy.canView("SALES_ORDER_CANCELLED", permissions)).isFalse();
+    }
+
+    @Test
+    void notificationOnlyCustomRoleDoesNotReceiveBusinessEventContent() {
+        Set<String> permissions = Set.of("NOTIFICATION_VIEW", "AI_HELP_VIEW");
+
+        assertThat(NotificationPermissionPolicy.allowedPersistedTypes(permissions)).isEmpty();
+        assertThat(NotificationPermissionPolicy.canView("LOW_STOCK", permissions)).isFalse();
+        assertThat(NotificationPermissionPolicy.canView("OVERDUE_DEBT", permissions)).isFalse();
+        assertThat(NotificationPermissionPolicy.canView("PAYMENT_RECORDED", permissions)).isFalse();
+    }
+
+    @Test
     void unknownNotificationTypesFailClosed() {
         assertThat(NotificationPermissionPolicy.canView(
             "FUTURE_SENSITIVE_EVENT",

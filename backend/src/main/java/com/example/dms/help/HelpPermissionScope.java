@@ -3,6 +3,7 @@ package com.example.dms.help;
 import com.example.dms.sales.SalesOrderAccessPolicy;
 import com.example.dms.user.PermissionNames;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -116,17 +117,62 @@ public class HelpPermissionScope {
         if (canUseSales()) {
             modules.add("Sales Orders");
         }
-        addIfAllowed(modules, PermissionNames.INVOICE_VIEW, "Invoices");
+        if (canUseInvoices()) {
+            modules.add("Invoices");
+        }
         addIfAllowed(modules, PermissionNames.PRODUCT_VIEW, "Products");
         addIfAllowed(modules, PermissionNames.CUSTOMER_VIEW, "Customers");
         addIfAllowed(modules, PermissionNames.INVENTORY_VIEW, "Inventory");
         addIfAllowed(modules, PermissionNames.PAYMENT_CREATE, "Payments");
+        addIfAllowed(modules, PermissionNames.AUDIT_VIEW, "Audit Logs");
+        addIfAllowed(modules, PermissionNames.NOTIFICATION_VIEW, "Notifications");
         addIfAllowed(modules, PermissionNames.TEAM_MANAGE, "Team Access");
         return modules;
     }
 
     public List<String> visibleModules(HelpLocale locale) {
         return HelpDisplayNames.modules(locale, visibleModules());
+    }
+
+    /**
+     * Filters assistant module hints through the same permission scope used by the app.
+     * This prevents a custom role from being shown related-module tags for screens it cannot use.
+     * Unknown module names fail closed.
+     */
+    public List<String> relatedModules(HelpLocale locale, String... canonicalModules) {
+        if (canonicalModules == null || canonicalModules.length == 0) {
+            return List.of();
+        }
+
+        return HelpDisplayNames.modules(
+            locale,
+            Arrays.stream(canonicalModules)
+                .filter(this::canReferenceModule)
+                .distinct()
+                .toList()
+        );
+    }
+
+    boolean canReferenceModule(String canonicalModule) {
+        if (canonicalModule == null) {
+            return false;
+        }
+
+        return switch (canonicalModule) {
+            case "Dashboard", "Reports", "Dashboard/Reports" -> canUseReports();
+            case "Sales Orders" -> canUseSales();
+            case "Sales order finance" -> canViewOrderFinancials();
+            case "Invoices" -> canUseInvoices();
+            case "Products" -> canUseProducts();
+            case "Customers" -> canUseCustomers();
+            case "Inventory" -> canUseInventory();
+            case "Payments" -> has(PermissionNames.PAYMENT_CREATE);
+            case "Payments/Debt" -> canUseFinance();
+            case "Team Access", "Roles & Permissions" -> canManageTeam();
+            case "Audit Logs" -> has(PermissionNames.AUDIT_VIEW);
+            case "Notifications" -> has(PermissionNames.NOTIFICATION_VIEW);
+            default -> false;
+        };
     }
 
     private void addIfAllowed(Collection<String> modules, String permission, String module) {

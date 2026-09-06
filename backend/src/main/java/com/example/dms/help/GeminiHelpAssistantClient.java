@@ -45,7 +45,7 @@ public class GeminiHelpAssistantClient {
                 .retrieve()
                 .body(JsonNode.class);
 
-            return parseAnswer(response).map(answer -> sanitizeAnswer(answer, scope, locale, fallback));
+            return parseAnswer(response).map(answer -> sanitizeAnswer(answer, scope, fallback));
         } catch (RestClientException | IllegalArgumentException | JsonProcessingException ex) {
             log.warn("Gemini assistant fallback used: {}", ex.getMessage());
             return Optional.empty();
@@ -83,7 +83,7 @@ public class GeminiHelpAssistantClient {
             Allowed modules: %s
             Current permissions: %s
 
-            Recent conversation:
+            Recent user questions (assistant-generated answers are intentionally excluded):
             %s
 
             User question: %s
@@ -104,7 +104,7 @@ public class GeminiHelpAssistantClient {
                 locale.name(),
                 String.join(", ", scope.visibleModules()),
                 String.join(", ", scope.permissions()),
-                formatContext(request.context()),
+                formatExternalContext(request.context()),
                 request.question().trim(),
                 objectMapper.writeValueAsString(fallback)
             );
@@ -123,16 +123,19 @@ public class GeminiHelpAssistantClient {
         );
     }
 
-    private String formatContext(List<HelpAskRequest.ConversationTurn> context) {
+    static String formatExternalContext(List<HelpAskRequest.ConversationTurn> context) {
         if (context == null || context.isEmpty()) {
-            return "No previous conversation.";
+            return "No previous user questions.";
         }
 
+        // Assistant turns can contain live database values produced by HelpDataAnswerService.
+        // Never replay server-generated answers to an external AI provider on a later turn.
         return context.stream()
+            .filter(turn -> "user".equalsIgnoreCase(turn.role()))
             .filter(turn -> turn.content() != null && !turn.content().isBlank())
-            .map(turn -> (turn.role() == null ? "user" : turn.role()) + ": " + turn.content().trim())
+            .map(turn -> "user: " + turn.content().trim())
             .reduce((left, right) -> left + "\n" + right)
-            .orElse("No previous conversation.");
+            .orElse("No previous user questions.");
     }
 
     private Optional<HelpAnswerResponse> parseAnswer(JsonNode response) throws JsonProcessingException {
@@ -155,37 +158,38 @@ public class GeminiHelpAssistantClient {
         return Optional.empty();
     }
 
-    private HelpAnswerResponse sanitizeAnswer(
+    HelpAnswerResponse sanitizeAnswer(
         HelpAnswerResponse answer,
         HelpPermissionScope scope,
-        HelpLocale locale,
         HelpAnswerResponse fallback
     ) {
-        List<String> allowedModules = scope.visibleModules();
-        List<String> relatedModules = answer.relatedModules() == null ? List.of() : answer.relatedModules().stream()
-            .filter(allowedModules::contains)
-            .distinct()
-            .toList();
-        List<String> displayModules = relatedModules.isEmpty()
-            ? fallback.relatedModules()
-            : HelpDisplayNames.modules(locale, relatedModules);
-
-        return new HelpAnswerResponse(
-            blankToDefault(answer.answer(), fallback.answer()),
-            safeList(answer.steps(), fallback.steps()),
-            displayModules,
-            safeList(answer.guardrails(), fallback.guardrails()),
-            blankToDefault(answer.scopeNotice(), fallback.scopeNotice()),
-            answer.blocked()
-        );
-    }
-
-    private List<String> safeList(List<String> values, List<String> fallback) {
-        if (values == null || values.isEmpty()) {
+        if (answer == null || answer.blocked() || referencesUnassignedModule(answer, scope)) {
             return fallback;
         }
 
-        return values.stream().filter(value -> value != null && !value.isBlank()).limit(6).toList();
+        // The external model is a wording enhancer, not an authorization or navigation authority.
+        // Keep permission-scoped steps, modules, guardrails and blocked state from the backend.
+        return new HelpAnswerResponse(
+            blankToDefault(answer.answer(), fallback.answer()),
+            fallback.steps(),
+            fallback.relatedModules(),
+            fallback.guardrails(),
+            fallback.scopeNotice(),
+            fallback.blocked()
+        );
+    }
+
+    private boolean referencesUnassignedModule(
+        HelpAnswerResponse answer,
+        HelpPermissionScope scope
+    ) {
+        if (answer.relatedModules() == null) {
+            return false;
+        }
+
+        return answer.relatedModules().stream()
+            .filter(module -> module != null && !module.isBlank())
+            .anyMatch(module -> !scope.canReferenceModule(module));
     }
 
     private String blankToDefault(String value, String fallback) {

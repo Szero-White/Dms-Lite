@@ -50,7 +50,7 @@ public class HelpAssistantService {
             case ASSIGNED_WORK -> knowledge.assignedWorkAnswer(scope, locale);
             case MISSING_SCREEN -> knowledge.missingScreenAnswer(scope, locale);
             case TEAM_ACCESS -> scope.canManageTeam()
-                ? knowledge.teamAccessAnswer(locale)
+                ? knowledge.teamAccessAnswer(scope, locale)
                 : knowledge.outOfScopeAnswer(scope, "Team Access", locale);
             case SALES -> scope.canUseSales()
                 ? knowledge.salesAnswer(scope, locale)
@@ -71,7 +71,7 @@ public class HelpAssistantService {
                 ? knowledge.customerAnswer(scope, locale)
                 : knowledge.outOfScopeAnswer(scope, "Customers", locale);
             case REPORT -> scope.canUseReports()
-                ? knowledge.reportAnswer(locale)
+                ? knowledge.reportAnswer(scope, locale)
                 : knowledge.outOfScopeAnswer(scope, "Reports", locale);
             case UNKNOWN -> knowledge.generalAnswer(scope, locale);
         };
