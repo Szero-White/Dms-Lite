@@ -30,7 +30,16 @@ final class HelpWorkflowResponses {
         String scopeNotice,
         boolean blocked
     ) {
-        return new HelpAnswerResponse(answer, steps, relatedModules, guardrails, scopeNotice, blocked);
+        return new HelpAnswerResponse(
+            answer,
+            steps,
+            relatedModules,
+            guardrails,
+            scopeNotice,
+            blocked,
+            HelpAnswerSource.WORKFLOW_KNOWLEDGE,
+            HelpGenerationProvider.NONE
+        );
     }
 
     private static String scopeNotice(HelpLocale locale) {

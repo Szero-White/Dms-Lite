@@ -32,11 +32,15 @@ public class HelpAssistantService {
         HelpIntentMatch intent = intentDetector.detect(request);
         HelpAnswerResponse fallback = answerIntent(intent, scope, locale);
 
-        if (fallback.blocked() || intent.needsClarification()) {
+        if (fallback.blocked() || intent.needsClarification() || !geminiClient.isAvailable()) {
             return fallback;
         }
 
-        return geminiClient.answer(request, scope, locale, fallback).orElse(fallback);
+        return geminiClient.answer(request, scope, locale, fallback)
+            .orElseGet(() -> fallback.withProvenance(
+                HelpAnswerSource.SYSTEM_FALLBACK,
+                HelpGenerationProvider.NONE
+            ));
     }
 
     private HelpAnswerResponse answerIntent(HelpIntentMatch intent, HelpPermissionScope scope, HelpLocale locale) {

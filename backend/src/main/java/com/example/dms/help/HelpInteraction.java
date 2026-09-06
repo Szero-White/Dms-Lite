@@ -2,6 +2,8 @@ package com.example.dms.help;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -57,6 +59,14 @@ public class HelpInteraction {
     private String scopeNotice;
 
     private boolean blocked;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 40)
+    private HelpAnswerSource answerSource;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 40)
+    private HelpGenerationProvider generationProvider;
 
     private Instant createdAt;
 

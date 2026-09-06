@@ -208,14 +208,23 @@ class AuthorizationRbacTest {
     }
 
     @Test
-    void salesCanAskHelpAssistant() throws Exception {
+    void salesCanAskHelpAssistantAndOwnerCanAuditAnswerProvenance() throws Exception {
+        String question = "Nhan vien sales moi can lam gi de tao don hang?";
+
         mvc.perform(post("/api/help/ask")
                 .header("Authorization", bearer("sale"))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(json(Map.of(
-                    "question", "Nhan vien sales moi can lam gi de tao don hang?"
-                ))))
-            .andExpect(status().isOk());
+                .content(json(Map.of("question", question))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.answerSource").value("WORKFLOW_KNOWLEDGE"))
+            .andExpect(jsonPath("$.data.generationProvider").value("NONE"));
+
+        mvc.perform(get("/api/help/history")
+                .header("Authorization", bearer("owner"))
+                .param("keyword", question))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.content[0].answerSource").value("WORKFLOW_KNOWLEDGE"))
+            .andExpect(jsonPath("$.data.content[0].generationProvider").value("NONE"));
     }
 
     @Test

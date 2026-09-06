@@ -73,15 +73,13 @@ class GeminiHelpAssistantClientTest {
             "INVENTORY_VIEW",
             "NOTIFICATION_VIEW"
         );
-        HelpAnswerResponse fallback = new HelpAnswerResponse(
+        HelpAnswerResponse fallback = workflowFallback(
             "Safe inventory guidance",
             List.of("Review Inventory"),
             List.of("Inventory", "Products", "Notifications"),
-            List.of("Stay inside assigned permissions"),
-            "Scoped by permissions",
-            false
+            List.of("Stay inside assigned permissions")
         );
-        HelpAnswerResponse modelAnswer = new HelpAnswerResponse(
+        GeminiHelpAssistantClient.GeminiAnswerPayload modelAnswer = new GeminiHelpAssistantClient.GeminiAnswerPayload(
             "Open Payments to continue",
             List.of("Open Payments"),
             List.of("Payments"),
@@ -90,7 +88,11 @@ class GeminiHelpAssistantClientTest {
             false
         );
 
-        assertThat(client.sanitizeAnswer(modelAnswer, scope, fallback)).isEqualTo(fallback);
+        HelpAnswerResponse sanitized = client.sanitizeAnswer(modelAnswer, scope, fallback);
+
+        assertThat(sanitized.answer()).isEqualTo(fallback.answer());
+        assertThat(sanitized.answerSource()).isEqualTo(HelpAnswerSource.SYSTEM_FALLBACK);
+        assertThat(sanitized.generationProvider()).isEqualTo(HelpGenerationProvider.NONE);
     }
 
     @Test
@@ -101,15 +103,13 @@ class GeminiHelpAssistantClientTest {
             "PRODUCT_VIEW",
             "INVENTORY_VIEW"
         );
-        HelpAnswerResponse fallback = new HelpAnswerResponse(
+        HelpAnswerResponse fallback = workflowFallback(
             "Inventory fallback",
             List.of("Review stock"),
             List.of("Inventory", "Products"),
-            List.of("Do not expose restricted data"),
-            "Scoped by permissions",
-            false
+            List.of("Do not expose restricted data")
         );
-        HelpAnswerResponse modelAnswer = new HelpAnswerResponse(
+        GeminiHelpAssistantClient.GeminiAnswerPayload modelAnswer = new GeminiHelpAssistantClient.GeminiAnswerPayload(
             "Start by checking the low-stock items assigned to you.",
             List.of("Model generated step"),
             List.of("Inventory"),
@@ -126,6 +126,26 @@ class GeminiHelpAssistantClientTest {
         assertThat(sanitized.guardrails()).isEqualTo(fallback.guardrails());
         assertThat(sanitized.scopeNotice()).isEqualTo(fallback.scopeNotice());
         assertThat(sanitized.blocked()).isFalse();
+        assertThat(sanitized.answerSource()).isEqualTo(HelpAnswerSource.WORKFLOW_KNOWLEDGE);
+        assertThat(sanitized.generationProvider()).isEqualTo(HelpGenerationProvider.GEMINI);
+    }
+
+    private HelpAnswerResponse workflowFallback(
+        String answer,
+        List<String> steps,
+        List<String> relatedModules,
+        List<String> guardrails
+    ) {
+        return new HelpAnswerResponse(
+            answer,
+            steps,
+            relatedModules,
+            guardrails,
+            "Scoped by permissions",
+            false,
+            HelpAnswerSource.WORKFLOW_KNOWLEDGE,
+            HelpGenerationProvider.NONE
+        );
     }
 
     private HelpPermissionScope scope(String... permissions) {

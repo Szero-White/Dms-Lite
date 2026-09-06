@@ -44,6 +44,8 @@ public class HelpInteractionService {
             .guardrails(join(answer.guardrails()))
             .scopeNotice(answer.scopeNotice())
             .blocked(answer.blocked())
+            .answerSource(answer.answerSource())
+            .generationProvider(answer.generationProvider())
             .build();
 
         return toResponse(interactions.save(interaction));
@@ -86,6 +88,8 @@ public class HelpInteractionService {
             split(interaction.getGuardrails()),
             interaction.getScopeNotice(),
             interaction.isBlocked(),
+            interaction.getAnswerSource(),
+            interaction.getGenerationProvider(),
             interaction.getCreatedAt()
         );
     }

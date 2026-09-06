@@ -155,7 +155,8 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 - Permission-aware workflow guidance for system and custom roles
 - Live stock, receivable, sales-order, product, and customer lookups are guarded server-side before data access
 - Server-generated live-data answers are kept out of external AI conversation context
-- AI interaction history is restricted to team administrators
+- Backend-owned answer provenance distinguishes live DMS data, deterministic workflow knowledge, Gemini-assisted wording, and system fallback without letting the external model claim its own authority
+- AI interaction history is restricted to team administrators and preserves provenance for support/audit review
 
 ### Dashboard / Reports
 

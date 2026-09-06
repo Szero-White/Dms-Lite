@@ -99,7 +99,10 @@ class HelpWorkflowKnowledgeScopeTest {
 
         assertThat(answer.steps())
             .noneMatch(step -> step.equals("Mở Đơn bán hàng và chọn Tạo đơn mới."));
+        assertThat(answer.answerSource()).isEqualTo(HelpAnswerSource.WORKFLOW_KNOWLEDGE);
+        assertThat(answer.generationProvider()).isEqualTo(HelpGenerationProvider.NONE);
     }
+
     private HelpPermissionScope scope(String... permissions) {
         Set<SimpleGrantedAuthority> authorities = Arrays.stream(permissions)
             .map(SimpleGrantedAuthority::new)

@@ -178,6 +178,8 @@ Permission là nguồn sự thật chung cho cả frontend và backend, không s
 `AI_HELP_VIEW` và `NOTIFICATION_VIEW` chỉ là **gateway permission** để mở trợ lý hoặc feed thông báo; chúng không tự cấp quyền đọc dữ liệu nghiệp vụ.
 
 - AI workflow guidance có thể dựa trên action permission (ví dụ `PAYMENT_CREATE` để hướng dẫn ghi nhận thanh toán), nhưng dữ liệu thật phải có view permission tương ứng (`DEBT_VIEW`, `SALES_ORDER_VIEW`, `INVENTORY_VIEW`, `PRODUCT_VIEW`, `CUSTOMER_VIEW`).
+- Mỗi câu trả lời trợ lý mang provenance do backend quyết định: `LIVE_DATA`, `WORKFLOW_KNOWLEDGE`, `SYSTEM_FALLBACK` hoặc `LEGACY_UNKNOWN`; provider diễn đạt được lưu riêng (`GEMINI`, `NONE`, `LEGACY_UNKNOWN`). Gemini không được tự quyết định hai metadata này.
+- Frontend nhân viên chỉ hiển thị provenance ở mức nghiệp vụ (`Dữ liệu DMS`, `Quy trình DMS`, `AI hỗ trợ`); chi tiết fallback/provider chỉ dành cho AI History của Owner để hỗ trợ audit và vận hành.
 - Notification được lọc tiếp theo loại sự kiện và permission nghiệp vụ. Ví dụ payment event cần `PAYMENT_CREATE` + `CUSTOMER_VIEW`, overdue debt cần `DEBT_VIEW` + `CUSTOMER_VIEW`, sales-order event cần `SALES_ORDER_VIEW`.
 - Notification type chưa được khai báo policy bị **deny by default** để event mới không vô tình vượt RBAC.
 - Endpoint mark-read áp dụng cùng policy; notification ngoài scope được xử lý như không tồn tại để không làm lộ sự hiện diện của event bị giới hạn.

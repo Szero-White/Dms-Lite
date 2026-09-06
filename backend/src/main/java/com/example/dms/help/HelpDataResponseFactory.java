@@ -69,7 +69,9 @@ public class HelpDataResponseFactory {
             locale == HelpLocale.VI
                 ? "Câu trả lời này chỉ dựa trên quyền được cấp cho tài khoản hiện tại."
                 : "This answer is limited to the current account permissions.",
-            blocked
+            blocked,
+            HelpAnswerSource.LIVE_DATA,
+            HelpGenerationProvider.NONE
         );
     }
 

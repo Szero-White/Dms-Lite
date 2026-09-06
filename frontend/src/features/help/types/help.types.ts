@@ -1,9 +1,20 @@
+export type HelpAnswerSource =
+  | 'LIVE_DATA'
+  | 'WORKFLOW_KNOWLEDGE'
+  | 'SYSTEM_FALLBACK'
+  | 'LEGACY_UNKNOWN';
+
+export type HelpGenerationProvider = 'GEMINI' | 'NONE' | 'LEGACY_UNKNOWN';
+
 export interface HelpAnswer {
   answer: string;
   steps: string[];
   relatedModules: string[];
   guardrails: string[];
   scopeNotice: string;
+  blocked: boolean;
+  answerSource: HelpAnswerSource;
+  generationProvider: HelpGenerationProvider;
 }
 
 export interface HelpConversationTurn {
@@ -39,5 +50,7 @@ export interface HelpInteraction {
   guardrails: string[];
   scopeNotice: string;
   blocked: boolean;
+  answerSource: HelpAnswerSource;
+  generationProvider: HelpGenerationProvider;
   createdAt: string;
 }
