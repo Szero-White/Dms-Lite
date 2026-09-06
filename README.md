@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Szero-White/Dms-Lite/actions/workflows/ci.yml/badge.svg)](https://github.com/Szero-White/Dms-Lite/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-17-informational)
-![Release](https://img.shields.io/badge/release-v1.0.1-informational)
+![Release](https://img.shields.io/badge/release-v1.1.0-informational)
 
 DMS Lite is a mini distribution management system for small wholesalers and distributors. It helps businesses manage customers, products, stock, sales orders, receivable debt, customer payments, audit logs, notifications, and business dashboards.
 
@@ -50,7 +50,7 @@ DMS Lite addresses those problems with:
 
 ## Portfolio Demo
 
-Current stable release: **v1.0.1**.
+Current stable release: **v1.1.0**.
 
 The public recruiter deployment intentionally runs in demo mode so reviewers can test role-specific workflows without creating accounts first. **Live Demo:** https://dms-lite.vercel.app/
 
