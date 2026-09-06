@@ -39,12 +39,15 @@ class HelpDataAnswerServiceNaturalLanguageTest {
     private final SalesOrderRepository salesOrders = mock(SalesOrderRepository.class);
     private final CustomerDebtRepository customerDebts = mock(CustomerDebtRepository.class);
 
+    private final HelpDataQuestionClassifier classifier = new HelpDataQuestionClassifier();
+    private final HelpDataResponseFactory responses = new HelpDataResponseFactory();
+
     private final HelpDataAnswerService service = new HelpDataAnswerService(
-        products,
-        stockItems,
-        customers,
-        salesOrders,
-        customerDebts
+        classifier,
+        new InventoryHelpDataService(products, stockItems, classifier, responses),
+        new DebtHelpDataService(customers, customerDebts, classifier, responses),
+        new SalesOrderHelpDataService(salesOrders, classifier, responses),
+        new CatalogHelpDataService(products, customers, responses)
     );
 
     @BeforeEach
