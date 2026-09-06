@@ -302,7 +302,9 @@ export function CustomerDetailPage() {
                     title: t('customers.detail.remaining'),
                     dataIndex: 'remainingAmount',
                     align: 'right',
-                    render: (value) => formatCurrency(value),
+                    render: (value, record) => record.direction === 'INCREASE'
+                      ? formatCurrency(value)
+                      : '--',
                   },
                   {
                     title: t('customers.detail.dueDate'),

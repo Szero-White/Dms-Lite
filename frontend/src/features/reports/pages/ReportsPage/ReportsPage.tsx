@@ -230,14 +230,14 @@ export function ReportsPage() {
                           rowKey="id"
                           size="small"
                           scroll={{ x: 1180 }}
-                          dataSource={reportOrders.slice(0, 10)}
+                          dataSource={reportOrders}
                           locale={{ emptyText: t('reports.empty.noSalesOrders') }}
                           columns={[
                             { title: t('reports.table.order'), dataIndex: 'code', width: 160 },
                             {
                               title: t('reports.table.customer'),
                               width: 230,
-                              render: (_, order) => order.customerName ?? `#${order.customerId}`,
+                              render: (_, order) => order.customerName ?? '--',
                             },
                             { title: t('reports.table.reportDate'), dataIndex: 'reportDate', width: 170, render: (value) => formatDateTime(value) },
                             { title: t('reports.table.status'), dataIndex: 'status', width: 130, render: (v) => <SalesOrderStatusTag status={v} /> },
@@ -436,7 +436,7 @@ export function ReportsPage() {
           <div className={styles.reportOrderDetail}>
             <Descriptions bordered size="small" column={1}>
               <Descriptions.Item label={t('reports.table.customer')}>
-                {selectedReportOrder.customerName ?? `#${selectedReportOrder.customerId}`}
+                {selectedReportOrder.customerName ?? '--'}
               </Descriptions.Item>
               <Descriptions.Item label={t('reports.table.reportDate')}>
                 {formatDateTime(selectedReportOrder.reportDate)}
@@ -466,7 +466,9 @@ export function ReportsPage() {
                     <Progress percent={selectedReportOrder.collectionProgress} />
                   ) : (
                     <Typography.Text type="secondary">
-                      {t('reports.detail.receivableNotRecognized')}
+                      {selectedReportOrder.status === 'CANCELLED'
+                        ? t('reports.detail.receivableCancelled')
+                        : t('reports.detail.receivableNotRecognized')}
                     </Typography.Text>
                   )}
                 </div>

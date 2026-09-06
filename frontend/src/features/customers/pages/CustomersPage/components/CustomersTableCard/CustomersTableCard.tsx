@@ -273,47 +273,45 @@ export function CustomersTableCard({
                     />
                   </Tooltip>
                   {canManageCustomers ? (
-                    <>
-                      <Tooltip title={t('customers.action.edit')}>
+                    <Tooltip title={t('customers.action.edit')}>
+                      <Button
+                        type="text"
+                        icon={<EditOutlined />}
+                        aria-label={t('customers.action.editAria', { name: record.name })}
+                        onClick={() => onEditCustomer(record)}
+                      />
+                    </Tooltip>
+                  ) : null}
+                  {canChangeCustomerStatus ? (
+                    record.active ? (
+                      <Popconfirm
+                        title={t('customers.deactivate.title')}
+                        description={t('customers.deactivate.description')}
+                        okText={t('customers.action.deactivate')}
+                        okButtonProps={{ danger: true }}
+                        onConfirm={() => onDeactivateCustomer(record.id)}
+                      >
+                        <Tooltip title={t('customers.action.deactivate')}>
+                          <Button
+                            danger
+                            type="text"
+                            icon={<StopOutlined />}
+                            loading={changingStatusCustomerId === record.id}
+                            aria-label={t('customers.action.deactivateAria', { name: record.name })}
+                          />
+                        </Tooltip>
+                      </Popconfirm>
+                    ) : (
+                      <Tooltip title={t('customers.action.reactivate')}>
                         <Button
                           type="text"
-                          icon={<EditOutlined />}
-                          aria-label={t('customers.action.editAria', { name: record.name })}
-                          onClick={() => onEditCustomer(record)}
+                          icon={<PlayCircleOutlined />}
+                          loading={changingStatusCustomerId === record.id}
+                          aria-label={t('customers.action.reactivateAria', { name: record.name })}
+                          onClick={() => onReactivateCustomer(record.id)}
                         />
                       </Tooltip>
-                      {canChangeCustomerStatus ? (
-                        record.active ? (
-                          <Popconfirm
-                            title={t('customers.deactivate.title')}
-                            description={t('customers.deactivate.description')}
-                            okText={t('customers.action.deactivate')}
-                            okButtonProps={{ danger: true }}
-                            onConfirm={() => onDeactivateCustomer(record.id)}
-                          >
-                            <Tooltip title={t('customers.action.deactivate')}>
-                              <Button
-                                danger
-                                type="text"
-                                icon={<StopOutlined />}
-                                loading={changingStatusCustomerId === record.id}
-                                aria-label={t('customers.action.deactivateAria', { name: record.name })}
-                              />
-                            </Tooltip>
-                          </Popconfirm>
-                        ) : (
-                          <Tooltip title={t('customers.action.reactivate')}>
-                            <Button
-                              type="text"
-                              icon={<PlayCircleOutlined />}
-                              loading={changingStatusCustomerId === record.id}
-                              aria-label={t('customers.action.reactivateAria', { name: record.name })}
-                              onClick={() => onReactivateCustomer(record.id)}
-                            />
-                          </Tooltip>
-                        )
-                      ) : null}
-                    </>
+                    )
                   ) : null}
                   <Dropdown
                     trigger={['click']}

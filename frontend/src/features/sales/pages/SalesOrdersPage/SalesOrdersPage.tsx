@@ -302,7 +302,7 @@ export function SalesOrdersPage() {
                 render: (_, record) => {
                   const customerName = record.customerName
                     ?? customersMap.get(record.customerId)?.name
-                    ?? `#${record.customerId}`;
+                    ?? '--';
                   return (
                     <div className={styles.customerCell}>
                       <Avatar size={30} style={{ background: 'var(--gradient-primary)', color: '#fff', fontWeight: 700 }}>
@@ -379,7 +379,7 @@ export function SalesOrdersPage() {
               <Descriptions.Item label={t('sales.column.customer')}>
                 {selectedOrderDetail.customerName
                   ?? customersMap.get(selectedOrderDetail.customerId)?.name
-                  ?? `#${selectedOrderDetail.customerId}`}
+                  ?? '--'}
               </Descriptions.Item>
               <Descriptions.Item label={t('common.status')}><SalesOrderStatusTag status={selectedOrderDetail.status} /></Descriptions.Item>
               {canViewSalesOrderFinancials ? (
@@ -400,7 +400,7 @@ export function SalesOrdersPage() {
                 </>
               ) : null}
               <Descriptions.Item label={t('sales.drawer.warehouse')}>
-                {selectedOrderDetail.warehouseName ?? `#${selectedOrderDetail.warehouseId}`}
+                {selectedOrderDetail.warehouseName ?? '--'}
               </Descriptions.Item>
             </Descriptions>
             <div>
@@ -409,7 +409,7 @@ export function SalesOrdersPage() {
                 rowKey={(item, i) => item.id ?? `${item.productId}-${i}`}
                 dataSource={selectedOrderDetail.items ?? []}
                 columns={[
-                  { title: t('sales.drawer.product'), render: (_, item) => productsMap.get(item.productId)?.name || `#${item.productId}` },
+                  { title: t('sales.drawer.product'), render: (_, item) => productsMap.get(item.productId)?.name || '--' },
                   { title: t('inventory.history.qty'), dataIndex: 'quantity', align: 'right' },
                   ...(canViewSalesOrderFinancials ? [
                     { title: t('sales.drawer.unitPrice'), dataIndex: 'unitPrice', align: 'right' as const, render: (value) => formatCurrency(value) },

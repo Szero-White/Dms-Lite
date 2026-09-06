@@ -2,6 +2,7 @@ package com.example.dms.invoice;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
@@ -18,7 +19,6 @@ import com.example.dms.tenant.TenantRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +51,7 @@ public class InvoiceService {
     private final TenantRepository tenantRepository;
     private final AuditService auditService;
     private final DocumentNumberService documentNumberService;
+    private final BusinessTimeProvider businessTimeProvider;
 
     @Transactional(readOnly = true)
     public Page<InvoiceResponse> listInvoices(int page) {
@@ -232,8 +233,8 @@ public class InvoiceService {
                 DIRECTION_INCREASE
             )
             .map(debt -> debt.getDueDate())
-            .orElseGet(() -> LocalDate.now().plusDays(Math.max(customer.getPaymentTermDays() == null ? 0 : customer.getPaymentTermDays(), 0)));
-        return dueDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+            .orElseGet(() -> businessTimeProvider.today().plusDays(Math.max(customer.getPaymentTermDays() == null ? 0 : customer.getPaymentTermDays(), 0)));
+        return businessTimeProvider.startOfDay(dueDate);
     }
 
     private InvoiceResponse toResponse(

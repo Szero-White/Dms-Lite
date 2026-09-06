@@ -2,6 +2,7 @@ package com.example.dms.sales;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
@@ -17,7 +18,6 @@ import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +53,7 @@ public class SalesOrderService {
     private final NotificationProducer notificationProducer;
     private final SalesOrderMapper salesOrderMapper;
     private final DocumentNumberService documentNumberService;
+    private final BusinessTimeProvider businessTimeProvider;
 
     @Transactional(readOnly = true)
     public Page<SalesOrderResponse> listOrders(int page, Long customerId) {
@@ -292,7 +293,7 @@ public class SalesOrderService {
             .direction(DEBT_DIRECTION_INCREASE)
             .amount(salesOrder.getDebtAmount())
             .remainingAmount(salesOrder.getDebtAmount())
-            .dueDate(LocalDate.now().plusDays(customer.getPaymentTermDays()))
+            .dueDate(businessTimeProvider.today().plusDays(customer.getPaymentTermDays()))
             .note(salesOrder.getCode())
             .createdBy(TenantContext.userOrZero())
             .build();

@@ -1,6 +1,7 @@
 package com.example.dms.notification;
 
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
@@ -14,7 +15,6 @@ import com.example.dms.user.PermissionNames;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -58,6 +58,8 @@ public class NotificationQueryService {
     private final CustomerDebtRepository debts;
 
     private final CustomerRepository customers;
+
+    private final BusinessTimeProvider businessTimeProvider;
 
     @Transactional(readOnly = true)
     public List<NotificationFeedItem> listRecent(int size, Authentication authentication) {
@@ -159,7 +161,7 @@ public class NotificationQueryService {
     private List<NotificationFeedItem> overdueDebtNotifications(Long tenantId) {
         List<CustomerDebtTransaction> overdueDebts = debts.overdue(
             tenantId,
-            LocalDate.now(),
+            businessTimeProvider.today(),
             PageRequest.of(0, DERIVED_SCAN_LIMIT)
         );
 

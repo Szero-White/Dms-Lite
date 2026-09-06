@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
@@ -18,6 +19,7 @@ import com.example.dms.inventory.StockItemRepository;
 import com.example.dms.product.ProductRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -35,12 +37,14 @@ class NotificationQueryServiceAuthorizationTest {
     private final NotificationRepository notifications = mock(NotificationRepository.class);
     private final CustomerDebtRepository debts = mock(CustomerDebtRepository.class);
     private final CustomerRepository customers = mock(CustomerRepository.class);
+    private final BusinessTimeProvider businessTimeProvider = mock(BusinessTimeProvider.class);
     private final NotificationQueryService service = new NotificationQueryService(
         notifications,
         mock(StockItemRepository.class),
         mock(ProductRepository.class),
         debts,
-        customers
+        customers,
+        businessTimeProvider
     );
 
     @BeforeEach
@@ -76,6 +80,7 @@ class NotificationQueryServiceAuthorizationTest {
 
     @Test
     void overdueFeedAggregatesMultipleReceivablesForTheSameCustomer() {
+        when(businessTimeProvider.today()).thenReturn(LocalDate.of(2026, 9, 6));
         when(notifications.findByTenantIdAndTypeInOrderByCreatedAtDesc(
             eq(1L),
             any(),

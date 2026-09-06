@@ -3,11 +3,13 @@ package com.example.dms.invoice;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
@@ -25,6 +27,7 @@ import com.example.dms.tenant.Tenant;
 import com.example.dms.tenant.TenantRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +52,7 @@ class InvoiceServiceTest {
     @Mock private TenantRepository tenantRepository;
     @Mock private AuditService auditService;
     @Mock private DocumentNumberService documentNumberService;
+    @Mock private BusinessTimeProvider businessTimeProvider;
 
     private InvoiceService service;
 
@@ -62,9 +66,16 @@ class InvoiceServiceTest {
             customerDebtRepository,
             tenantRepository,
             auditService,
-            documentNumberService
+            documentNumberService,
+            businessTimeProvider
         );
         TenantContext.set(1L, 10L);
+        lenient().when(businessTimeProvider.today()).thenReturn(LocalDate.of(2026, 9, 6));
+        lenient().when(businessTimeProvider.startOfDay(any(LocalDate.class))).thenAnswer(invocation ->
+            invocation.<LocalDate>getArgument(0)
+                .atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh"))
+                .toInstant()
+        );
         setAuthorities("SALES_ORDER_CREATE");
     }
 

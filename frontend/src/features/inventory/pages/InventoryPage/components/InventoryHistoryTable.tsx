@@ -26,7 +26,7 @@ const historyColumns = (
     title: t('inventory.column.product'),
     dataIndex: 'productId',
     render: (productId) =>
-      products.find((product) => product.id === productId)?.name || `#${productId}`,
+      products.find((product) => product.id === productId)?.name || '--',
   },
   {
     title: t('inventory.history.source'),

@@ -206,7 +206,7 @@
   "customers.detail.notFoundTitle": "Không tìm thấy khách hàng",
   "customers.detail.outstandingReceivableBalance": "Công nợ phải thu còn tồn",
   "customers.detail.paymentTerm": "Điều khoản thanh toán",
-  "customers.detail.remaining": "Còn lại",
+  "customers.detail.remaining": "Còn phải thu",
   "customers.detail.remainingCredit": "Hạn mức còn lại trước khi chạm giới hạn",
   "customers.detail.salesOrderHistory": "Lịch sử đơn bán hàng",
   "customers.detail.settlementPeriod": "Kỳ hạn thanh toán đã cấu hình",
@@ -922,7 +922,7 @@
   "invoice.item.unitPrice": "Đơn giá",
   "invoice.item.discount": "Chiết khấu",
   "invoice.item.total": "Thành tiền",
-  "invoice.customerFallback": "Khách hàng #{{id}}",
+  "invoice.customerFallback": "Khách hàng",
   "invoice.productFallback": "Sản phẩm",
   "invoice.paymentSourceNotice": "Số đã thu và còn phải thu được đồng bộ từ công nợ của đơn bán hàng. Ghi nhận tiền tại mục Thanh toán.",
   "invoice.pdfFailed": "Không thể tải PDF hóa đơn.",
@@ -958,5 +958,6 @@
   "common.back": "Quay lại",
   "reports.value.notRecognized": "Chưa phát sinh",
   "reports.value.notApplicable": "—",
-  "reports.detail.receivableNotRecognized": "Đơn chưa hoàn tất nên chưa phát sinh khoản phải thu thực tế."
+  "reports.detail.receivableNotRecognized": "Đơn chưa hoàn tất nên chưa phát sinh khoản phải thu thực tế.",
+  "reports.detail.receivableCancelled": "Đơn đã hủy nên không phát sinh khoản phải thu thực tế."
 }

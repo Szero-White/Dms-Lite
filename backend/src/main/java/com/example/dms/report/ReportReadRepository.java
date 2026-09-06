@@ -1,11 +1,11 @@
 package com.example.dms.report;
 
 import com.example.dms.sales.SalesOrder;
+import com.example.dms.sales.SalesOrderStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -16,14 +16,18 @@ public class ReportReadRepository {
 
     private final EntityManager entityManager;
 
-    public BigDecimal revenueSince(Long tenantId, LocalDate date) {
-        return (BigDecimal) entityManager.createNativeQuery(
-            "select coalesce(sum(total_amount),0) " +
-            "from sales_orders " +
-            "where tenant_id=:tenantId and status='COMPLETED' and confirmed_at >= :since"
+    public BigDecimal revenueSince(Long tenantId, Instant sinceInclusive) {
+        return entityManager.createQuery(
+            "select coalesce(sum(salesOrder.totalAmount),0) " +
+            "from SalesOrder salesOrder " +
+            "where salesOrder.tenantId=:tenantId " +
+            "and salesOrder.status=:status " +
+            "and salesOrder.confirmedAt>=:since",
+            BigDecimal.class
         )
             .setParameter("tenantId", tenantId)
-            .setParameter("since", date.atStartOfDay())
+            .setParameter("status", SalesOrderStatus.COMPLETED)
+            .setParameter("since", sinceInclusive)
             .getSingleResult();
     }
 

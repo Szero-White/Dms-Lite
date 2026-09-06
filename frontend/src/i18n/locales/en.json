@@ -206,7 +206,7 @@
   "customers.detail.notFoundTitle": "Customer not found",
   "customers.detail.outstandingReceivableBalance": "Outstanding receivable balance",
   "customers.detail.paymentTerm": "Payment Term",
-  "customers.detail.remaining": "Remaining",
+  "customers.detail.remaining": "Remaining receivable",
   "customers.detail.remainingCredit": "Remaining credit before the limit",
   "customers.detail.salesOrderHistory": "Sales Order History",
   "customers.detail.settlementPeriod": "Configured settlement period",
@@ -922,7 +922,7 @@
   "invoice.item.unitPrice": "Unit price",
   "invoice.item.discount": "Discount",
   "invoice.item.total": "Line total",
-  "invoice.customerFallback": "Customer #{{id}}",
+  "invoice.customerFallback": "Customer",
   "invoice.productFallback": "Product",
   "invoice.paymentSourceNotice": "Collected and remaining amounts are synchronized from the sales-order receivable workflow. Record payments in Payments.",
   "invoice.pdfFailed": "Could not download the invoice PDF.",
@@ -958,5 +958,6 @@
   "common.back": "Back",
   "reports.value.notRecognized": "Not recognized",
   "reports.value.notApplicable": "—",
-  "reports.detail.receivableNotRecognized": "This order is not completed, so no actual receivable has been recognized."
+  "reports.detail.receivableNotRecognized": "This order is not completed, so no actual receivable has been recognized.",
+  "reports.detail.receivableCancelled": "This order was cancelled, so no actual receivable was recognized."
 }

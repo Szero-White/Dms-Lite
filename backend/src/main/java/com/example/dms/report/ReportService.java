@@ -1,6 +1,7 @@
 package com.example.dms.report;
 
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.debt.CustomerDebtRepository;
 import java.math.BigDecimal;
@@ -24,6 +25,7 @@ public class ReportService {
 
     private final ReportReadRepository reportReadRepository;
     private final CustomerDebtRepository customerDebtRepository;
+    private final BusinessTimeProvider businessTimeProvider;
 
     @Transactional(readOnly = true)
     @Cacheable(
@@ -32,12 +34,12 @@ public class ReportService {
     )
     public DashboardReport dashboard() {
         Long tenantId = TenantContext.tenantRequired();
-        LocalDate today = LocalDate.now();
+        LocalDate today = businessTimeProvider.today();
         LocalDate monthStart = today.withDayOfMonth(1);
 
         return new DashboardReport(
-            reportReadRepository.revenueSince(tenantId, today),
-            reportReadRepository.revenueSince(tenantId, monthStart),
+            reportReadRepository.revenueSince(tenantId, businessTimeProvider.startOfDay(today)),
+            reportReadRepository.revenueSince(tenantId, businessTimeProvider.startOfDay(monthStart)),
             customerDebtRepository.totalReceivable(tenantId),
             reportReadRepository.lowStockCount(tenantId),
             reportReadRepository.productCount(tenantId),
