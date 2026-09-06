@@ -63,8 +63,7 @@ application-local-secret.yml
 backend/src/main/resources/application-secret.yml
 backend/src/main/resources/application-local-secret.yml
 
-# Local Spring profiles with machine-specific secrets
-backend/src/main/resources/application-local.yml
+# Machine-specific Spring profiles/overrides with secrets
 backend/src/main/resources/application-prod.yml
 backend/src/main/resources/application-*.local.yml
 

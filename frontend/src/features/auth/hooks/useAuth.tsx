@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { getErrorMessage } from '../../../lib/format';
 import { login as loginRequest } from '../api/authService';
@@ -41,6 +42,7 @@ function readStoredUser() {
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<AuthUser | null>(readStoredUser);
+  const queryClient = useQueryClient();
   const { message } = App.useApp();
   const { t } = useTranslation();
 
@@ -51,6 +53,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
       async login(payload) {
         try {
           const authUser = await loginRequest(payload);
+
+          // Never reuse server-state cached under a previous authenticated identity.
+          queryClient.clear();
           localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser));
           setUser(authUser);
           message.success(t('toast.auth.welcome', { name: authUser.fullName || authUser.username }));
@@ -61,10 +66,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
       },
       logout() {
         localStorage.removeItem(STORAGE_KEY);
+
+        // Query keys are domain-scoped, so authenticated server-state must be
+        // removed whenever the browser session changes identity.
+        queryClient.clear();
         setUser(null);
       },
     }),
-    [message, t, user],
+    [message, queryClient, t, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

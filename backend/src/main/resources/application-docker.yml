@@ -22,3 +22,10 @@ app:
   messaging:
     rabbitmq:
       enabled: true
+
+management:
+  health:
+    redis:
+      enabled: true
+    rabbit:
+      enabled: true

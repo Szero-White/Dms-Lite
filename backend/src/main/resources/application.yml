@@ -31,6 +31,13 @@ spring:
     password: ${SPRING_RABBITMQ_PASSWORD:guest}
 
 management:
+  # Optional infrastructure is disabled in the base profile.
+  # Profiles that enable Redis/RabbitMQ must also re-enable their health indicators.
+  health:
+    redis:
+      enabled: false
+    rabbit:
+      enabled: false
   endpoints:
     web:
       exposure:
