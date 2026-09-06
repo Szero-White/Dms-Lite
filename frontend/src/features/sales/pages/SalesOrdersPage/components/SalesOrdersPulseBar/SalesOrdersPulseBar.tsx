@@ -1,11 +1,9 @@
 import {
   ClockCircleOutlined,
-  DollarOutlined,
   StopOutlined,
   TrophyOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { formatCurrency } from '../../../../../../lib/format';
 import styles from './SalesOrdersPulseBar.module.css';
 
 interface SalesOrdersPulseBarProps {
@@ -14,10 +12,6 @@ interface SalesOrdersPulseBarProps {
   draftCount: number;
   completedCount: number;
   cancelledCount: number;
-  totalRevenue: number;
-  paidAmount: number;
-  outstandingDebt: number;
-  showFinancials: boolean;
   statusFilter: string;
   onStatusFilterChange: (status: string) => void;
 }
@@ -28,10 +22,6 @@ export function SalesOrdersPulseBar({
   draftCount,
   completedCount,
   cancelledCount,
-  totalRevenue,
-  paidAmount,
-  outstandingDebt,
-  showFinancials,
   statusFilter,
   onStatusFilterChange,
 }: SalesOrdersPulseBarProps) {
@@ -147,47 +137,6 @@ export function SalesOrdersPulseBar({
         </button>
       </div>
 
-      {showFinancials ? (
-        <>
-          <div className={styles.pulseDivider} />
-
-          <div className={styles.pulseFinancial}>
-            <div className={styles.financialTitle}>{t('sales.pulse.financialOverview')}</div>
-
-            <div className={styles.financialRow}>
-              <div className={styles.financialIcon} style={{ background: '#eef2ff', color: '#6366f1' }}>
-                <DollarOutlined />
-              </div>
-              <div className={styles.financialContent}>
-                <span className={styles.financialLabel}>{t('sales.pulse.totalRevenue')}</span>
-                <span className={styles.financialValue}>{formatCurrency(totalRevenue)}</span>
-              </div>
-            </div>
-
-            <div className={styles.financialRow}>
-              <div className={styles.financialIcon} style={{ background: '#ecfdf5', color: '#10b981' }}>
-                <DollarOutlined />
-              </div>
-              <div className={styles.financialContent}>
-                <span className={styles.financialLabel}>{t('sales.pulse.paidAmount')}</span>
-                <span className={styles.financialValue}>{formatCurrency(paidAmount)}</span>
-              </div>
-            </div>
-
-            <div className={styles.financialRow}>
-              <div className={styles.financialIcon} style={{ background: '#fef2f2', color: '#ef4444' }}>
-                <DollarOutlined />
-              </div>
-              <div className={styles.financialContent}>
-                <span className={styles.financialLabel}>{t('sales.pulse.outstandingDebt')}</span>
-                <span className={`${styles.financialValue} ${outstandingDebt > 0 ? styles.debtValue : ''}`}>
-                  {formatCurrency(outstandingDebt)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </>
-      ) : null}
     </div>
   );
 }

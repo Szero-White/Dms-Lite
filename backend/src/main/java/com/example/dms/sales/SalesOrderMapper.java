@@ -20,6 +20,9 @@ public class SalesOrderMapper {
         String customerName,
         String warehouseName
     ) {
+        boolean receivableRecognized = includeFinancials
+            && salesOrder.getStatus() == SalesOrderStatus.COMPLETED;
+
         return new SalesOrderResponse(
             salesOrder.getId(),
             salesOrder.getCustomerId(),
@@ -29,8 +32,8 @@ public class SalesOrderMapper {
             salesOrder.getCode(),
             salesOrder.getStatus(),
             includeFinancials ? salesOrder.getTotalAmount() : null,
-            includeFinancials ? salesOrder.getPaidAmount() : null,
-            includeFinancials ? salesOrder.getDebtAmount() : null,
+            receivableRecognized ? salesOrder.getPaidAmount() : null,
+            receivableRecognized ? salesOrder.getDebtAmount() : null,
             salesOrder.getCreatedAt(),
             salesOrder.getConfirmedAt()
         );
@@ -54,6 +57,8 @@ public class SalesOrderMapper {
             .stream()
             .map(item -> toItemResponse(item, includeFinancials))
             .toList();
+        boolean receivableRecognized = includeFinancials
+            && salesOrder.getStatus() == SalesOrderStatus.COMPLETED;
 
         return new SalesOrderDetailResponse(
             salesOrder.getId(),
@@ -64,8 +69,8 @@ public class SalesOrderMapper {
             salesOrder.getCode(),
             salesOrder.getStatus(),
             includeFinancials ? salesOrder.getTotalAmount() : null,
-            includeFinancials ? salesOrder.getPaidAmount() : null,
-            includeFinancials ? salesOrder.getDebtAmount() : null,
+            receivableRecognized ? salesOrder.getPaidAmount() : null,
+            receivableRecognized ? salesOrder.getDebtAmount() : null,
             salesOrder.getCreatedAt(),
             salesOrder.getConfirmedAt(),
             itemResponses

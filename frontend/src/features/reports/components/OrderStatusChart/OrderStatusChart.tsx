@@ -4,11 +4,11 @@ import {
   Empty,
 } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { SalesOrder } from '../../../sales';
+import type { SalesReportOrder } from '../../types/salesReport.types';
 import styles from './OrderStatusChart.module.css';
 
 interface OrderStatusChartProps {
-  orders: SalesOrder[];
+  orders: SalesReportOrder[];
 }
 
 export function OrderStatusChart({

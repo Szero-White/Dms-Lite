@@ -131,6 +131,13 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 - Customer payment recording
 - FIFO customer payment allocation against open receivables
 
+### Invoice Management
+
+- Invoice documents generated only from completed sales orders
+- Invoice issuance/cancellation is permission controlled and does not create a second receivable balance
+- Paid/remaining invoice amounts stay synchronized with the canonical sales-order payment workflow
+- PDF export for active issued invoices
+
 ### Audit Log
 
 - Tracks important user actions
@@ -149,7 +156,7 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 
 ## Key Business Flow
 
-`Login -> create customer/product -> check stock -> create DRAFT sales order -> warehouse confirms/fulfills -> order becomes COMPLETED -> deduct stock inside transaction -> create open receivable if unpaid -> record customer payment FIFO -> update receivable statement -> view dashboard/audit log`
+`Login -> create customer/product -> check stock -> create DRAFT sales order -> warehouse confirms/fulfills -> order becomes COMPLETED -> deduct stock inside transaction -> create open receivable if unpaid -> optionally generate/issue invoice -> record customer payment FIFO -> update receivable statement -> view dashboard/audit log`
 
 This flow reflects a real B2B operational slice rather than isolated CRUD screens.
 
@@ -183,6 +190,7 @@ This flow reflects a real B2B operational slice rather than isolated CRUD screen
 - `sales`
 - `debt`
 - `payment`
+- `invoice`
 - `audit`
 - `notification`
 - `report`
@@ -229,6 +237,8 @@ The project models business operations through dedicated tables and flows instea
   Tracks receivable debt as ledger entries.
 - `payments`
   Records customer payments explicitly.
+- `invoices`, `invoice_items`
+  Store sales-document snapshots linked to completed sales orders; financial balances remain owned by the sales/receivable flow.
 - `audit_logs`
   Stores important traceable actions.
 - `notifications`
@@ -338,10 +348,10 @@ The current portfolio version focuses on a stable local/deployable vertical slic
 ## Current Business Invariants
 
 - Persisted sales order statuses are `DRAFT`, `COMPLETED`, and `CANCELLED`; current MVP confirm also performs fulfillment.
-- Revenue is recognized only for `COMPLETED` orders and dashboard time windows use `confirmed_at`.
+- Revenue is recognized only for `COMPLETED` orders; report/dashboard analytics use the backend reporting read model and `confirmed_at` as the recognition time for completed orders.
 - Current receivable balance is `SUM(remaining_amount)` of open `INCREASE` transactions. `DECREASE` entries preserve payment history and are not subtracted twice.
 - Customer payments lock open receivables before validation/allocation.
-- Sales-order `paidAmount`/`debtAmount` snapshots are synchronized in the same payment transaction; open receivable `remainingAmount` stays the canonical balance.
+- Sales-order `paidAmount`/`debtAmount` snapshots are synchronized in the same payment transaction; open receivable `remainingAmount` stays the canonical balance. Draft/cancelled orders are not exposed as actual receivables.
 - Customer and sales-order detail screens use dedicated detail APIs instead of searching only the first list page.
 - Warehouse-dependent actions resolve and validate the configured tenant warehouse instead of assuming warehouse ID `1`.
 

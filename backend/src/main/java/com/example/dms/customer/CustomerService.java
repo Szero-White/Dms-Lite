@@ -5,8 +5,9 @@ import com.example.dms.common.BusinessException;
 import com.example.dms.common.TenantContext;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.sales.SalesOrderRepository;
+import com.example.dms.sales.SalesOrderStatus;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final CustomerDebtRepository customerDebtRepository;
+    private final SalesOrderRepository salesOrderRepository;
     private final AuditService auditService;
 
     @Transactional(readOnly = true)
@@ -35,7 +38,11 @@ public class CustomerService {
         Page<Customer> customers = customerRepository.findByTenantIdAndDeletedAtIsNullAndNameContainingIgnoreCase(
             tenantId,
             keyword,
-            PageRequest.of(Math.max(page, 0), DEFAULT_PAGE_SIZE)
+            PageRequest.of(
+                Math.max(page, 0),
+                DEFAULT_PAGE_SIZE,
+                Sort.by(Sort.Order.desc("active"), Sort.Order.asc("name"))
+            )
         );
 
         boolean includeDebtBalance = canViewDebtBalance();
@@ -112,26 +119,64 @@ public class CustomerService {
         value = "dashboard",
         key = "T(com.example.dms.common.TenantContext).tenantRequired()"
     )
-    public void delete(Long customerId) {
-        Customer customer = find(customerId);
-        BigDecimal debtBalance = customerDebtRepository.balance(
-            TenantContext.tenantRequired(),
-            customer.getId()
-        );
+    public CustomerResponse deactivate(Long customerId) {
+        Long tenantId = TenantContext.tenantRequired();
+        Customer customer = lock(customerId, tenantId);
 
+        if (!customer.isActive()) {
+            return toResponse(
+                customer,
+                canViewDebtBalance() ? customerDebtRepository.balance(tenantId, customerId) : null
+            );
+        }
+
+        BigDecimal debtBalance = customerDebtRepository.balance(tenantId, customer.getId());
         if (debtBalance.signum() > 0) {
-            throw new BusinessException("Cannot delete customer with outstanding debt");
+            throw new BusinessException("Cannot deactivate customer with outstanding debt");
+        }
+
+        if (salesOrderRepository.existsByTenantIdAndCustomerIdAndStatus(
+            tenantId,
+            customer.getId(),
+            SalesOrderStatus.DRAFT
+        )) {
+            throw new BusinessException("Cannot deactivate customer with draft sales orders");
         }
 
         customer.setActive(false);
-        customer.setDeletedAt(Instant.now());
-
         auditService.log(
-            "CUSTOMER_DELETED",
+            "CUSTOMER_DEACTIVATED",
             "Customer",
             customer.getId(),
             customer.getName()
         );
+
+        return toResponse(customer, canViewDebtBalance() ? debtBalance : null);
+    }
+
+    @Transactional
+    @CacheEvict(
+        value = "dashboard",
+        key = "T(com.example.dms.common.TenantContext).tenantRequired()"
+    )
+    public CustomerResponse reactivate(Long customerId) {
+        Long tenantId = TenantContext.tenantRequired();
+        Customer customer = lock(customerId, tenantId);
+
+        if (!customer.isActive()) {
+            customer.setActive(true);
+            auditService.log(
+                "CUSTOMER_REACTIVATED",
+                "Customer",
+                customer.getId(),
+                customer.getName()
+            );
+        }
+
+        BigDecimal debtBalance = canViewDebtBalance()
+            ? customerDebtRepository.balance(tenantId, customerId)
+            : null;
+        return toResponse(customer, debtBalance);
     }
 
     @Transactional(readOnly = true)
@@ -149,6 +194,11 @@ public class CustomerService {
             customerId,
             TenantContext.tenantRequired()
         ).orElseThrow(() -> new BusinessException("Customer not found"));
+    }
+
+    private Customer lock(Long customerId, Long tenantId) {
+        return customerRepository.lockByIdAndTenantIdAndDeletedAtIsNull(customerId, tenantId)
+            .orElseThrow(() -> new BusinessException("Customer not found"));
     }
 
     private boolean canViewDebtBalance() {

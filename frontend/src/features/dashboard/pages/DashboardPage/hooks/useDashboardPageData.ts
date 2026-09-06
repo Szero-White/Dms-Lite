@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import type { Customer } from '../../../../customers';
 import type { ProductRow } from '../../../../products';
+import type { SalesReportOrder } from '../../../../reports/types/salesReport.types';
 import type { SalesOrder } from '../../../../sales';
 import type { DashboardRange } from '../dashboardPage.types';
-import { getRangeStart } from '../dashboardPage.utils';
 
 interface UseDashboardPageDataParams {
+  analyticsOrders: SalesReportOrder[];
   customers: Customer[];
   orders: SalesOrder[];
   products: ProductRow[];
@@ -13,33 +14,20 @@ interface UseDashboardPageDataParams {
 }
 
 export function useDashboardPageData({
+  analyticsOrders,
   customers,
   orders,
   products,
   range,
 }: UseDashboardPageDataParams) {
-  const filteredOrders = useMemo(() => {
-    const rangeStart = getRangeStart(range).getTime();
-
-    return orders.filter((order) => new Date(order.createdAt).getTime() >= rangeStart);
-  }, [orders, range]);
-
   const customersMap = useMemo(
     () => new Map(customers.map((customer) => [customer.id, customer.name])),
     [customers],
   );
 
   const attentionOrders = useMemo(
-    () => filteredOrders.filter((order) => order.status === 'DRAFT'),
-    [filteredOrders],
-  );
-
-  const completedOrders = useMemo(
-    () =>
-      filteredOrders.filter((order) =>
-        order.status === 'COMPLETED',
-      ),
-    [filteredOrders],
+    () => orders.filter((order) => order.status === 'DRAFT'),
+    [orders],
   );
 
   const healthyProducts = useMemo(
@@ -95,9 +83,8 @@ export function useDashboardPageData({
   return {
     activeCustomers,
     attentionOrders,
-    completedOrders,
     customersMap,
-    filteredOrders,
+    analyticsOrders,
     healthyProducts,
     latestOrder,
     lowStockProducts,

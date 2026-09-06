@@ -13,7 +13,8 @@ import {
 import {
   useCreateCustomer,
   useCustomers,
-  useDeleteCustomer,
+  useDeactivateCustomer,
+  useReactivateCustomer,
   useUpdateCustomer,
 } from '../../hooks/useCustomerQueries';
 import type { Customer, CustomerFormValues } from '../../types/customer.types';
@@ -25,11 +26,13 @@ export function CustomersPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const canManageCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_MANAGE);
+  const canChangeCustomerStatus = hasPermission(user, PERMISSIONS.CUSTOMER_DEACTIVATE);
   const showCustomerFinancials = canViewCustomerBalance(user);
   const customersQuery = useCustomers();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
-  const deleteCustomer = useDeleteCustomer();
+  const deactivateCustomer = useDeactivateCustomer();
+  const reactivateCustomer = useReactivateCustomer();
   const [keyword, setKeyword] = useState('');
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
   const [debtFilter, setDebtFilter] = useState<'ALL' | 'WITH_DEBT' | 'CLEAR'>('ALL');
@@ -188,9 +191,14 @@ export function CustomersPage() {
       <CustomersTableCard
         activeFilter={activeFilter}
         canManageCustomers={canManageCustomers}
+        canChangeCustomerStatus={canChangeCustomerStatus}
         creditFilter={creditFilter}
         debtFilter={debtFilter}
-        deletingCustomerId={deleteCustomer.isPending ? deleteCustomer.variables : undefined}
+        changingStatusCustomerId={deactivateCustomer.isPending
+          ? deactivateCustomer.variables
+          : reactivateCustomer.isPending
+            ? reactivateCustomer.variables
+            : undefined}
         filteredCustomers={filteredCustomers}
         hasFilters={hasFilters}
         isError={customersQuery.isError}
@@ -199,8 +207,9 @@ export function CustomersPage() {
         onActiveFilterChange={setActiveFilter}
         onClearFilters={clearFilters}
         onCreditFilterChange={setCreditFilter}
-        onDeleteCustomer={(customerId) => deleteCustomer.mutate(customerId)}
+        onDeactivateCustomer={(customerId) => deactivateCustomer.mutate(customerId)}
         onDebtFilterChange={setDebtFilter}
+        onReactivateCustomer={(customerId) => reactivateCustomer.mutate(customerId)}
         onEditCustomer={openEditCustomer}
         onKeywordChange={setKeyword}
         onRetry={() => {

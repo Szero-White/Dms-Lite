@@ -12,6 +12,7 @@ final class HelpDisplayNames {
         Map.entry("Reports", "Báo cáo"),
         Map.entry("Sales Orders", "Đơn bán hàng"),
         Map.entry("Sales order finance", "Tài chính đơn bán hàng"),
+        Map.entry("Invoices", "Hóa đơn"),
         Map.entry("Products", "Sản phẩm"),
         Map.entry("Customers", "Khách hàng"),
         Map.entry("Inventory", "Kho hàng"),

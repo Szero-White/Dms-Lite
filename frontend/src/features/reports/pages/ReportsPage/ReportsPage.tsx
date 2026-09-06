@@ -39,7 +39,8 @@ import { PERMISSIONS, canViewCustomerBalance, hasPermission, useAuth } from '../
 import { useCustomers } from '../../../customers';
 import { useDashboardData } from '../../../dashboard';
 import { useProducts } from '../../../products';
-import { useSalesOrders, type SalesOrder } from '../../../sales';
+import { useSalesReport } from '../../hooks/useSalesReportQueries';
+import type { SalesReportOrder } from '../../types/salesReport.types';
 import {
   InventoryStockChart,
   OrderStatusChart,
@@ -86,38 +87,34 @@ export function ReportsPage() {
   const dashboardQuery = useDashboardData();
   const customersQuery = useCustomers({ enabled: canViewReceivables });
   const productsQuery = useProducts({ enabled: canViewInventoryProducts });
-  const ordersQuery = useSalesOrders({ enabled: canViewOrders });
   const [activeTab, setActiveTab] = useState<ReportTab>('sales');
   const [dateRange, setDateRange] = useState<[number, number] | null>(null);
   const [exporting, setExporting] = useState(false);
-  const [selectedReportOrder, setSelectedReportOrder] = useState<SalesOrder | null>(null);
+  const [selectedReportOrder, setSelectedReportOrder] = useState<SalesReportOrder | null>(null);
   const resolvedActiveTab = availableTabs.includes(activeTab) ? activeTab : availableTabs[0] ?? 'sales';
+
+  const salesReportRange = useMemo(
+    () => dateRange
+      ? {
+          from: new Date(dateRange[0]).toISOString(),
+          to: new Date(dateRange[1]).toISOString(),
+        }
+      : {},
+    [dateRange],
+  );
+  const salesReportQuery = useSalesReport({
+    enabled: canViewOrders,
+    ...salesReportRange,
+  });
 
   const customers = canViewReceivables ? customersQuery.data ?? [] : [];
   const products = canViewInventoryProducts ? productsQuery.data ?? [] : [];
-  const orders = canViewOrders ? ordersQuery.data ?? [] : [];
-
-  const filteredOrders = useMemo(
-    () => orders.filter((o) => {
-      if (!dateRange) return true;
-      const ts = new Date(o.createdAt).getTime();
-      return ts >= dateRange[0] && ts <= dateRange[1];
-    }),
-    [dateRange, orders],
-  );
-
-  function paymentProgress(order: SalesOrder) {
-    const total = toNumber(order.totalAmount);
-    if (total <= 0) return 0;
-
-    const paid = Math.max(0, Math.min(toNumber(order.paidAmount), total));
-    return Math.min(100, Math.round((paid / total) * 100));
-  }
-
-  const recognizedOrders  = filteredOrders.filter((o) => o.status === 'COMPLETED');
-  const salesRevenue       = recognizedOrders.reduce((s, o) => s + toNumber(o.totalAmount), 0);
-  const averageOrderValue  = recognizedOrders.length ? salesRevenue / recognizedOrders.length : 0;
-  const completedCount     = filteredOrders.filter((o) => o.status === 'COMPLETED').length;
+  const reportOrders = canViewOrders ? salesReportQuery.data?.orders ?? [] : [];
+  const salesSummary = salesReportQuery.data?.summary;
+  const salesRevenue = toNumber(salesSummary?.recognizedRevenue);
+  const averageOrderValue = toNumber(salesSummary?.averageCompletedOrderValue);
+  const completedCount = salesSummary?.completedOrders ?? 0;
+  const salesOrderCount = salesSummary?.totalOrders ?? 0;
 
   const inventoryValue = products.reduce((s, p) => s + toNumber(p.costPrice) * toNumber(p.stock), 0);
   const totalUnits     = products.reduce((s, p) => s + toNumber(p.stock), 0);
@@ -136,7 +133,7 @@ export function ReportsPage() {
       dashboardQuery.refetch(),
       canViewReceivables ? customersQuery.refetch() : Promise.resolve(),
       canViewInventoryProducts ? productsQuery.refetch() : Promise.resolve(),
-      canViewOrders ? ordersQuery.refetch() : Promise.resolve(),
+      canViewOrders ? salesReportQuery.refetch() : Promise.resolve(),
     ]);
   }
 
@@ -147,7 +144,7 @@ export function ReportsPage() {
       await exportReport(format, {
         activeTab: resolvedActiveTab,
         customers,
-        filteredOrders,
+        salesOrders: reportOrders,
         products,
         t,
       });
@@ -192,9 +189,9 @@ export function ReportsPage() {
       />
 
       <QueryState
-        isLoading={dashboardQuery.isLoading || (canViewReceivables && customersQuery.isLoading) || (canViewInventoryProducts && productsQuery.isLoading) || (canViewOrders && ordersQuery.isLoading)}
-        isError={dashboardQuery.isError || (canViewReceivables && customersQuery.isError) || (canViewInventoryProducts && productsQuery.isError) || (canViewOrders && ordersQuery.isError)}
-        error={dashboardQuery.error || (canViewReceivables && customersQuery.error) || (canViewInventoryProducts && productsQuery.error) || (canViewOrders && ordersQuery.error)}
+        isLoading={dashboardQuery.isLoading || (canViewReceivables && customersQuery.isLoading) || (canViewInventoryProducts && productsQuery.isLoading) || (canViewOrders && salesReportQuery.isLoading)}
+        isError={dashboardQuery.isError || (canViewReceivables && customersQuery.isError) || (canViewInventoryProducts && productsQuery.isError) || (canViewOrders && salesReportQuery.isError)}
+        error={dashboardQuery.error || (canViewReceivables && customersQuery.error) || (canViewInventoryProducts && productsQuery.error) || (canViewOrders && salesReportQuery.error)}
         hasData={Boolean(dashboardQuery.data)}
         emptyTitle={t('reports.title')}
         emptyDescription={t('reports.empty.description')}
@@ -218,14 +215,14 @@ export function ReportsPage() {
                   children: (
                     <div className={styles.tabContent}>                      <StatStrip items={[
                         { icon: <DollarOutlined />, label: t('reports.metric.revenue'), value: formatCurrency(salesRevenue), color: '#6366f1' },
-                        { icon: <ShoppingCartOutlined />, label: t('reports.metric.orders'), value: filteredOrders.length, color: '#3b82f6' },
+                        { icon: <ShoppingCartOutlined />, label: t('reports.metric.orders'), value: salesOrderCount, color: '#3b82f6' },
                         { icon: <BarChartOutlined />, label: t('reports.metric.avgOrder'), value: formatCurrency(averageOrderValue), color: '#8b5cf6' },
                         { icon: <CheckCircleOutlined />, label: t('reports.metric.completed'), value: completedCount, color: '#10b981' },
                       ]} />
 
                       <div className={styles.chartGrid}>
-                        <RevenueByOrderChart orders={filteredOrders} />
-                        <OrderStatusChart orders={filteredOrders} />
+                        <RevenueByOrderChart orders={reportOrders} />
+                        <OrderStatusChart orders={reportOrders} />
                       </div>
 
                       <Card title={t('reports.title')} className="panel-card">
@@ -233,7 +230,7 @@ export function ReportsPage() {
                           rowKey="id"
                           size="small"
                           scroll={{ x: 1180 }}
-                          dataSource={[...filteredOrders].sort((a, b) => toNumber(b.totalAmount) - toNumber(a.totalAmount)).slice(0, 10)}
+                          dataSource={reportOrders.slice(0, 10)}
                           locale={{ emptyText: t('reports.empty.noSalesOrders') }}
                           columns={[
                             { title: t('reports.table.order'), dataIndex: 'code', width: 160 },
@@ -242,20 +239,23 @@ export function ReportsPage() {
                               width: 230,
                               render: (_, order) => order.customerName ?? `#${order.customerId}`,
                             },
-                            { title: t('reports.table.created'), dataIndex: 'createdAt', width: 170, render: (value) => formatDateTime(value) },
+                            { title: t('reports.table.reportDate'), dataIndex: 'reportDate', width: 170, render: (value) => formatDateTime(value) },
                             { title: t('reports.table.status'), dataIndex: 'status', width: 130, render: (v) => <SalesOrderStatusTag status={v} /> },
                             { title: t('reports.table.orderTotal'), dataIndex: 'totalAmount', width: 150, align: 'right', render: (value) => formatCurrency(value) },
-                            { title: t('reports.table.collected'), dataIndex: 'paidAmount', width: 150, align: 'right', render: (value) => formatCurrency(value) },
-                            { title: t('reports.table.remainingDebt'), dataIndex: 'debtAmount', width: 150, align: 'right', render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.collected'), dataIndex: 'collectedAmount', width: 150, align: 'right', render: (value, order) => order.receivableRecognized ? formatCurrency(value) : t('reports.value.notApplicable') },
+                            { title: t('reports.table.remainingDebt'), dataIndex: 'remainingReceivable', width: 170, align: 'right', render: (value, order) => order.receivableRecognized ? formatCurrency(value) : t('reports.value.notRecognized') },
                             {
                               title: t('reports.table.collectionProgress'),
                               width: 180,
                               render: (_, order) => {
-                                const percent = paymentProgress(order);
+                                if (!order.receivableRecognized || order.collectionProgress === null) {
+                                  return t('reports.value.notApplicable');
+                                }
+
                                 return (
                                   <div className={styles.collectionProgress}>
-                                    <Progress percent={percent} size="small" showInfo={false} />
-                                    <span>{percent}%</span>
+                                    <Progress percent={order.collectionProgress} size="small" showInfo={false} />
+                                    <span>{order.collectionProgress}%</span>
                                   </div>
                                 );
                               },
@@ -438,6 +438,9 @@ export function ReportsPage() {
               <Descriptions.Item label={t('reports.table.customer')}>
                 {selectedReportOrder.customerName ?? `#${selectedReportOrder.customerId}`}
               </Descriptions.Item>
+              <Descriptions.Item label={t('reports.table.reportDate')}>
+                {formatDateTime(selectedReportOrder.reportDate)}
+              </Descriptions.Item>
               <Descriptions.Item label={t('reports.table.created')}>
                 {formatDateTime(selectedReportOrder.createdAt)}
               </Descriptions.Item>
@@ -448,14 +451,24 @@ export function ReportsPage() {
                 {formatCurrency(selectedReportOrder.totalAmount)}
               </Descriptions.Item>
               <Descriptions.Item label={t('reports.table.collected')}>
-                {formatCurrency(selectedReportOrder.paidAmount)}
+                {selectedReportOrder.receivableRecognized
+                  ? formatCurrency(selectedReportOrder.collectedAmount)
+                  : t('reports.value.notApplicable')}
               </Descriptions.Item>
               <Descriptions.Item label={t('reports.table.remainingDebt')}>
-                {formatCurrency(selectedReportOrder.debtAmount)}
+                {selectedReportOrder.receivableRecognized
+                  ? formatCurrency(selectedReportOrder.remainingReceivable)
+                  : t('reports.value.notRecognized')}
               </Descriptions.Item>
               <Descriptions.Item label={t('reports.table.collectionProgress')}>
                 <div className={styles.collectionProgressDetail}>
-                  <Progress percent={paymentProgress(selectedReportOrder)} />
+                  {selectedReportOrder.receivableRecognized && selectedReportOrder.collectionProgress !== null ? (
+                    <Progress percent={selectedReportOrder.collectionProgress} />
+                  ) : (
+                    <Typography.Text type="secondary">
+                      {t('reports.detail.receivableNotRecognized')}
+                    </Typography.Text>
+                  )}
                 </div>
               </Descriptions.Item>
             </Descriptions>

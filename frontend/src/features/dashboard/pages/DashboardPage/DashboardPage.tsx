@@ -1,5 +1,5 @@
 import { Typography } from 'antd';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
@@ -9,6 +9,7 @@ import { QueryState } from '../../../../components/common/QueryState';
 import { PERMISSIONS, canAccessPath, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
 import { useProducts } from '../../../products';
+import { useSalesReport } from '../../../reports/hooks/useSalesReportQueries';
 import { useSalesOrders } from '../../../sales';
 import { DashboardOrderStatusChart, DashboardRevenueChart } from '../../components';
 import { useDashboardData } from '../../hooks/useDashboardQueries';
@@ -24,6 +25,7 @@ import { DashboardPerformanceSection } from './components/DashboardPerformanceSe
 import { DashboardWelcomePanel } from './components/DashboardWelcomePanel';
 import { useDashboardPageData } from './hooks/useDashboardPageData';
 import type { DashboardRange } from './dashboardPage.types';
+import { getRangeStart } from './dashboardPage.utils';
 import styles from './DashboardPage.module.css';
 
 export function DashboardPage() {
@@ -38,23 +40,30 @@ export function DashboardPage() {
   const canReceiveStock = hasPermission(user, PERMISSIONS.INVENTORY_MANAGE);
   const canRecordPayment = hasPermission(user, PERMISSIONS.PAYMENT_CREATE);
   const canManageCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_MANAGE);
-  const dashboardQuery = useDashboardData();
-  const ordersQuery = useSalesOrders({ enabled: canViewOrders });
-  const customersQuery = useCustomers({ enabled: canViewCustomers });
-  const productsQuery = useProducts({ enabled: canViewInventoryProducts });
   const [range, setRange] = useState<DashboardRange>('7_DAYS');
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const salesReportRange = useMemo(() => ({
+    from: getRangeStart(range).toISOString(),
+  }), [range]);
+  const dashboardQuery = useDashboardData();
+  const ordersQuery = useSalesOrders({ enabled: canViewOrders });
+  const salesReportQuery = useSalesReport({
+    enabled: canViewOrders,
+    ...salesReportRange,
+  });
+  const customersQuery = useCustomers({ enabled: canViewCustomers });
+  const productsQuery = useProducts({ enabled: canViewInventoryProducts });
 
   const orders = canViewOrders ? ordersQuery.data ?? [] : [];
+  const analyticsOrders = canViewOrders ? salesReportQuery.data?.orders ?? [] : [];
   const customers = canViewCustomers ? customersQuery.data ?? [] : [];
   const products = canViewInventoryProducts ? productsQuery.data ?? [] : [];
   const {
     activeCustomers,
     attentionOrders,
-    completedOrders,
     customersMap,
-    filteredOrders,
+    analyticsOrders: dashboardAnalyticsOrders,
     healthyProducts,
     latestOrder,
     lowStockProducts,
@@ -62,6 +71,7 @@ export function DashboardPage() {
     rangeDays,
     recentOrders,
   } = useDashboardPageData({
+    analyticsOrders,
     customers,
     orders,
     products,
@@ -70,17 +80,17 @@ export function DashboardPage() {
 
   const isLoading =
     dashboardQuery.isLoading ||
-    (canViewOrders && ordersQuery.isLoading) ||
+    (canViewOrders && (ordersQuery.isLoading || salesReportQuery.isLoading)) ||
     (canViewCustomers && customersQuery.isLoading) ||
     (canViewInventoryProducts && productsQuery.isLoading);
   const isError =
     dashboardQuery.isError ||
-    (canViewOrders && ordersQuery.isError) ||
+    (canViewOrders && (ordersQuery.isError || salesReportQuery.isError)) ||
     (canViewCustomers && customersQuery.isError) ||
     (canViewInventoryProducts && productsQuery.isError);
   const error =
     dashboardQuery.error ||
-    (canViewOrders && ordersQuery.error) ||
+    (canViewOrders && (ordersQuery.error || salesReportQuery.error)) ||
     (canViewCustomers && customersQuery.error) ||
     (canViewInventoryProducts && productsQuery.error);
 
@@ -91,6 +101,7 @@ export function DashboardPage() {
       await Promise.all([
         dashboardQuery.refetch(),
         canViewOrders ? ordersQuery.refetch() : Promise.resolve(),
+        canViewOrders ? salesReportQuery.refetch() : Promise.resolve(),
         canViewCustomers ? customersQuery.refetch() : Promise.resolve(),
         canViewInventoryProducts ? productsQuery.refetch() : Promise.resolve(),
       ]);
@@ -101,13 +112,13 @@ export function DashboardPage() {
 
   async function handleExport(format: 'csv' | 'xlsx') {
     if (format === 'csv') {
-      downloadCsvContent(buildDashboardExportFilename(range, 'csv'), buildDashboardExportCsv({ customersMap, filteredOrders, range, t }));
+      downloadCsvContent(buildDashboardExportFilename(range, 'csv'), buildDashboardExportCsv({ orders: dashboardAnalyticsOrders, range, t }));
       return;
     }
 
     setExporting(true);
     try {
-      await downloadXlsx(buildDashboardExportFilename(range, 'xlsx'), [buildDashboardExportSheet({ customersMap, filteredOrders, range, t })]);
+      await downloadXlsx(buildDashboardExportFilename(range, 'xlsx'), [buildDashboardExportSheet({ orders: dashboardAnalyticsOrders, range, t })]);
     } finally {
       setExporting(false);
     }
@@ -120,7 +131,7 @@ export function DashboardPage() {
         subtitle={t('dashboard.subtitle')}
         extra={
           <DashboardHeaderActions
-            canExport={filteredOrders.length > 0}
+            canExport={dashboardAnalyticsOrders.length > 0}
             exporting={exporting}
             onExport={(format) => {
               void handleExport(format);
@@ -160,9 +171,8 @@ export function DashboardPage() {
               canViewCustomers={canViewCustomers}
               canViewInventory={canViewInventoryProducts}
               canViewOrders={canViewOrders}
-              completedOrders={completedOrders}
               dashboard={dashboardQuery.data}
-              filteredOrders={filteredOrders}
+              analyticsOrders={dashboardAnalyticsOrders}
               lowStockProducts={lowStockProducts}
               products={products}
               range={range}
@@ -179,8 +189,8 @@ export function DashboardPage() {
                 </div>
               </div>
               <div className={styles.chartGrid}>
-                <DashboardRevenueChart orders={filteredOrders} rangeDays={rangeDays} />
-                <DashboardOrderStatusChart orders={filteredOrders} />
+                <DashboardRevenueChart orders={dashboardAnalyticsOrders} rangeDays={rangeDays} />
+                <DashboardOrderStatusChart orders={dashboardAnalyticsOrders} />
               </div>
             </section>
             ) : null}

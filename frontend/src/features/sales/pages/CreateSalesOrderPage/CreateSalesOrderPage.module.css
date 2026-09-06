@@ -133,7 +133,7 @@
   font-weight: 800 !important;
 }
 
-.debtAmount {
+.exposureAmount {
   color: var(--color-danger) !important;
   font-weight: 700 !important;
 }

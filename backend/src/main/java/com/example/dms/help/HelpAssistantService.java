@@ -55,6 +55,9 @@ public class HelpAssistantService {
             case SALES -> scope.canUseSales()
                 ? knowledge.salesAnswer(scope, locale)
                 : knowledge.outOfScopeAnswer(scope, "Sales Orders", locale);
+            case INVOICE -> scope.canUseInvoices()
+                ? knowledge.invoiceAnswer(scope, locale)
+                : knowledge.outOfScopeAnswer(scope, "Invoices", locale);
             case INVENTORY -> scope.canUseInventory()
                 ? knowledge.inventoryAnswer(scope, locale)
                 : knowledge.outOfScopeAnswer(scope, "Inventory", locale);

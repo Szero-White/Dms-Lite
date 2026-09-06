@@ -27,19 +27,33 @@ class SalesOrderMapperTest {
     }
 
     @Test
-    void keepsFinancialFieldsWhenCallerCanViewOrderFinancials() {
+    void draftKeepsOrderValueButDoesNotExposeActualReceivableFields() {
         SalesOrder salesOrder = sampleSalesOrder();
+
+        SalesOrderDetailResponse response = mapper.toDetailResponse(salesOrder, true);
+
+        assertThat(response.totalAmount()).isEqualByComparingTo("24000");
+        assertThat(response.paidAmount()).isNull();
+        assertThat(response.debtAmount()).isNull();
+        assertThat(response.items().get(0).unitPrice()).isEqualByComparingTo("12000");
+        assertThat(response.items().get(0).discountAmount()).isEqualByComparingTo("0");
+        assertThat(response.items().get(0).lineTotal()).isEqualByComparingTo("24000");
+    }
+
+    @Test
+    void completedOrderExposesCollectedAndRemainingAmountsWhenAuthorized() {
+        SalesOrder salesOrder = sampleSalesOrder();
+        salesOrder.setStatus(SalesOrderStatus.COMPLETED);
+        salesOrder.setConfirmedAt(Instant.parse("2026-08-01T01:00:00Z"));
+        salesOrder.setPaidAmount(new BigDecimal("10000"));
+        salesOrder.setDebtAmount(new BigDecimal("14000"));
 
         SalesOrderDetailResponse response = mapper.toDetailResponse(salesOrder, true);
 
         assertThat(response.totalAmount()).isEqualByComparingTo("24000");
         assertThat(response.paidAmount()).isEqualByComparingTo("10000");
         assertThat(response.debtAmount()).isEqualByComparingTo("14000");
-        assertThat(response.items().get(0).unitPrice()).isEqualByComparingTo("12000");
-        assertThat(response.items().get(0).discountAmount()).isEqualByComparingTo("0");
-        assertThat(response.items().get(0).lineTotal()).isEqualByComparingTo("24000");
     }
-
 
     @Test
     void includesBusinessDisplayNamesWithoutChangingInternalIds() {
@@ -67,8 +81,8 @@ class SalesOrderMapperTest {
             .code("SO-TEST")
             .status(SalesOrderStatus.DRAFT)
             .totalAmount(new BigDecimal("24000"))
-            .paidAmount(new BigDecimal("10000"))
-            .debtAmount(new BigDecimal("14000"))
+            .paidAmount(BigDecimal.ZERO)
+            .debtAmount(new BigDecimal("24000"))
             .createdAt(Instant.parse("2026-08-01T00:00:00Z"))
             .items(new ArrayList<>())
             .build();

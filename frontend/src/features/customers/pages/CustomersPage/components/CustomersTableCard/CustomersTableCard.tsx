@@ -1,9 +1,10 @@
 import {
-  DeleteOutlined,
   EditOutlined,
   EyeOutlined,
   MoreOutlined,
+  PlayCircleOutlined,
   SearchOutlined,
+  StopOutlined,
 } from '@ant-design/icons';
 import {
   Avatar,
@@ -30,10 +31,11 @@ import styles from './CustomersTableCard.module.css';
 
 interface CustomersTableCardProps {
   canManageCustomers: boolean;
+  canChangeCustomerStatus: boolean;
   activeFilter: 'ALL' | 'ACTIVE' | 'INACTIVE';
   creditFilter: 'ALL' | 'NEAR_LIMIT' | 'OVER_LIMIT';
   debtFilter: 'ALL' | 'WITH_DEBT' | 'CLEAR';
-  deletingCustomerId?: number;
+  changingStatusCustomerId?: number;
   filteredCustomers: Customer[];
   hasFilters: boolean;
   isError: boolean;
@@ -42,7 +44,8 @@ interface CustomersTableCardProps {
   onActiveFilterChange: (value: 'ALL' | 'ACTIVE' | 'INACTIVE') => void;
   onClearFilters: () => void;
   onCreditFilterChange: (value: 'ALL' | 'NEAR_LIMIT' | 'OVER_LIMIT') => void;
-  onDeleteCustomer: (customerId: number) => void;
+  onDeactivateCustomer: (customerId: number) => void;
+  onReactivateCustomer: (customerId: number) => void;
   onDebtFilterChange: (value: 'ALL' | 'WITH_DEBT' | 'CLEAR') => void;
   onEditCustomer: (customer: Customer) => void;
   onKeywordChange: (value: string) => void;
@@ -54,9 +57,10 @@ interface CustomersTableCardProps {
 export function CustomersTableCard({
   activeFilter,
   canManageCustomers,
+  canChangeCustomerStatus,
   creditFilter,
   debtFilter,
-  deletingCustomerId,
+  changingStatusCustomerId,
   filteredCustomers,
   hasFilters,
   isError,
@@ -65,8 +69,9 @@ export function CustomersTableCard({
   onActiveFilterChange,
   onClearFilters,
   onCreditFilterChange,
-  onDeleteCustomer,
+  onDeactivateCustomer,
   onDebtFilterChange,
+  onReactivateCustomer,
   onEditCustomer,
   onKeywordChange,
   onRetry,
@@ -277,23 +282,37 @@ export function CustomersTableCard({
                           onClick={() => onEditCustomer(record)}
                         />
                       </Tooltip>
-                      <Popconfirm
-                        title={t('customers.delete.title')}
-                        description={t('customers.delete.description')}
-                        okText={t('common.delete')}
-                        okButtonProps={{ danger: true }}
-                        onConfirm={() => onDeleteCustomer(record.id)}
-                      >
-                        <Tooltip title={t('customers.action.delete')}>
-                          <Button
-                            danger
-                            type="text"
-                            icon={<DeleteOutlined />}
-                            loading={deletingCustomerId === record.id}
-                            aria-label={t('customers.action.deleteAria', { name: record.name })}
-                          />
-                        </Tooltip>
-                      </Popconfirm>
+                      {canChangeCustomerStatus ? (
+                        record.active ? (
+                          <Popconfirm
+                            title={t('customers.deactivate.title')}
+                            description={t('customers.deactivate.description')}
+                            okText={t('customers.action.deactivate')}
+                            okButtonProps={{ danger: true }}
+                            onConfirm={() => onDeactivateCustomer(record.id)}
+                          >
+                            <Tooltip title={t('customers.action.deactivate')}>
+                              <Button
+                                danger
+                                type="text"
+                                icon={<StopOutlined />}
+                                loading={changingStatusCustomerId === record.id}
+                                aria-label={t('customers.action.deactivateAria', { name: record.name })}
+                              />
+                            </Tooltip>
+                          </Popconfirm>
+                        ) : (
+                          <Tooltip title={t('customers.action.reactivate')}>
+                            <Button
+                              type="text"
+                              icon={<PlayCircleOutlined />}
+                              loading={changingStatusCustomerId === record.id}
+                              aria-label={t('customers.action.reactivateAria', { name: record.name })}
+                              onClick={() => onReactivateCustomer(record.id)}
+                            />
+                          </Tooltip>
+                        )
+                      ) : null}
                     </>
                   ) : null}
                   <Dropdown

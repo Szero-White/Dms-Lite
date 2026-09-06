@@ -1,5 +1,5 @@
-﻿import { apiClient, unwrapResponse } from './apiClient';
-import type { DashboardSnapshot, DashboardSummary } from '../features/dashboard';
+﻿import { apiClient, unwrapResponse } from '../../../services/apiClient';
+import type { DashboardSnapshot, DashboardSummary } from '../types/dashboard.types';
 
 interface DashboardResponse {
   revenueToday: string | number;

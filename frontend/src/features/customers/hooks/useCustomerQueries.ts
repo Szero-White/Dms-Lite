@@ -3,10 +3,11 @@ import { queryKeys } from '../../../lib/queryKeys';
 import { useMutationFeedback } from '../../../lib/useMutationFeedback';
 import {
   createCustomer,
-  deleteCustomer,
+  deactivateCustomer,
   fetchCustomer,
   fetchCustomerDebtStatement,
   fetchCustomersContent,
+  reactivateCustomer,
   updateCustomer,
 } from '../api/customerService';
 import { CustomerFormValues } from '../types/customer.types';
@@ -78,13 +79,30 @@ export function useUpdateCustomer() {
   });
 }
 
-export function useDeleteCustomer() {
+export function useDeactivateCustomer() {
   const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
-    mutationFn: (customerId: number) => deleteCustomer(customerId),
+    mutationFn: (customerId: number) => deactivateCustomer(customerId),
     onSuccess: async (_, customerId) => {
-      message.success(t('toast.customer.deleted'));
+      message.success(t('toast.customer.deactivated'));
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.customers }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.customer(customerId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard }),
+      ]);
+    },
+    onError,
+  });
+}
+
+export function useReactivateCustomer() {
+  const { queryClient, message, t, onError } = useMutationFeedback();
+
+  return useMutation({
+    mutationFn: (customerId: number) => reactivateCustomer(customerId),
+    onSuccess: async (_, customerId) => {
+      message.success(t('toast.customer.reactivated'));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.customers }),
         queryClient.invalidateQueries({ queryKey: queryKeys.customer(customerId) }),

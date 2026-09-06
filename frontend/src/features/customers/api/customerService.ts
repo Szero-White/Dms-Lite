@@ -29,8 +29,12 @@ export async function updateCustomer(customerId: number, payload: CustomerFormVa
   return unwrapResponse<Customer>(apiClient.put(`/customers/${customerId}`, payload));
 }
 
-export async function deleteCustomer(customerId: number) {
-  return unwrapResponse<void>(apiClient.delete(`/customers/${customerId}`));
+export async function deactivateCustomer(customerId: number) {
+  return unwrapResponse<Customer>(apiClient.post(`/customers/${customerId}/deactivate`));
+}
+
+export async function reactivateCustomer(customerId: number) {
+  return unwrapResponse<Customer>(apiClient.post(`/customers/${customerId}/reactivate`));
 }
 
 export async function fetchCustomerDebtStatement(customerId: number) {

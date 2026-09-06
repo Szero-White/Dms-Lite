@@ -23,6 +23,11 @@ const PERMISSION_DISPLAY: Record<string, PermissionDisplay> = {
     labelKey: 'permissions.CUSTOMER_MANAGE.label',
     descriptionKey: 'permissions.CUSTOMER_MANAGE.description',
   },
+  CUSTOMER_DEACTIVATE: {
+    groupKey: 'permissions.group.customers',
+    labelKey: 'permissions.CUSTOMER_DEACTIVATE.label',
+    descriptionKey: 'permissions.CUSTOMER_DEACTIVATE.description',
+  },
   CUSTOMER_VIEW: {
     groupKey: 'permissions.group.customers',
     labelKey: 'permissions.CUSTOMER_VIEW.label',
@@ -32,6 +37,26 @@ const PERMISSION_DISPLAY: Record<string, PermissionDisplay> = {
     groupKey: 'permissions.group.finance',
     labelKey: 'permissions.DEBT_VIEW.label',
     descriptionKey: 'permissions.DEBT_VIEW.description',
+  },
+  INVOICE_VIEW: {
+    groupKey: 'permissions.group.finance',
+    labelKey: 'permissions.INVOICE_VIEW.label',
+    descriptionKey: 'permissions.INVOICE_VIEW.description',
+  },
+  INVOICE_CREATE: {
+    groupKey: 'permissions.group.finance',
+    labelKey: 'permissions.INVOICE_CREATE.label',
+    descriptionKey: 'permissions.INVOICE_CREATE.description',
+  },
+  INVOICE_ISSUE: {
+    groupKey: 'permissions.group.finance',
+    labelKey: 'permissions.INVOICE_ISSUE.label',
+    descriptionKey: 'permissions.INVOICE_ISSUE.description',
+  },
+  INVOICE_CANCEL: {
+    groupKey: 'permissions.group.finance',
+    labelKey: 'permissions.INVOICE_CANCEL.label',
+    descriptionKey: 'permissions.INVOICE_CANCEL.description',
   },
   INVENTORY_MANAGE: {
     groupKey: 'permissions.group.inventory',

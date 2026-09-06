@@ -1,0 +1,4 @@
+.page { display: flex; flex-direction: column; gap: var(--spacing-xl); }
+.tableCard :global(.ant-card-body) { padding: 0; }
+.primaryCell { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pagination { display: flex; justify-content: center; padding: 20px 24px 24px; }

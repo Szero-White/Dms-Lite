@@ -5,11 +5,11 @@ import {
 } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { getIntlLocale, toNumber } from '../../../../lib/format';
-import type { SalesOrder } from '../../../sales';
+import type { SalesReportOrder } from '../../types/salesReport.types';
 import styles from './RevenueByOrderChart.module.css';
 
 interface RevenueByOrderChartProps {
-  orders: SalesOrder[];
+  orders: SalesReportOrder[];
 }
 
 export function RevenueByOrderChart({

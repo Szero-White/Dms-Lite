@@ -5,10 +5,15 @@ export const PERMISSIONS = {
   PRODUCT_MANAGE: 'PRODUCT_MANAGE',
   CUSTOMER_VIEW: 'CUSTOMER_VIEW',
   CUSTOMER_MANAGE: 'CUSTOMER_MANAGE',
+  CUSTOMER_DEACTIVATE: 'CUSTOMER_DEACTIVATE',
   SALES_ORDER_VIEW: 'SALES_ORDER_VIEW',
   SALES_ORDER_CREATE: 'SALES_ORDER_CREATE',
   SALES_ORDER_CONFIRM: 'SALES_ORDER_CONFIRM',
   SALES_ORDER_CANCEL: 'SALES_ORDER_CANCEL',
+  INVOICE_VIEW: 'INVOICE_VIEW',
+  INVOICE_CREATE: 'INVOICE_CREATE',
+  INVOICE_ISSUE: 'INVOICE_ISSUE',
+  INVOICE_CANCEL: 'INVOICE_CANCEL',
   INVENTORY_VIEW: 'INVENTORY_VIEW',
   INVENTORY_MANAGE: 'INVENTORY_MANAGE',
   PAYMENT_CREATE: 'PAYMENT_CREATE',
@@ -53,6 +58,7 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
     PERMISSIONS.PRODUCT_VIEW,
     PERMISSIONS.INVENTORY_VIEW,
   ],
+  '/invoices': PERMISSIONS.INVOICE_VIEW,
   '/products': PERMISSIONS.PRODUCT_VIEW,
   '/customers': PERMISSIONS.CUSTOMER_VIEW,
   '/inventory': [PERMISSIONS.INVENTORY_VIEW, PERMISSIONS.PRODUCT_VIEW],
@@ -67,6 +73,7 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
 export const DEFAULT_AUTHORIZED_PATHS = [
   '/dashboard',
   '/sales-orders',
+  '/invoices',
   '/products',
   '/customers',
   '/inventory',
@@ -99,6 +106,10 @@ export function hasAnyPermission(
 }
 
 export function canViewOrderFinancials(user: AuthUser | null | undefined) {
+  return hasAnyPermission(user, ORDER_FINANCIAL_PERMISSIONS);
+}
+
+export function canViewInvoiceReceivableState(user: AuthUser | null | undefined) {
   return hasAnyPermission(user, ORDER_FINANCIAL_PERMISSIONS);
 }
 
@@ -136,6 +147,10 @@ function normalizePath(path: string) {
 
   if (path.startsWith('/sales-orders/new')) {
     return '/sales-orders/new';
+  }
+
+  if (path.startsWith('/invoices')) {
+    return '/invoices';
   }
 
   return Object.keys(ROUTE_PERMISSIONS)

@@ -93,7 +93,8 @@ public class SalesOrderService {
     @Transactional
     public SalesOrderDetailResponse createOrder(CreateSalesOrderRequest request) {
         Long tenantId = TenantContext.tenantRequired();
-        findCustomer(request.customerId(), tenantId);
+        Customer customer = lockCustomer(request.customerId(), tenantId);
+        validateCustomerActive(customer);
         inventoryService.validateWarehouse(tenantId, request.warehouseId());
 
         SalesOrder salesOrder = buildDraftOrder(request, tenantId);
@@ -141,6 +142,7 @@ public class SalesOrderService {
         }
 
         Customer customer = lockCustomer(salesOrder.getCustomerId(), tenantId);
+        validateCustomerActive(customer);
         validateCreditLimit(salesOrder, customer, tenantId);
 
         for (SalesOrderItem salesOrderItem : salesOrder.getItems()) {
@@ -354,29 +356,31 @@ public class SalesOrderService {
             .collect(Collectors.toMap(Warehouse::getId, Warehouse::getName));
     }
 
-    private Customer findCustomer(Long customerId, Long tenantId) {
-        return customerRepository.findByIdAndTenantIdAndDeletedAtIsNull(customerId, tenantId)
-            .orElseThrow(() -> new BusinessException("Customer not found"));
+    private void validateCustomerActive(Customer customer) {
+        if (!customer.isActive()) {
+            throw new BusinessException("Inactive customer cannot create or fulfill sales orders");
+        }
     }
 
     private void validateCreditLimit(SalesOrder salesOrder, Customer customer, Long tenantId) {
         BigDecimal creditLimit = defaultIfNull(customer.getCreditLimit());
-        BigDecimal orderDebt = defaultIfNull(salesOrder.getDebtAmount());
+        BigDecimal orderExposure = defaultIfNull(salesOrder.getDebtAmount());
 
         // Zero means no hard credit limit is configured for this customer.
-        if (creditLimit.signum() <= 0 || orderDebt.signum() <= 0) {
+        if (creditLimit.signum() <= 0 || orderExposure.signum() <= 0) {
             return;
         }
 
-        BigDecimal currentDebt = customerDebtRepository.balance(tenantId, customer.getId());
-        BigDecimal projectedDebt = currentDebt.add(orderDebt);
+        BigDecimal currentReceivable = customerDebtRepository.balance(tenantId, customer.getId());
+        BigDecimal projectedExposure = currentReceivable.add(orderExposure);
 
-        if (projectedDebt.compareTo(creditLimit) > 0) {
+        if (projectedExposure.compareTo(creditLimit) > 0) {
+            // Keep the machine-readable text contract stable for the current frontend error mapper.
             throw new BusinessException(
                 "Credit limit exceeded. Limit: " + creditLimit.toPlainString()
-                    + ", current debt: " + currentDebt.toPlainString()
-                    + ", order debt: " + orderDebt.toPlainString()
-                    + ", projected debt: " + projectedDebt.toPlainString()
+                    + ", current debt: " + currentReceivable.toPlainString()
+                    + ", order debt: " + orderExposure.toPlainString()
+                    + ", projected debt: " + projectedExposure.toPlainString()
             );
         }
     }

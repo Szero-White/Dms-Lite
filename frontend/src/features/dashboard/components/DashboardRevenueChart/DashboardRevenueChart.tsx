@@ -5,11 +5,11 @@ import {
 } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { getIntlLocale, toNumber } from '../../../../lib/format';
-import type { SalesOrder } from '../../../sales';
+import type { SalesReportOrder } from '../../../reports/types/salesReport.types';
 import styles from './DashboardRevenueChart.module.css';
 
 interface DashboardRevenueChartProps {
-  orders: SalesOrder[];
+  orders: SalesReportOrder[];
   rangeDays?: number;
 }
 
@@ -17,6 +17,14 @@ interface RevenueChartItem {
   dateKey: string;
   dateLabel: string;
   revenue: number;
+}
+
+function localDateKey(date: Date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-');
 }
 
 export function DashboardRevenueChart({
@@ -36,7 +44,7 @@ export function DashboardRevenueChart({
       date.setDate(today.getDate() - (rangeDays - 1 - index));
 
       return {
-        dateKey: date.toISOString().slice(0, 10),
+        dateKey: localDateKey(date),
         dateLabel: date.toLocaleDateString(locale, {
           day: '2-digit',
           month: '2-digit',
@@ -55,17 +63,13 @@ export function DashboardRevenueChart({
       order.status === 'COMPLETED',
     )
     .forEach((order) => {
-      if (!order.createdAt) {
+      if (!order.reportDate) {
         return;
       }
 
-      const createdDate = new Date(order.createdAt);
+      const recognitionDate = new Date(order.reportDate);
 
-      const dateKey = [
-        createdDate.getFullYear(),
-        String(createdDate.getMonth() + 1).padStart(2, '0'),
-        String(createdDate.getDate()).padStart(2, '0'),
-      ].join('-');
+      const dateKey = localDateKey(recognitionDate);
 
       const chartItem = revenueMap.get(dateKey);
 

@@ -23,6 +23,7 @@ import com.example.dms.notification.NotificationProducer;
 import com.example.dms.product.ProductRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,6 +75,27 @@ class SalesOrderServiceCreditLimitTest {
     @AfterEach
     void tearDown() {
         TenantContext.clear();
+    }
+
+    @Test
+    void rejectsCreatingOrderForInactiveCustomerBeforeWarehouseOrOrderMutation() {
+        Customer customer = customerWithLimit("0");
+        customer.setActive(false);
+        when(customerRepository.lockByIdAndTenantIdAndDeletedAtIsNull(2L, 1L))
+            .thenReturn(Optional.of(customer));
+
+        CreateSalesOrderRequest request = new CreateSalesOrderRequest(
+            2L,
+            3L,
+            List.of(new SalesOrderItemRequest(4L, 1, BigDecimal.ZERO))
+        );
+
+        assertThatThrownBy(() -> salesOrderService.createOrder(request))
+            .isInstanceOf(BusinessException.class)
+            .hasMessage("Inactive customer cannot create or fulfill sales orders");
+
+        verify(inventoryService, never()).validateWarehouse(anyLong(), anyLong());
+        verify(salesOrderRepository, never()).save(any(SalesOrder.class));
     }
 
     @Test
