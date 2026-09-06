@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class HelpDataAnswerService {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO;
+
+    private static final Pattern CUSTOMER_MARKER = Pattern.compile(
+        "(?iu)\\b(?:khách\\s+hàng|khach\\s+hang|customer)\\b"
+    );
+
+    private static final Pattern CUSTOMER_DEBT_SUFFIX = Pattern.compile(
+        "(?iu)\\b(?:hiện\\s+(?:còn|tại)|hien\\s+(?:con|tai)|đang\\s+nợ|dang\\s+no|"
+            + "còn\\s+nợ|con\\s+no|công\\s+nợ|cong\\s+no|nợ\\s+bao\\s+nhiêu|no\\s+bao\\s+nhieu|"
+            + "bao\\s+nhiêu|bao\\s+nhieu|debt|receivable|balance|how\\s+much|current|"
+            + "still\\s+owes?|owes?)\\b.*$"
+    );
 
     private final ProductRepository products;
 
@@ -45,19 +58,27 @@ public class HelpDataAnswerService {
             return Optional.empty();
         }
 
-        if (containsAny(normalizedQuestion, "ton kho", "stock", "con hang", "so luong", "quantity")) {
-            return Optional.of(stockAnswer(request.question(), normalizedQuestion, scope, locale));
-        }
-        if (containsAny(normalizedQuestion, "cong no", "no bao nhieu", "debt", "receivable", "phai thu")) {
-            return Optional.of(debtAnswer(request.question(), normalizedQuestion, scope, locale));
-        }
-        if (containsAny(normalizedQuestion, "don hang", "order", "trang thai don", "status")) {
+        Optional<String> code = extractCode(request.question());
+
+        // A document number is a stronger signal than generic finance wording such as
+        // "phai thu". Route SO-* questions to the sales-order lookup first so asking
+        // about one order cannot accidentally become a tenant-wide debt query.
+        if (isSalesOrderQuestion(normalizedQuestion, code)) {
             return Optional.of(orderAnswer(request.question(), normalizedQuestion, scope, locale));
         }
-        if (containsAny(normalizedQuestion, "san pham", "product", "ma hang", "sku")) {
+        if (isStockQuestion(normalizedQuestion, code)) {
+            return Optional.of(stockAnswer(request.question(), normalizedQuestion, scope, locale));
+        }
+        if (isDebtQuestion(normalizedQuestion)) {
+            return Optional.of(debtAnswer(request.question(), normalizedQuestion, scope, locale));
+        }
+        if (isOrderQuestion(normalizedQuestion)) {
+            return Optional.of(orderAnswer(request.question(), normalizedQuestion, scope, locale));
+        }
+        if (isProductCountQuestion(normalizedQuestion)) {
             return Optional.of(productSummaryAnswer(scope, locale));
         }
-        if (containsAny(normalizedQuestion, "khach hang", "customer")) {
+        if (isCustomerCountQuestion(normalizedQuestion)) {
             return Optional.of(customerSummaryAnswer(scope, locale));
         }
 
@@ -70,11 +91,33 @@ public class HelpDataAnswerService {
         }
 
         Long tenantId = TenantContext.tenantRequired();
-        Optional<Product> product = extractCode(question)
+        Optional<String> extractedCode = extractCode(question);
+        Optional<String> requestedProductCode = extractedCode.filter(this::isProductLikeCode);
+        Optional<Product> product = requestedProductCode
             .flatMap(code -> products.findFirstByTenantIdAndDeletedAtIsNullAndSkuIgnoreCase(tenantId, code));
 
+        if (requestedProductCode.isPresent() && product.isEmpty()) {
+            return notFound(
+                locale == HelpLocale.VI
+                    ? "Mình không tìm thấy mã hàng " + requestedProductCode.get() + " trong doanh nghiệp hiện tại."
+                    : "I could not find product code " + requestedProductCode.get() + " in the current tenant.",
+                scope.relatedModules(locale, "Inventory", "Products"),
+                locale
+            );
+        }
+
+        if (extractedCode.isPresent() && requestedProductCode.isEmpty()) {
+            return notFound(
+                locale == HelpLocale.VI
+                    ? "Mã " + extractedCode.get() + " không được nhận diện là mã hàng để tra tồn kho."
+                    : extractedCode.get() + " is not recognized as a product code for stock lookup.",
+                scope.relatedModules(locale, "Inventory", "Products"),
+                locale
+            );
+        }
+
         if (product.isEmpty()) {
-            if (containsAny(normalizedQuestion, "bao nhieu", "how many", "total")) {
+            if (isAggregateCountQuestion(normalizedQuestion)) {
                 long productCount = products.countByTenantIdAndDeletedAtIsNull(tenantId);
                 int totalStock = stockItems.findByTenantId(tenantId).stream()
                     .mapToInt(item -> item.getQuantityOnHand() == null ? 0 : item.getQuantityOnHand())
@@ -128,7 +171,7 @@ public class HelpDataAnswerService {
         }
 
         Long tenantId = TenantContext.tenantRequired();
-        String keyword = extractCustomerKeyword(question, normalizedQuestion);
+        String keyword = extractCustomerKeyword(question);
         if (!keyword.isBlank()) {
             List<Customer> matches = customers.findByTenantIdAndDeletedAtIsNullAndNameContainingIgnoreCase(
                 tenantId,
@@ -163,6 +206,24 @@ public class HelpDataAnswerService {
                     locale
                 );
             }
+
+            return notFound(
+                locale == HelpLocale.VI
+                    ? "Mình chưa xác định được duy nhất khách hàng từ câu hỏi. Hãy dùng đúng tên khách hàng như trên màn Khách hàng."
+                    : "I could not resolve exactly one customer from the question. Use the customer name shown on the Customers screen.",
+                scope.relatedModules(locale, "Customers", "Payments"),
+                locale
+            );
+        }
+
+        if (!isAggregateDebtQuestion(normalizedQuestion)) {
+            return notFound(
+                locale == HelpLocale.VI
+                    ? "Câu hỏi công nợ chưa đủ rõ. Hãy hỏi “Tổng công nợ hiện tại là bao nhiêu?” hoặc “Khách hàng <tên> còn nợ bao nhiêu?”."
+                    : "The receivable question is ambiguous. Ask either “What is the current total receivable?” or “How much does customer <name> owe?”.",
+                scope.relatedModules(locale, "Customers", "Payments"),
+                locale
+            );
         }
 
         BigDecimal total = customerDebts.totalReceivable(tenantId);
@@ -208,10 +269,31 @@ public class HelpDataAnswerService {
         }
 
         Long tenantId = TenantContext.tenantRequired();
-        Optional<SalesOrder> order = extractCode(question)
+        Optional<String> requestedOrderCode = extractCode(question).filter(this::isSalesOrderCode);
+        Optional<SalesOrder> order = requestedOrderCode
             .flatMap(code -> salesOrders.findFirstByTenantIdAndCodeIgnoreCase(tenantId, code));
 
+        if (requestedOrderCode.isPresent() && order.isEmpty()) {
+            return notFound(
+                locale == HelpLocale.VI
+                    ? "Mình không tìm thấy đơn " + requestedOrderCode.get() + " trong doanh nghiệp hiện tại."
+                    : "I could not find order " + requestedOrderCode.get() + " in the current tenant.",
+                scope.relatedModules(locale, "Sales Orders"),
+                locale
+            );
+        }
+
         if (order.isEmpty()) {
+            if (!isOrderCountQuestion(normalizedQuestion)) {
+                return notFound(
+                    locale == HelpLocale.VI
+                        ? "Hãy hỏi kèm mã đơn như SO-20260906-0002 nếu bạn cần trạng thái hoặc số liệu của một đơn cụ thể."
+                        : "Include an order code such as SO-20260906-0002 when asking for one order's status or figures.",
+                    scope.relatedModules(locale, "Sales Orders"),
+                    locale
+                );
+            }
+
             long count = salesOrders.countByTenantId(tenantId);
             return response(
                 locale == HelpLocale.VI
@@ -229,7 +311,11 @@ public class HelpDataAnswerService {
         }
 
         SalesOrder foundOrder = order.get();
-        boolean asksFinance = containsAny(normalizedQuestion, "tien", "tong", "doanh thu", "cong no", "paid", "debt", "revenue", "amount");
+        boolean asksFinance = containsAny(
+            normalizedQuestion,
+            "tien", "tong", "gia tri", "da thu", "con phai thu", "phai thu", "doanh thu", "cong no",
+            "paid", "collected", "remaining", "receivable", "debt", "revenue", "amount"
+        );
         if (asksFinance && !scope.canViewOrderFinancials()) {
             return blocked(scope, "Sales order finance", locale);
         }
@@ -368,11 +454,96 @@ public class HelpDataAnswerService {
         );
     }
 
+    private boolean isSalesOrderQuestion(String normalizedQuestion, Optional<String> code) {
+        return code.filter(this::isSalesOrderCode).isPresent()
+            && containsAny(
+                normalizedQuestion,
+                "trang thai", "status", "bao nhieu", "co may", "how much", "how many", "hien tai", "current",
+                "tien", "tong tien", "tong gia tri", "gia tri", "da thu", "con phai thu", "phai thu", "cong no",
+                "paid", "collected", "remaining", "receivable", "debt", "amount", "value"
+            );
+    }
+
+    private boolean isStockQuestion(String normalizedQuestion, Optional<String> code) {
+        if (containsAny(
+            normalizedQuestion,
+            "ton kho", "stock level", "stock quantity", "con hang", "hang ton", "so luong ton", "quantity on hand", "on hand"
+        )) {
+            return true;
+        }
+
+        boolean hasProductLikeCode = code.filter(this::isProductLikeCode).isPresent();
+        return hasProductLikeCode && containsAny(
+            normalizedQuestion,
+            "bao nhieu hang", "co may", "con bao nhieu", "hien con", "con lai",
+            "how many left", "how much left", "available", "remaining"
+        );
+    }
+
+    private boolean isDebtQuestion(String normalizedQuestion) {
+        return containsAny(
+            normalizedQuestion,
+            "cong no", "no bao nhieu", "phai thu", "debt", "receivable", "receivable balance", "owes"
+        );
+    }
+
+    private boolean isOrderQuestion(String normalizedQuestion) {
+        return containsAny(
+            normalizedQuestion,
+            "don hang", "don ban hang", "sales order", "order", "trang thai don", "order status"
+        );
+    }
+
+    private boolean isProductCountQuestion(String normalizedQuestion) {
+        return containsAny(normalizedQuestion, "san pham", "product", "ma hang", "sku")
+            && isAggregateCountQuestion(normalizedQuestion);
+    }
+
+    private boolean isCustomerCountQuestion(String normalizedQuestion) {
+        return containsAny(normalizedQuestion, "khach hang", "customer")
+            && isAggregateCountQuestion(normalizedQuestion);
+    }
+
+    private boolean isOrderCountQuestion(String normalizedQuestion) {
+        return isOrderQuestion(normalizedQuestion) && isAggregateCountQuestion(normalizedQuestion);
+    }
+
+    private boolean isAggregateDebtQuestion(String normalizedQuestion) {
+        return containsAny(
+            normalizedQuestion,
+            "tong cong no", "tong no", "tong phai thu", "toan bo cong no", "toan cong ty", "cua cong ty",
+            "total receivable", "total receivables", "total debt", "overall receivable", "company receivable"
+        );
+    }
+
+    private boolean isAggregateCountQuestion(String normalizedQuestion) {
+        return containsAny(
+            normalizedQuestion,
+            "bao nhieu", "co may", "so luong", "tong so", "how many", "count", "total number", "total"
+        );
+    }
+
+    private boolean isSalesOrderCode(String code) {
+        return hasPrefix(code, "SO-");
+    }
+
+    private boolean isProductLikeCode(String code) {
+        return code != null
+            && !hasPrefix(code, "SO-")
+            && !hasPrefix(code, "INV-")
+            && !hasPrefix(code, "PAY-");
+    }
+
+    private boolean hasPrefix(String value, String prefix) {
+        return value != null && value.regionMatches(true, 0, prefix, 0, prefix.length());
+    }
+
     private boolean looksLikeDataQuestion(String normalizedQuestion) {
         return containsAny(
             normalizedQuestion,
-            "bao nhieu", "con bao nhieu", "con lai", "hien co", "dang co", "trang thai", "status",
-            "ton kho", "cong no", "doanh thu", "so luong", "how many", "how much", "current", "available", "remaining"
+            "bao nhieu", "co may", "con bao nhieu", "con lai", "hien co", "dang co", "trang thai", "status",
+            "ton kho", "stock level", "cong no", "phai thu", "doanh thu", "so luong", "gia tri", "da thu",
+            "how many", "how much", "count", "current", "available", "remaining", "receivable balance"
         );
     }
 
@@ -380,15 +551,19 @@ public class HelpDataAnswerService {
         return HelpQuestionText.findProductOrOrderCode(question);
     }
 
-    private String extractCustomerKeyword(String question, String normalizedQuestion) {
-        int index = Math.max(normalizedQuestion.indexOf("khach hang"), normalizedQuestion.indexOf("customer"));
-        if (index < 0) {
+    private String extractCustomerKeyword(String question) {
+        if (question == null || question.isBlank()) {
             return "";
         }
 
-        String value = question.substring(Math.min(index + 10, question.length()))
-            .replaceAll("(?i)cong no|no bao nhieu|debt|receivable|how much|bao nhieu|hien tai|current", "")
-            .trim();
+        Matcher marker = CUSTOMER_MARKER.matcher(question);
+        if (!marker.find()) {
+            return "";
+        }
+
+        String value = question.substring(marker.end()).trim();
+        value = CUSTOMER_DEBT_SUFFIX.matcher(value).replaceFirst("").trim();
+        value = value.replaceAll("[?!.:,;]+$", "").trim();
 
         return value.length() > 80 ? value.substring(0, 80) : value;
     }
