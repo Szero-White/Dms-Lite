@@ -11,7 +11,7 @@ public class GeminiHelpProperties {
 
     private String apiKey = "";
 
-    private String model = "gemini-2.5-flash";
+    private String model = "gemini-3.6-flash";
 
     private String baseUrl = "https://generativelanguage.googleapis.com/v1beta";
 

@@ -115,10 +115,42 @@ public class GeminiHelpAssistantClient {
                 "role", "user",
                 "parts", List.of(Map.of("text", prompt))
             )),
-            "generationConfig",
-            Map.of(
-                "maxOutputTokens", properties.getMaxOutputTokens(),
-                "temperature", 0.7
+            "generationConfig", buildGenerationConfig()
+        );
+    }
+
+    Map<String, Object> buildGenerationConfig() {
+        return Map.of(
+            "maxOutputTokens", properties.getMaxOutputTokens(),
+            "temperature", 0.7,
+            "responseMimeType", "application/json",
+            "responseSchema", Map.of(
+                "type", "OBJECT",
+                "properties", Map.of(
+                    "answer", Map.of("type", "STRING"),
+                    "steps", Map.of(
+                        "type", "ARRAY",
+                        "items", Map.of("type", "STRING")
+                    ),
+                    "relatedModules", Map.of(
+                        "type", "ARRAY",
+                        "items", Map.of("type", "STRING")
+                    ),
+                    "guardrails", Map.of(
+                        "type", "ARRAY",
+                        "items", Map.of("type", "STRING")
+                    ),
+                    "scopeNotice", Map.of("type", "STRING"),
+                    "blocked", Map.of("type", "BOOLEAN")
+                ),
+                "required", List.of(
+                    "answer",
+                    "steps",
+                    "relatedModules",
+                    "guardrails",
+                    "scopeNotice",
+                    "blocked"
+                )
             )
         );
     }

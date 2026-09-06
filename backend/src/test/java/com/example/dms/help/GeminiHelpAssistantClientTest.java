@@ -4,12 +4,40 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 class GeminiHelpAssistantClientTest {
+
+    @Test
+    void defaultModelUsesCurrentGeminiFlashVersion() {
+        assertThat(new GeminiHelpProperties().getModel()).isEqualTo("gemini-3.6-flash");
+    }
+
+    @Test
+    void generationConfigRequiresStructuredJsonResponse() {
+        GeminiHelpProperties properties = new GeminiHelpProperties();
+        GeminiHelpAssistantClient client = new GeminiHelpAssistantClient(properties, null, null);
+
+        Map<String, Object> config = client.buildGenerationConfig();
+
+        assertThat(config).containsEntry("responseMimeType", "application/json");
+        assertThat(config.get("responseSchema")).isInstanceOf(Map.class);
+
+        Map<?, ?> schema = (Map<?, ?>) config.get("responseSchema");
+        assertThat(schema.get("type")).isEqualTo("OBJECT");
+        assertThat(schema.get("required")).isEqualTo(List.of(
+            "answer",
+            "steps",
+            "relatedModules",
+            "guardrails",
+            "scopeNotice",
+            "blocked"
+        ));
+    }
 
     @Test
     void externalContextKeepsUserQuestionsButExcludesAssistantGeneratedAnswers() {
