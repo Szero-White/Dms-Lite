@@ -75,9 +75,9 @@ public class HelpDataResponseFactory {
 
     public String money(BigDecimal value, HelpLocale locale) {
         BigDecimal amount = value == null ? ZERO : value;
-        NumberFormat formatter = NumberFormat.getCurrencyInstance(
+        NumberFormat formatter = NumberFormat.getNumberInstance(
             locale == HelpLocale.VI ? Locale.forLanguageTag("vi-VN") : Locale.US
         );
-        return formatter.format(amount);
+        return formatter.format(amount) + (locale == HelpLocale.VI ? " ₫" : " VND");
     }
 }
