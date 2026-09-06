@@ -26,6 +26,7 @@ import com.example.dms.sales.SalesOrderStatus;
 import com.example.dms.tenant.Tenant;
 import com.example.dms.tenant.TenantRepository;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -171,6 +172,28 @@ class InvoiceServiceTest {
             .hasMessage("Cannot cancel an invoice after payment has been recorded");
     }
 
+
+    @Test
+    void issuedInvoiceBecomesOverdueOnlyAfterBusinessDueDateEnds() {
+        SalesOrder order = completedOrder();
+        Invoice invoice = Invoice.builder()
+            .id(77L).tenantId(1L).customerId(2L).salesOrderId(100L)
+            .invoiceNumber("INV-1-77").status("ISSUED")
+            .dueDate(Instant.parse("2026-09-05T17:00:00Z"))
+            .subtotal(new BigDecimal("160000")).taxAmount(BigDecimal.ZERO)
+            .discountAmount(BigDecimal.ZERO).totalAmount(new BigDecimal("160000"))
+            .paidAmount(new BigDecimal("40000")).remainingAmount(new BigDecimal("120000"))
+            .customerName("Bach hoa Hong Phuc").items(new ArrayList<>()).build();
+
+        when(invoiceRepository.findDetailByIdAndTenantId(77L, 1L)).thenReturn(Optional.of(invoice));
+        when(salesOrderRepository.findByIdAndTenantId(100L, 1L)).thenReturn(Optional.of(order));
+
+        assertThat(service.getInvoice(77L).status()).isEqualTo("ISSUED");
+
+        when(businessTimeProvider.today()).thenReturn(LocalDate.of(2026, 9, 7));
+
+        assertThat(service.getInvoice(77L).status()).isEqualTo("OVERDUE");
+    }
 
     @Test
     void redactsReceivableStateForInvoiceViewerWithoutFinancialPermission() {

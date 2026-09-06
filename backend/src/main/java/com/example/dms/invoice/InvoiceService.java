@@ -303,7 +303,8 @@ public class InvoiceService {
         if (remaining.signum() <= 0) {
             return "PAID";
         }
-        if (invoice.getDueDate() != null && invoice.getDueDate().isBefore(Instant.now())) {
+        Instant startOfToday = businessTimeProvider.startOfDay(businessTimeProvider.today());
+        if (invoice.getDueDate() != null && invoice.getDueDate().isBefore(startOfToday)) {
             return "OVERDUE";
         }
         return STATUS_ISSUED;
