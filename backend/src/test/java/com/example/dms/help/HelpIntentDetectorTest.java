@@ -67,4 +67,29 @@ class HelpIntentDetectorTest {
         assertThat(match.intent()).isEqualTo(HelpIntent.MISSING_SCREEN);
         assertThat(match.needsClarification()).isFalse();
     }
+
+    @Test
+    void detectsAccountantPaymentQuestionAsFinanceInsteadOfTeamAccess() {
+        HelpIntentMatch match = detector.detect(new HelpAskRequest(
+            "How should accountant record payment 11?",
+            "en",
+            List.of()
+        ));
+
+        assertThat(match.intent()).isEqualTo(HelpIntent.FINANCE);
+        assertThat(match.needsClarification()).isFalse();
+    }
+
+    @Test
+    void stillDetectsStaffAccountManagementAsTeamAccess() {
+        HelpIntentMatch match = detector.detect(new HelpAskRequest(
+            "How do I create a staff account?",
+            "en",
+            List.of()
+        ));
+
+        assertThat(match.intent()).isEqualTo(HelpIntent.TEAM_ACCESS);
+        assertThat(match.needsClarification()).isFalse();
+    }
+
 }

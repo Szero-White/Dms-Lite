@@ -33,7 +33,12 @@ class HelpIntentDetector {
         if (containsAny(question, "khong thay", "khong hien", "mat man hinh", "an man hinh", "missing screen", "not showing", "sidebar")) {
             return HelpIntent.MISSING_SCREEN;
         }
-        if (containsAny(question, "nhan vien", "tai khoan", "role", "vai tro", "phan quyen", "permission", "user", "staff", "account")) {
+        if (containsAny(
+            question,
+            "nhan vien", "tai khoan", "role", "vai tro", "phan quyen", "permission", "user", "staff",
+            "staff account", "user account", "employee account", "login account", "account access",
+            "create account", "manage account", "disable account", "deactivate account"
+        )) {
             return HelpIntent.TEAM_ACCESS;
         }
         if (containsAny(question, "hoa don", "invoice", "phat hanh hoa don", "huy hoa don")) {
