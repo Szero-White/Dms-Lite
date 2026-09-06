@@ -1,7 +1,8 @@
 import {
-  DeleteOutlined,
+  CheckCircleOutlined,
   EditOutlined,
   PlusOutlined,
+  StopOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import {
@@ -29,9 +30,12 @@ interface MembersTableProps {
   error: unknown;
   isDeactivating: boolean;
   deactivatingMemberId?: number;
+  isReactivating: boolean;
+  reactivatingMemberId?: number;
   onCreate: () => void;
   onEdit: (member: TeamMember) => void;
   onDeactivate: (memberId: number) => void;
+  onReactivate: (member: TeamMember) => void;
   onRetry: () => void;
 }
 
@@ -42,9 +46,12 @@ export function MembersTable({
   error,
   isDeactivating,
   deactivatingMemberId,
+  isReactivating,
+  reactivatingMemberId,
   onCreate,
   onEdit,
   onDeactivate,
+  onReactivate,
   onRetry,
 }: MembersTableProps) {
   const { t } = useTranslation();
@@ -137,23 +144,41 @@ export function MembersTable({
                       onClick={() => onEdit(record)}
                     />
                   </Tooltip>
-                  <Popconfirm
-                    title={t('team.members.deactivateTitle')}
-                    description={t('team.members.deactivateDescription')}
-                    okText={t('team.members.deactivate')}
-                    okButtonProps={{ danger: true }}
-                    onConfirm={() => onDeactivate(record.id)}
-                  >
-                    <Tooltip title={t('team.members.deactivate')}>
-                      <Button
-                        danger
-                        type="text"
-                        icon={<DeleteOutlined />}
-                        loading={isDeactivating && deactivatingMemberId === record.id}
-                        aria-label={`${t('team.members.deactivate')} ${record.username}`}
-                      />
-                    </Tooltip>
-                  </Popconfirm>
+                  {record.active ? (
+                    <Popconfirm
+                      title={t('team.members.deactivateTitle')}
+                      description={t('team.members.deactivateDescription')}
+                      okText={t('team.members.deactivate')}
+                      okButtonProps={{ danger: true }}
+                      onConfirm={() => onDeactivate(record.id)}
+                    >
+                      <Tooltip title={t('team.members.deactivate')}>
+                        <Button
+                          danger
+                          type="text"
+                          icon={<StopOutlined />}
+                          loading={isDeactivating && deactivatingMemberId === record.id}
+                          aria-label={`${t('team.members.deactivate')} ${record.username}`}
+                        />
+                      </Tooltip>
+                    </Popconfirm>
+                  ) : (
+                    <Popconfirm
+                      title={t('team.members.reactivateTitle')}
+                      description={t('team.members.reactivateDescription')}
+                      okText={t('team.members.reactivate')}
+                      onConfirm={() => onReactivate(record)}
+                    >
+                      <Tooltip title={t('team.members.reactivate')}>
+                        <Button
+                          type="text"
+                          icon={<CheckCircleOutlined />}
+                          loading={isReactivating && reactivatingMemberId === record.id}
+                          aria-label={`${t('team.members.reactivate')} ${record.username}`}
+                        />
+                      </Tooltip>
+                    </Popconfirm>
+                  )}
                 </Space>
               )),
             },

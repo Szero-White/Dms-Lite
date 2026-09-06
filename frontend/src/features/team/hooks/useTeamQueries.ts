@@ -127,3 +127,22 @@ export function useDeactivateTeamMember() {
     onError,
   });
 }
+
+export function useReactivateTeamMember() {
+  const { queryClient, message, t, onError } = useMutationFeedback();
+
+  return useMutation({
+    mutationFn: ({
+      userId,
+      payload,
+    }: {
+      userId: number;
+      payload: TeamMemberUpdatePayload;
+    }) => updateTeamMember(userId, payload),
+    onSuccess: async () => {
+      message.success(t('toast.team.memberReactivated'));
+      await queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers });
+    },
+    onError,
+  });
+}
