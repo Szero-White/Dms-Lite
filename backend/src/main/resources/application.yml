@@ -37,6 +37,7 @@ management:
         include: health,info,metrics,prometheus
 
 app:
+  business-zone: ${APP_BUSINESS_ZONE:Asia/Ho_Chi_Minh}
   demo:
     enabled: ${APP_DEMO_ENABLED:false}
     password: ${APP_DEMO_PASSWORD:123456}

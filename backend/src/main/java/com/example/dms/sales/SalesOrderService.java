@@ -7,6 +7,8 @@ import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.document.DocumentNumberService;
+import com.example.dms.document.DocumentNumberType;
 import com.example.dms.inventory.InventoryService;
 import com.example.dms.inventory.Warehouse;
 import com.example.dms.inventory.WarehouseRepository;
@@ -18,10 +20,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +52,7 @@ public class SalesOrderService {
     private final AuditService auditService;
     private final NotificationProducer notificationProducer;
     private final SalesOrderMapper salesOrderMapper;
+    private final DocumentNumberService documentNumberService;
 
     @Transactional(readOnly = true)
     public Page<SalesOrderResponse> listOrders(int page, Long customerId) {
@@ -232,22 +233,13 @@ public class SalesOrderService {
             .tenantId(tenantId)
             .customerId(request.customerId())
             .warehouseId(request.warehouseId())
-            .code(generateOrderCode(tenantId))
+            .code(documentNumberService.next(DocumentNumberType.SALES_ORDER, tenantId))
             .status(SalesOrderStatus.DRAFT)
             .paidAmount(BigDecimal.ZERO)
             .totalAmount(BigDecimal.ZERO)
             .debtAmount(BigDecimal.ZERO)
             .items(new ArrayList<>())
             .build();
-    }
-
-    private String generateOrderCode(Long tenantId) {
-        String suffix = UUID.randomUUID()
-            .toString()
-            .replace("-", "")
-            .substring(0, 8)
-            .toUpperCase(Locale.ROOT);
-        return "SO-" + tenantId + "-" + suffix;
     }
 
     private SalesOrderItem buildSalesOrderItem(

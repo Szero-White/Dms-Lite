@@ -13,6 +13,8 @@ import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.document.DocumentNumberService;
+import com.example.dms.document.DocumentNumberType;
 import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
 import com.example.dms.sales.SalesOrder;
@@ -46,6 +48,7 @@ class InvoiceServiceTest {
     @Mock private CustomerDebtRepository customerDebtRepository;
     @Mock private TenantRepository tenantRepository;
     @Mock private AuditService auditService;
+    @Mock private DocumentNumberService documentNumberService;
 
     private InvoiceService service;
 
@@ -58,7 +61,8 @@ class InvoiceServiceTest {
             productRepository,
             customerDebtRepository,
             tenantRepository,
-            auditService
+            auditService,
+            documentNumberService
         );
         TenantContext.set(1L, 10L);
         setAuthorities("SALES_ORDER_CREATE");
@@ -91,6 +95,8 @@ class InvoiceServiceTest {
             1L, "SALES_ORDER", 100L, "INCREASE"
         )).thenReturn(Optional.of(debt));
         when(tenantRepository.findById(1L)).thenReturn(Optional.of(Tenant.builder().id(1L).name("Demo Distributor").active(true).build()));
+        when(documentNumberService.next(DocumentNumberType.INVOICE, 1L))
+            .thenReturn("INV-20260906-0001");
         when(invoiceRepository.saveAndFlush(any(Invoice.class))).thenAnswer(invocation -> {
             Invoice invoice = invocation.getArgument(0);
             invoice.setId(77L);
@@ -99,14 +105,14 @@ class InvoiceServiceTest {
 
         InvoiceResponse response = service.createFromSalesOrder(100L);
 
-        assertThat(response.invoiceNumber()).isEqualTo("INV-1-77");
+        assertThat(response.invoiceNumber()).isEqualTo("INV-20260906-0001");
         assertThat(response.salesOrderCode()).isEqualTo("SO-100");
         assertThat(response.totalAmount()).isEqualByComparingTo("160000");
         assertThat(response.paidAmount()).isEqualByComparingTo("40000");
         assertThat(response.remainingAmount()).isEqualByComparingTo("120000");
         assertThat(response.items()).hasSize(1);
         assertThat(response.items().get(0).lineTotal()).isEqualByComparingTo("160000");
-        verify(auditService).log("INVOICE_CREATED", "Invoice", 77L, "INV-1-77");
+        verify(auditService).log("INVOICE_CREATED", "Invoice", 77L, "INV-20260906-0001");
     }
 
     @Test

@@ -14,6 +14,8 @@ import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.document.DocumentNumberService;
+import com.example.dms.document.DocumentNumberType;
 import com.example.dms.sales.SalesOrder;
 import com.example.dms.sales.SalesOrderRepository;
 import java.math.BigDecimal;
@@ -39,6 +41,8 @@ class PaymentServiceTest {
     private SalesOrderRepository salesOrderRepository;
     @Mock
     private AuditService auditService;
+    @Mock
+    private DocumentNumberService documentNumberService;
 
     private PaymentService paymentService;
 
@@ -49,11 +53,15 @@ class PaymentServiceTest {
             customerRepository,
             customerDebtRepository,
             salesOrderRepository,
-            auditService
+            auditService,
+            documentNumberService
         );
         TenantContext.set(1L, 10L);
         when(customerRepository.findByIdAndTenantIdAndDeletedAtIsNull(2L, 1L))
             .thenReturn(Optional.of(Customer.builder().id(2L).tenantId(1L).build()));
+        org.mockito.Mockito.lenient()
+            .when(documentNumberService.next(DocumentNumberType.PAYMENT, 1L))
+            .thenReturn("PAY-20260906-0004");
     }
 
     @AfterEach
@@ -82,11 +90,13 @@ class PaymentServiceTest {
 
         assertThat(first.getRemainingAmount()).isEqualByComparingTo("10");
         assertThat(second.getRemainingAmount()).isEqualByComparingTo("40");
+        assertThat(response.code()).isEqualTo("PAY-20260906-0004");
         assertThat(response.amount()).isEqualByComparingTo("50");
         assertThat(firstOrder.getPaidAmount()).isEqualByComparingTo("50");
         assertThat(firstOrder.getDebtAmount()).isEqualByComparingTo("10");
         verify(salesOrderRepository, never()).findByIdAndTenantId(102L, 1L);
         verify(customerDebtRepository).save(any(CustomerDebtTransaction.class));
+        verify(auditService).log("PAYMENT_RECORDED", "Payment", 99L, "PAY-20260906-0004");
     }
 
     @Test

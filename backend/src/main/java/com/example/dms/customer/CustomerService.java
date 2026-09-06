@@ -4,7 +4,6 @@ import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
 import com.example.dms.common.TenantContext;
 import com.example.dms.debt.CustomerDebtRepository;
-import com.example.dms.debt.CustomerDebtTransaction;
 import com.example.dms.sales.SalesOrderRepository;
 import com.example.dms.sales.SalesOrderStatus;
 import java.math.BigDecimal;
@@ -177,15 +176,6 @@ public class CustomerService {
             ? customerDebtRepository.balance(tenantId, customerId)
             : null;
         return toResponse(customer, debtBalance);
-    }
-
-    @Transactional(readOnly = true)
-    public List<CustomerDebtTransaction> statement(Long customerId) {
-        find(customerId);
-        return customerDebtRepository.findByTenantIdAndCustomerIdOrderByCreatedAtDesc(
-            TenantContext.tenantRequired(),
-            customerId
-        );
     }
 
     @Transactional(readOnly = true)

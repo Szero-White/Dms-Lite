@@ -6,6 +6,8 @@ import com.example.dms.common.TenantContext;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.document.DocumentNumberService;
+import com.example.dms.document.DocumentNumberType;
 import com.example.dms.sales.SalesOrder;
 import com.example.dms.sales.SalesOrderRepository;
 import java.math.BigDecimal;
@@ -29,6 +31,7 @@ public class PaymentService {
     private final CustomerDebtRepository customerDebtRepository;
     private final SalesOrderRepository salesOrderRepository;
     private final AuditService auditService;
+    private final DocumentNumberService documentNumberService;
 
     @Transactional
     @CacheEvict(
@@ -57,6 +60,7 @@ public class PaymentService {
             Payment.builder()
                 .tenantId(tenantId)
                 .customerId(request.customerId())
+                .code(documentNumberService.next(DocumentNumberType.PAYMENT, tenantId))
                 .amount(request.amount())
                 .note(request.note())
                 .createdBy(TenantContext.userOrZero())
@@ -81,7 +85,7 @@ public class PaymentService {
             AUDIT_ACTION_PAYMENT_RECORDED,
             "Payment",
             savedPayment.getId(),
-            request.amount().toPlainString()
+            savedPayment.getCode()
         );
 
         return PaymentResponse.from(savedPayment);

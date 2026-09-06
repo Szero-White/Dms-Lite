@@ -266,6 +266,12 @@ export function CustomerDetailPage() {
                   },
                   { title: t('customers.detail.type'), dataIndex: 'sourceType', width: 130, render: (value: string) => t(`customers.detail.sourceType.${value}`, { defaultValue: t('customers.detail.sourceType.UNKNOWN') }) },
                   {
+                    title: t('customers.detail.reference'),
+                    dataIndex: 'sourceCode',
+                    width: 190,
+                    render: (value: string | null | undefined) => value || '--',
+                  },
+                  {
                     title: t('customers.detail.direction'),
                     dataIndex: 'direction',
                     width: 135,

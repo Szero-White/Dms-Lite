@@ -17,6 +17,7 @@ import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.document.DocumentNumberService;
 import com.example.dms.inventory.InventoryService;
 import com.example.dms.inventory.WarehouseRepository;
 import com.example.dms.notification.NotificationProducer;
@@ -53,6 +54,8 @@ class SalesOrderServiceCreditLimitTest {
     private NotificationProducer notificationProducer;
     @Mock
     private SalesOrderMapper salesOrderMapper;
+    @Mock
+    private DocumentNumberService documentNumberService;
 
     private SalesOrderService salesOrderService;
 
@@ -67,7 +70,8 @@ class SalesOrderServiceCreditLimitTest {
             customerDebtRepository,
             auditService,
             notificationProducer,
-            salesOrderMapper
+            salesOrderMapper,
+            documentNumberService
         );
         TenantContext.set(1L, 10L);
     }

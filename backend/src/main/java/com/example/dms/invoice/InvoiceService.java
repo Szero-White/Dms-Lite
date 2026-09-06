@@ -6,6 +6,8 @@ import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
+import com.example.dms.document.DocumentNumberService;
+import com.example.dms.document.DocumentNumberType;
 import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
 import com.example.dms.sales.SalesOrder;
@@ -48,6 +50,7 @@ public class InvoiceService {
     private final CustomerDebtRepository customerDebtRepository;
     private final TenantRepository tenantRepository;
     private final AuditService auditService;
+    private final DocumentNumberService documentNumberService;
 
     @Transactional(readOnly = true)
     public Page<InvoiceResponse> listInvoices(int page) {
@@ -113,13 +116,13 @@ public class InvoiceService {
             .tenantId(tenantId)
             .customerId(customer.getId())
             .salesOrderId(order.getId())
+            .invoiceNumber(documentNumberService.next(DocumentNumberType.INVOICE, tenantId))
             .status(STATUS_DRAFT)
             .dueDate(resolveDueDate(tenantId, order, customer))
             .taxRate("0")
             .taxAmount(BigDecimal.ZERO)
             .paidAmount(zeroIfNull(order.getPaidAmount()))
             .remainingAmount(zeroIfNull(order.getDebtAmount()))
-            .notes(order.getCode())
             .companyName(tenantRepository.findById(tenantId).map(tenant -> tenant.getName()).orElse("DMS Lite"))
             .customerName(customer.getName())
             .customerAddress(customer.getAddress())
@@ -158,7 +161,6 @@ public class InvoiceService {
         invoice.setTotalAmount(zeroIfNull(order.getTotalAmount()));
 
         Invoice saved = invoiceRepository.saveAndFlush(invoice);
-        saved.setInvoiceNumber("INV-" + tenantId + "-" + saved.getId());
 
         auditService.log("INVOICE_CREATED", "Invoice", saved.getId(), saved.getInvoiceNumber());
         return toResponse(saved, order, true, canViewReceivableState());
@@ -266,6 +268,7 @@ public class InvoiceService {
             invoice.getInvoiceNumber(),
             invoice.getCustomerId(),
             invoice.getCustomerName(),
+            invoice.getCustomerAddress(),
             invoice.getSalesOrderId(),
             order == null ? null : order.getCode(),
             effectiveStatus,
