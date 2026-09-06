@@ -2,37 +2,49 @@ package com.example.dms.invoice;
 
 import com.example.dms.common.BusinessException;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.Normalizer;
+import java.text.NumberFormat;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class InvoicePdfService {
 
-    private static final PDFont NORMAL = PDType1Font.HELVETICA;
-    private static final PDFont BOLD = PDType1Font.HELVETICA_BOLD;
-    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        .withZone(ZoneId.systemDefault());
     private static final int ITEMS_PER_PAGE = 16;
+    private static final String ENV_REGULAR_FONT = "APP_INVOICE_PDF_FONT_REGULAR";
+    private static final String ENV_BOLD_FONT = "APP_INVOICE_PDF_FONT_BOLD";
 
-    public byte[] generateInvoicePdf(InvoiceResponse invoice) {
+    private final ZoneId businessZone;
+
+    public InvoicePdfService(@Value("${app.business-zone:Asia/Ho_Chi_Minh}") String businessZone) {
+        this.businessZone = ZoneId.of(businessZone);
+    }
+
+    public byte[] generateInvoicePdf(InvoiceResponse invoice, InvoicePdfLanguage language) {
         if ("DRAFT".equals(invoice.status()) || "CANCELLED".equals(invoice.status())) {
             throw new BusinessException("Only active issued invoices can be downloaded");
         }
 
+        InvoicePdfLanguage effectiveLanguage = language == null ? InvoicePdfLanguage.EN : language;
+        InvoicePdfText copy = InvoicePdfText.forLanguage(effectiveLanguage);
         List<InvoiceResponse.InvoiceItemResponse> items = invoice.items() == null ? List.of() : invoice.items();
         int totalPages = Math.max(1, (items.size() + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE);
 
         try (PDDocument document = new PDDocument(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            PdfFonts fonts = loadFonts(document);
+
             for (int pageIndex = 0; pageIndex < totalPages; pageIndex++) {
                 PDPage page = new PDPage();
                 document.addPage(page);
@@ -41,12 +53,12 @@ public class InvoicePdfService {
                 List<InvoiceResponse.InvoiceItemResponse> pageItems = items.subList(from, to);
 
                 try (PDPageContentStream content = new PDPageContentStream(document, page)) {
-                    float y = drawHeader(content, page, invoice, pageIndex + 1, totalPages);
-                    y = drawItems(content, y, pageItems, from);
+                    float y = drawHeader(content, page, invoice, effectiveLanguage, copy, fonts, pageIndex + 1, totalPages);
+                    y = drawItems(content, y, pageItems, from, effectiveLanguage, copy, fonts);
                     if (pageIndex == totalPages - 1) {
-                        drawSummary(content, y - 12, invoice);
+                        drawSummary(content, y - 12, invoice, effectiveLanguage, copy, fonts);
                     }
-                    text(content, NORMAL, 8, 50, 34, "Page " + (pageIndex + 1) + " / " + totalPages);
+                    text(content, fonts.normal(), 8, 50, 34, copy.page() + " " + (pageIndex + 1) + " / " + totalPages);
                 }
             }
 
@@ -61,23 +73,36 @@ public class InvoicePdfService {
         PDPageContentStream content,
         PDPage page,
         InvoiceResponse invoice,
+        InvoicePdfLanguage language,
+        InvoicePdfText copy,
+        PdfFonts fonts,
         int pageNumber,
         int totalPages
     ) throws IOException {
         float y = page.getMediaBox().getHeight() - 50;
-        text(content, BOLD, 22, 50, y, "INVOICE");
+        text(content, fonts.bold(), 20, 50, y, copy.title());
         if (totalPages > 1) {
-            text(content, NORMAL, 9, 500, y + 4, pageNumber + " / " + totalPages);
+            text(content, fonts.normal(), 9, 500, y + 4, pageNumber + " / " + totalPages);
         }
-        y -= 34;
-        text(content, BOLD, 11, 50, y, ascii(invoice.companyName() == null ? "DMS Lite" : invoice.companyName()));
-        text(content, BOLD, 11, 350, y, truncate(ascii(invoice.customerName()), 31));
-        y -= 22;
-        text(content, NORMAL, 10, 50, y, "Invoice: " + invoice.invoiceNumber());
-        text(content, NORMAL, 10, 350, y, "Order: " + safe(invoice.salesOrderCode()));
+
+        y -= 30;
+        text(content, fonts.normal(), 8, 50, y, copy.seller());
+        text(content, fonts.normal(), 8, 350, y, copy.customer());
+        y -= 16;
+        text(content, fonts.bold(), 11, 50, y, safe(invoice.companyName() == null ? "DMS Lite" : invoice.companyName()));
+        text(content, fonts.bold(), 11, 350, y, truncate(safe(invoice.customerName()), 31));
+
+        if (hasText(invoice.customerAddress())) {
+            y -= 16;
+            text(content, fonts.normal(), 8, 350, y, copy.address() + ": " + truncate(safe(invoice.customerAddress()), 38));
+        }
+
+        y -= 24;
+        text(content, fonts.normal(), 10, 50, y, copy.invoice() + ": " + safe(invoice.invoiceNumber()));
+        text(content, fonts.normal(), 10, 350, y, copy.order() + ": " + safe(invoice.salesOrderCode()));
         y -= 18;
-        text(content, NORMAL, 10, 50, y, "Issue date: " + formatDate(invoice.issueDate()));
-        text(content, NORMAL, 10, 350, y, "Due date: " + formatDate(invoice.dueDate()));
+        text(content, fonts.normal(), 10, 50, y, copy.issueDate() + ": " + formatDate(invoice.issueDate(), language));
+        text(content, fonts.normal(), 10, 350, y, copy.dueDate() + ": " + formatDate(invoice.dueDate(), language));
         y -= 30;
         return y;
     }
@@ -86,14 +111,17 @@ public class InvoicePdfService {
         PDPageContentStream content,
         float y,
         List<InvoiceResponse.InvoiceItemResponse> items,
-        int firstItemIndex
+        int firstItemIndex,
+        InvoicePdfLanguage language,
+        InvoicePdfText copy,
+        PdfFonts fonts
     ) throws IOException {
-        text(content, BOLD, 9, 50, y, "#");
-        text(content, BOLD, 9, 75, y, "Product");
-        text(content, BOLD, 9, 305, y, "Qty");
-        text(content, BOLD, 9, 350, y, "Unit price");
-        text(content, BOLD, 9, 430, y, "Discount");
-        text(content, BOLD, 9, 505, y, "Total");
+        text(content, fonts.bold(), 9, 50, y, "#");
+        text(content, fonts.bold(), 9, 75, y, copy.product());
+        text(content, fonts.bold(), 9, 305, y, copy.quantity());
+        text(content, fonts.bold(), 9, 350, y, copy.unitPrice());
+        text(content, fonts.bold(), 9, 430, y, copy.discount());
+        text(content, fonts.bold(), 9, 505, y, copy.total());
         y -= 14;
         content.moveTo(50, y);
         content.lineTo(562, y);
@@ -102,36 +130,105 @@ public class InvoicePdfService {
 
         for (int i = 0; i < items.size(); i++) {
             InvoiceResponse.InvoiceItemResponse item = items.get(i);
-            text(content, NORMAL, 9, 50, y, Integer.toString(firstItemIndex + i + 1));
-            text(content, NORMAL, 9, 75, y, truncate(ascii(item.productName()), 34));
-            text(content, NORMAL, 9, 305, y, safeNumber(item.quantity()));
-            text(content, NORMAL, 9, 350, y, money(item.unitPrice()));
-            text(content, NORMAL, 9, 430, y, money(item.discountAmount()));
-            text(content, NORMAL, 9, 505, y, money(item.lineTotal()));
+            text(content, fonts.normal(), 9, 50, y, Integer.toString(firstItemIndex + i + 1));
+            text(content, fonts.normal(), 9, 75, y, truncate(productLabel(item), 34));
+            text(content, fonts.normal(), 9, 305, y, safeNumber(item.quantity()));
+            text(content, fonts.normal(), 9, 350, y, money(item.unitPrice(), language));
+            text(content, fonts.normal(), 9, 430, y, money(item.discountAmount(), language));
+            text(content, fonts.normal(), 9, 505, y, money(item.lineTotal(), language));
             y -= 18;
         }
         return y;
     }
 
-    private void drawSummary(PDPageContentStream content, float y, InvoiceResponse invoice) throws IOException {
-        text(content, NORMAL, 10, 350, y, "Subtotal:");
-        text(content, NORMAL, 10, 470, y, money(invoice.subtotal()));
+    private void drawSummary(
+        PDPageContentStream content,
+        float y,
+        InvoiceResponse invoice,
+        InvoicePdfLanguage language,
+        InvoicePdfText copy,
+        PdfFonts fonts
+    ) throws IOException {
+        text(content, fonts.normal(), 10, 350, y, copy.subtotal() + ":");
+        text(content, fonts.normal(), 10, 470, y, money(invoice.subtotal(), language));
         y -= 18;
-        text(content, NORMAL, 10, 350, y, "Discount:");
-        text(content, NORMAL, 10, 470, y, money(invoice.discountAmount()));
+        text(content, fonts.normal(), 10, 350, y, copy.discount() + ":");
+        text(content, fonts.normal(), 10, 470, y, money(invoice.discountAmount(), language));
         y -= 18;
-        text(content, BOLD, 11, 350, y, "Total:");
-        text(content, BOLD, 11, 470, y, money(invoice.totalAmount()));
+        text(content, fonts.bold(), 11, 350, y, copy.total() + ":");
+        text(content, fonts.bold(), 11, 470, y, money(invoice.totalAmount(), language));
         if (invoice.paidAmount() != null && invoice.remainingAmount() != null) {
             y -= 18;
-            text(content, NORMAL, 10, 350, y, "Paid:");
-            text(content, NORMAL, 10, 470, y, money(invoice.paidAmount()));
+            text(content, fonts.normal(), 10, 350, y, copy.paid() + ":");
+            text(content, fonts.normal(), 10, 470, y, money(invoice.paidAmount(), language));
             y -= 18;
-            text(content, BOLD, 10, 350, y, "Remaining:");
-            text(content, BOLD, 10, 470, y, money(invoice.remainingAmount()));
+            text(content, fonts.bold(), 10, 350, y, copy.remaining() + ":");
+            text(content, fonts.bold(), 10, 470, y, money(invoice.remainingAmount(), language));
             y -= 30;
-            text(content, NORMAL, 8, 50, y, "Amounts are synchronized with the sales-order receivable workflow.");
+            text(content, fonts.normal(), 8, 50, y, copy.paymentSnapshot());
         }
+    }
+
+    private PdfFonts loadFonts(PDDocument document) throws IOException {
+        File regularFile = findFont(ENV_REGULAR_FONT, regularFontCandidates());
+        if (regularFile == null) {
+            throw new BusinessException("Unicode font required for invoice PDF is not available");
+        }
+        File boldFile = findFont(ENV_BOLD_FONT, boldFontCandidates());
+
+        PDFont normal = PDType0Font.load(document, regularFile);
+        PDFont bold = boldFile == null ? normal : PDType0Font.load(document, boldFile);
+        return new PdfFonts(normal, bold);
+    }
+
+    private File findFont(String environmentVariable, List<String> candidates) {
+        String configured = System.getenv(environmentVariable);
+        if (configured != null && !configured.isBlank()) {
+            File configuredFile = new File(configured);
+            if (configuredFile.isFile()) {
+                return configuredFile;
+            }
+        }
+
+        for (String candidate : candidates) {
+            File file = new File(candidate);
+            if (file.isFile()) {
+                return file;
+            }
+        }
+        return null;
+    }
+
+    private List<String> regularFontCandidates() {
+        List<String> candidates = new ArrayList<>();
+        String windows = System.getenv("WINDIR");
+        if (windows != null && !windows.isBlank()) {
+            candidates.add(windows + File.separator + "Fonts" + File.separator + "arial.ttf");
+            candidates.add(windows + File.separator + "Fonts" + File.separator + "segoeui.ttf");
+        }
+        candidates.add("C:\\Windows\\Fonts\\arial.ttf");
+        candidates.add("C:\\Windows\\Fonts\\segoeui.ttf");
+        candidates.add("/usr/share/fonts/ttf-dejavu/DejaVuSans.ttf");
+        candidates.add("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+        candidates.add("/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf");
+        candidates.add("/System/Library/Fonts/Supplemental/Arial.ttf");
+        return candidates;
+    }
+
+    private List<String> boldFontCandidates() {
+        List<String> candidates = new ArrayList<>();
+        String windows = System.getenv("WINDIR");
+        if (windows != null && !windows.isBlank()) {
+            candidates.add(windows + File.separator + "Fonts" + File.separator + "arialbd.ttf");
+            candidates.add(windows + File.separator + "Fonts" + File.separator + "segoeuib.ttf");
+        }
+        candidates.add("C:\\Windows\\Fonts\\arialbd.ttf");
+        candidates.add("C:\\Windows\\Fonts\\segoeuib.ttf");
+        candidates.add("/usr/share/fonts/ttf-dejavu/DejaVuSans-Bold.ttf");
+        candidates.add("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf");
+        candidates.add("/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf");
+        candidates.add("/System/Library/Fonts/Supplemental/Arial Bold.ttf");
+        return candidates;
     }
 
     private void text(PDPageContentStream content, PDFont font, float size, float x, float y, String value)
@@ -139,17 +236,28 @@ public class InvoicePdfService {
         content.beginText();
         content.setFont(font, size);
         content.newLineAtOffset(x, y);
-        content.showText(ascii(value));
+        content.showText(singleLine(value));
         content.endText();
     }
 
-    private String formatDate(java.time.Instant value) {
-        return value == null ? "-" : DATE.format(value);
+    private String formatDate(Instant value, InvoicePdfLanguage language) {
+        if (value == null) {
+            return "-";
+        }
+        String pattern = language == InvoicePdfLanguage.VI ? "dd/MM/yyyy" : "dd MMM yyyy";
+        return DateTimeFormatter.ofPattern(pattern, language.locale())
+            .withZone(businessZone)
+            .format(value);
     }
 
-    private String money(BigDecimal value) {
+    private String money(BigDecimal value, InvoicePdfLanguage language) {
         BigDecimal safe = value == null ? BigDecimal.ZERO : value;
-        return safe.stripTrailingZeros().toPlainString() + " VND";
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(language.locale());
+        numberFormat.setGroupingUsed(true);
+        numberFormat.setMinimumFractionDigits(0);
+        numberFormat.setMaximumFractionDigits(2);
+        String formatted = numberFormat.format(safe.stripTrailingZeros());
+        return language == InvoicePdfLanguage.VI ? formatted + " ₫" : formatted + " VND";
     }
 
     private String safeNumber(BigDecimal value) {
@@ -157,7 +265,16 @@ public class InvoicePdfService {
     }
 
     private String safe(String value) {
-        return value == null || value.isBlank() ? "-" : ascii(value);
+        return value == null || value.isBlank() ? "-" : singleLine(value);
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private String productLabel(InvoiceResponse.InvoiceItemResponse item) {
+        String name = safe(item.productName());
+        return hasText(item.productCode()) ? name + " (" + singleLine(item.productCode()) + ")" : name;
     }
 
     private String truncate(String value, int maxLength) {
@@ -167,14 +284,10 @@ public class InvoicePdfService {
         return value.length() <= maxLength ? value : value.substring(0, Math.max(0, maxLength - 3)) + "...";
     }
 
-    private String ascii(String value) {
-        if (value == null) {
-            return "-";
-        }
-        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
-            .replaceAll("\\p{M}+", "")
-            .replace('đ', 'd')
-            .replace('Đ', 'D');
-        return normalized.replaceAll("[^\\x20-\\x7E]", "?");
+    private String singleLine(String value) {
+        return value == null ? "-" : value.replace('\r', ' ').replace('\n', ' ').trim();
+    }
+
+    private record PdfFonts(PDFont normal, PDFont bold) {
     }
 }

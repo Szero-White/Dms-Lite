@@ -3,16 +3,20 @@ package com.example.dms.invoice;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.document.DocumentNumberService;
+import com.example.dms.document.DocumentNumberType;
 import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
 import com.example.dms.sales.SalesOrder;
@@ -22,7 +26,9 @@ import com.example.dms.sales.SalesOrderStatus;
 import com.example.dms.tenant.Tenant;
 import com.example.dms.tenant.TenantRepository;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +52,8 @@ class InvoiceServiceTest {
     @Mock private CustomerDebtRepository customerDebtRepository;
     @Mock private TenantRepository tenantRepository;
     @Mock private AuditService auditService;
+    @Mock private DocumentNumberService documentNumberService;
+    @Mock private BusinessTimeProvider businessTimeProvider;
 
     private InvoiceService service;
 
@@ -58,9 +66,17 @@ class InvoiceServiceTest {
             productRepository,
             customerDebtRepository,
             tenantRepository,
-            auditService
+            auditService,
+            documentNumberService,
+            businessTimeProvider
         );
         TenantContext.set(1L, 10L);
+        lenient().when(businessTimeProvider.today()).thenReturn(LocalDate.of(2026, 9, 6));
+        lenient().when(businessTimeProvider.startOfDay(any(LocalDate.class))).thenAnswer(invocation ->
+            invocation.<LocalDate>getArgument(0)
+                .atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh"))
+                .toInstant()
+        );
         setAuthorities("SALES_ORDER_CREATE");
     }
 
@@ -91,6 +107,8 @@ class InvoiceServiceTest {
             1L, "SALES_ORDER", 100L, "INCREASE"
         )).thenReturn(Optional.of(debt));
         when(tenantRepository.findById(1L)).thenReturn(Optional.of(Tenant.builder().id(1L).name("Demo Distributor").active(true).build()));
+        when(documentNumberService.next(DocumentNumberType.INVOICE, 1L))
+            .thenReturn("INV-20260906-0001");
         when(invoiceRepository.saveAndFlush(any(Invoice.class))).thenAnswer(invocation -> {
             Invoice invoice = invocation.getArgument(0);
             invoice.setId(77L);
@@ -99,14 +117,14 @@ class InvoiceServiceTest {
 
         InvoiceResponse response = service.createFromSalesOrder(100L);
 
-        assertThat(response.invoiceNumber()).isEqualTo("INV-1-77");
+        assertThat(response.invoiceNumber()).isEqualTo("INV-20260906-0001");
         assertThat(response.salesOrderCode()).isEqualTo("SO-100");
         assertThat(response.totalAmount()).isEqualByComparingTo("160000");
         assertThat(response.paidAmount()).isEqualByComparingTo("40000");
         assertThat(response.remainingAmount()).isEqualByComparingTo("120000");
         assertThat(response.items()).hasSize(1);
         assertThat(response.items().get(0).lineTotal()).isEqualByComparingTo("160000");
-        verify(auditService).log("INVOICE_CREATED", "Invoice", 77L, "INV-1-77");
+        verify(auditService).log("INVOICE_CREATED", "Invoice", 77L, "INV-20260906-0001");
     }
 
     @Test
@@ -154,6 +172,28 @@ class InvoiceServiceTest {
             .hasMessage("Cannot cancel an invoice after payment has been recorded");
     }
 
+
+    @Test
+    void issuedInvoiceBecomesOverdueOnlyAfterBusinessDueDateEnds() {
+        SalesOrder order = completedOrder();
+        Invoice invoice = Invoice.builder()
+            .id(77L).tenantId(1L).customerId(2L).salesOrderId(100L)
+            .invoiceNumber("INV-1-77").status("ISSUED")
+            .dueDate(Instant.parse("2026-09-05T17:00:00Z"))
+            .subtotal(new BigDecimal("160000")).taxAmount(BigDecimal.ZERO)
+            .discountAmount(BigDecimal.ZERO).totalAmount(new BigDecimal("160000"))
+            .paidAmount(new BigDecimal("40000")).remainingAmount(new BigDecimal("120000"))
+            .customerName("Bach hoa Hong Phuc").items(new ArrayList<>()).build();
+
+        when(invoiceRepository.findDetailByIdAndTenantId(77L, 1L)).thenReturn(Optional.of(invoice));
+        when(salesOrderRepository.findByIdAndTenantId(100L, 1L)).thenReturn(Optional.of(order));
+
+        assertThat(service.getInvoice(77L).status()).isEqualTo("ISSUED");
+
+        when(businessTimeProvider.today()).thenReturn(LocalDate.of(2026, 9, 7));
+
+        assertThat(service.getInvoice(77L).status()).isEqualTo("OVERDUE");
+    }
 
     @Test
     void redactsReceivableStateForInvoiceViewerWithoutFinancialPermission() {

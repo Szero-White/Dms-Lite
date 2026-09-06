@@ -192,6 +192,12 @@
   color: #6657f5;
 }
 
+.provenanceRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .answerSection {
   display: grid;
   gap: 8px;

@@ -16,6 +16,8 @@ public record HelpInteractionResponse(
     List<String> guardrails,
     String scopeNotice,
     boolean blocked,
+    HelpAnswerSource answerSource,
+    HelpGenerationProvider generationProvider,
     Instant createdAt
 ) {
 }

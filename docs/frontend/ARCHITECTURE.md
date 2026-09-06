@@ -23,10 +23,13 @@ frontend/src/
 │   ├── inventory/
 │   ├── sales/
 │   ├── payments/
+│   ├── invoice/
 │   ├── dashboard/
 │   ├── reports/
 │   ├── notifications/
-│   └── audit/
+│   ├── audit/
+│   ├── help/
+│   └── team/
 ├── lib/
 ├── styles/
 ├── main.tsx
@@ -70,10 +73,13 @@ backend/customer     -> frontend/features/customers
 backend/inventory    -> frontend/features/inventory
 backend/sales        -> frontend/features/sales
 backend/payment      -> frontend/features/payments
+backend/invoice      -> frontend/features/invoice
 backend/report       -> frontend/features/reports
 backend/auth         -> frontend/features/auth
 backend/notification -> frontend/features/notifications
 backend/audit        -> frontend/features/audit
+backend/help         -> frontend/features/help
+backend/team         -> frontend/features/team
 ```
 
 The naming may differ slightly where frontend routes use plural form, but ownership must stay aligned by domain.

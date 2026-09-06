@@ -9,6 +9,7 @@ public record InvoiceResponse(
     String invoiceNumber,
     Long customerId,
     String customerName,
+    String customerAddress,
     Long salesOrderId,
     String salesOrderCode,
     String status,

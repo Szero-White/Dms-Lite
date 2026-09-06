@@ -2,10 +2,13 @@ package com.example.dms.invoice;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
+import com.example.dms.document.DocumentNumberService;
+import com.example.dms.document.DocumentNumberType;
 import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
 import com.example.dms.sales.SalesOrder;
@@ -16,7 +19,6 @@ import com.example.dms.tenant.TenantRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +50,8 @@ public class InvoiceService {
     private final CustomerDebtRepository customerDebtRepository;
     private final TenantRepository tenantRepository;
     private final AuditService auditService;
+    private final DocumentNumberService documentNumberService;
+    private final BusinessTimeProvider businessTimeProvider;
 
     @Transactional(readOnly = true)
     public Page<InvoiceResponse> listInvoices(int page) {
@@ -113,13 +117,13 @@ public class InvoiceService {
             .tenantId(tenantId)
             .customerId(customer.getId())
             .salesOrderId(order.getId())
+            .invoiceNumber(documentNumberService.next(DocumentNumberType.INVOICE, tenantId))
             .status(STATUS_DRAFT)
             .dueDate(resolveDueDate(tenantId, order, customer))
             .taxRate("0")
             .taxAmount(BigDecimal.ZERO)
             .paidAmount(zeroIfNull(order.getPaidAmount()))
             .remainingAmount(zeroIfNull(order.getDebtAmount()))
-            .notes(order.getCode())
             .companyName(tenantRepository.findById(tenantId).map(tenant -> tenant.getName()).orElse("DMS Lite"))
             .customerName(customer.getName())
             .customerAddress(customer.getAddress())
@@ -158,7 +162,6 @@ public class InvoiceService {
         invoice.setTotalAmount(zeroIfNull(order.getTotalAmount()));
 
         Invoice saved = invoiceRepository.saveAndFlush(invoice);
-        saved.setInvoiceNumber("INV-" + tenantId + "-" + saved.getId());
 
         auditService.log("INVOICE_CREATED", "Invoice", saved.getId(), saved.getInvoiceNumber());
         return toResponse(saved, order, true, canViewReceivableState());
@@ -230,8 +233,8 @@ public class InvoiceService {
                 DIRECTION_INCREASE
             )
             .map(debt -> debt.getDueDate())
-            .orElseGet(() -> LocalDate.now().plusDays(Math.max(customer.getPaymentTermDays() == null ? 0 : customer.getPaymentTermDays(), 0)));
-        return dueDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+            .orElseGet(() -> businessTimeProvider.today().plusDays(Math.max(customer.getPaymentTermDays() == null ? 0 : customer.getPaymentTermDays(), 0)));
+        return businessTimeProvider.startOfDay(dueDate);
     }
 
     private InvoiceResponse toResponse(
@@ -266,6 +269,7 @@ public class InvoiceService {
             invoice.getInvoiceNumber(),
             invoice.getCustomerId(),
             invoice.getCustomerName(),
+            invoice.getCustomerAddress(),
             invoice.getSalesOrderId(),
             order == null ? null : order.getCode(),
             effectiveStatus,
@@ -299,7 +303,8 @@ public class InvoiceService {
         if (remaining.signum() <= 0) {
             return "PAID";
         }
-        if (invoice.getDueDate() != null && invoice.getDueDate().isBefore(Instant.now())) {
+        Instant startOfToday = businessTimeProvider.startOfDay(businessTimeProvider.today());
+        if (invoice.getDueDate() != null && invoice.getDueDate().isBefore(startOfToday)) {
             return "OVERDUE";
         }
         return STATUS_ISSUED;

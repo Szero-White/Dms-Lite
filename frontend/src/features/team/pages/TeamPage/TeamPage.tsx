@@ -8,6 +8,7 @@ import {
   useCreateTeamRole,
   useDeactivateTeamMember,
   useDeleteTeamRole,
+  useReactivateTeamMember,
   useTeamMembers,
   useTeamPermissions,
   useTeamRoles,
@@ -42,6 +43,7 @@ export function TeamPage() {
   const createMember = useCreateTeamMember();
   const updateMember = useUpdateTeamMember();
   const deactivateMember = useDeactivateTeamMember();
+  const reactivateMember = useReactivateTeamMember();
   const createRole = useCreateTeamRole();
   const updateRole = useUpdateTeamRole();
   const deleteRole = useDeleteTeamRole();
@@ -115,6 +117,17 @@ export function TeamPage() {
     setRoleDrawerOpen(true);
   }
 
+  function handleReactivateMember(member: TeamMember) {
+    reactivateMember.mutate({
+      userId: member.id,
+      payload: {
+        fullName: member.fullName,
+        roles: member.roles,
+        active: true,
+      },
+    });
+  }
+
   async function handleMemberSubmit(values: TeamMemberFormValues) {
     const payload = {
       fullName: values.fullName.trim(),
@@ -180,9 +193,12 @@ export function TeamPage() {
                 error={membersQuery.error ?? rolesQuery.error}
                 isDeactivating={deactivateMember.isPending}
                 deactivatingMemberId={deactivateMember.variables}
+                isReactivating={reactivateMember.isPending}
+                reactivatingMemberId={reactivateMember.variables?.userId}
                 onCreate={openCreateMemberDrawer}
                 onEdit={openEditMemberDrawer}
                 onDeactivate={(memberId) => deactivateMember.mutate(memberId)}
+                onReactivate={handleReactivateMember}
                 onRetry={() => {
                   void membersQuery.refetch();
                   void rolesQuery.refetch();

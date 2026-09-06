@@ -50,9 +50,13 @@ public class InvoiceController {
 
     @GetMapping("/{id}/pdf")
     @PreAuthorize("hasAuthority('INVOICE_VIEW')")
-    public ResponseEntity<ByteArrayResource> generatePdf(@PathVariable Long id) {
+    public ResponseEntity<ByteArrayResource> generatePdf(
+        @PathVariable Long id,
+        @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage
+    ) {
         InvoiceResponse invoice = invoiceService.getInvoice(id);
-        byte[] bytes = invoicePdfService.generateInvoicePdf(invoice);
+        InvoicePdfLanguage language = InvoicePdfLanguage.fromAcceptLanguage(acceptLanguage);
+        byte[] bytes = invoicePdfService.generateInvoicePdf(invoice, language);
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + invoice.invoiceNumber() + ".pdf\"")
             .contentType(MediaType.APPLICATION_PDF)

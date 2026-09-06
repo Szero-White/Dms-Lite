@@ -1,7 +1,8 @@
 package com.example.dms.customer;
 
 import com.example.dms.common.ApiResponse;
-import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.debt.CustomerDebtStatementResponse;
+import com.example.dms.debt.CustomerDebtStatementService;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CustomerController {
 
     private final CustomerService customerService;
+    private final CustomerDebtStatementService customerDebtStatementService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('CUSTOMER_VIEW')")
@@ -67,7 +69,7 @@ public class CustomerController {
 
     @GetMapping("/{id}/debt-statement")
     @PreAuthorize("hasAuthority('DEBT_VIEW')")
-    public ApiResponse<List<CustomerDebtTransaction>> statement(@PathVariable Long id) {
-        return ApiResponse.ok(customerService.statement(id));
+    public ApiResponse<List<CustomerDebtStatementResponse>> statement(@PathVariable Long id) {
+        return ApiResponse.ok(customerDebtStatementService.statement(id));
     }
 }

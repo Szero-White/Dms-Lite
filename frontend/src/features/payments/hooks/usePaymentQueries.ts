@@ -10,7 +10,7 @@ export function useRecordCustomerPayment() {
   return useMutation({
     mutationFn: recordCustomerPayment,
     onSuccess: async (payment) => {
-      message.success(t('toast.payment.recorded'));
+      message.success(t('toast.payment.recorded', { code: payment.code }));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.customers }),
         queryClient.invalidateQueries({ queryKey: queryKeys.customer(payment.customerId) }),

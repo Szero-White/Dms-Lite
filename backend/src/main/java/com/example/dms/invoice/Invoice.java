@@ -23,7 +23,7 @@ public class Invoice {
     private Long customerId;
     private Long salesOrderId;
 
-    @Column(unique = true)
+    @Column(nullable = false)
     private String invoiceNumber;
 
     private String status;

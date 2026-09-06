@@ -20,6 +20,34 @@ class HelpDisplayNamesTest {
     }
 
     @Test
+    void filtersRelatedModulesForCustomRolesWithoutShowingUnassignedScreens() {
+        HelpPermissionScope scope = scope(
+            "AI_HELP_VIEW",
+            "PRODUCT_VIEW",
+            "INVENTORY_VIEW",
+            "NOTIFICATION_VIEW"
+        );
+
+        assertThat(scope.relatedModules(
+            HelpLocale.VI,
+            "Inventory",
+            "Products",
+            "Sales Orders",
+            "Payments",
+            "Reports",
+            "Notifications",
+            "FUTURE_UNKNOWN_MODULE"
+        )).containsExactly("Kho hàng", "Sản phẩm", "Thông báo");
+    }
+
+    @Test
+    void visibleModulesIncludeAdministrativeAndNotificationScreensOnlyWhenAuthorized() {
+        HelpPermissionScope scope = scope("AUDIT_VIEW", "NOTIFICATION_VIEW", "AI_HELP_VIEW");
+
+        assertThat(scope.visibleModules()).containsExactly("Audit Logs", "Notifications");
+    }
+
+    @Test
     void localizesSalesOrderStatusForVietnamese() {
         assertThat(HelpDisplayNames.salesOrderStatus("DRAFT", HelpLocale.VI)).isEqualTo("Nháp");
         assertThat(HelpDisplayNames.salesOrderStatus("COMPLETED", HelpLocale.VI)).isEqualTo("Hoàn tất");

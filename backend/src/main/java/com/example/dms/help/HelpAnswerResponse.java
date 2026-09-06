@@ -8,6 +8,23 @@ public record HelpAnswerResponse(
     List<String> relatedModules,
     List<String> guardrails,
     String scopeNotice,
-    boolean blocked
+    boolean blocked,
+    HelpAnswerSource answerSource,
+    HelpGenerationProvider generationProvider
 ) {
+    public HelpAnswerResponse withProvenance(
+        HelpAnswerSource source,
+        HelpGenerationProvider provider
+    ) {
+        return new HelpAnswerResponse(
+            answer,
+            steps,
+            relatedModules,
+            guardrails,
+            scopeNotice,
+            blocked,
+            source,
+            provider
+        );
+    }
 }

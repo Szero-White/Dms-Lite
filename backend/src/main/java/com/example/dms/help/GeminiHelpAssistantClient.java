@@ -30,7 +30,7 @@ public class GeminiHelpAssistantClient {
         HelpLocale locale,
         HelpAnswerResponse fallback
     ) {
-        if (!properties.isEnabled() || !properties.hasApiKey()) {
+        if (!isAvailable()) {
             return Optional.empty();
         }
 
@@ -45,11 +45,21 @@ public class GeminiHelpAssistantClient {
                 .retrieve()
                 .body(JsonNode.class);
 
-            return parseAnswer(response).map(answer -> sanitizeAnswer(answer, scope, locale, fallback));
+            Optional<GeminiAnswerPayload> generatedAnswer = parseAnswer(response);
+            if (generatedAnswer.isEmpty()) {
+                log.warn("Gemini assistant fallback used: Gemini response did not contain a usable answer");
+                return Optional.empty();
+            }
+
+            return generatedAnswer.map(answer -> sanitizeAnswer(answer, scope, fallback));
         } catch (RestClientException | IllegalArgumentException | JsonProcessingException ex) {
             log.warn("Gemini assistant fallback used: {}", ex.getMessage());
             return Optional.empty();
         }
+    }
+
+    boolean isAvailable() {
+        return properties != null && properties.isEnabled() && properties.hasApiKey();
     }
 
     private Map<String, Object> buildPayload(
@@ -83,7 +93,7 @@ public class GeminiHelpAssistantClient {
             Allowed modules: %s
             Current permissions: %s
 
-            Recent conversation:
+            Recent user questions (assistant-generated answers are intentionally excluded):
             %s
 
             User question: %s
@@ -104,9 +114,9 @@ public class GeminiHelpAssistantClient {
                 locale.name(),
                 String.join(", ", scope.visibleModules()),
                 String.join(", ", scope.permissions()),
-                formatContext(request.context()),
+                formatExternalContext(request.context()),
                 request.question().trim(),
-                objectMapper.writeValueAsString(fallback)
+                objectMapper.writeValueAsString(GeminiAnswerPayload.from(fallback))
             );
 
         return Map.of(
@@ -115,27 +125,62 @@ public class GeminiHelpAssistantClient {
                 "role", "user",
                 "parts", List.of(Map.of("text", prompt))
             )),
-            "generationConfig",
-            Map.of(
-                "maxOutputTokens", properties.getMaxOutputTokens(),
-                "temperature", 0.7
+            "generationConfig", buildGenerationConfig()
+        );
+    }
+
+    Map<String, Object> buildGenerationConfig() {
+        return Map.of(
+            "maxOutputTokens", properties.getMaxOutputTokens(),
+            "temperature", 0.7,
+            "responseMimeType", "application/json",
+            "responseSchema", Map.of(
+                "type", "OBJECT",
+                "properties", Map.of(
+                    "answer", Map.of("type", "STRING"),
+                    "steps", Map.of(
+                        "type", "ARRAY",
+                        "items", Map.of("type", "STRING")
+                    ),
+                    "relatedModules", Map.of(
+                        "type", "ARRAY",
+                        "items", Map.of("type", "STRING")
+                    ),
+                    "guardrails", Map.of(
+                        "type", "ARRAY",
+                        "items", Map.of("type", "STRING")
+                    ),
+                    "scopeNotice", Map.of("type", "STRING"),
+                    "blocked", Map.of("type", "BOOLEAN")
+                ),
+                "required", List.of(
+                    "answer",
+                    "steps",
+                    "relatedModules",
+                    "guardrails",
+                    "scopeNotice",
+                    "blocked"
+                )
             )
         );
     }
 
-    private String formatContext(List<HelpAskRequest.ConversationTurn> context) {
+    static String formatExternalContext(List<HelpAskRequest.ConversationTurn> context) {
         if (context == null || context.isEmpty()) {
-            return "No previous conversation.";
+            return "No previous user questions.";
         }
 
+        // Assistant turns can contain live database values produced by HelpDataAnswerService.
+        // Never replay server-generated answers to an external AI provider on a later turn.
         return context.stream()
+            .filter(turn -> "user".equalsIgnoreCase(turn.role()))
             .filter(turn -> turn.content() != null && !turn.content().isBlank())
-            .map(turn -> (turn.role() == null ? "user" : turn.role()) + ": " + turn.content().trim())
+            .map(turn -> "user: " + turn.content().trim())
             .reduce((left, right) -> left + "\n" + right)
-            .orElse("No previous conversation.");
+            .orElse("No previous user questions.");
     }
 
-    private Optional<HelpAnswerResponse> parseAnswer(JsonNode response) throws JsonProcessingException {
+    private Optional<GeminiAnswerPayload> parseAnswer(JsonNode response) throws JsonProcessingException {
         if (response == null) {
             return Optional.empty();
         }
@@ -148,48 +193,55 @@ public class GeminiHelpAssistantClient {
         for (JsonNode part : parts) {
             String text = part.path("text").asText("");
             if (!text.isBlank()) {
-                return Optional.of(objectMapper.readValue(extractJson(text), HelpAnswerResponse.class));
+                return Optional.of(objectMapper.readValue(extractJson(text), GeminiAnswerPayload.class));
             }
         }
 
         return Optional.empty();
     }
 
-    private HelpAnswerResponse sanitizeAnswer(
-        HelpAnswerResponse answer,
+    HelpAnswerResponse sanitizeAnswer(
+        GeminiAnswerPayload answer,
         HelpPermissionScope scope,
-        HelpLocale locale,
         HelpAnswerResponse fallback
     ) {
-        List<String> allowedModules = scope.visibleModules();
-        List<String> relatedModules = answer.relatedModules() == null ? List.of() : answer.relatedModules().stream()
-            .filter(allowedModules::contains)
-            .distinct()
-            .toList();
-        List<String> displayModules = relatedModules.isEmpty()
-            ? fallback.relatedModules()
-            : HelpDisplayNames.modules(locale, relatedModules);
+        if (answer == null
+            || answer.blocked()
+            || answer.answer() == null
+            || answer.answer().isBlank()
+            || referencesUnassignedModule(answer, scope)) {
+            log.warn("Gemini assistant fallback used: generated answer failed backend validation");
+            return fallback.withProvenance(
+                HelpAnswerSource.SYSTEM_FALLBACK,
+                HelpGenerationProvider.NONE
+            );
+        }
 
+        // The external model is a wording enhancer, not an authorization or navigation authority.
+        // Keep permission-scoped steps, modules, guardrails and blocked state from the backend.
         return new HelpAnswerResponse(
-            blankToDefault(answer.answer(), fallback.answer()),
-            safeList(answer.steps(), fallback.steps()),
-            displayModules,
-            safeList(answer.guardrails(), fallback.guardrails()),
-            blankToDefault(answer.scopeNotice(), fallback.scopeNotice()),
-            answer.blocked()
+            answer.answer().trim(),
+            fallback.steps(),
+            fallback.relatedModules(),
+            fallback.guardrails(),
+            fallback.scopeNotice(),
+            fallback.blocked(),
+            fallback.answerSource(),
+            HelpGenerationProvider.GEMINI
         );
     }
 
-    private List<String> safeList(List<String> values, List<String> fallback) {
-        if (values == null || values.isEmpty()) {
-            return fallback;
+    private boolean referencesUnassignedModule(
+        GeminiAnswerPayload answer,
+        HelpPermissionScope scope
+    ) {
+        if (answer.relatedModules() == null) {
+            return false;
         }
 
-        return values.stream().filter(value -> value != null && !value.isBlank()).limit(6).toList();
-    }
-
-    private String blankToDefault(String value, String fallback) {
-        return value == null || value.isBlank() ? fallback : value;
+        return answer.relatedModules().stream()
+            .filter(module -> module != null && !module.isBlank())
+            .anyMatch(module -> !scope.canReferenceModule(module));
     }
 
     private String extractJson(String text) {
@@ -205,5 +257,25 @@ public class GeminiHelpAssistantClient {
         }
 
         return trimmed.substring(start, end + 1);
+    }
+
+    record GeminiAnswerPayload(
+        String answer,
+        List<String> steps,
+        List<String> relatedModules,
+        List<String> guardrails,
+        String scopeNotice,
+        boolean blocked
+    ) {
+        static GeminiAnswerPayload from(HelpAnswerResponse answer) {
+            return new GeminiAnswerPayload(
+                answer.answer(),
+                answer.steps(),
+                answer.relatedModules(),
+                answer.guardrails(),
+                answer.scopeNotice(),
+                answer.blocked()
+            );
+        }
     }
 }

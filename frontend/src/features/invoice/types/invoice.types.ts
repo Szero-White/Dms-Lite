@@ -17,6 +17,7 @@ export interface Invoice {
   invoiceNumber: string;
   customerId: number;
   customerName?: string;
+  customerAddress?: string;
   salesOrderId: number;
   salesOrderCode?: string;
   status: InvoiceStatus;

@@ -36,12 +36,11 @@ export function useSalesOrderDetail(orderId?: number) {
 
 
 export function useCreateSalesOrder() {
-  const { queryClient, message, t, onError } = useMutationFeedback();
+  const { queryClient, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: (payload: CreateSalesOrderPayload) => createSalesOrder(payload),
     onSuccess: async () => {
-      message.success(t('toast.sales.created'));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders }),
         queryClient.invalidateQueries({ queryKey: queryKeys.salesReportRoot }),

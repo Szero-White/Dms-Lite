@@ -32,11 +32,15 @@ public class HelpAssistantService {
         HelpIntentMatch intent = intentDetector.detect(request);
         HelpAnswerResponse fallback = answerIntent(intent, scope, locale);
 
-        if (fallback.blocked() || intent.needsClarification()) {
+        if (fallback.blocked() || intent.needsClarification() || !geminiClient.isAvailable()) {
             return fallback;
         }
 
-        return geminiClient.answer(request, scope, locale, fallback).orElse(fallback);
+        return geminiClient.answer(request, scope, locale, fallback)
+            .orElseGet(() -> fallback.withProvenance(
+                HelpAnswerSource.SYSTEM_FALLBACK,
+                HelpGenerationProvider.NONE
+            ));
     }
 
     private HelpAnswerResponse answerIntent(HelpIntentMatch intent, HelpPermissionScope scope, HelpLocale locale) {
@@ -50,7 +54,7 @@ public class HelpAssistantService {
             case ASSIGNED_WORK -> knowledge.assignedWorkAnswer(scope, locale);
             case MISSING_SCREEN -> knowledge.missingScreenAnswer(scope, locale);
             case TEAM_ACCESS -> scope.canManageTeam()
-                ? knowledge.teamAccessAnswer(locale)
+                ? knowledge.teamAccessAnswer(scope, locale)
                 : knowledge.outOfScopeAnswer(scope, "Team Access", locale);
             case SALES -> scope.canUseSales()
                 ? knowledge.salesAnswer(scope, locale)
@@ -71,7 +75,7 @@ public class HelpAssistantService {
                 ? knowledge.customerAnswer(scope, locale)
                 : knowledge.outOfScopeAnswer(scope, "Customers", locale);
             case REPORT -> scope.canUseReports()
-                ? knowledge.reportAnswer(locale)
+                ? knowledge.reportAnswer(scope, locale)
                 : knowledge.outOfScopeAnswer(scope, "Reports", locale);
             case UNKNOWN -> knowledge.generalAnswer(scope, locale);
         };

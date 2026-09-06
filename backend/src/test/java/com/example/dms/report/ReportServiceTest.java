@@ -3,6 +3,7 @@ package com.example.dms.report;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.debt.CustomerDebtRepository;
 import java.math.BigDecimal;
@@ -20,12 +21,13 @@ class ReportServiceTest {
 
     @Mock private ReportReadRepository reportReadRepository;
     @Mock private CustomerDebtRepository customerDebtRepository;
+    @Mock private BusinessTimeProvider businessTimeProvider;
 
     private ReportService reportService;
 
     @BeforeEach
     void setUp() {
-        reportService = new ReportService(reportReadRepository, customerDebtRepository);
+        reportService = new ReportService(reportReadRepository, customerDebtRepository, businessTimeProvider);
         TenantContext.set(1L, 10L);
     }
 

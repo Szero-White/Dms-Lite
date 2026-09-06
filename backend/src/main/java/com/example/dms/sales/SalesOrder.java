@@ -25,7 +25,7 @@ public class SalesOrder {
     private Long customerId;
     private Long warehouseId;
 
-    @Column(unique = true)
+    @Column(nullable = false)
     private String code;
 
     @Enumerated(EnumType.STRING)

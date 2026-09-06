@@ -28,7 +28,7 @@ final class HelpQuestionText {
     private static final String VIETNAMESE_ONLY_LETTERS = "ăâđêôơưĂÂĐÊÔƠƯ";
 
     private static final Pattern PRODUCT_OR_ORDER_CODE = Pattern.compile(
-        "\\b[A-Z]{2,}[A-Z0-9]*[-_][A-Z0-9]+\\b"
+        "\\b[A-Z]{2,}[A-Z0-9]*(?:[-_][A-Z0-9]+)+\\b"
     );
 
     private HelpQuestionText() {

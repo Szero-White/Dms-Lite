@@ -37,6 +37,7 @@ management:
         include: health,info,metrics,prometheus
 
 app:
+  business-zone: ${APP_BUSINESS_ZONE:Asia/Ho_Chi_Minh}
   demo:
     enabled: ${APP_DEMO_ENABLED:false}
     password: ${APP_DEMO_PASSWORD:123456}
@@ -46,7 +47,7 @@ app:
     gemini:
       enabled: ${GEMINI_ENABLED:true}
       api-key: ${GEMINI_API_KEY:}
-      model: ${GEMINI_MODEL:gemini-2.5-flash}
+      model: ${GEMINI_MODEL:gemini-3.6-flash}
       max-output-tokens: ${GEMINI_MAX_OUTPUT_TOKENS:900}
   jwt:
     secret: ${APP_JWT_SECRET:dms-lite-secret-key-must-be-at-least-32-characters}

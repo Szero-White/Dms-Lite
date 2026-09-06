@@ -6,22 +6,26 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.document.DocumentNumberService;
 import com.example.dms.inventory.InventoryService;
 import com.example.dms.inventory.WarehouseRepository;
 import com.example.dms.notification.NotificationProducer;
 import com.example.dms.product.ProductRepository;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -53,6 +57,10 @@ class SalesOrderServiceCreditLimitTest {
     private NotificationProducer notificationProducer;
     @Mock
     private SalesOrderMapper salesOrderMapper;
+    @Mock
+    private DocumentNumberService documentNumberService;
+    @Mock
+    private BusinessTimeProvider businessTimeProvider;
 
     private SalesOrderService salesOrderService;
 
@@ -67,9 +75,12 @@ class SalesOrderServiceCreditLimitTest {
             customerDebtRepository,
             auditService,
             notificationProducer,
-            salesOrderMapper
+            salesOrderMapper,
+            documentNumberService,
+            businessTimeProvider
         );
         TenantContext.set(1L, 10L);
+        lenient().when(businessTimeProvider.today()).thenReturn(LocalDate.of(2026, 9, 6));
     }
 
     @AfterEach

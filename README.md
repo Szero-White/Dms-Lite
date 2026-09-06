@@ -145,8 +145,18 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 
 ### Notification
 
-- Notification persistence
+- Persisted business notifications plus permission-filtered derived alerts
+- Low-stock and overdue-receivable visibility
+- Notification content is filtered by business permissions, including custom roles
 - Docker profile extension path for RabbitMQ-based messaging
+
+### Workflow AI Help
+
+- Permission-aware workflow guidance for system and custom roles
+- Live stock, receivable, sales-order, product, and customer lookups are guarded server-side before data access
+- Server-generated live-data answers are kept out of external AI conversation context
+- Backend-owned answer provenance distinguishes live DMS data, deterministic workflow knowledge, Gemini-assisted wording, and system fallback without letting the external model claim its own authority
+- AI interaction history is restricted to team administrators and preserves provenance for support/audit review
 
 ### Dashboard / Reports
 
@@ -191,9 +201,12 @@ This flow reflects a real B2B operational slice rather than isolated CRUD screen
 - `debt`
 - `payment`
 - `invoice`
+- `document`
 - `audit`
 - `notification`
 - `report`
+- `help`
+- `team`
 
 ### Frontend
 
@@ -214,7 +227,7 @@ This flow reflects a real B2B operational slice rather than isolated CRUD screen
 - Prometheus
 - Grafana
 
-Those optional services are primarily used in the Docker-oriented setup rather than the default local-first workflow.
+Those optional services are Docker-oriented extension points rather than dependencies of the default local-first or recruiter-demo workflow. Fuller Redis/RabbitMQ integration coverage remains on the roadmap.
 
 ## Tech Stack
 
@@ -222,7 +235,7 @@ Those optional services are primarily used in the Docker-oriented setup rather t
 | --- | --- |
 | Backend | Java 17, Spring Boot 3, Spring Security, JWT, Spring Data JPA, PostgreSQL, Flyway, Swagger/OpenAPI |
 | Frontend | React, TypeScript, Vite, Ant Design, React Query, Axios |
-| Testing | JUnit 5, Mockito, Spring Security Test, Testcontainers |
+| Testing | JUnit 5, Mockito, Spring Security Test |
 | DevOps | Docker Compose, GitHub Actions, Prometheus, Grafana |
 
 ## Database Design Highlights
@@ -343,7 +356,7 @@ Main service URLs:
 
 ## Project Status
 
-The current portfolio version focuses on a stable local/deployable vertical slice: authentication, product, customer, inventory, sales order, receivable debt, payment, dashboard, audit, and notification.
+The current portfolio version focuses on a stable local/deployable vertical slice: authentication, product, customer, inventory, sales order, receivable debt, payment, invoice, dashboard/reporting, audit, notification, AI help, and team/permission management.
 
 ## Current Business Invariants
 
@@ -354,6 +367,8 @@ The current portfolio version focuses on a stable local/deployable vertical slic
 - Sales-order `paidAmount`/`debtAmount` snapshots are synchronized in the same payment transaction; open receivable `remainingAmount` stays the canonical balance. Draft/cancelled orders are not exposed as actual receivables.
 - Customer and sales-order detail screens use dedicated detail APIs instead of searching only the first list page.
 - Warehouse-dependent actions resolve and validate the configured tenant warehouse instead of assuming warehouse ID `1`.
+- New Sales Order, Invoice, and Payment references use tenant-scoped business-date numbering (`SO-`, `INV-`, `PAY-`) rather than database IDs.
+- Business-date rules use `APP_BUSINESS_ZONE` (default `Asia/Ho_Chi_Minh`) so due dates, overdue state, document numbering, and date-based reporting do not depend on the server machine timezone.
 
 ## Roadmap
 

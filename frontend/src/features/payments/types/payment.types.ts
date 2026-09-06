@@ -6,6 +6,7 @@ export interface RecordPaymentPayload {
 
 export interface PaymentRecord {
   id: number;
+  code: string;
   customerId: number;
   amount: string | number;
   note?: string;

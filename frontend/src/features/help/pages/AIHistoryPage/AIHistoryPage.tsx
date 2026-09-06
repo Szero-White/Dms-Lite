@@ -31,12 +31,30 @@ import {
   useDeleteHelpHistoryItem,
   useHelpHistory,
 } from '../../hooks/useHelpAssistant';
-import type { HelpInteraction } from '../../types/help.types';
+import {
+  aiStatusTranslationKey,
+  answerSourceTranslationKey,
+  generationProviderTranslationKey,
+} from '../../utils/answerProvenance';
+import type { HelpAnswerSource, HelpInteraction } from '../../types/help.types';
 import styles from './AIHistoryPage.module.css';
 
 type HistoryStatusFilter = 'all' | 'answered' | 'blocked';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
+
+function sourceTagColor(source: HelpAnswerSource) {
+  switch (source) {
+    case 'LIVE_DATA':
+      return 'blue';
+    case 'WORKFLOW_KNOWLEDGE':
+      return 'purple';
+    case 'SYSTEM_FALLBACK':
+      return 'orange';
+    default:
+      return 'default';
+  }
+}
 
 function statusToBlocked(status: HistoryStatusFilter) {
   if (status === 'blocked') {
@@ -206,7 +224,7 @@ export function AIHistoryPage() {
           <Table<HelpInteraction>
             rowKey="id"
             size="small"
-            scroll={{ x: 1080 }}
+            scroll={{ x: 1240 }}
             dataSource={history}
             pagination={{
               current: page + 1,
@@ -247,6 +265,16 @@ export function AIHistoryPage() {
                 dataIndex: 'answer',
                 width: 340,
                 render: (value: string) => <Typography.Text ellipsis={{ tooltip: value }}>{value}</Typography.Text>,
+              },
+              {
+                title: t('aiHistory.column.source'),
+                dataIndex: 'answerSource',
+                width: 160,
+                render: (source: HelpAnswerSource) => (
+                  <Tag color={sourceTagColor(source)}>
+                    {t(answerSourceTranslationKey(source))}
+                  </Tag>
+                ),
               },
               {
                 title: t('common.status'),
@@ -320,6 +348,15 @@ export function AIHistoryPage() {
               <Descriptions.Item label={t('aiHistory.detail.roles')}>{selectedItem.actorRoles.length ? roleListLabel(selectedItem.actorRoles, t) : '--'}</Descriptions.Item>
               <Descriptions.Item label={t('common.status')}>{selectedItem.blocked ? t('aiHistory.status.blocked') : t('aiHistory.status.answered')}</Descriptions.Item>
               <Descriptions.Item label={t('common.time')}>{formatDateTime(selectedItem.createdAt)}</Descriptions.Item>
+              <Descriptions.Item label={t('aiHistory.detail.answerSource')}>
+                {t(answerSourceTranslationKey(selectedItem.answerSource))}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('aiHistory.detail.generationProvider')}>
+                {t(generationProviderTranslationKey(selectedItem.generationProvider))}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('aiHistory.detail.aiStatus')}>
+                {t(aiStatusTranslationKey(selectedItem.answerSource, selectedItem.generationProvider))}
+              </Descriptions.Item>
               <Descriptions.Item label={t('aiHistory.detail.scopeNotice')}>{selectedItem.scopeNotice}</Descriptions.Item>
             </Descriptions>
 

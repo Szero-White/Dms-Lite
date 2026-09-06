@@ -17,7 +17,7 @@ Kết quả:
 - chưa phát sinh receivable;
 - nếu `creditLimit > 0`, frontend cảnh báo khi `current receivable + projected order exposure` vượt hạn mức nhưng vẫn cho phép lưu `DRAFT`.
 
-Order code dùng random suffix thay vì `count + 1` để tránh race condition khi nhiều request tạo đơn đồng thời. Current MVP dùng một warehouse chính; frontend lấy warehouse này từ backend thay vì hardcode ID.
+Order code dùng business document numbering `SO-YYYYMMDD-NNNN`, được cấp phát atomically theo tenant + business date thay vì `count + 1`. Current MVP dùng một warehouse chính; frontend lấy warehouse này từ backend thay vì hardcode ID.
 
 ## 2. Warehouse confirm / fulfill
 
@@ -53,7 +53,7 @@ Order còn nợ tạo:
 - `direction = INCREASE`
 - `amount = số nợ ban đầu`
 - `remainingAmount = số nợ ban đầu`
-- `dueDate = ngày confirm + paymentTermDays`
+- `dueDate = business date của ngày confirm + paymentTermDays`
 
 Balance hiện tại của customer được tính duy nhất bằng:
 
@@ -116,9 +116,9 @@ Invoice trong DMS Lite là **chứng từ bán hàng gắn với một order đ�
 - `paidAmount` và `remainingAmount` khi đọc invoice lấy theo trạng thái tài chính hiện tại của sales order;
 - customer payment vẫn chỉ được ghi qua `POST /api/payments/customer`;
 - invoice đã có payment không được hủy;
-- PDF chỉ tải được khi invoice đã phát hành và còn hiệu lực.
+- PDF chỉ tải được khi invoice đã phát hành và còn hiệu lực; nội dung PDF theo ngôn ngữ `Accept-Language` của giao diện (`vi`/`en`), dùng font Unicode để giữ nguyên tiếng Việt và hiển thị số tiền theo locale.
 
-Luồng: `COMPLETED order -> DRAFT invoice -> ISSUED -> PAID/OVERDUE` (trạng thái `PAID/OVERDUE` được suy ra từ receivable hiện tại).
+Luồng: `COMPLETED order -> DRAFT invoice -> ISSUED -> PAID/OVERDUE` (trạng thái `PAID/OVERDUE` được suy ra từ receivable hiện tại). `OVERDUE` chỉ áp dụng sau khi đã qua ngày đến hạn theo business timezone; đúng ngày đến hạn vẫn là `ISSUED` nếu chưa thanh toán hết.
 
 ## 7. Revenue
 
@@ -153,3 +153,16 @@ Frontend không được giả định list summary chứa order items. Với or
 
 - `GET /api/invoices` -> paged invoice summary, yêu cầu `INVOICE_VIEW`.
 - `GET /api/invoices/{id}` -> invoice detail + snapshot items.
+
+
+## Business document numbering
+
+User-facing document references are separate from database primary keys. New documents use a tenant-scoped, business-date sequence:
+
+- Sales Order: `SO-YYYYMMDD-NNNN`
+- Invoice: `INV-YYYYMMDD-NNNN`
+- Payment: `PAY-YYYYMMDD-NNNN`
+
+The sequence is allocated atomically in PostgreSQL per tenant, document type, and business date. Existing Sales Order and Invoice numbers remain unchanged so historical/issued identifiers are never rewritten. Payments had no prior business code, so migration V7 backfills them. The default business timezone is `Asia/Ho_Chi_Minh` and can be overridden with `APP_BUSINESS_ZONE`.
+
+The customer debt statement resolves `sourceCode` for Sales Order and Payment entries, so business document numbers remain visible after the creation toast and in later reconciliation. Database IDs remain internal references.

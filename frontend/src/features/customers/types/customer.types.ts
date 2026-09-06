@@ -21,7 +21,8 @@ export interface DebtTransaction {
   id: number;
   customerId: number;
   sourceType: string;
-  sourceId: number;
+  sourceId?: number | null;
+  sourceCode?: string | null;
   direction: 'INCREASE' | 'DECREASE' | string;
   amount: string | number;
   remainingAmount: string | number;
