@@ -17,7 +17,7 @@ Kết quả:
 - chưa phát sinh receivable;
 - nếu `creditLimit > 0`, frontend cảnh báo khi `current receivable + projected order exposure` vượt hạn mức nhưng vẫn cho phép lưu `DRAFT`.
 
-Order code dùng random suffix thay vì `count + 1` để tránh race condition khi nhiều request tạo đơn đồng thời. Current MVP dùng một warehouse chính; frontend lấy warehouse này từ backend thay vì hardcode ID.
+Order code dùng business document numbering `SO-YYYYMMDD-NNNN`, được cấp phát atomically theo tenant + business date thay vì `count + 1`. Current MVP dùng một warehouse chính; frontend lấy warehouse này từ backend thay vì hardcode ID.
 
 ## 2. Warehouse confirm / fulfill
 
@@ -53,7 +53,7 @@ Order còn nợ tạo:
 - `direction = INCREASE`
 - `amount = số nợ ban đầu`
 - `remainingAmount = số nợ ban đầu`
-- `dueDate = ngày confirm + paymentTermDays`
+- `dueDate = business date của ngày confirm + paymentTermDays`
 
 Balance hiện tại của customer được tính duy nhất bằng:
 
@@ -118,7 +118,7 @@ Invoice trong DMS Lite là **chứng từ bán hàng gắn với một order đ�
 - invoice đã có payment không được hủy;
 - PDF chỉ tải được khi invoice đã phát hành và còn hiệu lực; nội dung PDF theo ngôn ngữ `Accept-Language` của giao diện (`vi`/`en`), dùng font Unicode để giữ nguyên tiếng Việt và hiển thị số tiền theo locale.
 
-Luồng: `COMPLETED order -> DRAFT invoice -> ISSUED -> PAID/OVERDUE` (trạng thái `PAID/OVERDUE` được suy ra từ receivable hiện tại).
+Luồng: `COMPLETED order -> DRAFT invoice -> ISSUED -> PAID/OVERDUE` (trạng thái `PAID/OVERDUE` được suy ra từ receivable hiện tại). `OVERDUE` chỉ áp dụng sau khi đã qua ngày đến hạn theo business timezone; đúng ngày đến hạn vẫn là `ISSUED` nếu chưa thanh toán hết.
 
 ## 7. Revenue
 

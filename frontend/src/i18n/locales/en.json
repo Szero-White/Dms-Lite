@@ -412,7 +412,7 @@
   "notifications.title": "Notifications",
   "notifications.types.INVOICE_ISSUED.message": "Invoice {{invoiceCode}} has been issued.",
   "notifications.types.INVOICE_ISSUED.title": "Invoice issued",
-  "notifications.types.LOW_STOCK.message": "{{product}} is at {{quantity}} units, below minimum {{minimum}}.",
+  "notifications.types.LOW_STOCK.message": "{{product}} is at {{quantity}} units, at or below minimum {{minimum}}.",
   "notifications.types.LOW_STOCK.title": "Low stock alert",
   "notifications.types.OVERDUE_DEBT.message": "{{customer}} has overdue receivable of {{amount}} VND.",
   "notifications.types.OVERDUE_DEBT.title": "Overdue debt",

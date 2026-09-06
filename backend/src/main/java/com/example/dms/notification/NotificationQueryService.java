@@ -149,7 +149,7 @@ public class NotificationQueryService {
                     "LOW_STOCK",
                     "Low stock alert",
                     productName + " is at " + stockItem.getQuantityOnHand() +
-                        " units, below minimum " + minStock + ".",
+                        " units, at or below minimum " + minStock + ".",
                     false,
                     createdAt,
                     DERIVED_SOURCE

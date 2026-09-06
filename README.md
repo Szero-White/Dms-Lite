@@ -145,7 +145,8 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 
 ### Notification
 
-- Notification persistence
+- Persisted business notifications plus permission-filtered derived alerts
+- Low-stock and overdue-receivable visibility
 - Docker profile extension path for RabbitMQ-based messaging
 
 ### Dashboard / Reports
@@ -191,9 +192,12 @@ This flow reflects a real B2B operational slice rather than isolated CRUD screen
 - `debt`
 - `payment`
 - `invoice`
+- `document`
 - `audit`
 - `notification`
 - `report`
+- `help`
+- `team`
 
 ### Frontend
 
@@ -343,7 +347,7 @@ Main service URLs:
 
 ## Project Status
 
-The current portfolio version focuses on a stable local/deployable vertical slice: authentication, product, customer, inventory, sales order, receivable debt, payment, dashboard, audit, and notification.
+The current portfolio version focuses on a stable local/deployable vertical slice: authentication, product, customer, inventory, sales order, receivable debt, payment, invoice, dashboard/reporting, audit, notification, AI help, and team/permission management.
 
 ## Current Business Invariants
 
@@ -354,6 +358,8 @@ The current portfolio version focuses on a stable local/deployable vertical slic
 - Sales-order `paidAmount`/`debtAmount` snapshots are synchronized in the same payment transaction; open receivable `remainingAmount` stays the canonical balance. Draft/cancelled orders are not exposed as actual receivables.
 - Customer and sales-order detail screens use dedicated detail APIs instead of searching only the first list page.
 - Warehouse-dependent actions resolve and validate the configured tenant warehouse instead of assuming warehouse ID `1`.
+- New Sales Order, Invoice, and Payment references use tenant-scoped business-date numbering (`SO-`, `INV-`, `PAY-`) rather than database IDs.
+- Business-date rules use `APP_BUSINESS_ZONE` (default `Asia/Ho_Chi_Minh`) so due dates, overdue state, document numbering, and date-based reporting do not depend on the server machine timezone.
 
 ## Roadmap
 

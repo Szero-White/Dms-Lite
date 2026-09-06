@@ -412,7 +412,7 @@
   "notifications.title": "Thông báo",
   "notifications.types.INVOICE_ISSUED.message": "Hóa đơn {{invoiceCode}} đã được phát hành.",
   "notifications.types.INVOICE_ISSUED.title": "Hóa đơn đã phát hành",
-  "notifications.types.LOW_STOCK.message": "{{product}} còn {{quantity}} đơn vị, thấp hơn mức tối thiểu {{minimum}}.",
+  "notifications.types.LOW_STOCK.message": "{{product}} còn {{quantity}} đơn vị, đã chạm hoặc thấp hơn mức tối thiểu {{minimum}}.",
   "notifications.types.LOW_STOCK.title": "Cảnh báo sắp hết hàng",
   "notifications.types.OVERDUE_DEBT.message": "{{customer}} có khoản phải thu quá hạn {{amount}} VND.",
   "notifications.types.OVERDUE_DEBT.title": "Công nợ quá hạn",

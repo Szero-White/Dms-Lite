@@ -35,12 +35,12 @@ Chỉ dùng utility này cho **local development/demo database**. Không chạy 
 
 Dùng một customer và một product có stock đủ:
 
-1. Sales tạo order `DRAFT` tổng `100`, paid `0`.
+1. Sales tạo order `DRAFT` tổng `100`, paid `0`; mã mới phải theo `SO-YYYYMMDD-NNNN`.
 2. Warehouse confirm/fulfill order.
 3. Order phải thành `COMPLETED`.
 4. Stock phải giảm đúng quantity và có inventory transaction `OUT`.
 5. Customer receivable phải là `100`.
-6. Accountant record payment `40`.
+6. Accountant record payment `40`; payment mới phải theo `PAY-YYYYMMDD-NNNN`.
 7. Customer receivable phải còn `60`.
 8. Debt statement phải giữ cả receivable phát sinh và payment history.
 9. Dashboard total receivable và top customer debt phải cùng là `60` cho scenario này.
@@ -48,7 +48,17 @@ Dùng một customer và một product có stock đủ:
 11. Với customer có `creditLimit > 0`, tạo `DRAFT` vượt hạn mức phải chỉ cảnh báo; confirm/fulfill phải bị reject trước khi trừ stock hoặc tạo receivable.
 12. Confirm đúng bằng hạn mức phải được phép; `creditLimit = 0` phải tiếp tục được hiểu là chưa cấu hình hard limit.
 
-## 4. Role smoke test
+## 4. Invoice / document smoke
+
+- Từ order `COMPLETED`, tạo invoice mới phải sinh `INV-YYYYMMDD-NNNN`.
+- Tạo lại invoice từ cùng sales order không được nhân bản chứng từ.
+- Issue invoice không được làm tăng receivable lần hai.
+- PDF VI/EN phải giữ đúng customer/product, SO/INV code, amount, paid/remaining và Unicode tiếng Việt.
+- Sau partial payment, tải lại PDF phải phản ánh paid/remaining mới từ canonical receivable.
+- Đúng ngày đến hạn, invoice chưa thanh toán hết vẫn là `ISSUED`; chỉ sau business date đó mới thành `OVERDUE`.
+- Debt statement phải hiển thị `sourceCode` cho Sales Order/Payment thay vì dùng database ID làm business reference.
+
+## 5. Role smoke test
 
 ### Owner
 
@@ -98,8 +108,10 @@ Dùng một customer và một product có stock đủ:
 - Role không có business page nào phải vào màn `No workspace access`, không rơi vào redirect loop.
 - Route protected mới nhưng quên khai báo permission phải fail closed.
 - AI và Notification tiếp tục áp policy nghiệp vụ riêng; notification không được spam duplicate/retry.
+- Low-stock alert phải xuất hiện khi `quantityOnHand <= minStock` cho role có `NOTIFICATION_VIEW + PRODUCT_VIEW + INVENTORY_VIEW`, và không được leak sang role thiếu inventory permission.
+- AI role hạn chế không được trả dữ liệu debt/order/inventory nếu thiếu view permission tương ứng.
 
-## 5. API / data consistency
+## 6. API / data consistency
 
 - `GET /api/customers/{id}` trả đúng customer detail.
 - `GET /api/sales-orders/{id}` trả order detail + items.
@@ -110,7 +122,7 @@ Dùng một customer và một product có stock đủ:
 - Receivable balance dùng duy nhất tổng `remaining_amount` của open `INCREASE` rows.
 - Customer list không phát sinh một balance query cho từng customer.
 
-## 6. Localization / i18n
+## 7. Localization / i18n
 
 - `en.json` và `vi.json` có cùng key; không có static `t(...)` key bị thiếu.
 - Enum/status/source do hệ thống sinh phải render theo locale, không in raw code như `SALES_ORDER`, `ADJUSTMENT`, `IN`, `OUT`.
@@ -119,18 +131,19 @@ Dùng một customer và một product có stock đủ:
 - Trợ lý AI ở locale VI không trả module/status/permission code tiếng Anh trong phần hướng dẫn hoặc `relatedModules`.
 - Chuyển VI ↔ EN rồi kiểm tra Kho hàng, Công nợ, Thông báo, Nhật ký hoạt động và Trợ lý AI không bị trộn ngôn ngữ.
 
-## 7. Deployment security
+## 8. Deployment security
 
 - Backend public chạy với `SPRING_PROFILES_ACTIVE=prod` để production JWT guard được bật.
 - `APP_JWT_SECRET` là secret riêng, tối thiểu 32 ký tự, không dùng default trong repository.
 - `APP_CORS_ALLOWED_ORIGINS` đúng frontend domain public.
+- `APP_BUSINESS_ZONE=Asia/Ho_Chi_Minh` (hoặc timezone nghiệp vụ đã chọn) được cấu hình nhất quán ở production.
 - `/actuator/health` hoạt động; metrics không public anonymous.
 - Swagger chỉ chứa API contract hiện tại.
 - Demo account chỉ chứa demo data, không dùng dữ liệu thật.
 - Vercel có `VITE_API_BASE_URL` trỏ đúng public backend `/api`.
 - Refresh trực tiếp `/login`, `/dashboard` hoặc route con không được 404; SPA rewrite phải fallback về `index.html`.
 
-## 8. Server smoke test
+## 9. Server smoke test
 
 Sau deploy:
 
@@ -143,7 +156,7 @@ Sau deploy:
 - Mở customer có id ngoài page đầu vẫn lấy được detail bằng API detail.
 - Dashboard refresh đúng sau product/customer/order/payment mutation.
 
-## 9. Documentation gate
+## 10. Documentation gate
 
 Trước khi tag release, rà đồng thời:
 
@@ -153,5 +166,6 @@ Trước khi tag release, rà đồng thời:
 - `docs/frontend/ARCHITECTURE.md`
 - `RUN_LOCAL.md`
 - Swagger/OpenAPI runtime
+- Release badge/version trong README chỉ bump khi bản mới thực sự được merge/tag/deploy
 
 Nếu code đổi business rule/API/status/permission thì tài liệu liên quan phải đổi trong cùng release.

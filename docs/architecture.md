@@ -1,6 +1,6 @@
 # Architecture
 
-DMS Lite sử dụng **Modular Monolith**. Backend chia theo domain rõ ràng: `auth`, `product`, `customer`, `inventory`, `sales`, `debt`, `payment`, `report`, `audit`, `notification`, `help`, `team`.
+DMS Lite sử dụng **Modular Monolith**. Backend chia theo domain rõ ràng: `auth`, `product`, `customer`, `inventory`, `sales`, `debt`, `payment`, `invoice`, `document`, `report`, `audit`, `notification`, `help`, `team`.
 
 ## Vì sao dùng Modular Monolith
 
@@ -40,16 +40,17 @@ Current MVP lưu ba trạng thái:
 
 ## Confirm Sales Order transaction
 
-1. Load order của đúng tenant.
-2. Chỉ cho phép order `DRAFT`.
-3. Lock từng stock row bằng `PESSIMISTIC_WRITE`.
-4. Kiểm tra tồn kho và trừ kho.
-5. Ghi `inventory_transactions` direction `OUT`.
-6. Chuyển order sang `COMPLETED`, ghi `confirmed_at`.
-7. Nếu còn khoản chưa thanh toán, tạo receivable transaction `INCREASE` với `remaining_amount` ban đầu bằng số tiền phải thu.
-8. Ghi audit log.
-9. Publish notification theo runtime profile.
-10. Nếu core database operation thất bại, transaction rollback.
+1. Lock order của đúng tenant và chỉ cho phép order `DRAFT`.
+2. Lock customer bằng `PESSIMISTIC_WRITE` để serialize các lần fulfill cùng làm tăng credit exposure.
+3. Nếu `creditLimit > 0`, tính current receivable + projected order exposure và reject trước khi mutate stock nếu vượt hạn mức.
+4. Lock từng stock row bằng `PESSIMISTIC_WRITE`.
+5. Kiểm tra tồn kho và trừ kho.
+6. Ghi `inventory_transactions` direction `OUT`.
+7. Chuyển order sang `COMPLETED`, ghi `confirmed_at`.
+8. Nếu còn khoản chưa thanh toán, tạo receivable transaction `INCREASE` với `remaining_amount` ban đầu bằng số tiền phải thu.
+9. Ghi audit log.
+10. Publish notification theo runtime profile.
+11. Nếu core database operation thất bại, transaction rollback toàn bộ.
 
 ## Receivable model
 
@@ -64,6 +65,27 @@ DMS Lite hiện dùng **open-item receivable model có ledger history**:
 - Transaction `DECREASE` không được trừ thêm lần nữa khi tính balance, tránh double-count.
 
 Khi record payment, các open receivable rows được lock bằng `PESSIMISTIC_WRITE` trước khi kiểm tra balance và phân bổ, nhằm tránh hai payment đồng thời làm sai công nợ. Sales-order `paidAmount`/`debtAmount` được đồng bộ trong cùng transaction để list/detail không hiển thị snapshot cũ; receivable `remainingAmount` vẫn là nguồn balance chuẩn.
+
+## Invoice document
+
+Invoice là chứng từ bán hàng của một sales order `COMPLETED`, không phải nguồn công nợ thứ hai:
+
+- mỗi sales order có tối đa một invoice;
+- issue/cancel invoice không tạo hoặc thay đổi receivable;
+- `paidAmount`/`remainingAmount` của invoice được suy ra từ receivable/payment hiện tại;
+- `PAID`/`OVERDUE` là trạng thái đọc suy ra, không tạo lifecycle tài chính riêng;
+- invoice chỉ `OVERDUE` sau khi đã qua ngày đến hạn theo business timezone, không phải ngay trong chính ngày đến hạn;
+- PDF phát hành hỗ trợ VI/EN theo `Accept-Language` và dùng font Unicode.
+
+## Business document identity and time
+
+Database primary key chỉ dùng nội bộ. Chứng từ mới dùng mã nghiệp vụ tenant-scoped theo business date:
+
+- Sales Order: `SO-YYYYMMDD-NNNN`;
+- Invoice: `INV-YYYYMMDD-NNNN`;
+- Payment: `PAY-YYYYMMDD-NNNN`.
+
+Sequence được cấp phát atomically trong PostgreSQL theo `tenant + document type + business date`. Business date lấy từ `APP_BUSINESS_ZONE` (mặc định `Asia/Ho_Chi_Minh`) để hành vi không phụ thuộc timezone của máy chạy backend.
 
 ## Reporting
 

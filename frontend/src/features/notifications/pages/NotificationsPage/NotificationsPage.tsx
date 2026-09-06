@@ -101,7 +101,7 @@ function localizedEntityFallback(value: string, entity: 'product' | 'customer', 
 }
 
 function localizedNotificationMessage(item: { type: string; message: string }, t: TFunction) {
-  const lowStockMatch = item.message.match(/^(.+) is at (\d+) units, below minimum (\d+)\.?$/);
+  const lowStockMatch = item.message.match(/^(.+) is at (\d+) units, at or below minimum (\d+)\.?$/);
   if (item.type === 'LOW_STOCK' && lowStockMatch) {
     return t('notifications.types.LOW_STOCK.message', {
       product: localizedEntityFallback(lowStockMatch[1], 'product', t),
