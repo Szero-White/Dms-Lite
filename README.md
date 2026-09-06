@@ -147,7 +147,15 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 
 - Persisted business notifications plus permission-filtered derived alerts
 - Low-stock and overdue-receivable visibility
+- Notification content is filtered by business permissions, including custom roles
 - Docker profile extension path for RabbitMQ-based messaging
+
+### Workflow AI Help
+
+- Permission-aware workflow guidance for system and custom roles
+- Live stock, receivable, sales-order, product, and customer lookups are guarded server-side before data access
+- Server-generated live-data answers are kept out of external AI conversation context
+- AI interaction history is restricted to team administrators
 
 ### Dashboard / Reports
 
@@ -218,7 +226,7 @@ This flow reflects a real B2B operational slice rather than isolated CRUD screen
 - Prometheus
 - Grafana
 
-Those optional services are primarily used in the Docker-oriented setup rather than the default local-first workflow.
+Those optional services are Docker-oriented extension points rather than dependencies of the default local-first or recruiter-demo workflow. Fuller Redis/RabbitMQ integration coverage remains on the roadmap.
 
 ## Tech Stack
 
@@ -226,7 +234,7 @@ Those optional services are primarily used in the Docker-oriented setup rather t
 | --- | --- |
 | Backend | Java 17, Spring Boot 3, Spring Security, JWT, Spring Data JPA, PostgreSQL, Flyway, Swagger/OpenAPI |
 | Frontend | React, TypeScript, Vite, Ant Design, React Query, Axios |
-| Testing | JUnit 5, Mockito, Spring Security Test, Testcontainers |
+| Testing | JUnit 5, Mockito, Spring Security Test |
 | DevOps | Docker Compose, GitHub Actions, Prometheus, Grafana |
 
 ## Database Design Highlights

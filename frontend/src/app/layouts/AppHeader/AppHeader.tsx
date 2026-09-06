@@ -48,6 +48,7 @@ export function AppHeader({ onOpenNavigation }: AppHeaderProps) {
     () => [
       { value: '/dashboard', label: t('app.navigation.dashboard') },
       { value: '/sales-orders', label: t('app.navigation.salesOrders') },
+      { value: '/invoices', label: t('app.navigation.invoices') },
       { value: '/products', label: t('app.navigation.products') },
       { value: '/customers', label: t('app.navigation.customers') },
       { value: '/inventory', label: t('app.navigation.inventory') },

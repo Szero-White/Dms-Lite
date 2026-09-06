@@ -20,6 +20,36 @@ function Read-BatEnvValue {
     return $null
 }
 
+function Assert-LocalDatabaseTarget {
+    param(
+        [string]$JdbcUrl
+    )
+
+    $match = [regex]::Match(
+        $JdbcUrl,
+        '^jdbc:postgresql://(?<host>\[[^\]]+\]|[^/:?]+)(?::\d+)?/(?<database>[^?/#]+)(?:\?.*)?$'
+    )
+    if (-not $match.Success) {
+        throw "Could not safely parse local PostgreSQL target: $JdbcUrl"
+    }
+
+    $databaseHost = $match.Groups['host'].Value.ToLowerInvariant()
+    $databaseName = $match.Groups['database'].Value
+    $allowedLocalHosts = @('localhost', '127.0.0.1', '[::1]')
+
+    if ($allowedLocalHosts -notcontains $databaseHost) {
+        throw "REFUSING RESET: database host is not local ($databaseHost)."
+    }
+    if ($databaseName -cne 'dms_lite') {
+        throw "REFUSING RESET: expected local database 'dms_lite', found '$databaseName'."
+    }
+
+    return [PSCustomObject]@{
+        Host = $databaseHost
+        Database = $databaseName
+    }
+}
+
 function Assert-PortFree {
     param(
         [int]$Port,
@@ -123,10 +153,13 @@ if ($jdbcUrl -notmatch '^jdbc:postgresql://') {
     throw "This reset script only supports PostgreSQL. Current JDBC URL: $jdbcUrl"
 }
 
+$localTarget = Assert-LocalDatabaseTarget -JdbcUrl $jdbcUrl
+
 $java = Find-Java
 $pgJar = Find-LatestPostgresJar
 
 Write-Host "JDBC URL : $jdbcUrl" -ForegroundColor Green
+Write-Host "Safety   : verified local $($localTarget.Host)/$($localTarget.Database)" -ForegroundColor Green
 Write-Host "DB user  : $dbUser" -ForegroundColor Green
 Write-Host "Java     : $java" -ForegroundColor DarkGray
 Write-Host "JDBC jar : $($pgJar.FullName)" -ForegroundColor DarkGray
