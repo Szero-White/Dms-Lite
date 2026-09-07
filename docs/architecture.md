@@ -160,7 +160,7 @@ Current MVP vận hành theo **một warehouse chính cho mỗi tenant**. Databa
 
 Các màn hình composite chỉ gọi API mà role hiện tại có permission; thiếu một permission phụ không được làm cả page bị 403 nếu section đó có thể ẩn độc lập.
 
-Các custom role cũng được validate dependency cho các workflow UI bắt buộc (ví dụ `PAYMENT_CREATE` cần `CUSTOMER_VIEW`, `INVENTORY_MANAGE` cần quyền xem inventory/product, `SALES_ORDER_CREATE` cần dữ liệu customer/product/inventory). Mục tiêu là không tạo ra role "có nút thao tác nhưng mở màn hình lại 403".
+Các custom role cũng được validate dependency cho các workflow UI bắt buộc (ví dụ `PAYMENT_CREATE` cần `CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`, `INVENTORY_MANAGE` cần quyền xem inventory/product, `SALES_ORDER_CREATE` cần dữ liệu customer/product/inventory). Mục tiêu là không tạo ra role "có nút thao tác nhưng mở màn hình lại 403".
 
 ### Permission coherence cho custom role
 
@@ -170,8 +170,8 @@ Permission là nguồn sự thật chung cho cả frontend và backend, không s
 - Sidebar, page search, route guard và action button chỉ hiển thị/chạy khi permission tương ứng tồn tại. Protected route chưa khai báo permission bị **deny by default** thay vì tự mở.
 - User đã đăng nhập nhưng không có business page nào được đưa tới `/no-access`; gateway như AI vẫn có thể hoạt động nếu chính permission của gateway được cấp.
 - `PRODUCT_VIEW` cho xem catalog/giá bán; tồn kho cần `INVENTORY_VIEW`; giá vốn/margin chỉ dành cho `PRODUCT_MANAGE` hoặc `REPORT_VIEW`.
-- `CUSTOMER_VIEW` cho xem hồ sơ/hạn mức. Balance công nợ chỉ được trả cho workflow cần số dư (`DEBT_VIEW`, `PAYMENT_CREATE`, `REPORT_VIEW`, `SALES_ORDER_CREATE`); debt statement chi tiết vẫn chỉ có `DEBT_VIEW`.
-- `PAYMENT_CREATE` được dùng số dư cần thiết để thu tiền nhưng không tự mở dashboard/top-debtor analytics nếu thiếu `DEBT_VIEW`/`REPORT_VIEW`.
+- `CUSTOMER_VIEW` cho xem hồ sơ/hạn mức. Balance công nợ chỉ được trả cho workflow cần số dư (`DEBT_VIEW`, `REPORT_VIEW`, `SALES_ORDER_CREATE`); Payment workspace có `DEBT_VIEW` như dependency bắt buộc. Debt statement chi tiết vẫn chỉ có `DEBT_VIEW`.
+- `PAYMENT_CREATE` không đứng một mình: custom role phải có `CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW` để mở Payment workspace; `REPORT_VIEW` vẫn là quyền riêng cho dashboard/top-debtor analytics.
 - `REPORT_VIEW` cho aggregate dashboard/report; các tab/bảng chi tiết chỉ fetch module data khi user có thêm permission đọc module tương ứng, tránh bảng trống hoặc dữ liệu vượt scope.
 - Payment workspace yêu cầu đồng thời `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`; Notification/AI dùng cùng boundary để không lộ payment/receivable ngoài scope.
 - DTO API redact dữ liệu nhạy cảm theo permission; frontend ẩn field chỉ là UX layer, backend vẫn là authorization boundary cuối cùng.
@@ -180,10 +180,10 @@ Permission là nguồn sự thật chung cho cả frontend và backend, không s
 
 `AI_HELP_VIEW` và `NOTIFICATION_VIEW` chỉ là **gateway permission** để mở trợ lý hoặc feed thông báo; chúng không tự cấp quyền đọc dữ liệu nghiệp vụ.
 
-- AI workflow guidance có thể dựa trên action permission (ví dụ `PAYMENT_CREATE` để hướng dẫn ghi nhận thanh toán), nhưng dữ liệu thật phải có view permission tương ứng (`DEBT_VIEW`, `SALES_ORDER_VIEW`, `INVENTORY_VIEW`, `PRODUCT_VIEW`, `CUSTOMER_VIEW`).
+- AI workflow guidance có thể dựa trên action permission, nhưng hướng dẫn Payment chỉ mở khi đủ Payment workspace scope; dữ liệu thật vẫn phải có view permission tương ứng (`DEBT_VIEW`, `SALES_ORDER_VIEW`, `INVENTORY_VIEW`, `PRODUCT_VIEW`, `CUSTOMER_VIEW`).
 - Mỗi câu trả lời trợ lý mang provenance do backend quyết định: `LIVE_DATA`, `WORKFLOW_KNOWLEDGE`, `SYSTEM_FALLBACK` hoặc `LEGACY_UNKNOWN`; provider diễn đạt được lưu riêng (`GEMINI`, `NONE`, `LEGACY_UNKNOWN`). Gemini không được tự quyết định hai metadata này.
 - Frontend nhân viên chỉ hiển thị provenance ở mức nghiệp vụ (`Dữ liệu DMS`, `Quy trình DMS`, `AI hỗ trợ`); chi tiết fallback/provider chỉ dành cho AI History của Owner để hỗ trợ audit và vận hành.
-- Notification được lọc tiếp theo loại sự kiện và permission nghiệp vụ. Ví dụ payment event cần `PAYMENT_CREATE` + `CUSTOMER_VIEW`, overdue debt cần `DEBT_VIEW` + `CUSTOMER_VIEW`, sales-order event cần `SALES_ORDER_VIEW`.
+- Notification được lọc tiếp theo loại sự kiện và permission nghiệp vụ. Ví dụ payment event cần đủ `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`, overdue debt cần `DEBT_VIEW + CUSTOMER_VIEW`, sales-order event cần `SALES_ORDER_VIEW`.
 - Notification type chưa được khai báo policy bị **deny by default** để event mới không vô tình vượt RBAC.
 - Trạng thái đọc được lưu theo **tenant + user + notification key** trong `notification_reads`; một nhân viên đọc thông báo không làm thay đổi trạng thái của nhân viên khác.
 - `PUT /api/notifications/{id}/read-state` với body `{ "read": true|false }` là API chuẩn để đặt trạng thái đọc theo user một cách idempotent. Hai endpoint `/read` cũ vẫn được giữ tương thích ngược. Mọi thao tác áp dụng cùng permission policy; notification ngoài scope được xử lý như không tồn tại để không làm lộ event bị giới hạn.

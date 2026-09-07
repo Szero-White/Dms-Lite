@@ -57,7 +57,7 @@ Dùng một customer và một product có stock đủ:
 - Ghi tiếp `20.000` phải tất toán; order biến khỏi outstanding list nhưng PAY vẫn ở `Lịch sử` và report/order/audit vẫn giữ.
 - Backend phải reject overpayment cho selected order và rollback toàn bộ mutation. Frontend có thể cap số nhập về remaining để UX dễ dùng.
 - Double-click/retry cùng `request_key` không được tạo PAY thứ hai hoặc trừ debt lần hai.
-- Mỗi payment mới trong `Lịch sử` phải hiện PAY, SO, customer, amount, remaining-after, note, detail và nút tải biên nhận.
+- Mỗi payment mới trong `Lịch sử` phải hiện PAY, SO, customer, amount, remaining-after, note, detail và nút tải biên nhận; search PAY/SO/customer/note và bộ lọc `Từ ngày` / `Đến ngày` phải hoạt động trên toàn bộ paged history.
 - Partial payment vẫn tải được biên nhận; receipt cũ phải giữ debt-before/debt-after snapshot dù khách trả thêm sau đó.
 - Legacy payment trước V11 không được đoán sales order nếu lịch sử cũ có thể đã phân bổ qua nhiều receivable.
 - `PAYMENT_RECORDED` chỉ hiển thị cho role đủ Payment workspace scope và notification mới nên nêu SO với payment order-specific.
@@ -65,7 +65,7 @@ Dùng một customer và một product có stock đủ:
 ## 5. Invoice / document smoke
 
 - Từ order `COMPLETED`, tạo invoice mới phải sinh `INV-YYYYMMDD-NNNN`.
-- Action **Tạo hóa đơn** nằm ở module Hóa đơn; menu `...` của Sales Order chỉ còn Xem chi tiết và không giấu action tạo invoice.
+- Action **Tạo hóa đơn** chỉ nằm ở module Hóa đơn; menu `...` của Sales Order giữ các action vận hành theo permission (`Xem chi tiết`, `Xác nhận/Hoàn tất` cho `DRAFT` nếu có `SALES_ORDER_CONFIRM`, `Hủy đơn` cho `DRAFT` nếu có `SALES_ORDER_CANCEL`) và không còn action tạo invoice.
 - Tạo lại invoice từ cùng sales order không được nhân bản chứng từ.
 - Issue invoice không được làm tăng receivable lần hai.
 - PDF VI/EN phải giữ đúng customer/product, SO/INV code, amount, paid/remaining và Unicode tiếng Việt.
@@ -87,7 +87,7 @@ Dùng một customer và một product có stock đủ:
 
 - Xem product/stock phục vụ bán hàng.
 - Xem/quản lý customer theo permission.
-- Tạo order `DRAFT`.
+- Tạo order `DRAFT`; bộ lọc trạng thái đơn hỗ trợ multi-select để theo dõi nhiều trạng thái cùng lúc.
 - Không có `REPORT_VIEW`/`PAYMENT_CREATE` trong system Sales role.
 - Không được thao tác warehouse-only nếu không có permission.
 - Customer detail không lỗi chỉ vì thiếu `DEBT_VIEW`; finance section phải ẩn nếu không có quyền.

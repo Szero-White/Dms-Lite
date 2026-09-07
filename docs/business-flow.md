@@ -81,7 +81,7 @@ Payment workspace dùng:
 
 - `GET /api/payments/outstanding-orders` -> từng sales order `COMPLETED` còn `remaining_amount > 0`;
 - `POST /api/payments` -> ghi nhận tiền cho đúng một sales order;
-- `GET /api/payments/history` -> lịch sử từng `PAY`;
+- `GET /api/payments/history` -> lịch sử từng `PAY`, hỗ trợ search PAY/SO/customer/note và `from` / `to` theo business date;
 - `GET /api/payments/{id}/receipt.pdf` -> biên nhận immutable của lần thu.
 
 Quy trình payment mới:
@@ -96,7 +96,7 @@ Quy trình payment mới:
 8. lưu `payments` với snapshot `SO`, customer, debt before/after và client `request_key`;
 9. tạo `DECREASE` transaction để giữ payment history;
 10. audit action `PAYMENT_RECORDED`;
-11. invalidate dashboard/report/customer/invoice/notification caches liên quan.
+11. evict backend dashboard cache; frontend invalidate/refetch các query liên quan (sales order, customer/debt, report, invoice, notification) sau khi payment thành công.
 
 Một payment mới **không tự chạy sang order khác**. Nếu khách có nhiều order, kế toán ghi nhận từng order theo nội dung khách thanh toán. Partial payment và exact payment đều hợp lệ. Frontend có thể giới hạn giá trị nhập về số còn phải thu để thân thiện, nhưng backend vẫn reject overpayment nếu API bị gọi trực tiếp hoặc client lỗi.
 
@@ -166,7 +166,7 @@ Frontend không được giả định list summary chứa order items. Với or
 - `GET /api/invoices/eligible-sales-orders` -> tìm order `COMPLETED` chưa có invoice cho màn Tạo hóa đơn; yêu cầu `INVOICE_CREATE + INVOICE_VIEW + SALES_ORDER_VIEW`.
 - `GET /api/invoices/{id}` -> invoice detail + snapshot items.
 - `GET /api/payments/outstanding-orders` -> paged outstanding orders cho Payment workspace.
-- `GET /api/payments/history` -> paged payment history, tìm theo PAY/SO/customer/note.
+- `GET /api/payments/history` -> paged payment history, tìm theo PAY/SO/customer/note và hỗ trợ `from` / `to` business date.
 
 
 ## Business document numbering
