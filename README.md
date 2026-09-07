@@ -35,7 +35,7 @@ DMS Lite addresses those problems with:
 - Centralized customer, product, and sales order management
 - Inventory transaction history for stock movement traceability
 - Sales order confirmation with stock deduction
-- Receivable tracking with open-item allocation and ledger-style payment history
+- Order-level receivable tracking with ledger-style payment history
 - Customer payment recording and debt reconciliation
 - Audit log for important business actions
 - Dashboard for revenue, receivable debt, and low-stock visibility
@@ -128,8 +128,10 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 
 ### Payment Management
 
-- Customer payment recording
-- FIFO customer payment allocation against open receivables
+- Each new payment is recorded against exactly one `COMPLETED` sales order with an open receivable
+- Partial and exact settlement are supported; the backend rejects amounts above the selected order balance
+- Payment history keeps `PAY-... -> SO-...` traceability and provides immutable PDF receipts
+- A client request key plus pessimistic order/receivable locking prevents duplicate financial mutation on retries
 
 ### Invoice Management
 
@@ -168,7 +170,7 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 
 ## Key Business Flow
 
-`Login -> create customer/product -> check stock -> create DRAFT sales order -> warehouse confirms/fulfills -> order becomes COMPLETED -> deduct stock inside transaction -> create open receivable if unpaid -> optionally generate/issue invoice -> record customer payment FIFO -> update receivable statement -> view dashboard/audit log`
+`Login -> create customer/product -> check stock -> create DRAFT sales order -> warehouse confirms/fulfills -> order becomes COMPLETED -> deduct stock inside transaction -> create open receivable if unpaid -> optionally generate/issue invoice -> select the exact outstanding sales order -> record partial/full payment -> update receivable statement -> view dashboard/audit log`
 
 This flow reflects a real B2B operational slice rather than isolated CRUD screens.
 
@@ -365,7 +367,7 @@ The current portfolio version focuses on a stable local/deployable vertical slic
 - Persisted sales order statuses are `DRAFT`, `COMPLETED`, and `CANCELLED`; current MVP confirm also performs fulfillment.
 - Revenue is recognized only for `COMPLETED` orders; report/dashboard analytics use the backend reporting read model and `confirmed_at` as the recognition time for completed orders.
 - Current receivable balance is `SUM(remaining_amount)` of open `INCREASE` transactions. `DECREASE` entries preserve payment history and are not subtracted twice.
-- Customer payments lock open receivables before validation/allocation.
+- New payments lock the selected `COMPLETED` sales order and its single open receivable before validation/mutation; one `PAY` never spills into another order.
 - Sales-order `paidAmount`/`debtAmount` snapshots are synchronized in the same payment transaction; open receivable `remainingAmount` stays the canonical balance. Draft/cancelled orders are not exposed as actual receivables.
 - Customer and sales-order detail screens use dedicated detail APIs instead of searching only the first list page.
 - Warehouse-dependent actions resolve and validate the configured tenant warehouse instead of assuming warehouse ID `1`.
@@ -388,7 +390,7 @@ The current portfolio version focuses on a stable local/deployable vertical slic
 
 - Built a full-stack B2B distribution management SaaS using Java Spring Boot and React.
 - Designed a modular monolith backend with authentication, role-based permissions, product, customer, inventory, sales, debt, payment, audit, and reporting modules.
-- Implemented open-item receivable tracking with FIFO payment allocation, payment history, and pessimistic locking for concurrent payment safety.
+- Implemented open-item receivable tracking with order-specific partial payments, immutable payment receipts, idempotency keys, and pessimistic locking for concurrent payment safety.
 - Used PostgreSQL and Flyway for schema versioning.
 - Designed inventory transaction history and stock deduction flow.
 - Added Swagger API documentation and a local-first development profile.

@@ -4,6 +4,7 @@ import { useMutationFeedback } from '../../../lib/useMutationFeedback';
 import {
   cancelInvoice,
   createInvoiceFromSalesOrder,
+  fetchEligibleInvoiceSalesOrders,
   fetchInvoice,
   fetchInvoices,
   issueInvoice,
@@ -13,6 +14,18 @@ export function useInvoices(page = 0) {
   return useQuery({
     queryKey: queryKeys.invoices(page),
     queryFn: () => fetchInvoices(page),
+  });
+}
+
+
+export function useEligibleInvoiceSalesOrders(
+  search = '',
+  options: { enabled?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: queryKeys.invoiceEligible(search),
+    queryFn: () => fetchEligibleInvoiceSalesOrders(0, search),
+    enabled: options.enabled ?? true,
   });
 }
 
@@ -32,6 +45,7 @@ export function useCreateInvoiceFromSalesOrder() {
       message.success(t('toast.invoice.created', { number: invoice.invoiceNumber }));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.invoicesRoot }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.invoiceEligibleRoot }),
         queryClient.invalidateQueries({ queryKey: queryKeys.auditLogs }),
       ]);
     },

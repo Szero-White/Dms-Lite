@@ -3,7 +3,6 @@ import {
   ArrowUpOutlined,
   CalendarOutlined,
   CheckCircleOutlined,
-  DollarOutlined,
   EnvironmentOutlined,
   LeftOutlined,
   PhoneOutlined,
@@ -16,10 +15,6 @@ import {
   Avatar,
   Button,
   Card,
-  Form,
-  Input,
-  InputNumber,
-  Modal,
   Popconfirm,
   Progress,
   Space,
@@ -27,7 +22,6 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
@@ -53,14 +47,12 @@ import {
   useDeactivateCustomer,
   useReactivateCustomer,
 } from '../../hooks/useCustomerQueries';
-import { useRecordCustomerPayment } from '../../../../features/payments';
 import { useSalesOrders } from '../../../../features/sales';
 import styles from './CustomerDetailPage.module.css';
 
 export function CustomerDetailPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const canRecordPayment = hasPermission(user, PERMISSIONS.PAYMENT_CREATE);
   const canChangeCustomerStatus = hasPermission(user, PERMISSIONS.CUSTOMER_DEACTIVATE);
   const canViewDebt = hasPermission(user, PERMISSIONS.DEBT_VIEW);
   const showCustomerFinancials = canViewCustomerBalance(user);
@@ -74,14 +66,11 @@ export function CustomerDetailPage() {
     customerId: numericCustomerId,
     enabled: canViewOrders && Number.isFinite(numericCustomerId),
   });
-  const paymentMutation = useRecordCustomerPayment();
   const deactivateCustomer = useDeactivateCustomer();
   const reactivateCustomer = useReactivateCustomer();
   const debtStatementQuery = useCustomerDebtStatement(numericCustomerId, {
     enabled: canViewDebt && Number.isFinite(numericCustomerId),
   });
-  const [paymentOpen, setPaymentOpen] = useState(false);
-  const [form] = Form.useForm<{ amount: number; note?: string }>();
 
   const customer = customerQuery.data;
   const orderHistory = salesOrdersQuery.data ?? [];
@@ -127,16 +116,6 @@ export function CustomerDetailPage() {
                   {t('customers.action.reactivate')}
                 </Button>
               )
-            ) : null}
-            {canRecordPayment ? (
-              <Button
-                type="primary"
-                icon={<DollarOutlined />}
-                onClick={() => setPaymentOpen(true)}
-                disabled={!customer}
-              >
-                {t('payments.recordPayment')}
-              </Button>
             ) : null}
           </Space>
         }
@@ -373,48 +352,6 @@ export function CustomerDetailPage() {
         ) : null}
       </QueryState>
 
-      {canRecordPayment ? (
-        <Modal
-          rootClassName={styles.modal}
-          title={t('payments.recordPayment')}
-          open={paymentOpen}
-          confirmLoading={paymentMutation.isPending}
-          onCancel={() => setPaymentOpen(false)}
-          onOk={() => form.submit()}
-        >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={async (values) => {
-              if (!customer) {
-                return;
-              }
-
-              await paymentMutation.mutateAsync({
-                customerId: customer.id,
-                amount: values.amount,
-                note: values.note,
-              });
-              form.resetFields();
-              setPaymentOpen(false);
-            }}
-          >
-            <Form.Item label={t('customers.column.customer')}>
-              <Input value={customer?.name} disabled />
-            </Form.Item>
-            <Form.Item name="amount" label={t('payments.amount')} rules={[{ required: true }]}>
-              <InputNumber
-                className={styles.fullWidth}
-                min={1}
-                max={toNumber(customer?.debtBalance)}
-              />
-            </Form.Item>
-            <Form.Item name="note" label={t('inventory.receive.note')}>
-              <Input.TextArea rows={3} />
-            </Form.Item>
-          </Form>
-        </Modal>
-      ) : null}
     </div>
   );
 }

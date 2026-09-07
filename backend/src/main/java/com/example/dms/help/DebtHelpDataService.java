@@ -60,7 +60,7 @@ public class DebtHelpDataService {
                 debtSteps.add(locale == HelpLocale.VI
                     ? "Mở Khách hàng để xem hồ sơ và sao kê công nợ chi tiết."
                     : "Open Customers to review the profile and receivable statement.");
-                if (scope.has(PermissionNames.PAYMENT_CREATE)) {
+                if (scope.canUsePayments()) {
                     debtSteps.add(locale == HelpLocale.VI
                         ? "Kiểm tra sao kê trước khi ghi nhận thanh toán và chỉ ghi nhận khi tiền thực tế đã nhận."
                         : "Review the statement before recording payment and only post money actually received.");
@@ -102,11 +102,11 @@ public class DebtHelpDataService {
 
         BigDecimal total = customerDebts.totalReceivable(tenantId);
         List<String> totalDebtSteps = new ArrayList<>();
-        if (scope.has(PermissionNames.PAYMENT_CREATE) && scope.canUseReports()) {
+        if (scope.canUsePayments() && scope.canUseReports()) {
             totalDebtSteps.add(locale == HelpLocale.VI
                 ? "Mở Thanh toán hoặc Báo cáo để đối soát chi tiết."
                 : "Open Payments or Reports for detailed reconciliation.");
-        } else if (scope.has(PermissionNames.PAYMENT_CREATE)) {
+        } else if (scope.canUsePayments()) {
             totalDebtSteps.add(locale == HelpLocale.VI
                 ? "Mở Thanh toán để đối soát các khoản phải thu trong phạm vi được cấp."
                 : "Open Payments to reconcile receivables within your assigned scope.");

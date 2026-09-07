@@ -172,6 +172,26 @@ class AuthorizationRbacTest {
             .andExpect(status().isForbidden());
     }
 
+
+    @Test
+    void paymentWorkspaceRequiresCompleteFinanceScope() throws Exception {
+        mvc.perform(get("/api/payments/outstanding-orders")
+                .header("Authorization", bearer("accountant")))
+            .andExpect(status().isOk());
+
+        mvc.perform(get("/api/payments/history")
+                .header("Authorization", bearer("accountant")))
+            .andExpect(status().isOk());
+
+        mvc.perform(get("/api/payments/outstanding-orders")
+                .header("Authorization", bearer("sale")))
+            .andExpect(status().isForbidden());
+
+        mvc.perform(get("/api/payments/history")
+                .header("Authorization", bearer("warehouse")))
+            .andExpect(status().isForbidden());
+    }
+
     @Test
     void ownerCanManageTeamButSalesCannot() throws Exception {
         mvc.perform(get("/api/team/members")
@@ -271,7 +291,7 @@ class AuthorizationRbacTest {
                     "permissions", new String[] { "PAYMENT_CREATE" }
                 ))))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value("PAYMENT_CREATE requires: CUSTOMER_VIEW"));
+            .andExpect(jsonPath("$.message").value("PAYMENT_CREATE requires: CUSTOMER_VIEW, DEBT_VIEW, SALES_ORDER_VIEW"));
     }
 
     @Test

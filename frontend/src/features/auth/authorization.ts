@@ -32,16 +32,21 @@ export const NO_WORKSPACE_PATH = '/no-access';
 
 const ORDER_FINANCIAL_PERMISSIONS: Permission[] = [
   PERMISSIONS.DEBT_VIEW,
-  PERMISSIONS.PAYMENT_CREATE,
   PERMISSIONS.REPORT_VIEW,
   PERMISSIONS.SALES_ORDER_CREATE,
 ];
 
 const CUSTOMER_BALANCE_PERMISSIONS: Permission[] = [
   PERMISSIONS.DEBT_VIEW,
-  PERMISSIONS.PAYMENT_CREATE,
   PERMISSIONS.REPORT_VIEW,
   PERMISSIONS.SALES_ORDER_CREATE,
+];
+
+export const PAYMENT_WORKSPACE_PERMISSIONS: Permission[] = [
+  PERMISSIONS.PAYMENT_CREATE,
+  PERMISSIONS.CUSTOMER_VIEW,
+  PERMISSIONS.SALES_ORDER_VIEW,
+  PERMISSIONS.DEBT_VIEW,
 ];
 
 const PRODUCT_FINANCIAL_PERMISSIONS: Permission[] = [
@@ -62,7 +67,7 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
   '/products': PERMISSIONS.PRODUCT_VIEW,
   '/customers': PERMISSIONS.CUSTOMER_VIEW,
   '/inventory': [PERMISSIONS.INVENTORY_VIEW, PERMISSIONS.PRODUCT_VIEW],
-  '/payments': [PERMISSIONS.PAYMENT_CREATE, PERMISSIONS.CUSTOMER_VIEW],
+  '/payments': PAYMENT_WORKSPACE_PERMISSIONS,
   '/reports': PERMISSIONS.REPORT_VIEW,
   '/audit-logs': PERMISSIONS.AUDIT_VIEW,
   '/notifications': PERMISSIONS.NOTIFICATION_VIEW,
@@ -103,6 +108,11 @@ export function hasAnyPermission(
   permissions: Permission[],
 ) {
   return permissions.some((permission) => hasPermission(user, permission));
+}
+
+
+export function canUsePaymentWorkspace(user: AuthUser | null | undefined) {
+  return hasEveryPermission(user, PAYMENT_WORKSPACE_PERMISSIONS);
 }
 
 export function canViewOrderFinancials(user: AuthUser | null | undefined) {

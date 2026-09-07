@@ -1,5 +1,5 @@
 export { InvoicesPage } from './pages/InvoicesPage/InvoicesPage';
 export { InvoiceDetailPage } from './pages/InvoiceDetailPage/InvoiceDetailPage';
 export { InvoiceStatusTag } from './InvoiceStatusTag';
-export { useCreateInvoiceFromSalesOrder } from './hooks/useInvoiceQueries';
-export type { Invoice, InvoiceItem, InvoiceStatus } from './types/invoice.types';
+export { useCreateInvoiceFromSalesOrder, useEligibleInvoiceSalesOrders } from './hooks/useInvoiceQueries';
+export type { Invoice, InvoiceEligibleSalesOrder, InvoiceItem, InvoiceStatus } from './types/invoice.types';

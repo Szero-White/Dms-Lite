@@ -122,6 +122,15 @@ function localizedNotificationMessage(item: { type: string; message: string }, t
     });
   }
 
+  const orderPaymentMatch = item.message.match(/^(.+) paid (.+) VND for order (.+)\.?$/);
+  if (item.type === 'PAYMENT_RECORDED' && orderPaymentMatch) {
+    return t('notifications.types.PAYMENT_RECORDED.orderMessage', {
+      customer: localizedEntityFallback(orderPaymentMatch[1], 'customer', t),
+      amount: orderPaymentMatch[2],
+      orderCode: orderPaymentMatch[3].replace(/\.$/, ''),
+    });
+  }
+
   const paymentMatch = item.message.match(/^(.+) paid (.+) VND\.?$/);
   if (item.type === 'PAYMENT_RECORDED' && paymentMatch) {
     return t('notifications.types.PAYMENT_RECORDED.message', {

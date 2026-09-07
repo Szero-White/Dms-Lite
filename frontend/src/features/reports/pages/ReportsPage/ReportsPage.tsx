@@ -5,8 +5,10 @@ import {
   DownOutlined,
   DownloadOutlined,
   EyeOutlined,
+  FilterOutlined,
   InboxOutlined,
   ReloadOutlined,
+  SearchOutlined,
   ShoppingCartOutlined,
   TeamOutlined,
   WarningOutlined,
@@ -14,11 +16,15 @@ import {
 import {
   Button,
   Card,
+  Checkbox,
   DatePicker,
   Descriptions,
   Drawer,
   Dropdown,
+  Input,
+  Popover,
   Progress,
+  Select,
   Space,
   Table,
   Tooltip,
@@ -91,6 +97,10 @@ export function ReportsPage() {
   const [dateRange, setDateRange] = useState<[number, number] | null>(null);
   const [exporting, setExporting] = useState(false);
   const [selectedReportOrder, setSelectedReportOrder] = useState<SalesReportOrder | null>(null);
+  const [salesKeyword, setSalesKeyword] = useState('');
+  const [salesStatus, setSalesStatus] = useState('ALL');
+  const [salesCustomer, setSalesCustomer] = useState<number | 'ALL'>('ALL');
+  const [collectionFilters, setCollectionFilters] = useState<string[]>(['ALL']);
   const resolvedActiveTab = availableTabs.includes(activeTab) ? activeTab : availableTabs[0] ?? 'sales';
 
   const salesReportRange = useMemo(
@@ -111,6 +121,34 @@ export function ReportsPage() {
   const products = canViewInventoryProducts ? productsQuery.data ?? [] : [];
   const reportOrders = canViewOrders ? salesReportQuery.data?.orders ?? [] : [];
   const salesSummary = salesReportQuery.data?.summary;
+  const reportCustomers = useMemo(() => {
+    const byId = new Map<number, string>();
+    reportOrders.forEach((order) => byId.set(order.customerId, order.customerName ?? `#${order.customerId}`));
+    return [...byId.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+  }, [reportOrders]);
+  const filteredReportOrders = useMemo(() => {
+    const keyword = salesKeyword.trim().toLowerCase();
+    return reportOrders.filter((order) => {
+      const matchesKeyword = !keyword
+        || order.code.toLowerCase().includes(keyword)
+        || (order.customerName ?? '').toLowerCase().includes(keyword);
+      const matchesStatus = salesStatus === 'ALL' || order.status === salesStatus;
+      const matchesCustomer = salesCustomer === 'ALL' || order.customerId === salesCustomer;
+      const matchesCollection = collectionFilters.includes('ALL') || (
+        order.receivableRecognized && (
+          (collectionFilters.includes('UNPAID') && toNumber(order.collectedAmount) <= 0 && toNumber(order.remainingReceivable) > 0) ||
+          (collectionFilters.includes('PARTIAL') && toNumber(order.collectedAmount) > 0 && toNumber(order.remainingReceivable) > 0) ||
+          (collectionFilters.includes('PAID') && toNumber(order.remainingReceivable) <= 0)
+        )
+      );
+      return matchesKeyword && matchesStatus && matchesCustomer && matchesCollection;
+    });
+  }, [collectionFilters, reportOrders, salesCustomer, salesKeyword, salesStatus]);
+  const hasSalesTableFilters = Boolean(
+    salesKeyword || salesStatus !== 'ALL' || salesCustomer !== 'ALL' || !collectionFilters.includes('ALL')
+  );
   const salesRevenue = toNumber(salesSummary?.recognizedRevenue);
   const averageOrderValue = toNumber(salesSummary?.averageCompletedOrderValue);
   const completedCount = salesSummary?.completedOrders ?? 0;
@@ -144,7 +182,7 @@ export function ReportsPage() {
       await exportReport(format, {
         activeTab: resolvedActiveTab,
         customers,
-        salesOrders: reportOrders,
+        salesOrders: resolvedActiveTab === 'sales' ? filteredReportOrders : reportOrders,
         products,
         t,
       });
@@ -226,11 +264,104 @@ export function ReportsPage() {
                       </div>
 
                       <Card title={t('reports.title')} className="panel-card">
+                        <div className={styles.salesTableFilters}>
+                          <Input
+                            allowClear
+                            className={styles.salesSearch}
+                            prefix={<SearchOutlined />}
+                            placeholder={t('reports.filters.searchPlaceholder')}
+                            value={salesKeyword}
+                            onChange={(event) => setSalesKeyword(event.target.value)}
+                          />
+                          <Select
+                            className={styles.salesFilter}
+                            value={salesStatus}
+                            onChange={setSalesStatus}
+                            options={[
+                              { value: 'ALL', label: t('reports.filters.allStatuses') },
+                              { value: 'DRAFT', label: t('status.sales.DRAFT') },
+                              { value: 'COMPLETED', label: t('status.sales.COMPLETED') },
+                              { value: 'CANCELLED', label: t('status.sales.CANCELLED') },
+                            ]}
+                          />
+                          <Select
+                            showSearch
+                            optionFilterProp="label"
+                            className={styles.salesCustomerFilter}
+                            value={salesCustomer}
+                            onChange={setSalesCustomer}
+                            options={[
+                              { value: 'ALL', label: t('reports.filters.allCustomers') },
+                              ...reportCustomers.map((customer) => ({ value: customer.id, label: customer.name })),
+                            ]}
+                          />
+                          <Popover
+                            trigger="click"
+                            placement="bottomLeft"
+                            content={(
+                              <div className={styles.collectionFilterMenu}>
+                                <Typography.Text strong>{t('reports.filters.collectionStatus')}</Typography.Text>
+                                <Checkbox.Group
+                                  className={styles.collectionFilterGroup}
+                                  value={collectionFilters}
+                                  options={[
+                                    { value: 'ALL', label: t('reports.filters.collectionAll') },
+                                    { value: 'UNPAID', label: t('reports.filters.collectionUnpaid') },
+                                    { value: 'PARTIAL', label: t('reports.filters.collectionPartial') },
+                                    { value: 'PAID', label: t('reports.filters.collectionPaid') },
+                                  ]}
+                                  onChange={(values) => {
+                                    const next = values.map(String);
+                                    const previousAll = collectionFilters.includes('ALL');
+                                    const nextAll = next.includes('ALL');
+                                    if (nextAll && !previousAll) {
+                                      setCollectionFilters(['ALL']);
+                                      return;
+                                    }
+                                    const specific = next.filter((value) => value !== 'ALL');
+                                    setCollectionFilters(specific.length > 0 ? specific : ['ALL']);
+                                  }}
+                                />
+                              </div>
+                            )}
+                          >
+                            <Button icon={<FilterOutlined />}>
+                              {t('reports.filters.collectionStatus')}
+                              {!collectionFilters.includes('ALL') ? ` (${collectionFilters.length})` : ''}
+                            </Button>
+                          </Popover>
+                          <Button
+                            disabled={!hasSalesTableFilters}
+                            onClick={() => {
+                              setSalesKeyword('');
+                              setSalesStatus('ALL');
+                              setSalesCustomer('ALL');
+                              setCollectionFilters(['ALL']);
+                            }}
+                          >
+                            {t('common.clearFilters')}
+                          </Button>
+                        </div>
+                        {hasSalesTableFilters ? (
+                          <div className={styles.salesFilterChips}>
+                            {salesKeyword ? <Tag closable onClose={() => setSalesKeyword('')}>{t('reports.filters.searchChip', { keyword: salesKeyword })}</Tag> : null}
+                            {salesStatus !== 'ALL' ? <Tag closable onClose={() => setSalesStatus('ALL')}>{t(`status.sales.${salesStatus}`)}</Tag> : null}
+                            {salesCustomer !== 'ALL' ? <Tag closable onClose={() => setSalesCustomer('ALL')}>{reportCustomers.find((customer) => customer.id === salesCustomer)?.name ?? salesCustomer}</Tag> : null}
+                            {!collectionFilters.includes('ALL') ? collectionFilters.map((filter) => (
+                              <Tag key={filter} closable onClose={() => {
+                                const next = collectionFilters.filter((value) => value !== filter);
+                                setCollectionFilters(next.length > 0 ? next : ['ALL']);
+                              }}>
+                                {t(`reports.filters.collection.${filter}`)}
+                              </Tag>
+                            )) : null}
+                          </div>
+                        ) : null}
                         <Table
                           rowKey="id"
                           size="small"
                           scroll={{ x: 1180 }}
-                          dataSource={reportOrders}
+                          dataSource={filteredReportOrders}
                           locale={{ emptyText: t('reports.empty.noSalesOrders') }}
                           columns={[
                             { title: t('reports.table.order'), dataIndex: 'code', width: 160 },

@@ -24,6 +24,15 @@ public class InvoiceController {
         return ApiResponse.ok(invoiceService.listInvoices(page));
     }
 
+    @GetMapping("/eligible-sales-orders")
+    @PreAuthorize("hasAuthority('INVOICE_CREATE') and hasAuthority('INVOICE_VIEW') and hasAuthority('SALES_ORDER_VIEW')")
+    public ApiResponse<Page<InvoiceEligibleSalesOrderResponse>> eligibleSalesOrders(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "") String search
+    ) {
+        return ApiResponse.ok(invoiceService.listEligibleSalesOrders(page, search));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('INVOICE_VIEW')")
     public ApiResponse<InvoiceResponse> getById(@PathVariable Long id) {
@@ -31,7 +40,7 @@ public class InvoiceController {
     }
 
     @PostMapping("/from-sales-order/{salesOrderId}")
-    @PreAuthorize("hasAuthority('INVOICE_CREATE')")
+    @PreAuthorize("hasAuthority('INVOICE_CREATE') and hasAuthority('INVOICE_VIEW') and hasAuthority('SALES_ORDER_VIEW')")
     public ApiResponse<InvoiceResponse> createFromSalesOrder(@PathVariable Long salesOrderId) {
         return ApiResponse.ok(invoiceService.createFromSalesOrder(salesOrderId));
     }

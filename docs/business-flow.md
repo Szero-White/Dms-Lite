@@ -77,34 +77,45 @@ Migration V6 chuyển các customer từng bị legacy soft-delete thành lifecy
 
 ## 5. Customer payment
 
-`POST /api/payments/customer`
+Payment workspace dùng:
 
-Quy trình:
+- `GET /api/payments/outstanding-orders` -> từng sales order `COMPLETED` còn `remaining_amount > 0`;
+- `POST /api/payments` -> ghi nhận tiền cho đúng một sales order;
+- `GET /api/payments/history` -> lịch sử từng `PAY`;
+- `GET /api/payments/{id}/receipt.pdf` -> biên nhận immutable của lần thu.
 
-1. validate customer;
-2. lock toàn bộ open receivable của customer theo FIFO;
-3. tính current balance từ các row đã lock;
-4. reject nếu payment lớn hơn current balance;
-5. phân bổ payment vào khoản cũ nhất trước;
-6. giảm `INCREASE.remainingAmount` tương ứng;
-7. đồng bộ `sales_orders.paid_amount` và `debt_amount` của các order được phân bổ;
-8. lưu `payments`;
+Quy trình payment mới:
+
+1. user phải có `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`;
+2. chọn đúng sales order đang còn phải thu;
+3. lock sales order bằng `PESSIMISTIC_WRITE`;
+4. lock đúng receivable `SALES_ORDER/INCREASE` của order đó;
+5. reject nếu order không `COMPLETED`, đã tất toán hoặc amount vượt `remaining_amount`;
+6. giảm `INCREASE.remaining_amount` đúng bằng số tiền thực nhận;
+7. đồng bộ `sales_orders.paid_amount` và `debt_amount` của **chính order được chọn**;
+8. lưu `payments` với snapshot `SO`, customer, debt before/after và client `request_key`;
 9. tạo `DECREASE` transaction để giữ payment history;
 10. audit action `PAYMENT_RECORDED`;
-11. invalidate dashboard cache của đúng tenant.
+11. invalidate dashboard/report/customer/invoice/notification caches liên quan.
 
-`DECREASE.amount` dùng cho statement/history và **không bị trừ thêm lần nữa khỏi balance**.
+Một payment mới **không tự chạy sang order khác**. Nếu khách có nhiều order, kế toán ghi nhận từng order theo nội dung khách thanh toán. Partial payment và exact payment đều hợp lệ. Frontend có thể giới hạn giá trị nhập về số còn phải thu để thân thiện, nhưng backend vẫn reject overpayment nếu API bị gọi trực tiếp hoặc client lỗi.
+
+`request_key` làm thao tác idempotent: retry cùng request hợp lệ trả lại payment đã tạo thay vì trừ công nợ lần hai.
+
+`DECREASE.amount` dùng cho statement/history và **không bị trừ thêm lần nữa khỏi current balance**. Current customer balance vẫn là tổng `remaining_amount` của các receivable `INCREASE` còn mở.
+
+Payment trước migration V11 có thể là legacy FIFO payment. Vì một payment cũ có thể từng được phân bổ qua nhiều receivable, migration không đoán một `sales_order_id`; UI/PDF ghi rõ đây là lịch sử cũ.
 
 ### Ví dụ regression bắt buộc
 
-- Order debt: `100`
-- Payment: `40`
-- Open receivable remaining: `60`
-- Current customer balance: `60`
-- Dashboard total receivable: `60`
-- Top customer debt: `60`
-
-Không màn hình nào được trả `20`.
+- `SO-A` total: `520.000`; remaining: `520.000`;
+- `SO-B` remaining: `300.000`;
+- chọn `SO-A`, payment: `500.000`;
+- `SO-A` remaining phải thành `20.000`;
+- `SO-B` vẫn `300.000`;
+- payment history phải ghi `PAY -> SO-A -> 500.000 -> remaining 20.000`;
+- payment `520.001` cho `SO-A` phải bị backend reject và không mutate dữ liệu;
+- payment `20.000` tiếp theo cho `SO-A` tất toán order và order biến khỏi outstanding worklist nhưng vẫn còn trong history/report/audit.
 
 ## 6. Invoice document
 
@@ -114,7 +125,7 @@ Invoice trong DMS Lite là **chứng từ bán hàng gắn với một order đ�
 - mỗi sales order có tối đa một invoice; gọi tạo lại trả invoice hiện có thay vì nhân bản;
 - tạo/phát hành/hủy invoice không tạo, tăng hoặc giảm receivable;
 - `paidAmount` và `remainingAmount` khi đọc invoice lấy theo trạng thái tài chính hiện tại của sales order;
-- customer payment vẫn chỉ được ghi qua `POST /api/payments/customer`;
+- payment chỉ được ghi tại Payment workspace và gắn với đúng một sales order còn phải thu;
 - invoice đã có payment không được hủy;
 - PDF chỉ tải được khi invoice đã phát hành và còn hiệu lực; nội dung PDF theo ngôn ngữ `Accept-Language` của giao diện (`vi`/`en`), dùng font Unicode để giữ nguyên tiếng Việt và hiển thị số tiền theo locale.
 
@@ -152,7 +163,10 @@ Sales report là read model riêng, không lấy page đầu của `GET /api/sal
 Frontend không được giả định list summary chứa order items. Với order chưa `COMPLETED`, API vẫn có thể trả `totalAmount` cho giá trị đơn nhưng `paidAmount`/`debtAmount` không được trình bày như khoản phải thu thực tế.
 
 - `GET /api/invoices` -> paged invoice summary, yêu cầu `INVOICE_VIEW`.
+- `GET /api/invoices/eligible-sales-orders` -> tìm order `COMPLETED` chưa có invoice cho màn Tạo hóa đơn; yêu cầu `INVOICE_CREATE + INVOICE_VIEW + SALES_ORDER_VIEW`.
 - `GET /api/invoices/{id}` -> invoice detail + snapshot items.
+- `GET /api/payments/outstanding-orders` -> paged outstanding orders cho Payment workspace.
+- `GET /api/payments/history` -> paged payment history, tìm theo PAY/SO/customer/note.
 
 
 ## Business document numbering

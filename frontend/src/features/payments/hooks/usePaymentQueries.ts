@@ -1,17 +1,52 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../../../lib/queryKeys';
 import { useMutationFeedback } from '../../../lib/useMutationFeedback';
-import { recordCustomerPayment } from '../api/paymentService';
+import type { PaymentHistoryFilters } from '../types/payment.types';
+import {
+  fetchOutstandingPaymentOrders,
+  fetchPaymentHistory,
+  recordSalesOrderPayment,
+} from '../api/paymentService';
 
+export function useOutstandingPaymentOrders(
+  page = 0,
+  search = '',
+  options: { enabled?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: queryKeys.paymentOutstanding(page, search),
+    queryFn: () => fetchOutstandingPaymentOrders(page, search),
+    enabled: options.enabled ?? true,
+  });
+}
 
-export function useRecordCustomerPayment() {
+export function usePaymentHistory(
+  page = 0,
+  filters: PaymentHistoryFilters = {},
+  options: { enabled?: boolean } = {},
+) {
+  const { search = '', from, to } = filters;
+  return useQuery({
+    queryKey: queryKeys.paymentHistory(page, search, from, to),
+    queryFn: () => fetchPaymentHistory(page, { search, from, to }),
+    enabled: options.enabled ?? true,
+  });
+}
+
+export function useRecordSalesOrderPayment() {
   const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
-    mutationFn: recordCustomerPayment,
+    mutationFn: recordSalesOrderPayment,
     onSuccess: async (payment) => {
-      message.success(t('toast.payment.recorded', { code: payment.code }));
+      message.success(
+        payment.debtAfter !== undefined && Number(payment.debtAfter) <= 0
+          ? t('toast.payment.settled', { code: payment.salesOrderCode ?? payment.code })
+          : t('toast.payment.recorded', { code: payment.code }),
+      );
       await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.paymentOutstandingRoot }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.paymentHistoryRoot }),
         queryClient.invalidateQueries({ queryKey: queryKeys.customers }),
         queryClient.invalidateQueries({ queryKey: queryKeys.customer(payment.customerId) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.customerDebt(payment.customerId) }),

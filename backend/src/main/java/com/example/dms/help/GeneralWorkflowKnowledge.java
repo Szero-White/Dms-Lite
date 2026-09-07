@@ -186,14 +186,10 @@ final class GeneralWorkflowKnowledge {
                 : "Monitor stock and low-stock alerts, and hand adjustments to a role with inventory management permission.");
         }
 
-        if (scope.has(PermissionNames.PAYMENT_CREATE) && scope.has(PermissionNames.DEBT_VIEW)) {
+        if (scope.canUsePayments()) {
             steps.add(locale == HelpLocale.VI
-                ? "Đối chiếu công nợ rồi ghi nhận đúng khoản tiền thực nhận của khách hàng."
-                : "Reconcile receivables and record the exact amount actually received from the customer.");
-        } else if (scope.has(PermissionNames.PAYMENT_CREATE)) {
-            steps.add(locale == HelpLocale.VI
-                ? "Ghi nhận khoản tiền thực nhận trong Thanh toán theo phạm vi dữ liệu được cấp."
-                : "Record money actually received in Payments within your assigned data scope.");
+                ? "Đối chiếu công nợ, chọn đúng đơn còn phải thu rồi ghi nhận đúng khoản tiền thực nhận cho đơn đó."
+                : "Reconcile receivables, select the exact outstanding sales order, and record the amount actually received for that order.");
         } else if (scope.has(PermissionNames.DEBT_VIEW)) {
             steps.add(locale == HelpLocale.VI
                 ? "Theo dõi công nợ và khoản quá hạn; việc ghi nhận tiền phải do vai trò có quyền Thanh toán thực hiện."

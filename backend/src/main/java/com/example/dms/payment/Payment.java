@@ -32,12 +32,40 @@ public class Payment {
 
     private Long customerId;
 
+    /**
+     * Null only for legacy payments created before order-specific payments were introduced.
+     */
+    private Long salesOrderId;
+
     @Column(nullable = false)
     private String code;
 
     private BigDecimal amount;
 
     private String note;
+
+    /** Order receivable immediately before this payment for new payments; legacy customer balance for old rows. */
+    private BigDecimal debtBefore;
+
+    /** Order receivable immediately after this payment for new payments; legacy customer balance for old rows. */
+    private BigDecimal debtAfter;
+
+    private String customerNameSnapshot;
+
+    private String customerPhoneSnapshot;
+
+    private String customerAddressSnapshot;
+
+    private String salesOrderCodeSnapshot;
+
+    private BigDecimal salesOrderTotalSnapshot;
+
+    private String companyNameSnapshot;
+
+    private String recordedBySnapshot;
+
+    /** Client-generated idempotency key. Null for legacy payments. */
+    private String requestKey;
 
     private Long createdBy;
 

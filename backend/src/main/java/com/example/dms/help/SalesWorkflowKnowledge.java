@@ -76,13 +76,13 @@ final class SalesWorkflowKnowledge {
             List<String> steps = new ArrayList<>();
             steps.add("Hóa đơn chỉ được tạo từ đơn bán hàng đã Hoàn tất; hóa đơn không tạo thêm một khoản công nợ mới.");
             if (scope.has(PermissionNames.INVOICE_CREATE)) {
-                steps.add("Mở Đơn bán hàng, chọn một đơn Hoàn tất và dùng thao tác Tạo hóa đơn. Tạo lại cùng đơn sẽ mở hóa đơn hiện có thay vì nhân bản.");
+                steps.add("Mở Hóa đơn, chọn Tạo hóa đơn và chọn một đơn Hoàn tất chưa có hóa đơn. Tạo lại cùng đơn sẽ mở hóa đơn hiện có thay vì nhân bản.");
             }
             if (scope.has(PermissionNames.INVOICE_ISSUE)) {
                 steps.add("Kiểm tra khách hàng, số tiền và hạn thanh toán rồi phát hành hóa đơn nháp.");
             }
-            if (scope.has(PermissionNames.PAYMENT_CREATE)) {
-                steps.add("Tiền đã thu và còn phải thu trên hóa đơn luôn lấy từ công nợ của đơn bán hàng; ghi nhận tiền tại mục Thanh toán.");
+            if (scope.canUsePayments()) {
+                steps.add("Tiền đã thu và còn phải thu trên hóa đơn luôn lấy từ công nợ của đơn bán hàng; tại Thanh toán phải chọn đúng đơn cần thu trước khi ghi nhận tiền.");
             } else {
                 steps.add("Tiền đã thu và còn phải thu lấy từ công nợ của đơn bán hàng; khoản thu do vai trò có quyền Thanh toán ghi nhận.");
             }
@@ -102,13 +102,13 @@ final class SalesWorkflowKnowledge {
         List<String> steps = new ArrayList<>();
         steps.add("Invoices can only be created from Completed sales orders and do not create a second receivable balance.");
         if (scope.has(PermissionNames.INVOICE_CREATE)) {
-            steps.add("Open Sales Orders, choose a Completed order and use Create invoice. Repeating it for the same order returns the existing invoice instead of duplicating it.");
+            steps.add("Open Invoices, choose Create invoice and select a Completed order that does not already have an invoice. Repeating the same order returns the existing invoice instead of duplicating it.");
         }
         if (scope.has(PermissionNames.INVOICE_ISSUE)) {
             steps.add("Review customer, amount and due date, then issue the draft invoice.");
         }
-        if (scope.has(PermissionNames.PAYMENT_CREATE)) {
-            steps.add("Collected and remaining amounts come from the linked sales-order receivable; record money only in Payments.");
+        if (scope.canUsePayments()) {
+            steps.add("Collected and remaining amounts come from the linked sales-order receivable; in Payments, select the exact sales order before recording money.");
         } else {
             steps.add("Collected and remaining amounts come from the linked sales-order receivable; payment posting is handled by a role with payment permission.");
         }

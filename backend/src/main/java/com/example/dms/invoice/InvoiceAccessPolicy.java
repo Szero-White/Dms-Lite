@@ -13,7 +13,6 @@ public final class InvoiceAccessPolicy {
 
     private static final Set<String> RECEIVABLE_STATE_PERMISSIONS = Set.of(
         PermissionNames.DEBT_VIEW,
-        PermissionNames.PAYMENT_CREATE,
         PermissionNames.REPORT_VIEW,
         PermissionNames.SALES_ORDER_CREATE
     );

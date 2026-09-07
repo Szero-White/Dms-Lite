@@ -40,7 +40,7 @@ Dùng một customer và một product có stock đủ:
 3. Order phải thành `COMPLETED`.
 4. Stock phải giảm đúng quantity và có inventory transaction `OUT`.
 5. Customer receivable phải là `100`.
-6. Accountant record payment `40`; payment mới phải theo `PAY-YYYYMMDD-NNNN`.
+6. Accountant chọn đúng order vừa hoàn tất và record payment `40`; payment mới phải theo `PAY-YYYYMMDD-NNNN` và chỉ giảm receivable của order đó.
 7. Customer receivable phải còn `60`.
 8. Debt statement phải giữ cả receivable phát sinh và payment history.
 9. Dashboard total receivable và top customer debt phải cùng là `60` cho scenario này.
@@ -48,9 +48,24 @@ Dùng một customer và một product có stock đủ:
 11. Với customer có `creditLimit > 0`, tạo `DRAFT` vượt hạn mức phải chỉ cảnh báo; confirm/fulfill phải bị reject trước khi trừ stock hoặc tạo receivable.
 12. Confirm đúng bằng hạn mức phải được phép; `creditLimit = 0` phải tiếp tục được hiểu là chưa cấu hình hard limit.
 
-## 4. Invoice / document smoke
+## 4. Payment / receipt smoke
+
+- `/payments` chỉ mở khi user có đủ `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`; thiếu một quyền phải bị chặn cả route/API/AI/payment notification.
+- Tab `Thanh toán` phải hiển thị từng sales order `COMPLETED` còn nợ; `DRAFT`, `CANCELLED`, order đã tất toán không xuất hiện.
+- Một khách có nhiều order phải thấy từng order độc lập, không gộp thành một dòng customer khó truy vết.
+- Chọn order còn `520.000`, ghi `500.000` phải còn `20.000`; payment không được chạm vào receivable của order khác.
+- Ghi tiếp `20.000` phải tất toán; order biến khỏi outstanding list nhưng PAY vẫn ở `Lịch sử` và report/order/audit vẫn giữ.
+- Backend phải reject overpayment cho selected order và rollback toàn bộ mutation. Frontend có thể cap số nhập về remaining để UX dễ dùng.
+- Double-click/retry cùng `request_key` không được tạo PAY thứ hai hoặc trừ debt lần hai.
+- Mỗi payment mới trong `Lịch sử` phải hiện PAY, SO, customer, amount, remaining-after, note, detail và nút tải biên nhận.
+- Partial payment vẫn tải được biên nhận; receipt cũ phải giữ debt-before/debt-after snapshot dù khách trả thêm sau đó.
+- Legacy payment trước V11 không được đoán sales order nếu lịch sử cũ có thể đã phân bổ qua nhiều receivable.
+- `PAYMENT_RECORDED` chỉ hiển thị cho role đủ Payment workspace scope và notification mới nên nêu SO với payment order-specific.
+
+## 5. Invoice / document smoke
 
 - Từ order `COMPLETED`, tạo invoice mới phải sinh `INV-YYYYMMDD-NNNN`.
+- Action **Tạo hóa đơn** nằm ở module Hóa đơn; menu `...` của Sales Order chỉ còn Xem chi tiết và không giấu action tạo invoice.
 - Tạo lại invoice từ cùng sales order không được nhân bản chứng từ.
 - Issue invoice không được làm tăng receivable lần hai.
 - PDF VI/EN phải giữ đúng customer/product, SO/INV code, amount, paid/remaining và Unicode tiếng Việt.
@@ -58,12 +73,13 @@ Dùng một customer và một product có stock đủ:
 - Đúng ngày đến hạn, invoice chưa thanh toán hết vẫn là `ISSUED`; chỉ sau business date đó mới thành `OVERDUE`.
 - Debt statement phải hiển thị `sourceCode` cho Sales Order/Payment thay vì dùng database ID làm business reference.
 
-## 5. Role smoke test
+## 6. Role smoke test
 
 ### Owner
 
 - Login được.
 - Dashboard/report mở được.
+- Bảng Báo cáo bán hàng giữ layout hiện tại; filter mã SO/customer, trạng thái đơn và multi-select trạng thái thu chỉ lọc dữ liệu, không tạo thêm bảng payment/receipt.
 - Team Access, role/permission và audit mở được.
 - Các module vận hành chính mở được theo permission.
 
@@ -101,7 +117,7 @@ Dùng một customer và một product có stock đủ:
 - `PRODUCT_VIEW`-only: mở được Sản phẩm, thấy catalog/giá bán; không thấy tồn kho, giá vốn hoặc margin.
 - `INVENTORY_VIEW`: dependency tự có `PRODUCT_VIEW`; thấy quantity/stock health nhưng không thấy inventory value từ giá vốn nếu thiếu quyền financial product.
 - `CUSTOMER_VIEW`-only: thấy hồ sơ/hạn mức nhưng không thấy balance công nợ hoặc debt statement.
-- `PAYMENT_CREATE + CUSTOMER_VIEW`: thu tiền được và thấy balance cần thiết cho customer đang thu; không thấy portfolio/top debtor analytics nếu thiếu `DEBT_VIEW`/`REPORT_VIEW`.
+- `PAYMENT_CREATE` phải kéo dependency `CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`; thiếu bất kỳ dependency nào thì Payment workspace/API/AI/payment notification đều fail closed.
 - `SALES_ORDER_VIEW`-only: xem workflow order/status nhưng financial columns phải ẩn nếu thiếu finance/sales-create permission.
 - `REPORT_VIEW`-only: aggregate dashboard/report vẫn hoạt động; không render tab chi tiết cần permission module mà user không có.
 - Sidebar, search, route và quick action phải thống nhất; gõ URL của module không có quyền phải redirect về màn được phép.
@@ -116,7 +132,7 @@ Dùng một customer và một product có stock đủ:
 - Low-stock alert phải xuất hiện khi `quantityOnHand <= minStock` cho role có `NOTIFICATION_VIEW + PRODUCT_VIEW + INVENTORY_VIEW`, và không được leak sang role thiếu inventory permission.
 - AI role hạn chế không được trả dữ liệu debt/order/inventory nếu thiếu view permission tương ứng.
 
-## 6. API / data consistency
+## 7. API / data consistency
 
 - `GET /api/customers/{id}` trả đúng customer detail.
 - `GET /api/sales-orders/{id}` trả order detail + items.
@@ -127,7 +143,7 @@ Dùng một customer và một product có stock đủ:
 - Receivable balance dùng duy nhất tổng `remaining_amount` của open `INCREASE` rows.
 - Customer list không phát sinh một balance query cho từng customer.
 
-## 7. Localization / i18n
+## 8. Localization / i18n
 
 - `en.json` và `vi.json` có cùng key; không có static `t(...)` key bị thiếu.
 - Enum/status/source do hệ thống sinh phải render theo locale, không in raw code như `SALES_ORDER`, `ADJUSTMENT`, `IN`, `OUT`.
@@ -136,7 +152,7 @@ Dùng một customer và một product có stock đủ:
 - Trợ lý AI ở locale VI không trả module/status/permission code tiếng Anh trong phần hướng dẫn hoặc `relatedModules`.
 - Chuyển VI ↔ EN rồi kiểm tra Kho hàng, Công nợ, Thông báo, Nhật ký hoạt động và Trợ lý AI không bị trộn ngôn ngữ.
 
-## 8. Deployment security
+## 9. Deployment security
 
 - Backend public chạy với `SPRING_PROFILES_ACTIVE=prod` để production JWT guard được bật.
 - `APP_JWT_SECRET` là secret riêng, tối thiểu 32 ký tự, không dùng default trong repository.
@@ -148,7 +164,7 @@ Dùng một customer và một product có stock đủ:
 - Vercel có `VITE_API_BASE_URL` trỏ đúng public backend `/api`.
 - Refresh trực tiếp `/login`, `/dashboard` hoặc route con không được 404; SPA rewrite phải fallback về `index.html`.
 
-## 9. Server smoke test
+## 10. Server smoke test
 
 Sau deploy:
 
@@ -161,7 +177,7 @@ Sau deploy:
 - Mở customer có id ngoài page đầu vẫn lấy được detail bằng API detail.
 - Dashboard refresh đúng sau product/customer/order/payment mutation.
 
-## 10. Documentation gate
+## 11. Documentation gate
 
 Trước khi tag release, rà đồng thời:
 

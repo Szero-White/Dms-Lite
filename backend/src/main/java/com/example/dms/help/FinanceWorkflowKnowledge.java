@@ -11,8 +11,8 @@ final class FinanceWorkflowKnowledge {
         if (locale == HelpLocale.VI) {
             List<String> steps = new ArrayList<>();
             steps.add("Kiểm tra công nợ khách hàng trước khi ghi nhận thanh toán.");
-            if (scope.has(PermissionNames.PAYMENT_CREATE)) {
-                steps.add("Mở Thanh toán và ghi đúng số tiền thực nhận cho đúng khách hàng.");
+            if (scope.canUsePayments()) {
+                steps.add("Mở Thanh toán, chọn đúng đơn bán hàng còn phải thu và ghi đúng số tiền thực nhận cho đơn đó.");
                 steps.add("Kiểm tra lại báo cáo công nợ sau khi ghi nhận thanh toán.");
             } else {
                 steps.add("Bạn có thể xem thông tin tài chính được cấp, nhưng ghi nhận thanh toán cần quyền Ghi nhận thanh toán.");
@@ -32,8 +32,8 @@ final class FinanceWorkflowKnowledge {
 
         List<String> steps = new ArrayList<>();
         steps.add("Review customer debt before recording a payment.");
-        if (scope.has(PermissionNames.PAYMENT_CREATE)) {
-            steps.add("Open Payments and record the amount actually received for the correct customer.");
+        if (scope.canUsePayments()) {
+            steps.add("Open Payments, select the exact sales order with an outstanding balance, and record the amount actually received for that order.");
             steps.add("Recheck debt reports after posting the payment.");
         } else {
             steps.add("You may view permitted finance information, but recording payments requires PAYMENT_CREATE.");
@@ -88,7 +88,7 @@ final class FinanceWorkflowKnowledge {
         if (scope.canViewInventoryData()) {
             sources.add(HelpDisplayNames.module("Inventory", locale));
         }
-        if (scope.has(PermissionNames.PAYMENT_CREATE)) {
+        if (scope.canUsePayments()) {
             sources.add(HelpDisplayNames.module("Payments", locale));
         }
 

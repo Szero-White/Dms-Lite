@@ -76,6 +76,35 @@ public class InvoiceService {
     }
 
     @Transactional(readOnly = true)
+    public Page<InvoiceEligibleSalesOrderResponse> listEligibleSalesOrders(int page, String search) {
+        Long tenantId = TenantContext.tenantRequired();
+        Page<SalesOrder> orders = salesOrderRepository.findInvoiceEligibleOrders(
+            tenantId,
+            search == null ? "" : search.trim(),
+            SalesOrderStatus.COMPLETED,
+            PageRequest.of(Math.max(page, 0), 20)
+        );
+        var customerIds = orders.getContent().stream()
+            .map(SalesOrder::getCustomerId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+        Map<Long, String> customerNames = customerIds.isEmpty()
+            ? Map.of()
+            : customerRepository.findByTenantIdAndIdIn(tenantId, customerIds)
+                .stream()
+                .collect(Collectors.toMap(Customer::getId, Customer::getName));
+
+        return orders.map(order -> new InvoiceEligibleSalesOrderResponse(
+            order.getId(),
+            order.getCode(),
+            order.getCustomerId(),
+            customerNames.get(order.getCustomerId()),
+            zeroIfNull(order.getTotalAmount()),
+            order.getConfirmedAt()
+        ));
+    }
+
+    @Transactional(readOnly = true)
     public InvoiceResponse getInvoice(Long invoiceId) {
         Long tenantId = TenantContext.tenantRequired();
         Invoice invoice = invoiceRepository.findDetailByIdAndTenantId(invoiceId, tenantId)

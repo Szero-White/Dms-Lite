@@ -29,6 +29,18 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
         BigDecimal getRemainingAmount();
     }
 
+    interface OutstandingReceivableView {
+        Long getReceivableId();
+        Long getSalesOrderId();
+        String getSalesOrderCode();
+        Long getCustomerId();
+        String getCustomerName();
+        BigDecimal getTotalAmount();
+        BigDecimal getRemainingAmount();
+        LocalDate getDueDate();
+        java.time.Instant getConfirmedAt();
+    }
+
     List<CustomerDebtTransaction> findByTenantIdAndCustomerIdOrderByCreatedAtDesc(
         Long tenantId,
         Long customerId
@@ -37,13 +49,41 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query(
         "select debt from CustomerDebtTransaction debt " +
-        "where debt.tenantId=:tenantId and debt.customerId=:customerId " +
-        "and debt.direction='INCREASE' and debt.remainingAmount>0 " +
-        "order by debt.dueDate asc, debt.createdAt asc"
+        "where debt.tenantId=:tenantId and debt.sourceType='SALES_ORDER' " +
+        "and debt.sourceId=:salesOrderId and debt.direction='INCREASE' " +
+        "order by debt.createdAt desc, debt.id desc"
     )
-    List<CustomerDebtTransaction> lockOpenReceivables(
+    List<CustomerDebtTransaction> lockSalesOrderReceivables(
         @Param("tenantId") Long tenantId,
-        @Param("customerId") Long customerId
+        @Param("salesOrderId") Long salesOrderId
+    );
+
+    @Query(
+        value = "select debt.id as receivableId, salesOrder.id as salesOrderId, " +
+            "salesOrder.code as salesOrderCode, customer.id as customerId, customer.name as customerName, " +
+            "salesOrder.totalAmount as totalAmount, debt.remainingAmount as remainingAmount, " +
+            "debt.dueDate as dueDate, salesOrder.confirmedAt as confirmedAt " +
+            "from CustomerDebtTransaction debt, SalesOrder salesOrder, Customer customer " +
+            "where debt.tenantId=:tenantId and salesOrder.tenantId=:tenantId and customer.tenantId=:tenantId " +
+            "and debt.sourceType='SALES_ORDER' and debt.direction='INCREASE' and debt.remainingAmount>0 " +
+            "and salesOrder.id=debt.sourceId and salesOrder.status=:status " +
+            "and customer.id=salesOrder.customerId and customer.deletedAt is null " +
+            "and (:search='' or lower(salesOrder.code) like lower(concat('%', :search, '%')) " +
+            "or lower(customer.name) like lower(concat('%', :search, '%'))) " +
+            "order by debt.dueDate asc, salesOrder.confirmedAt asc, salesOrder.id asc",
+        countQuery = "select count(debt) from CustomerDebtTransaction debt, SalesOrder salesOrder, Customer customer " +
+            "where debt.tenantId=:tenantId and salesOrder.tenantId=:tenantId and customer.tenantId=:tenantId " +
+            "and debt.sourceType='SALES_ORDER' and debt.direction='INCREASE' and debt.remainingAmount>0 " +
+            "and salesOrder.id=debt.sourceId and salesOrder.status=:status " +
+            "and customer.id=salesOrder.customerId and customer.deletedAt is null " +
+            "and (:search='' or lower(salesOrder.code) like lower(concat('%', :search, '%')) " +
+            "or lower(customer.name) like lower(concat('%', :search, '%')))"
+    )
+    org.springframework.data.domain.Page<OutstandingReceivableView> findOutstandingSalesOrderReceivables(
+        @Param("tenantId") Long tenantId,
+        @Param("search") String search,
+        @Param("status") com.example.dms.sales.SalesOrderStatus status,
+        Pageable pageable
     );
 
     @Query(

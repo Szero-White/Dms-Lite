@@ -63,7 +63,14 @@ public class RoleManagementService {
             PermissionNames.INVENTORY_MANAGE,
             Set.of(PermissionNames.INVENTORY_VIEW, PermissionNames.PRODUCT_VIEW)
         ),
-        Map.entry(PermissionNames.PAYMENT_CREATE, Set.of(PermissionNames.CUSTOMER_VIEW)),
+        Map.entry(
+            PermissionNames.PAYMENT_CREATE,
+            Set.of(
+                PermissionNames.CUSTOMER_VIEW,
+                PermissionNames.SALES_ORDER_VIEW,
+                PermissionNames.DEBT_VIEW
+            )
+        ),
         Map.entry(PermissionNames.DEBT_VIEW, Set.of(PermissionNames.CUSTOMER_VIEW))
     );
 
@@ -83,7 +90,7 @@ public class RoleManagementService {
         entry(PermissionNames.INVOICE_CANCEL, "Cancel invoices", "Finance", "Cancel an unpaid invoice document."),
         entry(PermissionNames.INVENTORY_VIEW, "View inventory", "Inventory", "See stock by warehouse and product."),
         entry(PermissionNames.INVENTORY_MANAGE, "Manage inventory", "Inventory", "Receive or adjust stock levels."),
-        entry(PermissionNames.PAYMENT_CREATE, "Record payments", "Finance", "Record customer payments."),
+        entry(PermissionNames.PAYMENT_CREATE, "Record payments", "Finance", "Record payments against outstanding completed sales orders."),
         entry(PermissionNames.DEBT_VIEW, "View debt", "Finance", "See customer receivables."),
         entry(PermissionNames.REPORT_VIEW, "View reports", "Insights", "See dashboard and business reports."),
         entry(PermissionNames.AUDIT_VIEW, "View audit logs", "Administration", "Review system activity logs."),

@@ -3,34 +3,40 @@ package com.example.dms.payment;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-public record PaymentResponse(
-    Long id,
-    String code,
+public record PaymentReceiptResponse(
+    Long paymentId,
+    String paymentCode,
+    String companyName,
     Long customerId,
     String customerName,
+    String customerPhone,
+    String customerAddress,
     Long salesOrderId,
     String salesOrderCode,
     BigDecimal salesOrderTotal,
-    BigDecimal amount,
     BigDecimal debtBefore,
+    BigDecimal amountReceived,
     BigDecimal debtAfter,
     String note,
     String recordedBy,
-    Instant createdAt,
+    Instant receivedAt,
     boolean legacy
 ) {
 
-    public static PaymentResponse from(Payment payment) {
-        return new PaymentResponse(
+    public static PaymentReceiptResponse from(Payment payment) {
+        return new PaymentReceiptResponse(
             payment.getId(),
             payment.getCode(),
+            payment.getCompanyNameSnapshot(),
             payment.getCustomerId(),
             payment.getCustomerNameSnapshot(),
+            payment.getCustomerPhoneSnapshot(),
+            payment.getCustomerAddressSnapshot(),
             payment.getSalesOrderId(),
             payment.getSalesOrderCodeSnapshot(),
             payment.getSalesOrderTotalSnapshot(),
-            payment.getAmount(),
             payment.getDebtBefore(),
+            payment.getAmount(),
             payment.getDebtAfter(),
             payment.getNote(),
             payment.getRecordedBySnapshot(),

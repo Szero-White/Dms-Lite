@@ -4,6 +4,7 @@ import {
   TrophyOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import type { SalesOrderStatus } from '../../../../types/sales.types';
 import styles from './SalesOrdersPulseBar.module.css';
 
 interface SalesOrdersPulseBarProps {
@@ -12,8 +13,8 @@ interface SalesOrdersPulseBarProps {
   draftCount: number;
   completedCount: number;
   cancelledCount: number;
-  statusFilter: string;
-  onStatusFilterChange: (status: string) => void;
+  statusFilters: Array<SalesOrderStatus | 'ALL'>;
+  onStatusFiltersChange: (statuses: Array<SalesOrderStatus | 'ALL'>) => void;
 }
 
 export function SalesOrdersPulseBar({
@@ -22,11 +23,22 @@ export function SalesOrdersPulseBar({
   draftCount,
   completedCount,
   cancelledCount,
-  statusFilter,
-  onStatusFilterChange,
+  statusFilters,
+  onStatusFiltersChange,
 }: SalesOrdersPulseBarProps) {
   const { t } = useTranslation();
   const activeArc = totalOrders > 0 ? (activeOrders / totalOrders) * 201 : 0;
+
+  const isStatusSelected = (status: SalesOrderStatus) =>
+    !statusFilters.includes('ALL') && statusFilters.includes(status);
+
+  const toggleStatus = (status: SalesOrderStatus) => {
+    const specific = statusFilters.filter((value): value is SalesOrderStatus => value !== 'ALL');
+    const next = specific.includes(status)
+      ? specific.filter((value) => value !== status)
+      : [...specific, status];
+    onStatusFiltersChange(next.length > 0 ? next : ['ALL']);
+  };
 
   return (
     <div className={styles.pulseBar}>
@@ -75,8 +87,8 @@ export function SalesOrdersPulseBar({
 
         <button
           type="button"
-          className={`${styles.tierRow} ${statusFilter === 'DRAFT' ? styles.tierActive : ''}`}
-          onClick={() => onStatusFilterChange(statusFilter === 'DRAFT' ? 'ALL' : 'DRAFT')}
+          className={`${styles.tierRow} ${isStatusSelected('DRAFT') ? styles.tierActive : ''}`}
+          onClick={() => toggleStatus('DRAFT')}
         >
           <div className={styles.tierDot} style={{ background: '#f59e0b' }}>
             <ClockCircleOutlined />
@@ -96,8 +108,8 @@ export function SalesOrdersPulseBar({
 
         <button
           type="button"
-          className={`${styles.tierRow} ${statusFilter === 'COMPLETED' ? styles.tierActive : ''}`}
-          onClick={() => onStatusFilterChange(statusFilter === 'COMPLETED' ? 'ALL' : 'COMPLETED')}
+          className={`${styles.tierRow} ${isStatusSelected('COMPLETED') ? styles.tierActive : ''}`}
+          onClick={() => toggleStatus('COMPLETED')}
         >
           <div className={styles.tierDot} style={{ background: '#10b981' }}>
             <TrophyOutlined />
@@ -117,8 +129,8 @@ export function SalesOrdersPulseBar({
 
         <button
           type="button"
-          className={`${styles.tierRow} ${statusFilter === 'CANCELLED' ? styles.tierActive : ''}`}
-          onClick={() => onStatusFilterChange(statusFilter === 'CANCELLED' ? 'ALL' : 'CANCELLED')}
+          className={`${styles.tierRow} ${isStatusSelected('CANCELLED') ? styles.tierActive : ''}`}
+          onClick={() => toggleStatus('CANCELLED')}
         >
           <div className={styles.tierDot} style={{ background: '#ef4444' }}>
             <StopOutlined />

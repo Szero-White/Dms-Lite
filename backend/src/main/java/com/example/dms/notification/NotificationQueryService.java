@@ -11,6 +11,9 @@ import com.example.dms.inventory.StockItem;
 import com.example.dms.inventory.StockItemRepository;
 import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
+import com.example.dms.payment.Payment;
+import com.example.dms.payment.PaymentRepository;
+import com.example.dms.payment.PaymentWorkspaceAccessPolicy;
 import com.example.dms.user.PermissionNames;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -65,6 +68,8 @@ public class NotificationQueryService {
     private final CustomerDebtRepository debts;
 
     private final CustomerRepository customers;
+
+    private final PaymentRepository payments;
 
     private final BusinessTimeProvider businessTimeProvider;
 
@@ -324,26 +329,44 @@ public class NotificationQueryService {
     }
 
     private List<NotificationFeedItem> paymentNotifications(Long tenantId) {
-        List<CustomerDebtTransaction> payments = debts.findByTenantIdAndSourceTypeOrderByCreatedAtDesc(
+        List<CustomerDebtTransaction> paymentEntries = debts.findByTenantIdAndSourceTypeOrderByCreatedAtDesc(
             tenantId,
             PAYMENT_SOURCE,
             PageRequest.of(0, DERIVED_GROUP_LIMIT)
         );
-        Map<Long, Customer> customerMap = customersById(tenantId, payments.stream()
+        Map<Long, Customer> customerMap = customersById(tenantId, paymentEntries.stream()
             .map(CustomerDebtTransaction::getCustomerId)
             .collect(Collectors.toSet()));
+        Set<Long> paymentIds = paymentEntries.stream()
+            .map(CustomerDebtTransaction::getSourceId)
+            .filter(java.util.Objects::nonNull)
+            .collect(Collectors.toSet());
+        Map<Long, Payment> paymentMap = paymentIds.isEmpty()
+            ? Map.of()
+            : payments.findByTenantIdAndIdIn(tenantId, paymentIds)
+                .stream()
+                .collect(Collectors.toMap(Payment::getId, Function.identity()));
 
-        return payments.stream()
-            .map(payment -> new NotificationFeedItem(
-                "payment-" + payment.getId(),
-                "PAYMENT_RECORDED",
-                "Payment recorded",
-                customerName(customerMap, payment.getCustomerId()) + " paid " +
-                    formatMoney(payment.getAmount()) + " VND.",
-                false,
-                payment.getCreatedAt(),
-                DERIVED_SOURCE
-            ))
+        return paymentEntries.stream()
+            .map(paymentEntry -> {
+                Payment payment = paymentMap.get(paymentEntry.getSourceId());
+                String customer = customerName(customerMap, paymentEntry.getCustomerId());
+                String amount = formatMoney(paymentEntry.getAmount());
+                String orderCode = payment == null ? null : payment.getSalesOrderCodeSnapshot();
+                String message = orderCode == null || orderCode.isBlank()
+                    ? customer + " paid " + amount + " VND."
+                    : customer + " paid " + amount + " VND for order " + orderCode + ".";
+
+                return new NotificationFeedItem(
+                    "payment-" + paymentEntry.getId(),
+                    "PAYMENT_RECORDED",
+                    "Payment recorded",
+                    message,
+                    false,
+                    paymentEntry.getCreatedAt(),
+                    DERIVED_SOURCE
+                );
+            })
             .toList();
     }
 
@@ -380,8 +403,7 @@ public class NotificationQueryService {
     }
 
     private boolean canBuildPaymentNotifications(Set<String> permissions) {
-        return permissions.contains(PermissionNames.CUSTOMER_VIEW)
-            && permissions.contains(PermissionNames.PAYMENT_CREATE);
+        return PaymentWorkspaceAccessPolicy.canAccess(permissions);
     }
 
     private record OverdueDebtSummary(

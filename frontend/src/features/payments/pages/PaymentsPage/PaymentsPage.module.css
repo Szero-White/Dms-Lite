@@ -121,4 +121,45 @@
   .search {
     width: 100%;
   }
+
+  .historyFilters,
+  .historySearch,
+  .historyDateRange {
+    width: 100%;
+  }
+}
+
+.tabs :global(.ant-tabs-nav) {
+  margin-bottom: var(--spacing-lg);
+}
+
+.historyFilters {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  min-width: 0;
+}
+
+.historySearch {
+  width: min(420px, 100%);
+}
+
+.historyDateRange {
+  width: min(300px, 100%);
+}
+
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-md);
+}
+
+.paymentSummary {
+  margin-bottom: var(--spacing-lg);
+}
+
+.paymentDetail {
+  display: grid;
+  gap: var(--spacing-lg);
 }

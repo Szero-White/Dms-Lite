@@ -25,7 +25,7 @@ Quy ước:
 - Controller chỉ nhận request, permission và trả response; không chứa SQL/report calculation.
 - Business rule quan trọng phải có một source of truth ở backend.
 - Query reporting phức tạp nằm trong read repository (`ReportReadRepository`), không nằm trong controller.
-- Receivable balance và allocation query nằm trong `CustomerDebtRepository`; report/customer/payment không tự viết lại công thức công nợ.
+- Receivable balance và order-specific receivable query nằm trong `CustomerDebtRepository`; report/customer/payment không tự viết lại công thức công nợ.
 - DTO summary và detail được tách khi payload khác nhau, ví dụ Sales Order.
 
 ## Sales Order lifecycle hiện tại
@@ -59,12 +59,14 @@ DMS Lite hiện dùng **open-item receivable model có ledger history**:
 - Order phát sinh nợ tạo transaction `INCREASE`.
 - `INCREASE.amount` là giá trị phát sinh ban đầu.
 - `INCREASE.remaining_amount` là số tiền còn mở của khoản phải thu đó.
-- Payment được phân bổ FIFO vào các `INCREASE` còn mở và giảm `remaining_amount`.
+- Mỗi payment mới bắt buộc chọn đúng **một** sales order `COMPLETED` còn phải thu; payment chỉ giảm `remaining_amount` của receivable thuộc order đó.
+- Partial payment và exact settlement đều hợp lệ; payment lớn hơn số còn phải thu của order bị backend từ chối.
 - Đồng thời payment tạo transaction `DECREASE` để giữ lịch sử thanh toán/audit statement.
 - **Current receivable balance = SUM(remaining_amount) của các `INCREASE` còn mở.**
 - Transaction `DECREASE` không được trừ thêm lần nữa khi tính balance, tránh double-count.
+- Payment trước migration V11 có thể là legacy FIFO payment; lịch sử cũ được giữ nguyên và không đoán ngược một sales order nếu trước đây tiền đã trải qua nhiều receivable.
 
-Khi record payment, các open receivable rows được lock bằng `PESSIMISTIC_WRITE` trước khi kiểm tra balance và phân bổ, nhằm tránh hai payment đồng thời làm sai công nợ. Sales-order `paidAmount`/`debtAmount` được đồng bộ trong cùng transaction để list/detail không hiển thị snapshot cũ; receivable `remainingAmount` vẫn là nguồn balance chuẩn.
+Khi record payment mới, sales order được lock bằng `PESSIMISTIC_WRITE`, sau đó receivable `SALES_ORDER/INCREASE` tương ứng cũng được lock trước khi kiểm tra và mutate. Sales-order `paidAmount`/`debtAmount` được đồng bộ trong cùng transaction; receivable `remainingAmount` vẫn là nguồn balance chuẩn. Client-generated `request_key` giúp retry cùng thao tác không tạo payment thứ hai.
 
 ## Invoice document
 
@@ -171,6 +173,7 @@ Permission là nguồn sự thật chung cho cả frontend và backend, không s
 - `CUSTOMER_VIEW` cho xem hồ sơ/hạn mức. Balance công nợ chỉ được trả cho workflow cần số dư (`DEBT_VIEW`, `PAYMENT_CREATE`, `REPORT_VIEW`, `SALES_ORDER_CREATE`); debt statement chi tiết vẫn chỉ có `DEBT_VIEW`.
 - `PAYMENT_CREATE` được dùng số dư cần thiết để thu tiền nhưng không tự mở dashboard/top-debtor analytics nếu thiếu `DEBT_VIEW`/`REPORT_VIEW`.
 - `REPORT_VIEW` cho aggregate dashboard/report; các tab/bảng chi tiết chỉ fetch module data khi user có thêm permission đọc module tương ứng, tránh bảng trống hoặc dữ liệu vượt scope.
+- Payment workspace yêu cầu đồng thời `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`; Notification/AI dùng cùng boundary để không lộ payment/receivable ngoài scope.
 - DTO API redact dữ liệu nhạy cảm theo permission; frontend ẩn field chỉ là UX layer, backend vẫn là authorization boundary cuối cùng.
 
 ### AI và Notification theo permission

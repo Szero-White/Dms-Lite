@@ -21,6 +21,8 @@ import com.example.dms.inventory.StockItem;
 import com.example.dms.inventory.StockItemRepository;
 import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
+import com.example.dms.payment.Payment;
+import com.example.dms.payment.PaymentRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -44,6 +46,7 @@ class NotificationQueryServiceAuthorizationTest {
     private final ProductRepository products = mock(ProductRepository.class);
     private final CustomerDebtRepository debts = mock(CustomerDebtRepository.class);
     private final CustomerRepository customers = mock(CustomerRepository.class);
+    private final PaymentRepository payments = mock(PaymentRepository.class);
     private final BusinessTimeProvider businessTimeProvider = mock(BusinessTimeProvider.class);
     private final NotificationQueryService service = new NotificationQueryService(
         notifications,
@@ -52,6 +55,7 @@ class NotificationQueryServiceAuthorizationTest {
         products,
         debts,
         customers,
+        payments,
         businessTimeProvider
     );
 
@@ -71,14 +75,20 @@ class NotificationQueryServiceAuthorizationTest {
     }
 
     @Test
-    void cashierFeedQueriesOnlyPaymentPersistedNotifications() {
+    void paymentWorkspaceFeedIncludesOnlyBusinessTypesAllowedByItsFullScope() {
         when(notifications.findByTenantIdAndTypeInOrderByCreatedAtDesc(
             eq(1L),
             any(),
             any(Pageable.class)
         )).thenReturn(List.of());
 
-        service.listRecent(20, authentication("NOTIFICATION_VIEW", "CUSTOMER_VIEW", "PAYMENT_CREATE"));
+        service.listRecent(20, authentication(
+            "NOTIFICATION_VIEW",
+            "CUSTOMER_VIEW",
+            "SALES_ORDER_VIEW",
+            "DEBT_VIEW",
+            "PAYMENT_CREATE"
+        ));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Collection<String>> types = ArgumentCaptor.forClass(Collection.class);
@@ -88,7 +98,87 @@ class NotificationQueryServiceAuthorizationTest {
             any(Pageable.class)
         );
 
-        assertThat(types.getValue()).containsExactlyInAnyOrder("PAYMENT_RECORDED");
+        assertThat(types.getValue())
+            .contains("PAYMENT_RECORDED", "OVERDUE_DEBT", "SALES_ORDER_CONFIRMED", "SALES_ORDER_CANCELLED", "INVOICE_ISSUED")
+            .doesNotContain("LOW_STOCK");
+    }
+
+
+    @Test
+    void orderSpecificPaymentNotificationIncludesSalesOrderCode() {
+        when(notifications.findByTenantIdAndTypeInOrderByCreatedAtDesc(
+            eq(1L),
+            any(),
+            any(Pageable.class)
+        )).thenReturn(List.of());
+
+        CustomerDebtTransaction paymentEntry = CustomerDebtTransaction.builder()
+            .id(900L)
+            .tenantId(1L)
+            .customerId(5L)
+            .sourceType("PAYMENT")
+            .sourceId(70L)
+            .direction("DECREASE")
+            .amount(new BigDecimal("500000"))
+            .remainingAmount(BigDecimal.ZERO)
+            .createdAt(Instant.parse("2026-09-07T01:00:00Z"))
+            .build();
+        when(debts.findByTenantIdAndSourceTypeOrderByCreatedAtDesc(
+            eq(1L),
+            eq("PAYMENT"),
+            any(Pageable.class)
+        )).thenReturn(List.of(paymentEntry));
+        when(customers.findAllById(any())).thenReturn(List.of(customer(5L, "Anh Duong")));
+        when(payments.findByTenantIdAndIdIn(eq(1L), anyCollection())).thenReturn(List.of(
+            Payment.builder()
+                .id(70L)
+                .tenantId(1L)
+                .customerId(5L)
+                .salesOrderId(11L)
+                .salesOrderCodeSnapshot("SO-20260907-0011")
+                .build()
+        ));
+
+        List<NotificationFeedItem> feed = service.listRecent(
+            20,
+            authentication(
+                "NOTIFICATION_VIEW",
+                "CUSTOMER_VIEW",
+                "SALES_ORDER_VIEW",
+                "DEBT_VIEW",
+                "PAYMENT_CREATE"
+            )
+        );
+
+        assertThat(feed)
+            .filteredOn(item -> item.type().equals("PAYMENT_RECORDED"))
+            .singleElement()
+            .satisfies(item -> assertThat(item.message())
+                .isEqualTo("Anh Duong paid 500,000 VND for order SO-20260907-0011."));
+    }
+
+    @Test
+    void paymentCreateWithoutFullWorkspaceScopeCannotSeePaymentNotifications() {
+        when(notifications.findByTenantIdAndTypeInOrderByCreatedAtDesc(
+            eq(1L),
+            any(),
+            any(Pageable.class)
+        )).thenReturn(List.of());
+
+        List<NotificationFeedItem> feed = service.listRecent(
+            20,
+            authentication("NOTIFICATION_VIEW", "CUSTOMER_VIEW", "PAYMENT_CREATE")
+        );
+
+        assertThat(feed).isEmpty();
+        verify(notifications, never()).findByTenantIdAndTypeInOrderByCreatedAtDesc(
+            any(),
+            anyCollection(),
+            any(Pageable.class)
+        );
+        verify(debts, never()).findByTenantIdAndSourceTypeOrderByCreatedAtDesc(
+            any(), any(), any(Pageable.class)
+        );
     }
 
     @Test

@@ -35,10 +35,10 @@ class HelpDataAnswerServiceAuthorizationTest {
     );
 
     @Test
-    void paymentCreateAllowsWorkflowButDoesNotExposeDebtDataWithoutDebtView() {
+    void paymentCreateAloneDoesNotUnlockFinanceOrDebtData() {
         HelpPermissionScope scope = scope("AI_HELP_VIEW", "CUSTOMER_VIEW", "PAYMENT_CREATE");
 
-        assertThat(scope.canUseFinance()).isTrue();
+        assertThat(scope.canUseFinance()).isFalse();
         assertThat(scope.canViewDebtData()).isFalse();
 
         HelpAnswerResponse answer = service.answer(
@@ -50,6 +50,29 @@ class HelpDataAnswerServiceAuthorizationTest {
 
         assertThat(answer.blocked()).isTrue();
         verifyNoInteractions(customers, customerDebts);
+    }
+
+
+    @Test
+    void paymentWorkspaceRequiresSalesOrderAndDebtScopeTogether() {
+        HelpPermissionScope missingSalesOrders = scope(
+            "AI_HELP_VIEW",
+            "CUSTOMER_VIEW",
+            "DEBT_VIEW",
+            "PAYMENT_CREATE"
+        );
+        HelpPermissionScope fullWorkspace = scope(
+            "AI_HELP_VIEW",
+            "CUSTOMER_VIEW",
+            "SALES_ORDER_VIEW",
+            "DEBT_VIEW",
+            "PAYMENT_CREATE"
+        );
+
+        assertThat(missingSalesOrders.canUsePayments()).isFalse();
+        assertThat(missingSalesOrders.visibleModules()).doesNotContain("Payments");
+        assertThat(fullWorkspace.canUsePayments()).isTrue();
+        assertThat(fullWorkspace.visibleModules()).contains("Payments");
     }
 
     @Test

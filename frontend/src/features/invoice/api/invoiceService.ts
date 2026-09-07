@@ -1,9 +1,16 @@
 import { apiClient, unwrapResponse } from '../../../services/apiClient';
 import type { PageResponse } from '../../../types';
-import type { Invoice } from '../types/invoice.types';
+import type { Invoice, InvoiceEligibleSalesOrder } from '../types/invoice.types';
 
 export function fetchInvoices(page = 0) {
   return unwrapResponse<PageResponse<Invoice>>(apiClient.get(`/invoices?page=${page}`));
+}
+
+
+export function fetchEligibleInvoiceSalesOrders(page = 0, search = '') {
+  return unwrapResponse<PageResponse<InvoiceEligibleSalesOrder>>(
+    apiClient.get('/invoices/eligible-sales-orders', { params: { page, search } }),
+  );
 }
 
 export function fetchInvoice(invoiceId: number) {
