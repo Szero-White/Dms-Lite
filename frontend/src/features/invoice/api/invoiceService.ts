@@ -1,32 +1,24 @@
 import { apiClient, unwrapResponse } from '../../../services/apiClient';
 import type { PageResponse } from '../../../types';
-import type { Invoice, InvoiceEligibleSalesOrder } from '../types/invoice.types';
+import type { Invoice } from '../types/invoice.types';
 
-export function fetchInvoices(page = 0) {
-  return unwrapResponse<PageResponse<Invoice>>(apiClient.get(`/invoices?page=${page}`));
+export interface InvoiceListParams {
+  page?: number;
+  search?: string;
+  from?: string;
+  to?: string;
 }
 
-
-export function fetchEligibleInvoiceSalesOrders(page = 0, search = '') {
-  return unwrapResponse<PageResponse<InvoiceEligibleSalesOrder>>(
-    apiClient.get('/invoices/eligible-sales-orders', { params: { page, search } }),
-  );
+export function fetchInvoices(params: InvoiceListParams = {}) {
+  return unwrapResponse<PageResponse<Invoice>>(apiClient.get('/invoices', { params }));
 }
 
 export function fetchInvoice(invoiceId: number) {
   return unwrapResponse<Invoice>(apiClient.get(`/invoices/${invoiceId}`));
 }
 
-export function createInvoiceFromSalesOrder(salesOrderId: number) {
-  return unwrapResponse<Invoice>(apiClient.post(`/invoices/from-sales-order/${salesOrderId}`));
-}
-
 export function issueInvoice(invoiceId: number) {
   return unwrapResponse<Invoice>(apiClient.post(`/invoices/${invoiceId}/issue`));
-}
-
-export function cancelInvoice(invoiceId: number) {
-  return unwrapResponse<Invoice>(apiClient.post(`/invoices/${invoiceId}/cancel`));
 }
 
 export async function downloadInvoicePdf(invoiceId: number) {

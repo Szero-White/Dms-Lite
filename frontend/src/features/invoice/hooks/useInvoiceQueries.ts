@@ -1,31 +1,19 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../../../lib/queryKeys';
 import { useMutationFeedback } from '../../../lib/useMutationFeedback';
-import {
-  cancelInvoice,
-  createInvoiceFromSalesOrder,
-  fetchEligibleInvoiceSalesOrders,
-  fetchInvoice,
-  fetchInvoices,
-  issueInvoice,
-} from '../api/invoiceService';
+import { fetchInvoice, fetchInvoices, issueInvoice } from '../api/invoiceService';
 
-export function useInvoices(page = 0) {
-  return useQuery({
-    queryKey: queryKeys.invoices(page),
-    queryFn: () => fetchInvoices(page),
-  });
-}
-
-
-export function useEligibleInvoiceSalesOrders(
-  search = '',
-  options: { enabled?: boolean } = {},
+export function useInvoices(
+  page = 0,
+  filters: { search?: string; from?: string; to?: string } = {},
 ) {
+  const search = filters.search ?? '';
+  const from = filters.from;
+  const to = filters.to;
+
   return useQuery({
-    queryKey: queryKeys.invoiceEligible(search),
-    queryFn: () => fetchEligibleInvoiceSalesOrders(0, search),
-    enabled: options.enabled ?? true,
+    queryKey: queryKeys.invoices(page, search, from, to),
+    queryFn: () => fetchInvoices({ page, search, from, to }),
   });
 }
 
@@ -37,44 +25,12 @@ export function useInvoice(invoiceId?: number) {
   });
 }
 
-export function useCreateInvoiceFromSalesOrder() {
-  const { queryClient, message, t, onError } = useMutationFeedback();
-  return useMutation({
-    mutationFn: (salesOrderId: number) => createInvoiceFromSalesOrder(salesOrderId),
-    onSuccess: async (invoice) => {
-      message.success(t('toast.invoice.created', { number: invoice.invoiceNumber }));
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.invoicesRoot }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.invoiceEligibleRoot }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.auditLogs }),
-      ]);
-    },
-    onError,
-  });
-}
-
 export function useIssueInvoice() {
   const { queryClient, message, t, onError } = useMutationFeedback();
   return useMutation({
     mutationFn: (invoiceId: number) => issueInvoice(invoiceId),
     onSuccess: async (_, invoiceId) => {
       message.success(t('toast.invoice.issued'));
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.invoicesRoot }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.invoice(invoiceId) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.auditLogs }),
-      ]);
-    },
-    onError,
-  });
-}
-
-export function useCancelInvoice() {
-  const { queryClient, message, t, onError } = useMutationFeedback();
-  return useMutation({
-    mutationFn: (invoiceId: number) => cancelInvoice(invoiceId),
-    onSuccess: async (_, invoiceId) => {
-      message.success(t('toast.invoice.cancelled'));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.invoicesRoot }),
         queryClient.invalidateQueries({ queryKey: queryKeys.invoice(invoiceId) }),

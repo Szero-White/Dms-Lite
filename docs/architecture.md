@@ -73,7 +73,9 @@ Khi record payment mới, sales order được lock bằng `PESSIMISTIC_WRITE`, 
 Invoice là chứng từ bán hàng của một sales order `COMPLETED`, không phải nguồn công nợ thứ hai:
 
 - mỗi sales order có tối đa một invoice;
-- issue/cancel invoice không tạo hoặc thay đổi receivable;
+- invoice `DRAFT` được tạo **tự động trong cùng transaction với lần thanh toán cuối** khi remaining receivable của order về `0`; không còn API/nút tạo invoice thủ công;
+- invoice list chỉ hiển thị invoice của order đã thu đủ và hỗ trợ search `INV/SO/customer` + `from/to` business date;
+- issue invoice không tạo hoặc thay đổi receivable;
 - `paidAmount`/`remainingAmount` của invoice được suy ra từ receivable/payment hiện tại;
 - `PAID`/`OVERDUE` là trạng thái đọc suy ra, không tạo lifecycle tài chính riêng;
 - invoice chỉ `OVERDUE` sau khi đã qua ngày đến hạn theo business timezone, không phải ngay trong chính ngày đến hạn;
@@ -183,7 +185,7 @@ Permission là nguồn sự thật chung cho cả frontend và backend, không s
 - AI workflow guidance có thể dựa trên action permission, nhưng hướng dẫn Payment chỉ mở khi đủ Payment workspace scope; dữ liệu thật vẫn phải có view permission tương ứng (`DEBT_VIEW`, `SALES_ORDER_VIEW`, `INVENTORY_VIEW`, `PRODUCT_VIEW`, `CUSTOMER_VIEW`).
 - Mỗi câu trả lời trợ lý mang provenance do backend quyết định: `LIVE_DATA`, `WORKFLOW_KNOWLEDGE`, `SYSTEM_FALLBACK` hoặc `LEGACY_UNKNOWN`; provider diễn đạt được lưu riêng (`GEMINI`, `NONE`, `LEGACY_UNKNOWN`). Gemini không được tự quyết định hai metadata này.
 - Frontend nhân viên chỉ hiển thị provenance ở mức nghiệp vụ (`Dữ liệu DMS`, `Quy trình DMS`, `AI hỗ trợ`); chi tiết fallback/provider chỉ dành cho AI History của Owner để hỗ trợ audit và vận hành.
-- Notification được lọc tiếp theo loại sự kiện và permission nghiệp vụ. Ví dụ payment event cần đủ `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`, overdue debt cần `DEBT_VIEW + CUSTOMER_VIEW`, sales-order event cần `SALES_ORDER_VIEW`.
+- Notification được lọc tiếp theo loại sự kiện và permission nghiệp vụ. Payment event cần đủ `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`; overdue debt cần `DEBT_VIEW + CUSTOMER_VIEW`; sales-order event cần `SALES_ORDER_VIEW`; invoice-issued event cần `INVOICE_VIEW + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`.
 - Notification type chưa được khai báo policy bị **deny by default** để event mới không vô tình vượt RBAC.
 - Trạng thái đọc được lưu theo **tenant + user + notification key** trong `notification_reads`; một nhân viên đọc thông báo không làm thay đổi trạng thái của nhân viên khác.
 - `PUT /api/notifications/{id}/read-state` với body `{ "read": true|false }` là API chuẩn để đặt trạng thái đọc theo user một cách idempotent. Hai endpoint `/read` cũ vẫn được giữ tương thích ngược. Mọi thao tác áp dụng cùng permission policy; notification ngoài scope được xử lý như không tồn tại để không làm lộ event bị giới hạn.

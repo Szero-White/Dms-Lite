@@ -18,6 +18,7 @@ import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
 import com.example.dms.document.DocumentNumberService;
 import com.example.dms.document.DocumentNumberType;
+import com.example.dms.invoice.InvoiceService;
 import com.example.dms.sales.SalesOrder;
 import com.example.dms.sales.SalesOrderRepository;
 import com.example.dms.sales.SalesOrderStatus;
@@ -50,6 +51,7 @@ class PaymentServiceTest {
     @Mock private DocumentNumberService documentNumberService;
     @Mock private TenantRepository tenantRepository;
     @Mock private AppUserRepository appUserRepository;
+    @Mock private InvoiceService invoiceService;
 
     private PaymentService paymentService;
 
@@ -64,7 +66,8 @@ class PaymentServiceTest {
             auditService,
             documentNumberService,
             tenantRepository,
-            appUserRepository
+            appUserRepository,
+            invoiceService
         );
         TenantContext.set(1L, 10L);
 
@@ -195,6 +198,7 @@ class PaymentServiceTest {
         assertThat(response.legacy()).isFalse();
         verify(customerDebtRepository).save(any(CustomerDebtTransaction.class));
         verify(auditService).log("PAYMENT_RECORDED", "Payment", 99L, "PAY-20260907-0001 / SO-20260907-0101");
+        verify(invoiceService, never()).ensureDraftForFullyPaidSalesOrder(any());
     }
 
     @Test
@@ -218,6 +222,7 @@ class PaymentServiceTest {
         assertThat(order.getPaidAmount()).isEqualByComparingTo("520");
         assertThat(order.getDebtAmount()).isEqualByComparingTo("0");
         assertThat(response.debtAfter()).isEqualByComparingTo("0");
+        verify(invoiceService).ensureDraftForFullyPaidSalesOrder(order);
     }
 
     @Test

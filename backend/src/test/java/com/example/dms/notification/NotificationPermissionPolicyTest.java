@@ -44,6 +44,26 @@ class NotificationPermissionPolicyTest {
     }
 
     @Test
+    void invoiceIssuedRequiresInvoiceViewAndFinanceReadScope() {
+        Set<String> financeWithoutInvoiceView = Set.of(
+            "NOTIFICATION_VIEW",
+            "CUSTOMER_VIEW",
+            "SALES_ORDER_VIEW",
+            "DEBT_VIEW"
+        );
+        Set<String> invoiceFinanceViewer = Set.of(
+            "NOTIFICATION_VIEW",
+            "INVOICE_VIEW",
+            "CUSTOMER_VIEW",
+            "SALES_ORDER_VIEW",
+            "DEBT_VIEW"
+        );
+
+        assertThat(NotificationPermissionPolicy.canView("INVOICE_ISSUED", financeWithoutInvoiceView)).isFalse();
+        assertThat(NotificationPermissionPolicy.canView("INVOICE_ISSUED", invoiceFinanceViewer)).isTrue();
+    }
+
+    @Test
     void customInventoryMonitorOnlySeesLowStockEvents() {
         Set<String> permissions = Set.of(
             "NOTIFICATION_VIEW",

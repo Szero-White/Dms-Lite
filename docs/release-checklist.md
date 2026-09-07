@@ -61,16 +61,16 @@ Dùng một customer và một product có stock đủ:
 - Partial payment vẫn tải được biên nhận; receipt cũ phải giữ debt-before/debt-after snapshot dù khách trả thêm sau đó.
 - Legacy payment trước V11 không được đoán sales order nếu lịch sử cũ có thể đã phân bổ qua nhiều receivable.
 - `PAYMENT_RECORDED` chỉ hiển thị cho role đủ Payment workspace scope và notification mới nên nêu SO với payment order-specific.
+- `INVOICE_ISSUED` chỉ hiển thị cho role có `INVOICE_VIEW + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`; role chỉ có finance scope nhưng không có quyền Hóa đơn không được thấy event này.
 
 ## 5. Invoice / document smoke
 
-- Từ order `COMPLETED`, tạo invoice mới phải sinh `INV-YYYYMMDD-NNNN`.
-- Action **Tạo hóa đơn** chỉ nằm ở module Hóa đơn; menu `...` của Sales Order giữ các action vận hành theo permission (`Xem chi tiết`, `Xác nhận/Hoàn tất` cho `DRAFT` nếu có `SALES_ORDER_CONFIRM`, `Hủy đơn` cho `DRAFT` nếu có `SALES_ORDER_CANCEL`) và không còn action tạo invoice.
-- Tạo lại invoice từ cùng sales order không được nhân bản chứng từ.
+- Partial payment **không** tạo invoice; khi final payment đưa order `COMPLETED` về remaining `0`, invoice `DRAFT` phải tự sinh `INV-YYYYMMDD-NNNN` trong cùng transaction.
+- Trang Hóa đơn không còn nút/drawer **Tạo hóa đơn**; search `INV/SO/customer` và `Từ ngày` / `Đến ngày` phải lọc đúng trên paged data.
+- Order đã thu đủ trước V12 phải có invoice backfill sau migrate; cùng một sales order không bao giờ có invoice thứ hai.
 - Issue invoice không được làm tăng receivable lần hai.
 - PDF VI/EN phải giữ đúng customer/product, SO/INV code, amount, paid/remaining và Unicode tiếng Việt.
-- Sau partial payment, tải lại PDF phải phản ánh paid/remaining mới từ canonical receivable.
-- Đúng ngày đến hạn, invoice chưa thanh toán hết vẫn là `ISSUED`; chỉ sau business date đó mới thành `OVERDUE`.
+- Menu `...` Sales Order vẫn giữ các action vận hành theo permission và không có action tạo invoice.
 - Debt statement phải hiển thị `sourceCode` cho Sales Order/Payment thay vì dùng database ID làm business reference.
 
 ## 6. Role smoke test

@@ -99,8 +99,8 @@ class NotificationQueryServiceAuthorizationTest {
         );
 
         assertThat(types.getValue())
-            .contains("PAYMENT_RECORDED", "OVERDUE_DEBT", "SALES_ORDER_CONFIRMED", "SALES_ORDER_CANCELLED", "INVOICE_ISSUED")
-            .doesNotContain("LOW_STOCK");
+            .contains("PAYMENT_RECORDED", "OVERDUE_DEBT", "SALES_ORDER_CONFIRMED", "SALES_ORDER_CANCELLED")
+            .doesNotContain("LOW_STOCK", "INVOICE_ISSUED");
     }
 
 

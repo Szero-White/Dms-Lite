@@ -37,32 +37,6 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
     );
 
 
-    @Query(
-        value = "select salesOrder from SalesOrder salesOrder " +
-            "where salesOrder.tenantId=:tenantId " +
-            "and salesOrder.status=:status " +
-            "and not exists (select invoice.id from Invoice invoice where invoice.tenantId=:tenantId and invoice.salesOrderId=salesOrder.id) " +
-            "and (:search='' or lower(salesOrder.code) like lower(concat('%', :search, '%')) " +
-            "or exists (select customer.id from Customer customer where customer.tenantId=:tenantId " +
-            "and customer.id=salesOrder.customerId and customer.deletedAt is null " +
-            "and lower(customer.name) like lower(concat('%', :search, '%')))) " +
-            "order by salesOrder.confirmedAt desc, salesOrder.id desc",
-        countQuery = "select count(salesOrder) from SalesOrder salesOrder " +
-            "where salesOrder.tenantId=:tenantId " +
-            "and salesOrder.status=:status " +
-            "and not exists (select invoice.id from Invoice invoice where invoice.tenantId=:tenantId and invoice.salesOrderId=salesOrder.id) " +
-            "and (:search='' or lower(salesOrder.code) like lower(concat('%', :search, '%')) " +
-            "or exists (select customer.id from Customer customer where customer.tenantId=:tenantId " +
-            "and customer.id=salesOrder.customerId and customer.deletedAt is null " +
-            "and lower(customer.name) like lower(concat('%', :search, '%'))))"
-    )
-    Page<SalesOrder> findInvoiceEligibleOrders(
-        @Param("tenantId") Long tenantId,
-        @Param("search") String search,
-        @Param("status") SalesOrderStatus status,
-        Pageable pageable
-    );
-
     long countByTenantId(Long tenantId);
 
     boolean existsByTenantIdAndCustomerIdAndStatus(

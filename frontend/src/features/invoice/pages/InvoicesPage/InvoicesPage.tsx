@@ -1,46 +1,33 @@
-import { CloseOutlined, EyeOutlined, FilePdfOutlined, PlusOutlined, SendOutlined } from '@ant-design/icons';
-import { App, Button, Card, Drawer, Form, Pagination, Select, Space, Table, Tooltip, Typography } from 'antd';
+import { EyeOutlined, FilePdfOutlined, SearchOutlined, SendOutlined } from '@ant-design/icons';
+import { App, Button, Card, DatePicker, Input, Pagination, Space, Table, Tooltip, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
-import { PERMISSIONS, canViewInvoiceReceivableState, hasPermission, useAuth } from '../../../auth';
 import { formatCurrency, formatDate, getErrorMessage, toNumber } from '../../../../lib/format';
+import { PERMISSIONS, canViewInvoiceReceivableState, hasPermission, useAuth } from '../../../auth';
 import { InvoiceStatusTag } from '../../InvoiceStatusTag';
 import { downloadInvoicePdf } from '../../api/invoiceService';
-import { useCancelInvoice, useCreateInvoiceFromSalesOrder, useEligibleInvoiceSalesOrders, useInvoices, useIssueInvoice } from '../../hooks/useInvoiceQueries';
+import { useInvoices, useIssueInvoice } from '../../hooks/useInvoiceQueries';
 import type { Invoice } from '../../types/invoice.types';
 import styles from './InvoicesPage.module.css';
 
 export function InvoicesPage() {
   const { user } = useAuth();
   const { i18n, t } = useTranslation();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [orderSearch, setOrderSearch] = useState('');
-  const [createForm] = Form.useForm<{ salesOrderId: number }>();
-  const invoicesQuery = useInvoices(page);
+  const [search, setSearch] = useState('');
+  const [from, setFrom] = useState<string>();
+  const [to, setTo] = useState<string>();
+  const invoicesQuery = useInvoices(page, { search, from, to });
   const issueMutation = useIssueInvoice();
-  const cancelMutation = useCancelInvoice();
-  const createMutation = useCreateInvoiceFromSalesOrder();
   const invoices = invoicesQuery.data?.content ?? [];
-  const canCreate = hasPermission(user, PERMISSIONS.INVOICE_CREATE) && hasPermission(user, PERMISSIONS.SALES_ORDER_VIEW);
-  const eligibleOrdersQuery = useEligibleInvoiceSalesOrders(orderSearch, { enabled: canCreate && createOpen });
   const canIssue = hasPermission(user, PERMISSIONS.INVOICE_ISSUE);
-  const canCancel = hasPermission(user, PERMISSIONS.INVOICE_CANCEL);
   const canViewReceivableState = canViewInvoiceReceivableState(user);
-
-  async function handleCreateInvoice(values: { salesOrderId: number }) {
-    const invoice = await createMutation.mutateAsync(values.salesOrderId);
-    setCreateOpen(false);
-    setOrderSearch('');
-    createForm.resetFields();
-    navigate(`/invoices/${invoice.id}`);
-  }
 
   async function handlePdf(invoice: Invoice) {
     try {
@@ -136,22 +123,6 @@ export function InvoicesPage() {
               <Button type="text" icon={<SendOutlined />} onClick={() => issueMutation.mutate(record.id)} />
             </Tooltip>
           ) : null}
-          {canCancel && (record.status === 'DRAFT' || record.status === 'ISSUED' || record.status === 'OVERDUE') ? (
-            <Tooltip title={t('invoice.action.cancel')}>
-              <Button
-                danger
-                type="text"
-                icon={<CloseOutlined />}
-                onClick={() => modal.confirm({
-                  title: t('invoice.cancel.title'),
-                  content: t('invoice.cancel.description'),
-                  okText: t('invoice.action.cancel'),
-                  okButtonProps: { danger: true },
-                  onOk: () => cancelMutation.mutateAsync(record.id),
-                })}
-              />
-            </Tooltip>
-          ) : null}
           {['ISSUED', 'PAID', 'OVERDUE'].includes(record.status) ? (
             <Tooltip title={t('invoice.action.pdf')}>
               <Button type="text" icon={<FilePdfOutlined />} onClick={() => void handlePdf(record)} />
@@ -164,24 +135,38 @@ export function InvoicesPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader
-        title={t('invoice.title')}
-        subtitle={t('invoice.subtitle')}
-        extra={canCreate ? (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              createForm.resetFields();
-              setOrderSearch('');
-              setCreateOpen(true);
-            }}
-          >
-            {t('invoice.action.create')}
-          </Button>
-        ) : null}
-      />
+      <PageHeader title={t('invoice.title')} subtitle={t('invoice.subtitle')} />
+
       <Card className={`panel-card ${styles.tableCard}`}>
+        <div className={styles.toolbar}>
+          <div className={styles.filters}>
+            <Input
+              allowClear
+              className={styles.search}
+              prefix={<SearchOutlined />}
+              placeholder={t('invoice.searchPlaceholder')}
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(0);
+              }}
+            />
+            <DatePicker.RangePicker
+              className={styles.dateRange}
+              allowClear
+              placeholder={[t('invoice.fromDate'), t('invoice.toDate')]}
+              onChange={(values) => {
+                setFrom(values?.[0]?.format('YYYY-MM-DD'));
+                setTo(values?.[1]?.format('YYYY-MM-DD'));
+                setPage(0);
+              }}
+            />
+          </div>
+          <Typography.Text type="secondary">
+            {t('invoice.count', { count: invoicesQuery.data?.totalElements ?? 0 })}
+          </Typography.Text>
+        </div>
+
         <QueryState
           isLoading={invoicesQuery.isLoading}
           isError={Boolean(invoicesQuery.error)}
@@ -205,49 +190,6 @@ export function InvoicesPage() {
           </div>
         ) : null}
       </Card>
-
-      <Drawer
-        width={480}
-        title={t('invoice.create.title')}
-        open={createOpen}
-        onClose={() => {
-          setCreateOpen(false);
-          setOrderSearch('');
-          createForm.resetFields();
-        }}
-        footer={(
-          <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-            <Button onClick={() => setCreateOpen(false)}>{t('common.cancel')}</Button>
-            <Button type="primary" loading={createMutation.isPending} onClick={() => createForm.submit()}>
-              {t('invoice.action.create')}
-            </Button>
-          </Space>
-        )}
-      >
-        <Typography.Paragraph type="secondary">
-          {t('invoice.create.description')}
-        </Typography.Paragraph>
-        <Form form={createForm} layout="vertical" onFinish={handleCreateInvoice}>
-          <Form.Item
-            name="salesOrderId"
-            label={t('invoice.create.salesOrder')}
-            rules={[{ required: true, message: t('invoice.create.salesOrderRequired') }]}
-          >
-            <Select
-              showSearch
-              filterOption={false}
-              onSearch={setOrderSearch}
-              loading={eligibleOrdersQuery.isLoading}
-              placeholder={t('invoice.create.salesOrderPlaceholder')}
-              notFoundContent={t('invoice.create.noEligibleOrders')}
-              options={(eligibleOrdersQuery.data?.content ?? []).map((order) => ({
-                value: order.salesOrderId,
-                label: `${order.salesOrderCode} · ${order.customerName ?? '--'} · ${formatCurrency(order.totalAmount, i18n.language)}`,
-              }))}
-            />
-          </Form.Item>
-        </Form>
-      </Drawer>
     </div>
   );
 }

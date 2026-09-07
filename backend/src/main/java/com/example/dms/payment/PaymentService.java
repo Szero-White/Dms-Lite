@@ -10,6 +10,7 @@ import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
 import com.example.dms.document.DocumentNumberService;
 import com.example.dms.document.DocumentNumberType;
+import com.example.dms.invoice.InvoiceService;
 import com.example.dms.sales.SalesOrder;
 import com.example.dms.sales.SalesOrderRepository;
 import com.example.dms.sales.SalesOrderStatus;
@@ -45,6 +46,7 @@ public class PaymentService {
     private final DocumentNumberService documentNumberService;
     private final TenantRepository tenantRepository;
     private final AppUserRepository appUserRepository;
+    private final InvoiceService invoiceService;
 
     @Transactional(readOnly = true)
     public Page<PaymentOutstandingOrderResponse> listOutstandingOrders(int page, String search) {
@@ -181,6 +183,10 @@ public class PaymentService {
             savedPayment.getId(),
             savedPayment.getCode() + " / " + salesOrder.getCode()
         );
+
+        if (debtAfter.signum() == 0) {
+            invoiceService.ensureDraftForFullyPaidSalesOrder(salesOrder);
+        }
 
         return PaymentResponse.from(savedPayment);
     }

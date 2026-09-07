@@ -56,9 +56,7 @@ public class HelpPermissionScope {
 
     public boolean canUseInvoices() {
         return has(PermissionNames.INVOICE_VIEW)
-            || has(PermissionNames.INVOICE_CREATE)
-            || has(PermissionNames.INVOICE_ISSUE)
-            || has(PermissionNames.INVOICE_CANCEL);
+            || has(PermissionNames.INVOICE_ISSUE);
     }
 
     /**

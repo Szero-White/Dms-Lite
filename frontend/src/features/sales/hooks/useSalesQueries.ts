@@ -36,11 +36,12 @@ export function useSalesOrderDetail(orderId?: number) {
 
 
 export function useCreateSalesOrder() {
-  const { queryClient, onError } = useMutationFeedback();
+  const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
     mutationFn: (payload: CreateSalesOrderPayload) => createSalesOrder(payload),
-    onSuccess: async () => {
+    onSuccess: async (order) => {
+      message.success(t('sales.create.createdSuccess', { code: order.code }));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders }),
         queryClient.invalidateQueries({ queryKey: queryKeys.salesReportRoot }),

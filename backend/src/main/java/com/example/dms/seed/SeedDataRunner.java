@@ -69,7 +69,7 @@ public class SeedDataRunner implements CommandLineRunner {
             PermissionNames.SALES_ORDER_VIEW,
             PermissionNames.SALES_ORDER_CREATE, PermissionNames.SALES_ORDER_CONFIRM,
             PermissionNames.SALES_ORDER_CANCEL, PermissionNames.INVOICE_VIEW,
-            PermissionNames.INVOICE_CREATE, PermissionNames.INVOICE_ISSUE, PermissionNames.INVOICE_CANCEL,
+            PermissionNames.INVOICE_ISSUE,
             PermissionNames.INVENTORY_VIEW,
             PermissionNames.INVENTORY_MANAGE, PermissionNames.PAYMENT_CREATE,
             PermissionNames.DEBT_VIEW, PermissionNames.REPORT_VIEW, PermissionNames.AUDIT_VIEW,
@@ -80,7 +80,7 @@ public class SeedDataRunner implements CommandLineRunner {
             PermissionNames.CUSTOMER_VIEW, PermissionNames.CUSTOMER_MANAGE,
             PermissionNames.SALES_ORDER_VIEW, PermissionNames.SALES_ORDER_CREATE,
             PermissionNames.SALES_ORDER_CANCEL, PermissionNames.INVOICE_VIEW,
-            PermissionNames.INVOICE_CREATE, PermissionNames.INVENTORY_VIEW,
+            PermissionNames.INVENTORY_VIEW,
             PermissionNames.NOTIFICATION_VIEW,
             PermissionNames.AI_HELP_VIEW);
         Role warehouseRole = ensureRole(WAREHOUSE, permissionMap, PermissionNames.PRODUCT_VIEW,
@@ -89,7 +89,7 @@ public class SeedDataRunner implements CommandLineRunner {
             PermissionNames.NOTIFICATION_VIEW, PermissionNames.AI_HELP_VIEW);
         Role accountantRole = ensureRole(ACCOUNTANT, permissionMap, PermissionNames.PRODUCT_VIEW,
             PermissionNames.CUSTOMER_VIEW, PermissionNames.SALES_ORDER_VIEW,
-            PermissionNames.INVOICE_VIEW, PermissionNames.INVOICE_ISSUE, PermissionNames.INVOICE_CANCEL,
+            PermissionNames.INVOICE_VIEW, PermissionNames.INVOICE_ISSUE,
             PermissionNames.PAYMENT_CREATE, PermissionNames.DEBT_VIEW,
             PermissionNames.REPORT_VIEW, PermissionNames.NOTIFICATION_VIEW,
             PermissionNames.AI_HELP_VIEW);
@@ -124,9 +124,7 @@ public class SeedDataRunner implements CommandLineRunner {
             PermissionNames.SALES_ORDER_CONFIRM,
             PermissionNames.SALES_ORDER_CANCEL,
             PermissionNames.INVOICE_VIEW,
-            PermissionNames.INVOICE_CREATE,
             PermissionNames.INVOICE_ISSUE,
-            PermissionNames.INVOICE_CANCEL,
             PermissionNames.INVENTORY_VIEW,
             PermissionNames.INVENTORY_MANAGE,
             PermissionNames.PAYMENT_CREATE,

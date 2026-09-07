@@ -1,4 +1,4 @@
-import { CloseOutlined, DownloadOutlined, LeftOutlined, SendOutlined } from '@ant-design/icons';
+import { DownloadOutlined, LeftOutlined, SendOutlined } from '@ant-design/icons';
 import { App, Button, Card, Descriptions, Progress, Space, Table, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { useMemo } from 'react';
@@ -10,7 +10,7 @@ import { formatCurrency, formatDate, getErrorMessage, toNumber } from '../../../
 import { PERMISSIONS, canViewInvoiceReceivableState, hasPermission, useAuth } from '../../../auth';
 import { InvoiceStatusTag } from '../../InvoiceStatusTag';
 import { downloadInvoicePdf } from '../../api/invoiceService';
-import { useCancelInvoice, useInvoice, useIssueInvoice } from '../../hooks/useInvoiceQueries';
+import { useInvoice, useIssueInvoice } from '../../hooks/useInvoiceQueries';
 import type { InvoiceItem } from '../../types/invoice.types';
 import styles from './InvoiceDetailPage.module.css';
 
@@ -19,14 +19,12 @@ export function InvoiceDetailPage() {
   const invoiceId = Number(id);
   const { user } = useAuth();
   const { i18n, t } = useTranslation();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const invoiceQuery = useInvoice(Number.isFinite(invoiceId) ? invoiceId : undefined);
   const issueMutation = useIssueInvoice();
-  const cancelMutation = useCancelInvoice();
   const invoice = invoiceQuery.data;
   const canIssue = hasPermission(user, PERMISSIONS.INVOICE_ISSUE);
-  const canCancel = hasPermission(user, PERMISSIONS.INVOICE_CANCEL);
   const canViewReceivableState = canViewInvoiceReceivableState(user);
   const progress = invoice && canViewReceivableState && toNumber(invoice.totalAmount) > 0
     ? Math.min(100, Math.round((toNumber(invoice.paidAmount) / toNumber(invoice.totalAmount)) * 100))
@@ -88,22 +86,6 @@ export function InvoiceDetailPage() {
                 {canIssue && invoice.status === 'DRAFT' ? (
                   <Button type="primary" icon={<SendOutlined />} loading={issueMutation.isPending} onClick={() => issueMutation.mutate(invoice.id)}>
                     {t('invoice.action.issue')}
-                  </Button>
-                ) : null}
-                {canCancel && ['DRAFT', 'ISSUED', 'OVERDUE'].includes(invoice.status) ? (
-                  <Button
-                    danger
-                    icon={<CloseOutlined />}
-                    loading={cancelMutation.isPending}
-                    onClick={() => modal.confirm({
-                      title: t('invoice.cancel.title'),
-                      content: t('invoice.cancel.description'),
-                      okText: t('invoice.action.cancel'),
-                      okButtonProps: { danger: true },
-                      onOk: () => cancelMutation.mutateAsync(invoice.id),
-                    })}
-                  >
-                    {t('invoice.action.cancel')}
                   </Button>
                 ) : null}
                 {['ISSUED', 'PAID', 'OVERDUE'].includes(invoice.status) ? (

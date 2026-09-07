@@ -35,12 +35,3 @@ export interface Invoice {
   updatedAt?: string;
   items: InvoiceItem[];
 }
-
-export interface InvoiceEligibleSalesOrder {
-  salesOrderId: number;
-  salesOrderCode: string;
-  customerId: number;
-  customerName?: string;
-  totalAmount: number;
-  confirmedAt?: string;
-}

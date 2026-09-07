@@ -119,17 +119,18 @@ Payment trước migration V11 có thể là legacy FIFO payment. Vì một paym
 
 ## 6. Invoice document
 
-Invoice trong DMS Lite là **chứng từ bán hàng gắn với một order đã `COMPLETED`**, không phải một luồng kế toán thứ hai.
+Invoice trong DMS Lite là **chứng từ bán hàng gắn với một order `COMPLETED` đã thu đủ**, không phải một luồng kế toán thứ hai.
 
-- chỉ `COMPLETED` sales order mới tạo được invoice;
-- mỗi sales order có tối đa một invoice; gọi tạo lại trả invoice hiện có thay vì nhân bản;
-- tạo/phát hành/hủy invoice không tạo, tăng hoặc giảm receivable;
+- payment vẫn được ghi tại Payment workspace và gắn với đúng một sales order còn phải thu;
+- khi lần thanh toán cuối đưa remaining receivable của order về `0`, backend tạo đúng một invoice `DRAFT` **trong cùng transaction**; nếu tạo invoice lỗi thì final payment cũng rollback;
+- không còn nút/API `Tạo hóa đơn` thủ công và permission `INVOICE_CREATE`; mỗi sales order vẫn có tối đa một invoice nhờ unique invariant;
+- migration V12 backfill invoice cho các order `COMPLETED` đã thu đủ trước khi cơ chế tự động được bật, đồng thời loại permission manual-create cũ;
+- invoice list chỉ hiển thị các order đã thu đủ, hỗ trợ search `INV/SO/customer` và `from/to` theo business date;
+- phát hành invoice không tạo, tăng hoặc giảm receivable;
 - `paidAmount` và `remainingAmount` khi đọc invoice lấy theo trạng thái tài chính hiện tại của sales order;
-- payment chỉ được ghi tại Payment workspace và gắn với đúng một sales order còn phải thu;
-- invoice đã có payment không được hủy;
 - PDF chỉ tải được khi invoice đã phát hành và còn hiệu lực; nội dung PDF theo ngôn ngữ `Accept-Language` của giao diện (`vi`/`en`), dùng font Unicode để giữ nguyên tiếng Việt và hiển thị số tiền theo locale.
 
-Luồng: `COMPLETED order -> DRAFT invoice -> ISSUED -> PAID/OVERDUE` (trạng thái `PAID/OVERDUE` được suy ra từ receivable hiện tại). `OVERDUE` chỉ áp dụng sau khi đã qua ngày đến hạn theo business timezone; đúng ngày đến hạn vẫn là `ISSUED` nếu chưa thanh toán hết.
+Luồng mới: `COMPLETED order -> partial payments -> final payment -> automatic DRAFT invoice -> ISSUED -> PAID`.
 
 ## 7. Revenue
 
@@ -162,8 +163,7 @@ Sales report là read model riêng, không lấy page đầu của `GET /api/sal
 
 Frontend không được giả định list summary chứa order items. Với order chưa `COMPLETED`, API vẫn có thể trả `totalAmount` cho giá trị đơn nhưng `paidAmount`/`debtAmount` không được trình bày như khoản phải thu thực tế.
 
-- `GET /api/invoices` -> paged invoice summary, yêu cầu `INVOICE_VIEW`.
-- `GET /api/invoices/eligible-sales-orders` -> tìm order `COMPLETED` chưa có invoice cho màn Tạo hóa đơn; yêu cầu `INVOICE_CREATE + INVOICE_VIEW + SALES_ORDER_VIEW`.
+- `GET /api/invoices` -> paged invoice summary của các order đã thu đủ; hỗ trợ search `INV/SO/customer` và `from` / `to`, yêu cầu `INVOICE_VIEW`.
 - `GET /api/invoices/{id}` -> invoice detail + snapshot items.
 - `GET /api/payments/outstanding-orders` -> paged outstanding orders cho Payment workspace.
 - `GET /api/payments/history` -> paged payment history, tìm theo PAY/SO/customer/note và hỗ trợ `from` / `to` business date.

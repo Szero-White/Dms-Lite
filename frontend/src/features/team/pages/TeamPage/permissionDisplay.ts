@@ -43,20 +43,10 @@ const PERMISSION_DISPLAY: Record<string, PermissionDisplay> = {
     labelKey: 'permissions.INVOICE_VIEW.label',
     descriptionKey: 'permissions.INVOICE_VIEW.description',
   },
-  INVOICE_CREATE: {
-    groupKey: 'permissions.group.finance',
-    labelKey: 'permissions.INVOICE_CREATE.label',
-    descriptionKey: 'permissions.INVOICE_CREATE.description',
-  },
   INVOICE_ISSUE: {
     groupKey: 'permissions.group.finance',
     labelKey: 'permissions.INVOICE_ISSUE.label',
     descriptionKey: 'permissions.INVOICE_ISSUE.description',
-  },
-  INVOICE_CANCEL: {
-    groupKey: 'permissions.group.finance',
-    labelKey: 'permissions.INVOICE_CANCEL.label',
-    descriptionKey: 'permissions.INVOICE_CANCEL.description',
   },
   INVENTORY_MANAGE: {
     groupKey: 'permissions.group.inventory',

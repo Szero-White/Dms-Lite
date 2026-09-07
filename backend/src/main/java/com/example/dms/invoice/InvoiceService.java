@@ -9,6 +9,7 @@ import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.document.DocumentNumberService;
 import com.example.dms.document.DocumentNumberType;
+import com.example.dms.notification.NotificationProducer;
 import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
 import com.example.dms.sales.SalesOrder;
@@ -52,12 +53,25 @@ public class InvoiceService {
     private final AuditService auditService;
     private final DocumentNumberService documentNumberService;
     private final BusinessTimeProvider businessTimeProvider;
+    private final NotificationProducer notificationProducer;
 
     @Transactional(readOnly = true)
-    public Page<InvoiceResponse> listInvoices(int page) {
+    public Page<InvoiceResponse> listInvoices(
+        int page,
+        String search,
+        LocalDate from,
+        LocalDate to
+    ) {
+        validateDateRange(from, to);
+
         Long tenantId = TenantContext.tenantRequired();
-        Page<Invoice> invoices = invoiceRepository.findByTenantIdOrderByCreatedAtDesc(
+        Instant fromInclusive = from == null ? null : businessTimeProvider.startOfDay(from);
+        Instant toExclusive = to == null ? null : businessTimeProvider.startOfDay(to.plusDays(1));
+        Page<Invoice> invoices = invoiceRepository.searchPaidInvoices(
             tenantId,
+            search,
+            fromInclusive,
+            toExclusive,
             PageRequest.of(Math.max(page, 0), 20)
         );
 
@@ -76,35 +90,6 @@ public class InvoiceService {
     }
 
     @Transactional(readOnly = true)
-    public Page<InvoiceEligibleSalesOrderResponse> listEligibleSalesOrders(int page, String search) {
-        Long tenantId = TenantContext.tenantRequired();
-        Page<SalesOrder> orders = salesOrderRepository.findInvoiceEligibleOrders(
-            tenantId,
-            search == null ? "" : search.trim(),
-            SalesOrderStatus.COMPLETED,
-            PageRequest.of(Math.max(page, 0), 20)
-        );
-        var customerIds = orders.getContent().stream()
-            .map(SalesOrder::getCustomerId)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
-        Map<Long, String> customerNames = customerIds.isEmpty()
-            ? Map.of()
-            : customerRepository.findByTenantIdAndIdIn(tenantId, customerIds)
-                .stream()
-                .collect(Collectors.toMap(Customer::getId, Customer::getName));
-
-        return orders.map(order -> new InvoiceEligibleSalesOrderResponse(
-            order.getId(),
-            order.getCode(),
-            order.getCustomerId(),
-            customerNames.get(order.getCustomerId()),
-            zeroIfNull(order.getTotalAmount()),
-            order.getConfirmedAt()
-        ));
-    }
-
-    @Transactional(readOnly = true)
     public InvoiceResponse getInvoice(Long invoiceId) {
         Long tenantId = TenantContext.tenantRequired();
         Invoice invoice = invoiceRepository.findDetailByIdAndTenantId(invoiceId, tenantId)
@@ -115,21 +100,29 @@ public class InvoiceService {
         return toResponse(invoice, order, true, canViewReceivableState());
     }
 
+    /**
+     * Maintains the simplified invoice invariant: a completed sales order gets exactly one
+     * invoice draft when its remaining receivable reaches zero. PaymentService holds the
+     * sales-order lock before calling this method, so the invoice snapshot is created in the
+     * same transaction as the final payment and cannot be duplicated by concurrent retries.
+     */
     @Transactional
-    public InvoiceResponse createFromSalesOrder(Long salesOrderId) {
+    public void ensureDraftForFullyPaidSalesOrder(SalesOrder order) {
         Long tenantId = TenantContext.tenantRequired();
-        SalesOrder order = salesOrderRepository.lockByIdAndTenantId(salesOrderId, tenantId)
-            .orElseThrow(() -> new BusinessException("Sales order not found"));
-
-        if (order.getStatus() != SalesOrderStatus.COMPLETED) {
-            throw new BusinessException("Invoice requires a completed sales order");
+        if (!Objects.equals(tenantId, order.getTenantId())) {
+            throw new BusinessException("Sales order tenant mismatch");
+        }
+        if (!isFullyPaidCompletedOrder(order)) {
+            return;
+        }
+        if (invoiceRepository.findByTenantIdAndSalesOrderId(tenantId, order.getId()).isPresent()) {
+            return;
         }
 
-        Invoice existing = invoiceRepository.findByTenantIdAndSalesOrderId(tenantId, salesOrderId).orElse(null);
-        if (existing != null) {
-            return toResponse(existing, order, true, canViewReceivableState());
-        }
+        createDraftInvoice(order, tenantId);
+    }
 
+    private Invoice createDraftInvoice(SalesOrder order, Long tenantId) {
         Customer customer = customerRepository.findByIdAndTenantId(order.getCustomerId(), tenantId)
             .orElseThrow(() -> new BusinessException("Customer not found"));
 
@@ -191,9 +184,8 @@ public class InvoiceService {
         invoice.setTotalAmount(zeroIfNull(order.getTotalAmount()));
 
         Invoice saved = invoiceRepository.saveAndFlush(invoice);
-
         auditService.log("INVOICE_CREATED", "Invoice", saved.getId(), saved.getInvoiceNumber());
-        return toResponse(saved, order, true, canViewReceivableState());
+        return saved;
     }
 
     @Transactional
@@ -212,28 +204,16 @@ public class InvoiceService {
             throw new BusinessException("Only draft invoices can be issued");
         }
 
+        SalesOrder order = loadOrder(tenantId, invoice);
         invoice.setStatus(STATUS_ISSUED);
         invoice.setIssueDate(Instant.now());
         auditService.log("INVOICE_ISSUED", "Invoice", invoice.getId(), invoice.getInvoiceNumber());
-        return toResponse(invoice, loadOrder(tenantId, invoice), true, canViewReceivableState());
-    }
-
-    @Transactional
-    public InvoiceResponse cancelInvoice(Long invoiceId) {
-        Long tenantId = TenantContext.tenantRequired();
-        Invoice invoice = invoiceRepository.lockByIdAndTenantId(invoiceId, tenantId)
-            .orElseThrow(() -> new BusinessException("Invoice not found"));
-        SalesOrder order = loadOrder(tenantId, invoice);
-
-        if (STATUS_CANCELLED.equals(invoice.getStatus())) {
-            return toResponse(invoice, order, true, canViewReceivableState());
-        }
-        if (order != null && zeroIfNull(order.getPaidAmount()).signum() > 0) {
-            throw new BusinessException("Cannot cancel an invoice after payment has been recorded");
-        }
-
-        invoice.setStatus(STATUS_CANCELLED);
-        auditService.log("INVOICE_CANCELLED", "Invoice", invoice.getId(), invoice.getInvoiceNumber());
+        notificationProducer.publish(
+            tenantId,
+            "INVOICE_ISSUED",
+            "Invoice issued",
+            "Invoice " + invoice.getInvoiceNumber() + " has been issued"
+        );
         return toResponse(invoice, order, true, canViewReceivableState());
     }
 
@@ -344,6 +324,22 @@ public class InvoiceService {
         return authentication != null && InvoiceAccessPolicy.canViewReceivableState(
             authentication.getAuthorities().stream().map(authority -> authority.getAuthority()).toList()
         );
+    }
+
+    private boolean isFullyPaidCompletedOrder(SalesOrder order) {
+        BigDecimal total = zeroIfNull(order.getTotalAmount());
+        BigDecimal paid = zeroIfNull(order.getPaidAmount());
+        BigDecimal remaining = zeroIfNull(order.getDebtAmount());
+        return order.getStatus() == SalesOrderStatus.COMPLETED
+            && total.signum() > 0
+            && remaining.signum() <= 0
+            && paid.compareTo(total) >= 0;
+    }
+
+    private void validateDateRange(LocalDate from, LocalDate to) {
+        if (from != null && to != null && from.isAfter(to)) {
+            throw new BusinessException("Invoice start date must be on or before end date");
+        }
     }
 
     private BigDecimal zeroIfNull(BigDecimal value) {

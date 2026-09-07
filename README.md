@@ -135,8 +135,10 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 
 ### Invoice Management
 
-- Invoice documents generated only from completed sales orders
-- Invoice issuance/cancellation is permission controlled and does not create a second receivable balance
+- A completed sales order receives exactly one Draft invoice automatically when its remaining receivable reaches zero
+- Manual invoice creation is removed; existing fully-paid orders are backfilled by Flyway V12
+- Invoice search supports INV/SO/customer plus business-date range filters
+- Invoice issuance remains permission controlled and does not create a second receivable balance
 - Paid/remaining invoice amounts stay synchronized with the canonical sales-order payment workflow
 - PDF export for active issued invoices
 
@@ -170,7 +172,7 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 
 ## Key Business Flow
 
-`Login -> create customer/product -> check stock -> create DRAFT sales order -> warehouse confirms/fulfills -> order becomes COMPLETED -> deduct stock inside transaction -> create open receivable if unpaid -> optionally generate/issue invoice -> select the exact outstanding sales order -> record partial/full payment -> update receivable statement -> view dashboard/audit log`
+`Login -> create customer/product -> check stock -> create DRAFT sales order -> warehouse confirms/fulfills -> order becomes COMPLETED -> deduct stock inside transaction -> create open receivable if unpaid -> select the exact outstanding sales order -> record partial/full payment -> final payment automatically creates one Draft invoice -> optionally issue/download invoice -> view dashboard/audit log`
 
 This flow reflects a real B2B operational slice rather than isolated CRUD screens.
 

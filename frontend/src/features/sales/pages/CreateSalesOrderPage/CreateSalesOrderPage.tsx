@@ -19,6 +19,7 @@ import {
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -66,6 +67,7 @@ export function CreateSalesOrderPage() {
   const createOrder = useCreateSalesOrder();
   const confirmOrder = useConfirmSalesOrder();
   const [createdOrder, setCreatedOrder] = useState<CreatedOrderReference | null>(null);
+  const submissionLockedRef = useRef(false);
   const [form] = Form.useForm<OrderFormValues>();
 
   const watchedItems = Form.useWatch('items', form) || [];
@@ -170,17 +172,27 @@ export function CreateSalesOrderPage() {
                   items: [{ quantity: 1, discountAmount: 0 }],
                 }}
                 onFinish={async (values) => {
-                  const order = await createOrder.mutateAsync({
-                    customerId: values.customerId,
-                    warehouseId: values.warehouseId,
-                    items: (values.items || []).map((item) => ({
-                      productId: item.productId,
-                      quantity: Number(item.quantity),
-                      discountAmount: Number(item.discountAmount || 0),
-                    })),
-                  });
+                  if (submissionLockedRef.current || createdOrder) {
+                    return;
+                  }
 
-                  setCreatedOrder({ id: order.id, code: order.code });
+                  submissionLockedRef.current = true;
+
+                  try {
+                    const order = await createOrder.mutateAsync({
+                      customerId: values.customerId,
+                      warehouseId: values.warehouseId,
+                      items: (values.items || []).map((item) => ({
+                        productId: item.productId,
+                        quantity: Number(item.quantity),
+                        discountAmount: Number(item.discountAmount || 0),
+                      })),
+                    });
+
+                    setCreatedOrder({ id: order.id, code: order.code });
+                  } catch {
+                    submissionLockedRef.current = false;
+                  }
                 }}
               >
                 <div className={styles.formSectionHeading}>
@@ -338,8 +350,15 @@ export function CreateSalesOrderPage() {
 
                 <Space className={styles.formActions}>
                   <Button onClick={() => navigate(canViewSalesOrders ? '/sales-orders' : fallbackPath)}>{t('sales.create.back')}</Button>
-                  <Button type="primary" htmlType="submit" loading={createOrder.isPending}>
-                    {t('sales.action.createOrder')}
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={createOrder.isPending}
+                    disabled={Boolean(createdOrder)}
+                  >
+                    {createdOrder
+                      ? t('sales.create.createdButton')
+                      : t('sales.action.createOrder')}
                   </Button>
                 </Space>
               </Form>
@@ -391,6 +410,15 @@ export function CreateSalesOrderPage() {
                         {t('sales.create.confirmNow')}
                       </Button>
                     ) : null}
+                    <Button
+                      onClick={() => {
+                        submissionLockedRef.current = false;
+                        setCreatedOrder(null);
+                        createOrder.reset();
+                      }}
+                    >
+                      {t('sales.create.createAnother')}
+                    </Button>
                     {canViewSalesOrders ? (
                       <Button onClick={() => navigate('/sales-orders')}>{t('sales.create.backToOrders')}</Button>
                     ) : null}
