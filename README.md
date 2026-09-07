@@ -56,10 +56,10 @@ The public recruiter deployment intentionally runs in demo mode so reviewers can
 
 | Role | Demo account | Main workflow |
 | --- | --- | --- |
-| Owner | `owner / 123456` | Dashboard, reports, audit, team access |
-| Sales | `sale / 123456` | Customers, products/stock visibility, draft sales orders |
-| Warehouse | `warehouse / 123456` | Inventory operations and order fulfillment |
-| Accountant | `accountant / 123456` | Receivables, payments, financial reports |
+| Owner | `owner / Demo@2026` | Dashboard, reports, audit, team access |
+| Sales | `sale / Demo@2026` | Customers, products/stock visibility, draft sales orders |
+| Warehouse | `warehouse / Demo@2026` | Inventory operations and order fulfillment |
+| Accountant | `accountant / Demo@2026` | Receivables, payments, financial reports |
 
 Demo identities are protected from Team Management changes while demo mode is enabled. A real production deployment should set `APP_DEMO_ENABLED=false`, and `VITE_DEMO_MODE=false` hides demo-account cards in a non-demo frontend build.
 
@@ -148,6 +148,8 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 - Persisted business notifications plus permission-filtered derived alerts
 - Low-stock and overdue-receivable visibility
 - Notification content is filtered by business permissions, including custom roles
+- Per-user read receipts keep unread state independent across Owner/Sales/Warehouse/Accountant/custom users
+- Users can mark an item as read and mark it unread again; the header badge follows the authenticated user
 - Docker profile extension path for RabbitMQ-based messaging
 
 ### Workflow AI Help

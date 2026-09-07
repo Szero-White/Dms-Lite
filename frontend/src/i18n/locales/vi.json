@@ -807,6 +807,7 @@
   "common.somethingWentWrong": "Đã xảy ra lỗi",
   "sales.drawer.product": "Sản phẩm",
   "notifications.action.markRead": "Đánh dấu thông báo đã đọc",
+  "notifications.action.markUnread": "Đánh dấu thông báo chưa đọc",
   "common.exportCsv": "Xuất CSV",
   "common.exportXlsx": "Xuất Excel (.xlsx)",
   "reports.export.salesTitle": "Báo cáo bán hàng",
@@ -980,5 +981,8 @@
   "reports.value.notRecognized": "Chưa phát sinh",
   "reports.value.notApplicable": "—",
   "reports.detail.receivableNotRecognized": "Đơn chưa hoàn tất nên chưa phát sinh khoản phải thu thực tế.",
-  "reports.detail.receivableCancelled": "Đơn đã hủy nên không phát sinh khoản phải thu thực tế."
+  "reports.detail.receivableCancelled": "Đơn đã hủy nên không phát sinh khoản phải thu thực tế.",
+  "notifications.feedback.markedRead": "Đã đánh dấu thông báo là đã đọc.",
+  "notifications.feedback.markedUnread": "Đã đánh dấu thông báo là chưa đọc.",
+  "notifications.feedback.updateFailed": "Không thể cập nhật trạng thái thông báo. Vui lòng thử lại."
 }

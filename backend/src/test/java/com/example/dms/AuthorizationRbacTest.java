@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @AutoConfigureMockMvc
 class AuthorizationRbacTest {
 
-    private static final String DEMO_PASSWORD = "123456";
+    private static final String DEMO_PASSWORD = "Demo@2026";
 
     @Autowired
     private MockMvc mvc;

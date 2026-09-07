@@ -11,8 +11,11 @@ export async function fetchNotifications(params: NotificationParams = {}) {
   );
 }
 
-export async function markNotificationRead(id: number | string) {
+export async function setNotificationReadState(id: number | string, read: boolean) {
   return unwrapResponse<void>(
-    apiClient.put('/notifications/' + id + '/read'),
+    apiClient.put(
+      '/notifications/' + encodeURIComponent(String(id)) + '/read-state',
+      { read },
+    ),
   );
 }

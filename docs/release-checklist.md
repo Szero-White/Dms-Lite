@@ -108,6 +108,11 @@ Dùng một customer và một product có stock đủ:
 - Role không có business page nào phải vào màn `No workspace access`, không rơi vào redirect loop.
 - Route protected mới nhưng quên khai báo permission phải fail closed.
 - AI và Notification tiếp tục áp policy nghiệp vụ riêng; notification không được spam duplicate/retry.
+- Trạng thái đã đọc/chưa đọc của notification phải độc lập theo từng user: Owner đọc không được làm Warehouse/Sales/Accountant tự thành đã đọc.
+- Notification đã đọc phải có thể **Đánh dấu chưa đọc**; sau F5 trạng thái phải giữ nguyên và badge/tab Chưa đọc cập nhật đúng. Kiểm cả persisted sales-order event và derived LOW_STOCK.
+- Khi **Đánh dấu chưa đọc** ở tab `Tất cả`, notification giữ nguyên vị trí theo `createdAt`, đổi style sang chưa đọc ngay, `Chưa đọc (N)` và badge chuông tăng `N + 1`, đồng thời notification xuất hiện trong tab `Chưa đọc`; F5 không được làm mất trạng thái.
+- Khi **Đánh dấu đã đọc** ngay trong tab `Chưa đọc`, dòng đó phải biến khỏi filter nhưng vẫn còn trong tab `Tất cả`; count/badge giảm đúng 1 và không reorder lịch sử.
+- Một user đã đọc phải có thể dùng action **Đánh dấu chưa đọc**; badge chuông và tab `Chưa đọc` phải cập nhật ngay và vẫn đúng sau refresh/login lại.
 - Low-stock alert phải xuất hiện khi `quantityOnHand <= minStock` cho role có `NOTIFICATION_VIEW + PRODUCT_VIEW + INVENTORY_VIEW`, và không được leak sang role thiếu inventory permission.
 - AI role hạn chế không được trả dữ liệu debt/order/inventory nếu thiếu view permission tương ứng.
 
@@ -148,7 +153,7 @@ Dùng một customer và một product có stock đủ:
 Sau deploy:
 
 - Frontend load không lỗi console nghiêm trọng.
-- Login 4 demo roles thành công.
+- Login 4 demo roles thành công bằng credential demo hiện hành `Demo@2026`.
 - Không có request 401/403/500 bất thường trong Network tab.
 - Create customer/product/order hoạt động.
 - Confirm order và payment hoạt động theo golden flow.

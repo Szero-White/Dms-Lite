@@ -3,7 +3,7 @@ export interface NotificationItem {
   type: string;
   title: string;
   message: string;
-  readFlag?: boolean;
+  readFlag: boolean;
   createdAt: string;
   source: 'api' | 'derived';
 }

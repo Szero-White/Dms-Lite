@@ -3,8 +3,10 @@ package com.example.dms.notification;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -15,7 +17,9 @@ import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.inventory.StockItem;
 import com.example.dms.inventory.StockItemRepository;
+import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -35,13 +39,17 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 class NotificationQueryServiceAuthorizationTest {
 
     private final NotificationRepository notifications = mock(NotificationRepository.class);
+    private final NotificationReadRepository notificationReads = mock(NotificationReadRepository.class);
+    private final StockItemRepository stockItems = mock(StockItemRepository.class);
+    private final ProductRepository products = mock(ProductRepository.class);
     private final CustomerDebtRepository debts = mock(CustomerDebtRepository.class);
     private final CustomerRepository customers = mock(CustomerRepository.class);
     private final BusinessTimeProvider businessTimeProvider = mock(BusinessTimeProvider.class);
     private final NotificationQueryService service = new NotificationQueryService(
         notifications,
-        mock(StockItemRepository.class),
-        mock(ProductRepository.class),
+        notificationReads,
+        stockItems,
+        products,
         debts,
         customers,
         businessTimeProvider
@@ -50,6 +58,11 @@ class NotificationQueryServiceAuthorizationTest {
     @BeforeEach
     void setTenant() {
         TenantContext.set(1L, 10L);
+        when(notificationReads.findByTenantIdAndUserIdAndNotificationKeyIn(
+            eq(1L),
+            any(Long.class),
+            anyCollection()
+        )).thenReturn(List.of());
     }
 
     @AfterEach
@@ -113,41 +126,121 @@ class NotificationQueryServiceAuthorizationTest {
 
     @Test
     void cashierCannotMarkSalesNotificationAsRead() {
-        Notification notification = Notification.builder()
-            .id(77L)
-            .tenantId(1L)
-            .type("SALES_ORDER_CANCELLED")
-            .title("Order cancelled")
-            .message("Order SO-77 has been cancelled")
-            .readFlag(false)
-            .build();
-        when(notifications.findByIdAndTenantId(77L, 1L)).thenReturn(java.util.Optional.of(notification));
+        Notification notification = salesNotification(77L, "SALES_ORDER_CANCELLED");
+        when(notifications.findByIdAndTenantId(77L, 1L))
+            .thenReturn(java.util.Optional.of(notification));
 
-        assertThatThrownBy(() -> service.markRead(
-            77L,
+        assertThatThrownBy(() -> service.setReadState(
+            "77",
+            true,
             authentication("NOTIFICATION_VIEW", "CUSTOMER_VIEW", "PAYMENT_CREATE")
         ))
             .isInstanceOf(BusinessException.class)
             .hasMessage("Notification not found");
 
-        assertThat(notification.isReadFlag()).isFalse();
+        verify(notificationReads, never()).insertIfAbsent(any(), any(), any());
     }
 
     @Test
-    void salesViewerCanMarkSalesNotificationAsRead() {
-        Notification notification = Notification.builder()
-            .id(78L)
+    void salesViewerCanCreateAndRemoveOwnReadReceipt() {
+        Notification notification = salesNotification(78L, "SALES_ORDER_CONFIRMED");
+        when(notifications.findByIdAndTenantId(78L, 1L))
+            .thenReturn(java.util.Optional.of(notification));
+        service.setReadState("78", true, authentication("NOTIFICATION_VIEW", "SALES_ORDER_VIEW"));
+
+        verify(notificationReads).insertIfAbsent(1L, 10L, "api:78");
+        assertThat(notification.isReadFlag()).isFalse();
+
+        service.setReadState("78", false, authentication("NOTIFICATION_VIEW", "SALES_ORDER_VIEW"));
+        verify(notificationReads).deleteReceipt(1L, 10L, "api:78");
+    }
+
+    @Test
+    void warehouseCanMarkDerivedLowStockUnreadAgain() {
+        StockItem stockItem = StockItem.builder()
+            .id(501L)
             .tenantId(1L)
-            .type("SALES_ORDER_CONFIRMED")
-            .title("Order confirmed")
-            .message("Order SO-78 has been confirmed")
-            .readFlag(false)
+            .warehouseId(1L)
+            .productId(42L)
+            .quantityOnHand(0)
             .build();
-        when(notifications.findByIdAndTenantId(78L, 1L)).thenReturn(java.util.Optional.of(notification));
+        Product product = Product.builder()
+            .id(42L)
+            .tenantId(1L)
+            .name("Water 24")
+            .minStock(10)
+            .build();
 
-        service.markRead(78L, authentication("NOTIFICATION_VIEW", "SALES_ORDER_VIEW"));
+        when(notifications.findByTenantIdAndTypeInOrderByCreatedAtDesc(
+            eq(1L), any(), any(Pageable.class)
+        )).thenReturn(List.of());
+        when(stockItems.lowStock(eq(1L), any(Pageable.class))).thenReturn(List.of(stockItem));
+        when(products.findAllById(any())).thenReturn(List.of(product));
 
-        assertThat(notification.isReadFlag()).isTrue();
+        Authentication warehouse = authentication(
+            "NOTIFICATION_VIEW",
+            "PRODUCT_VIEW",
+            "INVENTORY_VIEW"
+        );
+
+        service.setReadState("low-stock-501", true, warehouse);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<String> readKey = ArgumentCaptor.forClass(String.class);
+        verify(notificationReads).insertIfAbsent(eq(1L), eq(10L), readKey.capture());
+        assertThat(readKey.getValue()).startsWith("derived:low-stock-501:");
+
+        service.setReadState("low-stock-501", false, warehouse);
+        verify(notificationReads).deleteReceipt(1L, 10L, readKey.getValue());
+    }
+
+    @Test
+    void readStateIsIndependentForEachUser() {
+        Notification notification = salesNotification(79L, "SALES_ORDER_CANCELLED");
+        when(notifications.findByTenantIdAndTypeInOrderByCreatedAtDesc(
+            eq(1L),
+            any(),
+            any(Pageable.class)
+        )).thenReturn(List.of(notification));
+        when(notificationReads.findByTenantIdAndUserIdAndNotificationKeyIn(
+            eq(1L),
+            eq(10L),
+            anyCollection()
+        )).thenReturn(List.of(NotificationRead.builder()
+            .tenantId(1L)
+            .userId(10L)
+            .notificationKey("api:79")
+            .build()));
+        when(notificationReads.findByTenantIdAndUserIdAndNotificationKeyIn(
+            eq(1L),
+            eq(20L),
+            anyCollection()
+        )).thenReturn(List.of());
+
+        List<NotificationFeedItem> ownerFeed = service.listRecent(
+            20,
+            authentication("NOTIFICATION_VIEW", "SALES_ORDER_VIEW")
+        );
+        assertThat(ownerFeed).singleElement().satisfies(item -> assertThat(item.readFlag()).isTrue());
+
+        TenantContext.set(1L, 20L);
+        List<NotificationFeedItem> warehouseFeed = service.listRecent(
+            20,
+            authentication("NOTIFICATION_VIEW", "SALES_ORDER_VIEW")
+        );
+        assertThat(warehouseFeed).singleElement().satisfies(item -> assertThat(item.readFlag()).isFalse());
+    }
+
+    private Notification salesNotification(Long id, String type) {
+        return Notification.builder()
+            .id(id)
+            .tenantId(1L)
+            .type(type)
+            .title("Sales order update")
+            .message("Order SO-" + id + " has been updated")
+            .readFlag(false)
+            .createdAt(Instant.parse("2026-09-06T01:00:00Z"))
+            .build();
     }
 
     private CustomerDebtTransaction debt(Long id, Long customerId, String remainingAmount, Instant createdAt) {

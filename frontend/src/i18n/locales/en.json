@@ -807,6 +807,7 @@
   "common.somethingWentWrong": "Something went wrong",
   "sales.drawer.product": "Product",
   "notifications.action.markRead": "Mark notification as read",
+  "notifications.action.markUnread": "Mark notification as unread",
   "common.exportCsv": "Export CSV",
   "common.exportXlsx": "Export Excel (.xlsx)",
   "reports.export.salesTitle": "Sales report",
@@ -980,5 +981,8 @@
   "reports.value.notRecognized": "Not recognized",
   "reports.value.notApplicable": "—",
   "reports.detail.receivableNotRecognized": "This order is not completed, so no actual receivable has been recognized.",
-  "reports.detail.receivableCancelled": "This order was cancelled, so no actual receivable was recognized."
+  "reports.detail.receivableCancelled": "This order was cancelled, so no actual receivable was recognized.",
+  "notifications.feedback.markedRead": "Notification marked as read.",
+  "notifications.feedback.markedUnread": "Notification marked as unread.",
+  "notifications.feedback.updateFailed": "Could not update the notification state. Please try again."
 }
