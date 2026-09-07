@@ -375,9 +375,8 @@ public class NotificationQueryService {
             return Map.of();
         }
 
-        return products.findAllById(productIds)
+        return products.findByTenantIdAndIdInAndDeletedAtIsNull(tenantId, productIds)
             .stream()
-            .filter(product -> tenantId.equals(product.getTenantId()) && product.getDeletedAt() == null)
             .collect(Collectors.toMap(Product::getId, Function.identity()));
     }
 
@@ -386,9 +385,8 @@ public class NotificationQueryService {
             return Map.of();
         }
 
-        return customers.findAllById(customerIds)
+        return customers.findByTenantIdAndIdInAndDeletedAtIsNull(tenantId, customerIds)
             .stream()
-            .filter(customer -> tenantId.equals(customer.getTenantId()) && customer.getDeletedAt() == null)
             .collect(Collectors.toMap(Customer::getId, Function.identity()));
     }
 

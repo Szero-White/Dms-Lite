@@ -6,7 +6,11 @@ import { useAuth } from '../../features/auth';
 import { AppLayout } from '../layouts';
 
 export function ProtectedRoute() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isSessionReady } = useAuth();
+
+  if (!isSessionReady) {
+    return null;
+  }
 
   return isAuthenticated ? (
     <AppLayout>

@@ -128,7 +128,8 @@ class NotificationQueryServiceAuthorizationTest {
             eq("PAYMENT"),
             any(Pageable.class)
         )).thenReturn(List.of(paymentEntry));
-        when(customers.findAllById(any())).thenReturn(List.of(customer(5L, "Anh Duong")));
+        when(customers.findByTenantIdAndIdInAndDeletedAtIsNull(eq(1L), anyCollection()))
+            .thenReturn(List.of(customer(5L, "Anh Duong")));
         when(payments.findByTenantIdAndIdIn(eq(1L), anyCollection())).thenReturn(List.of(
             Payment.builder()
                 .id(70L)
@@ -197,10 +198,11 @@ class NotificationQueryServiceAuthorizationTest {
             debt(102L, 5L, "50000", secondCreatedAt),
             debt(103L, 6L, "75000", secondCreatedAt)
         ));
-        when(customers.findAllById(any())).thenReturn(List.of(
-            customer(5L, "Minh Phat"),
-            customer(6L, "An Khang")
-        ));
+        when(customers.findByTenantIdAndIdInAndDeletedAtIsNull(eq(1L), anyCollection()))
+            .thenReturn(List.of(
+                customer(5L, "Minh Phat"),
+                customer(6L, "An Khang")
+            ));
 
         List<NotificationFeedItem> feed = service.listRecent(
             20,
@@ -265,7 +267,8 @@ class NotificationQueryServiceAuthorizationTest {
             eq(1L), any(), any(Pageable.class)
         )).thenReturn(List.of());
         when(stockItems.lowStock(eq(1L), any(Pageable.class))).thenReturn(List.of(stockItem));
-        when(products.findAllById(any())).thenReturn(List.of(product));
+        when(products.findByTenantIdAndIdInAndDeletedAtIsNull(eq(1L), anyCollection()))
+            .thenReturn(List.of(product));
 
         Authentication warehouse = authentication(
             "NOTIFICATION_VIEW",

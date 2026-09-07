@@ -36,6 +36,25 @@ class AuthorizationRbacTest {
     private CustomerRepository customerRepository;
 
     @Test
+    void currentSessionRequiresAuthentication() throws Exception {
+        mvc.perform(get("/api/auth/me"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void currentSessionReflectsAuthoritativeServerPermissions() throws Exception {
+        mvc.perform(get("/api/auth/me")
+                .header("Authorization", bearer("warehouse")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.username").value("warehouse"))
+            .andExpect(jsonPath("$.data.accessToken").doesNotExist())
+            .andExpect(jsonPath("$.data.permissions", org.hamcrest.Matchers.hasItem("SALES_ORDER_CONFIRM")))
+            .andExpect(jsonPath("$.data.permissions", org.hamcrest.Matchers.not(
+                org.hamcrest.Matchers.hasItem("PAYMENT_CREATE")
+            )));
+    }
+
+    @Test
     void ownerCanReadAuditLogs() throws Exception {
         mvc.perform(get("/api/audit-logs")
                 .header("Authorization", bearer("owner")))
@@ -78,7 +97,9 @@ class AuthorizationRbacTest {
     void salesCanReadInventoryButCannotReceiveStock() throws Exception {
         mvc.perform(get("/api/inventory/stock")
                 .header("Authorization", bearer("sale")))
-            .andExpect(status().isOk());
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data[0].tenantId").doesNotExist())
+            .andExpect(jsonPath("$.data[0].version").doesNotExist());
 
         mvc.perform(post("/api/inventory/receive")
                 .header("Authorization", bearer("sale"))
