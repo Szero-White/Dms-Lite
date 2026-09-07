@@ -22,6 +22,8 @@ spring:
     type: simple
   data:
     redis:
+      repositories:
+        enabled: false
       host: ${SPRING_REDIS_HOST:localhost}
       port: ${SPRING_REDIS_PORT:6379}
   rabbitmq:

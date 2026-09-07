@@ -100,6 +100,7 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 
 - JWT-based authentication
 - Role and permission model
+- Authenticated session refresh via `/api/auth/me` so persisted UI authorization is reconciled with current backend roles/permissions after reload
 - Tenant-aware access design with `tenant_id`
 
 ### Product Management
@@ -118,6 +119,7 @@ Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode swi
 - Stock items by product
 - Single operational warehouse in the current MVP; the UI resolves its database ID/name from the backend instead of hardcoding `1`
 - Inventory transaction history
+- Tenant-safe inventory response DTOs keep persistence-only fields out of the public API contract
 - Low-stock visibility
 
 ### Sales Order Management

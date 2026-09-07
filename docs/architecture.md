@@ -177,6 +177,7 @@ Permission là nguồn sự thật chung cho cả frontend và backend, không s
 - `REPORT_VIEW` cho aggregate dashboard/report; các tab/bảng chi tiết chỉ fetch module data khi user có thêm permission đọc module tương ứng, tránh bảng trống hoặc dữ liệu vượt scope.
 - Payment workspace yêu cầu đồng thời `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`; Notification/AI dùng cùng boundary để không lộ payment/receivable ngoài scope.
 - DTO API redact dữ liệu nhạy cảm theo permission; frontend ẩn field chỉ là UX layer, backend vẫn là authorization boundary cuối cùng.
+- Khi app khởi động lại từ một JWT đã lưu, frontend gọi `GET /api/auth/me` để lấy lại role/permission hiện tại từ backend. Nếu authorization snapshot thay đổi, server-state cache cũ bị clear trước khi render workspace; backend vẫn kiểm tra permission ở từng request nên localStorage không phải nguồn quyền tin cậy.
 
 ### AI và Notification theo permission
 

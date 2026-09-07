@@ -154,12 +154,14 @@ Sales report là read model riêng, không lấy page đầu của `GET /api/sal
 
 ## 9. Read APIs
 
+- `GET /api/auth/me` -> session snapshot hiện tại (user, tenant, roles, permissions) cho authenticated frontend; dùng để refresh authorization state sau reload, không thay thế backend authorization.
 - `GET /api/customers` -> customer page summary.
 - `GET /api/customers/{id}` -> customer detail.
 - `GET /api/customers/{id}/debt-statement` -> statement, yêu cầu `DEBT_VIEW`.
 - `GET /api/sales-orders` -> paged order summary; hỗ trợ `customerId` filter.
 - `GET /api/sales-orders/{id}` -> order detail + items.
 - `GET /api/reports/sales` -> sales reporting read model; hỗ trợ `from` / `to` ISO-8601 và yêu cầu cả `REPORT_VIEW` + `SALES_ORDER_VIEW`.
+- `GET /api/inventory/stock` và `GET /api/inventory/transactions` -> response DTO tenant-safe; JPA entity/internal fields như `tenantId`, optimistic-lock `version` hoặc `createdBy` không phải public API contract.
 
 Frontend không được giả định list summary chứa order items. Với order chưa `COMPLETED`, API vẫn có thể trả `totalAmount` cho giá trị đơn nhưng `paidAmount`/`debtAmount` không được trình bày như khoản phải thu thực tế.
 

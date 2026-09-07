@@ -40,7 +40,6 @@ public class NotificationPersistenceService {
                 .type(event.type())
                 .title(event.title())
                 .message(event.message())
-                .readFlag(false)
                 .build()
         );
     }

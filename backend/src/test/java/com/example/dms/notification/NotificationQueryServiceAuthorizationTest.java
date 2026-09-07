@@ -234,6 +234,7 @@ class NotificationQueryServiceAuthorizationTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation") // Verifies read receipts never mutate the legacy V1 read_flag column.
     void salesViewerCanCreateAndRemoveOwnReadReceipt() {
         Notification notification = salesNotification(78L, "SALES_ORDER_CONFIRMED");
         when(notifications.findByIdAndTenantId(78L, 1L))
@@ -331,7 +332,6 @@ class NotificationQueryServiceAuthorizationTest {
             .type(type)
             .title("Sales order update")
             .message("Order SO-" + id + " has been updated")
-            .readFlag(false)
             .createdAt(Instant.parse("2026-09-06T01:00:00Z"))
             .build();
     }

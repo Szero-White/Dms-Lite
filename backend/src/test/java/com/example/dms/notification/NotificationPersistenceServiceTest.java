@@ -59,6 +59,6 @@ class NotificationPersistenceServiceTest {
         assertThat(saved.getValue().getTenantId()).isEqualTo(1L);
         assertThat(saved.getValue().getType()).isEqualTo("SALES_ORDER_CANCELLED");
         assertThat(saved.getValue().getMessage()).isEqualTo("Order SO-101 has been cancelled");
-        assertThat(saved.getValue().isReadFlag()).isFalse();
+        assertThat(saved.getValue().getTitle()).isEqualTo("Order cancelled");
     }
 }

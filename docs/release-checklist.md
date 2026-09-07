@@ -123,6 +123,7 @@ Dùng một customer và một product có stock đủ:
 - Sidebar, search, route và quick action phải thống nhất; gõ URL của module không có quyền phải redirect về màn được phép.
 - Role không có business page nào phải vào màn `No workspace access`, không rơi vào redirect loop.
 - Route protected mới nhưng quên khai báo permission phải fail closed.
+- Sau khi Owner đổi role/quyền của một user, reload browser của user đó phải gọi `/api/auth/me`, cập nhật menu/action theo permission mới và không tái sử dụng server-state cache thuộc authorization snapshot cũ.
 - AI và Notification tiếp tục áp policy nghiệp vụ riêng; notification không được spam duplicate/retry.
 - Trạng thái đã đọc/chưa đọc của notification phải độc lập theo từng user: Owner đọc không được làm Warehouse/Sales/Accountant tự thành đã đọc.
 - Notification đã đọc phải có thể **Đánh dấu chưa đọc**; sau F5 trạng thái phải giữ nguyên và badge/tab Chưa đọc cập nhật đúng. Kiểm cả persisted sales-order event và derived LOW_STOCK.
@@ -138,6 +139,7 @@ Dùng một customer và một product có stock đủ:
 - `GET /api/sales-orders/{id}` trả order detail + items.
 - Sales order list chỉ là summary; frontend không giả định list có items.
 - Create Order và Receive Stock lấy default warehouse từ API; không hardcode warehouse ID `1`.
+- Inventory stock/history API trả DTO public, không serialize trực tiếp JPA entity/internal fields (`tenantId`, `version`, `createdBy`).
 - Revenue chỉ dùng order `COMPLETED`.
 - Persisted sales status chỉ có `DRAFT`, `COMPLETED`, `CANCELLED` trong current MVP.
 - Receivable balance dùng duy nhất tổng `remaining_amount` của open `INCREASE` rows.
