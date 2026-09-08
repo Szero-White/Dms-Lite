@@ -32,7 +32,7 @@ Script sẽ mở:
 - terminal Backend: Spring Boot local profile;
 - terminal Frontend: Vite port `3000`.
 
-Nếu frontend chưa có `node_modules`, script chạy `npm ci` trước.
+Nếu frontend chưa có `node_modules`, launcher tự chạy `npm ci` trước rồi mới mở Vite.
 
 **PostgreSQL phải đang chạy trước khi chạy script.**
 

@@ -482,7 +482,7 @@ npm ci
 cd ..
 ```
 
-> **Important:** the current `run-local.bat` launcher does **not** run `npm ci` automatically. Install `frontend/node_modules` once before using the launcher.
+> **First run:** if `frontend/node_modules` is missing, `run-local.bat` automatically runs `npm ci` before starting Vite. You can still run `npm ci` manually when you want an explicit clean dependency install.
 
 Start backend and frontend:
 
@@ -761,7 +761,7 @@ The Compose file includes Prometheus/Grafana as an integration scaffold. The bac
 | `APP_JWT_MINUTES` | Token lifetime | `180` |
 | `APP_CORS_ALLOWED_ORIGINS` | Allowed frontend origins | `http://localhost:3000` |
 | `APP_BUSINESS_ZONE` | Business timezone | `Asia/Ho_Chi_Minh` |
-| `APP_DEMO_ENABLED` | Backend demo seeding | base false; local/docker profiles enable demo by default |
+| `APP_DEMO_ENABLED` | Backend demo seeding | local profile enables demo; Docker defaults to false and must opt in explicitly |
 | `APP_DEMO_PASSWORD` | Demo user password | `Demo@2026` |
 | `GEMINI_ENABLED` | Enable optional Gemini wording provider | `true` |
 | `GEMINI_API_KEY` | Gemini API key | blank by default |
