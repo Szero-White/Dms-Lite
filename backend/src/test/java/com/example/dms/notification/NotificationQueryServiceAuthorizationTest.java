@@ -17,6 +17,8 @@ import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.inventory.InventoryTransaction;
+import com.example.dms.inventory.InventoryTransactionRepository;
 import com.example.dms.inventory.StockItem;
 import com.example.dms.inventory.StockItemRepository;
 import com.example.dms.product.Product;
@@ -43,6 +45,7 @@ class NotificationQueryServiceAuthorizationTest {
     private final NotificationRepository notifications = mock(NotificationRepository.class);
     private final NotificationReadRepository notificationReads = mock(NotificationReadRepository.class);
     private final StockItemRepository stockItems = mock(StockItemRepository.class);
+    private final InventoryTransactionRepository inventoryTransactions = mock(InventoryTransactionRepository.class);
     private final ProductRepository products = mock(ProductRepository.class);
     private final CustomerDebtRepository debts = mock(CustomerDebtRepository.class);
     private final CustomerRepository customers = mock(CustomerRepository.class);
@@ -52,6 +55,7 @@ class NotificationQueryServiceAuthorizationTest {
         notifications,
         notificationReads,
         stockItems,
+        inventoryTransactions,
         products,
         debts,
         customers,
@@ -193,10 +197,16 @@ class NotificationQueryServiceAuthorizationTest {
 
         Instant firstCreatedAt = Instant.parse("2026-09-01T01:00:00Z");
         Instant secondCreatedAt = Instant.parse("2026-09-02T01:00:00Z");
+        LocalDate olderDueDate = LocalDate.of(2026, 9, 3);
+        LocalDate newerDueDate = LocalDate.of(2026, 9, 5);
+        Instant olderOverdueAt = Instant.parse("2026-09-03T17:00:00Z");
+        Instant newerOverdueAt = Instant.parse("2026-09-05T17:00:00Z");
+        when(businessTimeProvider.startOfDay(LocalDate.of(2026, 9, 4))).thenReturn(olderOverdueAt);
+        when(businessTimeProvider.startOfDay(LocalDate.of(2026, 9, 6))).thenReturn(newerOverdueAt);
         when(debts.overdue(eq(1L), any(), any(Pageable.class))).thenReturn(List.of(
-            debt(101L, 5L, "100000", firstCreatedAt),
-            debt(102L, 5L, "50000", secondCreatedAt),
-            debt(103L, 6L, "75000", secondCreatedAt)
+            debt(101L, 5L, "100000", firstCreatedAt, olderDueDate),
+            debt(102L, 5L, "50000", secondCreatedAt, newerDueDate),
+            debt(103L, 6L, "75000", secondCreatedAt, olderDueDate)
         ));
         when(customers.findByTenantIdAndIdInAndDeletedAtIsNull(eq(1L), anyCollection()))
             .thenReturn(List.of(
@@ -213,7 +223,52 @@ class NotificationQueryServiceAuthorizationTest {
         assertThat(feed)
             .filteredOn(item -> item.id().equals("overdue-customer-5"))
             .singleElement()
-            .satisfies(item -> assertThat(item.message()).contains("150,000 VND"));
+            .satisfies(item -> {
+                assertThat(item.message()).contains("150,000 VND");
+                assertThat(item.createdAt()).isEqualTo(newerOverdueAt);
+            });
+    }
+
+    @Test
+    void overdueNotificationIsOrderedByWhenDebtActuallyBecameOverdue() {
+        when(businessTimeProvider.today()).thenReturn(LocalDate.of(2026, 9, 8));
+        when(notifications.findByTenantIdAndTypeInOrderByCreatedAtDesc(
+            eq(1L),
+            any(),
+            any(Pageable.class)
+        )).thenReturn(List.of(
+            Notification.builder()
+                .id(500L)
+                .tenantId(1L)
+                .type("SALES_ORDER_CONFIRMED")
+                .title("Order confirmed")
+                .message("Order confirmed")
+                .createdAt(Instant.parse("2026-09-07T10:00:00Z"))
+                .build()
+        ));
+
+        Instant overdueAt = Instant.parse("2026-09-07T17:00:00Z");
+        when(businessTimeProvider.startOfDay(LocalDate.of(2026, 9, 8))).thenReturn(overdueAt);
+        when(debts.overdue(eq(1L), any(), any(Pageable.class))).thenReturn(List.of(
+            debt(
+                201L,
+                5L,
+                "60000",
+                Instant.parse("2026-08-20T01:00:00Z"),
+                LocalDate.of(2026, 9, 7)
+            )
+        ));
+        when(customers.findByTenantIdAndIdInAndDeletedAtIsNull(eq(1L), anyCollection()))
+            .thenReturn(List.of(customer(5L, "Vu Van Khoa")));
+
+        List<NotificationFeedItem> feed = service.listRecent(
+            20,
+            authentication("NOTIFICATION_VIEW", "CUSTOMER_VIEW", "DEBT_VIEW", "SALES_ORDER_VIEW")
+        );
+
+        assertThat(feed).hasSize(2);
+        assertThat(feed.get(0).type()).isEqualTo("OVERDUE_DEBT");
+        assertThat(feed.get(0).createdAt()).isEqualTo(overdueAt);
     }
 
     @Test
@@ -270,6 +325,18 @@ class NotificationQueryServiceAuthorizationTest {
         when(stockItems.lowStock(eq(1L), any(Pageable.class))).thenReturn(List.of(stockItem));
         when(products.findByTenantIdAndIdInAndDeletedAtIsNull(eq(1L), anyCollection()))
             .thenReturn(List.of(product));
+        Instant stockChangedAt = Instant.parse("2026-09-07T03:15:00Z");
+        when(inventoryTransactions.findFirstByTenantIdAndWarehouseIdAndProductIdOrderByCreatedAtDesc(
+            1L,
+            1L,
+            42L
+        )).thenReturn(java.util.Optional.of(InventoryTransaction.builder()
+            .id(700L)
+            .tenantId(1L)
+            .warehouseId(1L)
+            .productId(42L)
+            .createdAt(stockChangedAt)
+            .build()));
 
         Authentication warehouse = authentication(
             "NOTIFICATION_VIEW",
@@ -286,6 +353,53 @@ class NotificationQueryServiceAuthorizationTest {
 
         service.setReadState("low-stock-501", false, warehouse);
         verify(notificationReads).deleteReceipt(1L, 10L, readKey.getValue());
+    }
+
+    @Test
+    void lowStockNotificationUsesLastInventoryChangeInsteadOfRequestTime() {
+        StockItem stockItem = StockItem.builder()
+            .id(501L)
+            .tenantId(1L)
+            .warehouseId(1L)
+            .productId(42L)
+            .quantityOnHand(4)
+            .build();
+        Product product = Product.builder()
+            .id(42L)
+            .tenantId(1L)
+            .name("Coffee")
+            .minStock(5)
+            .build();
+        Instant stockChangedAt = Instant.parse("2026-09-08T06:00:00Z");
+
+        when(notifications.findByTenantIdAndTypeInOrderByCreatedAtDesc(
+            eq(1L),
+            any(),
+            any(Pageable.class)
+        )).thenReturn(List.of());
+        when(stockItems.lowStock(eq(1L), any(Pageable.class))).thenReturn(List.of(stockItem));
+        when(products.findByTenantIdAndIdInAndDeletedAtIsNull(eq(1L), anyCollection()))
+            .thenReturn(List.of(product));
+        when(inventoryTransactions.findFirstByTenantIdAndWarehouseIdAndProductIdOrderByCreatedAtDesc(
+            1L,
+            1L,
+            42L
+        )).thenReturn(java.util.Optional.of(InventoryTransaction.builder()
+            .tenantId(1L)
+            .warehouseId(1L)
+            .productId(42L)
+            .createdAt(stockChangedAt)
+            .build()));
+
+        List<NotificationFeedItem> feed = service.listRecent(
+            20,
+            authentication("NOTIFICATION_VIEW", "PRODUCT_VIEW", "INVENTORY_VIEW")
+        );
+
+        assertThat(feed)
+            .filteredOn(item -> item.id().equals("low-stock-501"))
+            .singleElement()
+            .satisfies(item -> assertThat(item.createdAt()).isEqualTo(stockChangedAt));
     }
 
     @Test
@@ -336,13 +450,20 @@ class NotificationQueryServiceAuthorizationTest {
             .build();
     }
 
-    private CustomerDebtTransaction debt(Long id, Long customerId, String remainingAmount, Instant createdAt) {
+    private CustomerDebtTransaction debt(
+        Long id,
+        Long customerId,
+        String remainingAmount,
+        Instant createdAt,
+        LocalDate dueDate
+    ) {
         return CustomerDebtTransaction.builder()
             .id(id)
             .tenantId(1L)
             .customerId(customerId)
             .direction("INCREASE")
             .remainingAmount(new BigDecimal(remainingAmount))
+            .dueDate(dueDate)
             .createdAt(createdAt)
             .build();
     }

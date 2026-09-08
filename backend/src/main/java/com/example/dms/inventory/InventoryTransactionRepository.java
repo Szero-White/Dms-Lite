@@ -1,5 +1,6 @@
 package com.example.dms.inventory;
 
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,5 +13,11 @@ public interface InventoryTransactionRepository extends JpaRepository<InventoryT
         Long tenantId,
         String sourceType,
         Pageable pageable
+    );
+
+    Optional<InventoryTransaction> findFirstByTenantIdAndWarehouseIdAndProductIdOrderByCreatedAtDesc(
+        Long tenantId,
+        Long warehouseId,
+        Long productId
     );
 }

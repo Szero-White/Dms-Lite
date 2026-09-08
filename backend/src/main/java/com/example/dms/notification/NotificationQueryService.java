@@ -7,6 +7,8 @@ import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.inventory.InventoryTransaction;
+import com.example.dms.inventory.InventoryTransactionRepository;
 import com.example.dms.inventory.StockItem;
 import com.example.dms.inventory.StockItemRepository;
 import com.example.dms.product.Product;
@@ -63,6 +65,8 @@ public class NotificationQueryService {
 
     private final StockItemRepository stockItems;
 
+    private final InventoryTransactionRepository inventoryTransactions;
+
     private final ProductRepository products;
 
     private final CustomerDebtRepository debts;
@@ -105,7 +109,11 @@ public class NotificationQueryService {
         feed.addAll(derivedNotifications(tenantId, permissions));
 
         return feed.stream()
-            .sorted(Comparator.comparing(NotificationFeedItem::createdAt).reversed())
+            .sorted(
+                Comparator.comparing(NotificationFeedItem::createdAt)
+                    .reversed()
+                    .thenComparing(NotificationFeedItem::id)
+            )
             .limit(size)
             .toList();
     }
@@ -250,13 +258,19 @@ public class NotificationQueryService {
         Map<Long, Product> productMap = productsById(tenantId, lowStockItems.stream()
             .map(StockItem::getProductId)
             .collect(Collectors.toSet()));
-        Instant createdAt = Instant.now();
-
         return lowStockItems.stream()
             .map(stockItem -> {
                 Product product = productMap.get(stockItem.getProductId());
                 String productName = product == null ? "Product #" + stockItem.getProductId() : product.getName();
                 int minStock = product == null ? 0 : product.getMinStock();
+                Instant eventAt = inventoryTransactions
+                    .findFirstByTenantIdAndWarehouseIdAndProductIdOrderByCreatedAtDesc(
+                        tenantId,
+                        stockItem.getWarehouseId(),
+                        stockItem.getProductId()
+                    )
+                    .map(InventoryTransaction::getCreatedAt)
+                    .orElse(Instant.EPOCH);
 
                 return new NotificationFeedItem(
                     "low-stock-" + stockItem.getId(),
@@ -265,7 +279,7 @@ public class NotificationQueryService {
                     productName + " is at " + stockItem.getQuantityOnHand() +
                         " units, at or below minimum " + minStock + ".",
                     false,
-                    createdAt,
+                    eventAt,
                     DERIVED_SOURCE
                 );
             })
@@ -291,23 +305,28 @@ public class NotificationQueryService {
             BigDecimal remaining = debt.getRemainingAmount() == null
                 ? BigDecimal.ZERO
                 : debt.getRemainingAmount();
-            Instant createdAt = debt.getCreatedAt() == null ? Instant.EPOCH : debt.getCreatedAt();
+            Instant eventAt = overdueEventAt(debt);
 
             summaries.merge(
                 customerId,
-                new OverdueDebtSummary(customerId, remaining, createdAt),
+                new OverdueDebtSummary(customerId, remaining, eventAt),
                 (current, incoming) -> new OverdueDebtSummary(
                     customerId,
                     current.amount().add(incoming.amount()),
-                    current.createdAt().isBefore(incoming.createdAt())
-                        ? current.createdAt()
-                        : incoming.createdAt()
+                    current.eventAt().isAfter(incoming.eventAt())
+                        ? current.eventAt()
+                        : incoming.eventAt()
                 )
             );
         }
 
         List<OverdueDebtSummary> limitedSummaries = summaries.values()
             .stream()
+            .sorted(
+                Comparator.comparing(OverdueDebtSummary::eventAt)
+                    .reversed()
+                    .thenComparing(OverdueDebtSummary::customerId)
+            )
             .limit(DERIVED_GROUP_LIMIT)
             .toList();
         Map<Long, Customer> customerMap = customersById(tenantId, limitedSummaries.stream()
@@ -322,10 +341,17 @@ public class NotificationQueryService {
                 customerName(customerMap, summary.customerId()) + " has overdue receivable of " +
                     formatMoney(summary.amount()) + " VND.",
                 false,
-                summary.createdAt(),
+                summary.eventAt(),
                 DERIVED_SOURCE
             ))
             .toList();
+    }
+
+    private Instant overdueEventAt(CustomerDebtTransaction debt) {
+        if (debt.getDueDate() != null) {
+            return businessTimeProvider.startOfDay(debt.getDueDate().plusDays(1));
+        }
+        return debt.getCreatedAt() == null ? Instant.EPOCH : debt.getCreatedAt();
     }
 
     private List<NotificationFeedItem> paymentNotifications(Long tenantId) {
@@ -407,7 +433,7 @@ public class NotificationQueryService {
     private record OverdueDebtSummary(
         Long customerId,
         BigDecimal amount,
-        Instant createdAt
+        Instant eventAt
     ) {
     }
 
