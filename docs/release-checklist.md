@@ -158,7 +158,7 @@ Dùng một customer và một product có stock đủ:
 
 ## 9. Deployment security
 
-- Backend public chạy với `SPRING_PROFILES_ACTIVE=prod` để production JWT guard được bật.
+- Với stack Docker Compose của repository, giữ `SPRING_PROFILES_ACTIVE=docker`; JWT guard coi cả `docker` và `prod` là môi trường hardened. Chỉ dùng `prod` cho deployment ngoài Compose khi provider đã cấu hình đầy đủ datasource/cache/messaging tương đương.
 - `APP_JWT_SECRET` là secret riêng, tối thiểu 32 ký tự, không dùng default trong repository.
 - `APP_CORS_ALLOWED_ORIGINS` đúng frontend domain public.
 - `APP_BUSINESS_ZONE=Asia/Ho_Chi_Minh` (hoặc timezone nghiệp vụ đã chọn) được cấu hình nhất quán ở production.
