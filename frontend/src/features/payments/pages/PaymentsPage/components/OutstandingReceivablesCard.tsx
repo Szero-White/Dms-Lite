@@ -106,7 +106,7 @@ export function OutstandingReceivablesCard({
         <Table
           rowKey="salesOrderId"
           pagination={false}
-          scroll={{ x: 1430 }}
+          scroll={{ x: 1590 }}
           sortDirections={TABLE_SORT_DIRECTIONS}
           showSorterTooltip={false}
           dataSource={query.data?.content ?? []}

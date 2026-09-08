@@ -110,9 +110,10 @@ export function useOutstandingReceivableColumns(
     {
       title: t('common.actions'),
       fixed: 'right',
-      width: 150,
+      width: 200,
+      align: 'center',
       render: (_: unknown, order) => (
-        <Button type="primary" onClick={() => onRecordPayment(order)}>
+        <Button block type="primary" onClick={() => onRecordPayment(order)}>
           {t('payments.recordPayment')}
         </Button>
       ),
