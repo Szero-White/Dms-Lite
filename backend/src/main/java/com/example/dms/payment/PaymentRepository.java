@@ -69,13 +69,13 @@ public interface PaymentRepository
             ));
         }
 
+        Sort requestedSort = pageable.getSort().isSorted()
+            ? pageable.getSort()
+            : Sort.by(Sort.Order.desc("createdAt"));
         Pageable sortedPageable = PageRequest.of(
             pageable.getPageNumber(),
             pageable.getPageSize(),
-            Sort.by(
-                Sort.Order.desc("createdAt"),
-                Sort.Order.desc("id")
-            )
+            requestedSort.and(Sort.by(Sort.Order.desc("id")))
         );
 
         return findAll(specification, sortedPageable);

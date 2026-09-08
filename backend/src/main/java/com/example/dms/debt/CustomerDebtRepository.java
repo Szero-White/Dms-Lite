@@ -79,7 +79,24 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
             "or (:includeDueToday=true and debt.dueDate=:today) " +
             "or (:includeDueSoon=true and debt.dueDate>:today and debt.dueDate<=:dueSoonThrough) " +
             "or (:includeCurrent=true and debt.dueDate>:dueSoonThrough)) " +
-            "order by debt.dueDate asc, salesOrder.confirmedAt asc, salesOrder.id asc",
+            "order by " +
+            "case when :sortBy='NEWEST' and :sortDirection='ASC' then salesOrder.confirmedAt end asc, " +
+            "case when :sortBy='NEWEST' and :sortDirection='DESC' then salesOrder.confirmedAt end desc, " +
+            "case when :sortBy='ORDER_CODE' and :sortDirection='ASC' then salesOrder.code end asc, " +
+            "case when :sortBy='ORDER_CODE' and :sortDirection='DESC' then salesOrder.code end desc, " +
+            "case when :sortBy='CUSTOMER' and :sortDirection='ASC' then lower(customer.name) end asc, " +
+            "case when :sortBy='CUSTOMER' and :sortDirection='DESC' then lower(customer.name) end desc, " +
+            "case when :sortBy='TOTAL_AMOUNT' and :sortDirection='ASC' then salesOrder.totalAmount end asc, " +
+            "case when :sortBy='TOTAL_AMOUNT' and :sortDirection='DESC' then salesOrder.totalAmount end desc, " +
+            "case when :sortBy='PAID_AMOUNT' and :sortDirection='ASC' then salesOrder.totalAmount-debt.remainingAmount end asc, " +
+            "case when :sortBy='PAID_AMOUNT' and :sortDirection='DESC' then salesOrder.totalAmount-debt.remainingAmount end desc, " +
+            "case when :sortBy='REMAINING_AMOUNT' and :sortDirection='ASC' then debt.remainingAmount end asc, " +
+            "case when :sortBy='REMAINING_AMOUNT' and :sortDirection='DESC' then debt.remainingAmount end desc, " +
+            "case when :sortBy='DUE_DATE' and :sortDirection='ASC' then debt.dueDate end asc, " +
+            "case when :sortBy='DUE_DATE' and :sortDirection='DESC' then debt.dueDate end desc, " +
+            "case when :sortBy='DUE_STATUS' and :sortDirection='ASC' then debt.dueDate end asc, " +
+            "case when :sortBy='DUE_STATUS' and :sortDirection='DESC' then debt.dueDate end desc, " +
+            "salesOrder.id desc",
         countQuery = "select count(debt) from CustomerDebtTransaction debt, SalesOrder salesOrder, Customer customer " +
             "where debt.tenantId=:tenantId and salesOrder.tenantId=:tenantId and customer.tenantId=:tenantId " +
             "and debt.sourceType='SALES_ORDER' and debt.direction='INCREASE' and debt.remainingAmount>0 " +
@@ -95,7 +112,8 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
             "or (:includeOverdue=true and debt.dueDate<:today) " +
             "or (:includeDueToday=true and debt.dueDate=:today) " +
             "or (:includeDueSoon=true and debt.dueDate>:today and debt.dueDate<=:dueSoonThrough) " +
-            "or (:includeCurrent=true and debt.dueDate>:dueSoonThrough))"
+            "or (:includeCurrent=true and debt.dueDate>:dueSoonThrough)) " +
+            "and :sortBy is not null and :sortDirection is not null"
     )
     org.springframework.data.domain.Page<OutstandingReceivableView> findOutstandingSalesOrderReceivables(
         @Param("tenantId") Long tenantId,
@@ -112,6 +130,8 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
         @Param("dueTo") LocalDate dueTo,
         @Param("minRemaining") BigDecimal minRemaining,
         @Param("maxRemaining") BigDecimal maxRemaining,
+        @Param("sortBy") String sortBy,
+        @Param("sortDirection") String sortDirection,
         Pageable pageable
     );
 

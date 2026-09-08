@@ -25,10 +25,10 @@ export function usePaymentHistory(
   filters: PaymentHistoryFilters = {},
   options: { enabled?: boolean } = {},
 ) {
-  const { search = '', from, to } = filters;
+  const { search = '', from, to, sortBy = 'NEWEST', sortDirection = 'DESC' } = filters;
   return useQuery({
-    queryKey: queryKeys.paymentHistory(page, search, from, to),
-    queryFn: () => fetchPaymentHistory(page, { search, from, to }),
+    queryKey: queryKeys.paymentHistory(page, search, from, to, sortBy, sortDirection),
+    queryFn: () => fetchPaymentHistory(page, { search, from, to, sortBy, sortDirection }),
     enabled: options.enabled ?? true,
   });
 }

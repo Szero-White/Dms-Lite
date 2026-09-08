@@ -39,7 +39,7 @@ public class CustomerService {
             PageRequest.of(
                 PageRequestPolicy.page(page),
                 PageRequestPolicy.size(size),
-                Sort.by(Sort.Order.desc("active"), Sort.Order.asc("name"))
+                Sort.by(Sort.Order.desc("id"))
             )
         );
 

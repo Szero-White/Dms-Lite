@@ -249,6 +249,7 @@ class AuthorizationRbacTest {
         for (JsonNode member : members) {
             if ("sale".equals(member.path("username").asText())) {
                 salesUserId = member.path("id").asLong();
+                assertThat(member.path("manageable").asBoolean()).isFalse();
                 break;
             }
         }

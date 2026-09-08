@@ -14,20 +14,35 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
+import type { TableColumnsType, TableProps } from 'antd';
 import { useMemo, useState } from 'react';
-import type { TableColumnsType } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../components/common/QueryState';
 import { formatCurrency, formatDateTime } from '../../../../../lib/format';
+import { getTableSortOrder, TABLE_SORT_DIRECTIONS } from '../../../../../lib/tableSorting';
 import { usePaymentHistory } from '../../../hooks/usePaymentQueries';
 import { usePaymentReceiptDownload } from '../../../hooks/usePaymentReceiptDownload';
-import type { PaymentRecord } from '../../../types/payment.types';
+import type {
+  PaymentHistorySortField,
+  PaymentRecord,
+  SortDirection,
+} from '../../../types/payment.types';
 import styles from '../PaymentsPage.module.css';
 
 interface PaymentHistoryCardProps {
   enabled: boolean;
   onViewPayment: (payment: PaymentRecord) => void;
 }
+
+const SORTABLE_FIELDS = new Set<PaymentHistorySortField>([
+  'NEWEST',
+  'PAYMENT_CODE',
+  'SALES_ORDER',
+  'CUSTOMER',
+  'AMOUNT',
+  'DEBT_AFTER',
+  'NOTE',
+]);
 
 export function PaymentHistoryCard({ enabled, onViewPayment }: PaymentHistoryCardProps) {
   const { i18n, t } = useTranslation();
@@ -36,12 +51,21 @@ export function PaymentHistoryCard({ enabled, onViewPayment }: PaymentHistoryCar
   const [search, setSearch] = useState('');
   const [from, setFrom] = useState<string>();
   const [to, setTo] = useState<string>();
-  const query = usePaymentHistory(page, { search, from, to }, { enabled });
+  const [sortBy, setSortBy] = useState<PaymentHistorySortField>();
+  const [sortDirection, setSortDirection] = useState<SortDirection>();
+  const query = usePaymentHistory(
+    page,
+    { search, from, to, sortBy, sortDirection },
+    { enabled },
+  );
 
   const columns = useMemo<TableColumnsType<PaymentRecord>>(() => [
     {
       title: t('payments.column.paymentCode'),
       dataIndex: 'code',
+      key: 'PAYMENT_CODE',
+      sorter: true,
+      sortOrder: getTableSortOrder(sortBy, sortDirection, 'PAYMENT_CODE'),
       fixed: 'left' as const,
       width: 185,
       render: (value: string) => <Typography.Text strong>{value}</Typography.Text>,
@@ -49,6 +73,9 @@ export function PaymentHistoryCard({ enabled, onViewPayment }: PaymentHistoryCar
     {
       title: t('payments.column.salesOrder'),
       dataIndex: 'salesOrderCode',
+      key: 'SALES_ORDER',
+      sorter: true,
+      sortOrder: getTableSortOrder(sortBy, sortDirection, 'SALES_ORDER'),
       width: 180,
       render: (value: string | undefined, payment: PaymentRecord) => payment.legacy
         ? <Typography.Text type="secondary">{t('payments.history.legacy')}</Typography.Text>
@@ -57,18 +84,27 @@ export function PaymentHistoryCard({ enabled, onViewPayment }: PaymentHistoryCar
     {
       title: t('customers.column.customer'),
       dataIndex: 'customerName',
+      key: 'CUSTOMER',
+      sorter: true,
+      sortOrder: getTableSortOrder(sortBy, sortDirection, 'CUSTOMER'),
       width: 220,
       render: (value?: string) => value ?? '--',
     },
     {
       title: t('payments.column.recordedAt'),
       dataIndex: 'createdAt',
+      key: 'NEWEST',
+      sorter: true,
+      sortOrder: getTableSortOrder(sortBy, sortDirection, 'NEWEST'),
       width: 175,
       render: (value: string) => formatDateTime(value, i18n.language),
     },
     {
       title: t('payments.column.received'),
       dataIndex: 'amount',
+      key: 'AMOUNT',
+      sorter: true,
+      sortOrder: getTableSortOrder(sortBy, sortDirection, 'AMOUNT'),
       width: 150,
       align: 'right' as const,
       render: (value: string | number) => formatCurrency(value, i18n.language),
@@ -76,6 +112,9 @@ export function PaymentHistoryCard({ enabled, onViewPayment }: PaymentHistoryCar
     {
       title: t('payments.column.remainingAfter'),
       dataIndex: 'debtAfter',
+      key: 'DEBT_AFTER',
+      sorter: true,
+      sortOrder: getTableSortOrder(sortBy, sortDirection, 'DEBT_AFTER'),
       width: 170,
       align: 'right' as const,
       render: (value?: string | number) => value === null || value === undefined
@@ -85,6 +124,9 @@ export function PaymentHistoryCard({ enabled, onViewPayment }: PaymentHistoryCar
     {
       title: t('payments.column.note'),
       dataIndex: 'note',
+      key: 'NOTE',
+      sorter: true,
+      sortOrder: getTableSortOrder(sortBy, sortDirection, 'NOTE'),
       width: 220,
       ellipsis: true,
       render: (value?: string) => value
@@ -111,7 +153,27 @@ export function PaymentHistoryCard({ enabled, onViewPayment }: PaymentHistoryCar
         </Space>
       ),
     },
-  ], [downloadReceipt, i18n.language, onViewPayment, t]);
+  ], [downloadReceipt, i18n.language, onViewPayment, sortBy, sortDirection, t]);
+
+  const handleTableChange: TableProps<PaymentRecord>['onChange'] = (_pagination, _filters, sorter) => {
+    const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+    const columnKey = activeSorter?.columnKey;
+    const order = activeSorter?.order;
+    if (!order) {
+      setSortBy(undefined);
+      setSortDirection(undefined);
+      setPage(0);
+      return;
+    }
+
+    if (typeof columnKey !== 'string' || !SORTABLE_FIELDS.has(columnKey as PaymentHistorySortField)) {
+      return;
+    }
+
+    setSortBy(columnKey as PaymentHistorySortField);
+    setSortDirection(order === 'ascend' ? 'ASC' : 'DESC');
+    setPage(0);
+  };
 
   return (
     <Card className={`panel-card ${styles.watchlistCard}`} title={t('payments.history.title')}>
@@ -157,8 +219,11 @@ export function PaymentHistoryCard({ enabled, onViewPayment }: PaymentHistoryCar
           rowKey="id"
           pagination={false}
           scroll={{ x: 1220 }}
+          sortDirections={TABLE_SORT_DIRECTIONS}
+          showSorterTooltip={false}
           dataSource={query.data?.content ?? []}
           columns={columns}
+          onChange={handleTableChange}
         />
       </QueryState>
 

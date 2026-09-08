@@ -7,6 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatCurrency, formatDate, getErrorMessage, toNumber } from '../../../../lib/format';
+import { compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
 import { PERMISSIONS, canViewInvoiceReceivableState, hasPermission, useAuth } from '../../../auth';
 import { InvoiceStatusTag } from '../../InvoiceStatusTag';
 import { downloadInvoicePdf } from '../../api/invoiceService';
@@ -51,6 +52,7 @@ export function InvoiceDetailPage() {
     {
       title: t('invoice.item.product'),
       dataIndex: 'productName',
+      sorter: (first, second) => compareText(first.productName ?? first.productCode, second.productName ?? second.productCode),
       render: (value, item) => (
         <div className={styles.productCell}>
           <Typography.Text strong>{value ?? t('invoice.productFallback')}</Typography.Text>
@@ -58,10 +60,10 @@ export function InvoiceDetailPage() {
         </div>
       ),
     },
-    { title: t('invoice.item.quantity'), dataIndex: 'quantity', width: 90, align: 'right' },
-    { title: t('invoice.item.unitPrice'), dataIndex: 'unitPrice', width: 140, align: 'right', render: (v) => formatCurrency(v, i18n.language) },
-    { title: t('invoice.item.discount'), dataIndex: 'discountAmount', width: 130, align: 'right', render: (v) => formatCurrency(v, i18n.language) },
-    { title: t('invoice.item.total'), dataIndex: 'lineTotal', width: 140, align: 'right', render: (v) => formatCurrency(v, i18n.language) },
+    { title: t('invoice.item.quantity'), dataIndex: 'quantity', width: 90, align: 'right', sorter: (first, second) => compareNumber(first.quantity, second.quantity) },
+    { title: t('invoice.item.unitPrice'), dataIndex: 'unitPrice', width: 140, align: 'right', sorter: (first, second) => compareNumber(first.unitPrice, second.unitPrice), render: (v) => formatCurrency(v, i18n.language) },
+    { title: t('invoice.item.discount'), dataIndex: 'discountAmount', width: 130, align: 'right', sorter: (first, second) => compareNumber(first.discountAmount, second.discountAmount), render: (v) => formatCurrency(v, i18n.language) },
+    { title: t('invoice.item.total'), dataIndex: 'lineTotal', width: 140, align: 'right', sorter: (first, second) => compareNumber(first.lineTotal, second.lineTotal), render: (v) => formatCurrency(v, i18n.language) },
   ], [i18n.language, t]);
 
   return (
@@ -120,7 +122,15 @@ export function InvoiceDetailPage() {
           </div>
 
           <Card className="panel-card" title={t('invoice.itemsTitle')}>
-            <Table rowKey="id" columns={columns} dataSource={invoice.items} pagination={false} scroll={{ x: 760 }} />
+            <Table
+              rowKey="id"
+              columns={columns}
+              dataSource={invoice.items}
+              pagination={false}
+              scroll={{ x: 760 }}
+              sortDirections={TABLE_SORT_DIRECTIONS}
+              showSorterTooltip={false}
+            />
           </Card>
         </div>
       ) : null}

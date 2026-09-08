@@ -37,9 +37,6 @@ export function ProductsPage() {
   const [keyword, setKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
   const [stockFilter, setStockFilter] = useState<'ALL' | 'HEALTHY' | 'LOW_STOCK'>('ALL');
-  const [sortBy, setSortBy] = useState<
-    'DEFAULT' | 'NAME' | 'STOCK_ASC' | 'STOCK_DESC' | 'PRICE_DESC'
-  >('DEFAULT');
   const [selectedProduct, setSelectedProduct] = useState<ProductRow | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -81,23 +78,8 @@ export function ProductsPage() {
       return matchesKeyword && matchesStatus && matchesStock;
     });
 
-    return [...filtered].sort((first, second) => {
-      if (sortBy === 'NAME') {
-        return first.name.localeCompare(second.name);
-      }
-      if (canViewInventory && sortBy === 'STOCK_ASC') {
-        return first.stock - second.stock;
-      }
-      if (canViewInventory && sortBy === 'STOCK_DESC') {
-        return second.stock - first.stock;
-      }
-      if (sortBy === 'PRICE_DESC') {
-        return toNumber(second.sellingPrice) - toNumber(first.sellingPrice);
-      }
-
-      return first.id - second.id;
-    });
-  }, [canViewInventory, keyword, products, sortBy, statusFilter, stockFilter]);
+    return [...filtered].sort((first, second) => second.id - first.id);
+  }, [canViewInventory, keyword, products, statusFilter, stockFilter]);
 
   const inventoryValue = canViewInventory && showProductFinancials
     ? products.reduce(
@@ -122,15 +104,13 @@ export function ProductsPage() {
   const hasFilters = Boolean(
     keyword ||
     statusFilter !== 'ALL' ||
-    (canViewInventory && stockFilter !== 'ALL') ||
-    sortBy !== 'DEFAULT',
+    (canViewInventory && stockFilter !== 'ALL')
   );
 
   function clearFilters() {
     setKeyword('');
     setStatusFilter('ALL');
     setStockFilter('ALL');
-    setSortBy('DEFAULT');
   }
 
   async function handleSubmit(values: ProductFormValues) {
@@ -203,13 +183,11 @@ export function ProductsPage() {
         onSetDrawerOpen={setDrawerOpen}
         onDeleteProduct={(productId) => deleteProduct.mutate(productId)}
         deletingProductId={deleteProduct.isPending ? deleteProduct.variables : undefined}
-        onSortByChange={setSortBy}
         onStatusFilterChange={setStatusFilter}
         onStockFilterChange={setStockFilter}
         productsError={queryError}
         showFinancials={showProductFinancials}
         showInventory={canViewInventory}
-        sortBy={sortBy}
         statusFilter={statusFilter}
         stockFilter={stockFilter}
       />

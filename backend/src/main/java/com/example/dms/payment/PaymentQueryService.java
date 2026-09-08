@@ -15,6 +15,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +44,31 @@ public class PaymentQueryService {
         BigDecimal minRemaining,
         BigDecimal maxRemaining
     ) {
+        return listOutstandingOrders(
+            page,
+            search,
+            dueStatuses,
+            dueFrom,
+            dueTo,
+            minRemaining,
+            maxRemaining,
+            OutstandingOrderSort.NEWEST,
+            Sort.Direction.DESC
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PaymentOutstandingOrderResponse> listOutstandingOrders(
+        int page,
+        String search,
+        String dueStatuses,
+        LocalDate dueFrom,
+        LocalDate dueTo,
+        BigDecimal minRemaining,
+        BigDecimal maxRemaining,
+        OutstandingOrderSort sortBy,
+        Sort.Direction sortDirection
+    ) {
         validateOutstandingFilters(dueFrom, dueTo, minRemaining, maxRemaining);
 
         Long tenantId = TenantContext.tenantRequired();
@@ -65,6 +91,8 @@ public class PaymentQueryService {
             dueTo,
             minRemaining,
             maxRemaining,
+            (sortBy == null ? OutstandingOrderSort.NEWEST : sortBy).name(),
+            (sortDirection == null ? Sort.Direction.DESC : sortDirection).name(),
             PageRequest.of(Math.max(page, 0), DEFAULT_PAGE_SIZE)
         ).map(view -> toOutstandingOrder(view, today));
     }
@@ -76,18 +104,37 @@ public class PaymentQueryService {
         LocalDate from,
         LocalDate to
     ) {
+        return listHistory(page, search, from, to, PaymentHistorySort.NEWEST, Sort.Direction.DESC);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PaymentResponse> listHistory(
+        int page,
+        String search,
+        LocalDate from,
+        LocalDate to,
+        PaymentHistorySort sortBy,
+        Sort.Direction sortDirection
+    ) {
         validateHistoryDateRange(from, to);
 
         Long tenantId = TenantContext.tenantRequired();
         Instant fromInclusive = from == null ? null : businessTimeProvider.startOfDay(from);
         Instant toExclusive = to == null ? null : businessTimeProvider.startOfDay(to.plusDays(1));
 
+        PaymentHistorySort resolvedSort = sortBy == null ? PaymentHistorySort.NEWEST : sortBy;
+        Sort.Direction resolvedDirection = sortDirection == null ? Sort.Direction.DESC : sortDirection;
+
         return paymentRepository.searchHistory(
             tenantId,
             normalizeSearch(search),
             fromInclusive,
             toExclusive,
-            PageRequest.of(Math.max(page, 0), DEFAULT_PAGE_SIZE)
+            PageRequest.of(
+                Math.max(page, 0),
+                DEFAULT_PAGE_SIZE,
+                Sort.by(new Sort.Order(resolvedDirection, resolvedSort.property()).nullsLast())
+            )
         ).map(PaymentResponse::from);
     }
 

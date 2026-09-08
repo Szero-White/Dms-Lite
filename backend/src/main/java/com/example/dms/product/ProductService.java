@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,11 @@ public class ProductService {
         return productRepository.findByTenantIdAndDeletedAtIsNullAndNameContainingIgnoreCase(
             TenantContext.tenantRequired(),
             keyword,
-            PageRequest.of(PageRequestPolicy.page(page), PageRequestPolicy.size(size))
+            PageRequest.of(
+                PageRequestPolicy.page(page),
+                PageRequestPolicy.size(size),
+                Sort.by(Sort.Order.desc("id"))
+            )
         ).map(product -> toResponse(product, includeCost));
     }
 

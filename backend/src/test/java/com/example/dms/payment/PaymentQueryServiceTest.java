@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,9 +23,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentQueryServiceTest {
@@ -68,7 +72,7 @@ class PaymentQueryServiceTest {
         when(view.getConfirmedAt()).thenReturn(Instant.parse("2026-09-07T01:00:00Z"));
         when(customerDebtRepository.findOutstandingSalesOrderReceivables(
             any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(),
-            any(), any(), any(), any(), any(), any(), any()
+            any(), any(), any(), any(), any(), any(), any(), any(), any()
         )).thenReturn(new PageImpl<>(List.of(view)));
 
         PaymentOutstandingOrderResponse result = paymentQueryService
@@ -83,6 +87,47 @@ class PaymentQueryServiceTest {
         assertThat(result.dueDate()).isEqualTo(LocalDate.of(2026, 9, 21));
         assertThat(result.dueStatus()).isEqualTo(ReceivableDueStatus.CURRENT);
         assertThat(result.daysUntilDue()).isEqualTo(13);
+    }
+
+
+    @Test
+    void appliesRequestedOutstandingOrderSort() {
+        when(customerDebtRepository.findOutstandingSalesOrderReceivables(
+            any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(),
+            any(), any(), any(), any(), any(), any(), any(), any(), any()
+        )).thenReturn(new PageImpl<>(List.of()));
+
+        paymentQueryService.listOutstandingOrders(
+            0,
+            "",
+            "",
+            null,
+            null,
+            null,
+            null,
+            OutstandingOrderSort.DUE_DATE,
+            Sort.Direction.ASC
+        );
+
+        verify(customerDebtRepository).findOutstandingSalesOrderReceivables(
+            eq(1L),
+            eq(""),
+            eq(com.example.dms.sales.SalesOrderStatus.COMPLETED),
+            eq(false),
+            eq(true),
+            eq(true),
+            eq(true),
+            eq(true),
+            eq(LocalDate.of(2026, 9, 8)),
+            eq(LocalDate.of(2026, 9, 11)),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            eq("DUE_DATE"),
+            eq("ASC"),
+            any()
+        );
     }
 
     @Test
@@ -111,6 +156,27 @@ class PaymentQueryServiceTest {
             eq(toExclusive),
             any()
         );
+    }
+
+    @Test
+    void paymentHistoryAppliesRequestedServerSort() {
+        when(paymentRepository.searchHistory(any(), any(), any(), any(), any()))
+            .thenReturn(new PageImpl<>(List.of()));
+
+        paymentQueryService.listHistory(
+            0,
+            "",
+            null,
+            null,
+            PaymentHistorySort.AMOUNT,
+            Sort.Direction.ASC
+        );
+
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(paymentRepository).searchHistory(eq(1L), eq(""), isNull(), isNull(), pageable.capture());
+        assertThat(pageable.getValue().getSort().getOrderFor("amount")).isNotNull();
+        assertThat(pageable.getValue().getSort().getOrderFor("amount").getDirection())
+            .isEqualTo(Sort.Direction.ASC);
     }
 
     @Test

@@ -1,3 +1,16 @@
+export type InvoiceSortField =
+  | 'NEWEST'
+  | 'INVOICE_NUMBER'
+  | 'CUSTOMER'
+  | 'STATUS'
+  | 'ISSUE_DATE'
+  | 'DUE_DATE'
+  | 'TOTAL_AMOUNT'
+  | 'PAID_AMOUNT'
+  | 'REMAINING_AMOUNT';
+
+export type InvoiceSortDirection = 'ASC' | 'DESC';
+
 export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED' | 'OVERDUE' | string;
 
 export interface InvoiceItem {

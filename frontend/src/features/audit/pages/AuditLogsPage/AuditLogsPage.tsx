@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatDateTime, formatNumber } from '../../../../lib/format';
+import { compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
 import { useAuditLogs } from '../../hooks/useAuditQueries';
 import { AuditLogRow } from '../../types/audit.types';
 import styles from './AuditLogsPage.module.css';
@@ -217,10 +218,13 @@ export function AuditLogsPage() {
             rowKey="id"
             size="small"
             scroll={{ x: 980 }}
+            sortDirections={TABLE_SORT_DIRECTIONS}
+            showSorterTooltip={false}
             dataSource={dataSource}
             columns={[
               {
                 title: t('audit.column.actor'), dataIndex: 'actorName', width: 180,
+                sorter: (first, second) => compareText(first.actorName, second.actorName),
                 render: (v: string, _r, i) => (
                   <div className={styles.actorCell}>
                     <div className={styles.actorCellAvatar}
@@ -233,17 +237,19 @@ export function AuditLogsPage() {
               },
               {
                 title: t('audit.column.action'), dataIndex: 'action', width: 180,
+                sorter: (first, second) => compareText(first.action, second.action),
                 render: (v: string) => <span className={styles.actionTag}>{actionLabel(v)}</span>,
               },
-              { title: t('audit.column.entity'), dataIndex: 'entityType', width: 150, render: (v: string) => entityLabel(v) },
-              { title: t('audit.column.entityId'), dataIndex: 'entityId', width: 100, render: (v) => v ?? '--' },
+              { title: t('audit.column.entity'), dataIndex: 'entityType', width: 150, sorter: (first, second) => compareText(first.entityType, second.entityType), render: (v: string) => entityLabel(v) },
+              { title: t('audit.column.entityId'), dataIndex: 'entityId', width: 100, sorter: (first, second) => compareNumber(first.entityId, second.entityId), render: (v) => v ?? '--' },
               {
                 title: t('audit.column.change'), dataIndex: 'newValue', width: 260,
+                sorter: (first, second) => compareText(first.newValue, second.newValue),
                 render: (v?: string) => v
                   ? <Typography.Text className={styles.changePreview} ellipsis={{ tooltip: false }}>{v}</Typography.Text>
                   : <span className={styles.noChange}>--</span>,
               },
-              { title: t('audit.column.time'), dataIndex: 'createdAt', width: 180, render: (v) => formatDateTime(v) },
+              { title: t('audit.column.time'), dataIndex: 'createdAt', width: 180, defaultSortOrder: 'descend', sorter: (first, second) => compareDate(first.createdAt, second.createdAt), render: (v) => formatDateTime(v) },
               {
                 title: '', fixed: 'right', width: 48,
                 render: (_, record) => (

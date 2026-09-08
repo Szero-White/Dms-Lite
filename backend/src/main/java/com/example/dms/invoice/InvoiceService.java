@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -62,17 +63,35 @@ public class InvoiceService {
         LocalDate from,
         LocalDate to
     ) {
+        return listInvoices(page, search, from, to, InvoiceSort.NEWEST, Sort.Direction.DESC);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<InvoiceResponse> listInvoices(
+        int page,
+        String search,
+        LocalDate from,
+        LocalDate to,
+        InvoiceSort sortBy,
+        Sort.Direction sortDirection
+    ) {
         validateDateRange(from, to);
 
         Long tenantId = TenantContext.tenantRequired();
         Instant fromInclusive = from == null ? null : businessTimeProvider.startOfDay(from);
         Instant toExclusive = to == null ? null : businessTimeProvider.startOfDay(to.plusDays(1));
+        InvoiceSort resolvedSort = sortBy == null ? InvoiceSort.NEWEST : sortBy;
+        Sort.Direction resolvedDirection = sortDirection == null ? Sort.Direction.DESC : sortDirection;
         Page<Invoice> invoices = invoiceRepository.searchPaidInvoices(
             tenantId,
             search,
             fromInclusive,
             toExclusive,
-            PageRequest.of(Math.max(page, 0), 20)
+            PageRequest.of(
+                Math.max(page, 0),
+                20,
+                Sort.by(new Sort.Order(resolvedDirection, resolvedSort.property()).nullsLast())
+            )
         );
 
         Map<Long, SalesOrder> ordersById = loadOrders(

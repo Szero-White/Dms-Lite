@@ -1,16 +1,30 @@
 import { Card, Pagination, Table, Typography } from 'antd';
+import type { TableProps } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../components/common/QueryState';
+import { TABLE_SORT_DIRECTIONS } from '../../../../../lib/tableSorting';
 import { useOutstandingPaymentOrders } from '../../../hooks/usePaymentQueries';
 import type {
   OutstandingPaymentFilters,
   OutstandingPaymentOrder,
+  OutstandingPaymentSortField,
 } from '../../../types/payment.types';
 import { OutstandingReceivableFilters } from './OutstandingReceivableFilters';
 import { ALL_DUE_STATUSES } from './receivableDueStatusOptions';
 import { useOutstandingReceivableColumns } from './useOutstandingReceivableColumns';
 import styles from '../PaymentsPage.module.css';
+
+const SORTABLE_FIELDS = new Set<OutstandingPaymentSortField>([
+  'NEWEST',
+  'ORDER_CODE',
+  'CUSTOMER',
+  'TOTAL_AMOUNT',
+  'PAID_AMOUNT',
+  'REMAINING_AMOUNT',
+  'DUE_DATE',
+  'DUE_STATUS',
+]);
 
 interface OutstandingReceivablesCardProps {
   enabled: boolean;
@@ -28,7 +42,11 @@ export function OutstandingReceivablesCard({
     dueStatuses: ALL_DUE_STATUSES,
   });
   const query = useOutstandingPaymentOrders(page, filters, { enabled });
-  const columns = useOutstandingReceivableColumns(onRecordPayment);
+  const columns = useOutstandingReceivableColumns(
+    onRecordPayment,
+    filters.sortBy,
+    filters.sortDirection,
+  );
 
   function updateFilters(patch: Partial<OutstandingPaymentFilters>) {
     setFilters((current) => ({ ...current, ...patch }));
@@ -36,9 +54,31 @@ export function OutstandingReceivablesCard({
   }
 
   function resetFilters() {
-    setFilters({ search: '', dueStatuses: ALL_DUE_STATUSES });
+    setFilters({
+      search: '',
+      dueStatuses: ALL_DUE_STATUSES,
+    });
     setPage(0);
   }
+
+  const handleTableChange: TableProps<OutstandingPaymentOrder>['onChange'] = (_pagination, _filters, sorter) => {
+    const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+    const columnKey = activeSorter?.columnKey;
+    const order = activeSorter?.order;
+    if (!order) {
+      updateFilters({ sortBy: undefined, sortDirection: undefined });
+      return;
+    }
+
+    if (typeof columnKey !== 'string' || !SORTABLE_FIELDS.has(columnKey as OutstandingPaymentSortField)) {
+      return;
+    }
+
+    updateFilters({
+      sortBy: columnKey as OutstandingPaymentSortField,
+      sortDirection: order === 'ascend' ? 'ASC' : 'DESC',
+    });
+  };
 
   return (
     <Card className={`panel-card ${styles.watchlistCard}`} title={t('payments.outstanding.title')}>
@@ -66,10 +106,13 @@ export function OutstandingReceivablesCard({
         <Table
           rowKey="salesOrderId"
           pagination={false}
-          scroll={{ x: 1260 }}
+          scroll={{ x: 1430 }}
+          sortDirections={TABLE_SORT_DIRECTIONS}
+          showSorterTooltip={false}
           dataSource={query.data?.content ?? []}
           rowClassName={(order) => order.dueStatus === 'OVERDUE' ? styles.overdueRow : ''}
           columns={columns}
+          onChange={handleTableChange}
         />
       </QueryState>
 

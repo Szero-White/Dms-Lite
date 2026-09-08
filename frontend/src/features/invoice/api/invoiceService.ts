@@ -1,12 +1,14 @@
 import { apiClient, unwrapResponse } from '../../../services/apiClient';
 import type { PageResponse } from '../../../types';
-import type { Invoice } from '../types/invoice.types';
+import type { Invoice, InvoiceSortDirection, InvoiceSortField } from '../types/invoice.types';
 
 export interface InvoiceListParams {
   page?: number;
   search?: string;
   from?: string;
   to?: string;
+  sortBy?: InvoiceSortField;
+  sortDirection?: InvoiceSortDirection;
 }
 
 export function fetchInvoices(params: InvoiceListParams = {}) {

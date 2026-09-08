@@ -1,11 +1,6 @@
-import type { PermissionOption, TeamMember } from '../../types/team.types';
+import type { PermissionOption } from '../../types/team.types';
 
 export const OWNER_ONLY_PERMISSIONS = new Set(['TEAM_MANAGE']);
-
-
-export function isOwner(member: TeamMember) {
-  return member.roles.includes('OWNER');
-}
 
 export function groupPermissions(permissions: PermissionOption[]) {
   return permissions.reduce<Record<string, PermissionOption[]>>((groups, permission) => {

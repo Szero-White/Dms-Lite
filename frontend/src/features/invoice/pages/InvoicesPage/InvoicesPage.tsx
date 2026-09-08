@@ -1,17 +1,18 @@
 import { EyeOutlined, FilePdfOutlined, SearchOutlined, SendOutlined } from '@ant-design/icons';
 import { App, Button, Card, DatePicker, Input, Pagination, Space, Table, Tooltip, Typography } from 'antd';
-import type { TableColumnsType } from 'antd';
+import type { TableColumnsType, TableProps } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatCurrency, formatDate, getErrorMessage, toNumber } from '../../../../lib/format';
+import { getTableSortOrder, TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
 import { PERMISSIONS, canViewInvoiceReceivableState, hasPermission, useAuth } from '../../../auth';
 import { InvoiceStatusTag } from '../../InvoiceStatusTag';
 import { downloadInvoicePdf } from '../../api/invoiceService';
 import { useInvoices, useIssueInvoice } from '../../hooks/useInvoiceQueries';
-import type { Invoice } from '../../types/invoice.types';
+import type { Invoice, InvoiceSortDirection, InvoiceSortField } from '../../types/invoice.types';
 import styles from './InvoicesPage.module.css';
 
 export function InvoicesPage() {
@@ -23,11 +24,15 @@ export function InvoicesPage() {
   const [search, setSearch] = useState('');
   const [from, setFrom] = useState<string>();
   const [to, setTo] = useState<string>();
-  const invoicesQuery = useInvoices(page, { search, from, to });
+  const [sortBy, setSortBy] = useState<InvoiceSortField>();
+  const [sortDirection, setSortDirection] = useState<InvoiceSortDirection>();
+  const invoicesQuery = useInvoices(page, { search, from, to, sortBy, sortDirection });
   const issueMutation = useIssueInvoice();
   const invoices = invoicesQuery.data?.content ?? [];
   const canIssue = hasPermission(user, PERMISSIONS.INVOICE_ISSUE);
   const canViewReceivableState = canViewInvoiceReceivableState(user);
+  const sortOrder = (field: InvoiceSortField): 'ascend' | 'descend' | null =>
+    getTableSortOrder(sortBy, sortDirection, field);
 
   async function handlePdf(invoice: Invoice) {
     try {
@@ -49,6 +54,9 @@ export function InvoicesPage() {
     {
       title: t('invoice.column.invoice'),
       dataIndex: 'invoiceNumber',
+      key: 'INVOICE_NUMBER',
+      sorter: true,
+      sortOrder: sortOrder('INVOICE_NUMBER'),
       width: 170,
       render: (value: string, record) => (
         <div className={styles.primaryCell}>
@@ -60,30 +68,45 @@ export function InvoicesPage() {
     {
       title: t('invoice.column.customer'),
       dataIndex: 'customerName',
+      key: 'CUSTOMER',
+      sorter: true,
+      sortOrder: sortOrder('CUSTOMER'),
       width: 220,
       render: (value: string | undefined, record) => value ?? t('invoice.customerFallback', { id: record.customerId }),
     },
     {
       title: t('common.status'),
       dataIndex: 'status',
+      key: 'STATUS',
+      sorter: true,
+      sortOrder: sortOrder('STATUS'),
       width: 120,
       render: (status) => <InvoiceStatusTag status={status} />,
     },
     {
       title: t('invoice.column.issueDate'),
       dataIndex: 'issueDate',
+      key: 'ISSUE_DATE',
+      sorter: true,
+      sortOrder: sortOrder('ISSUE_DATE'),
       width: 140,
       render: (value) => value ? formatDate(value, i18n.language) : '-',
     },
     {
       title: t('invoice.column.dueDate'),
       dataIndex: 'dueDate',
+      key: 'DUE_DATE',
+      sorter: true,
+      sortOrder: sortOrder('DUE_DATE'),
       width: 140,
       render: (value) => value ? formatDate(value, i18n.language) : '-',
     },
     {
       title: t('invoice.column.total'),
       dataIndex: 'totalAmount',
+      key: 'TOTAL_AMOUNT',
+      sorter: true,
+      sortOrder: sortOrder('TOTAL_AMOUNT'),
       width: 145,
       align: 'right',
       render: (value) => formatCurrency(value, i18n.language),
@@ -92,6 +115,9 @@ export function InvoicesPage() {
       {
         title: t('invoice.column.paid'),
         dataIndex: 'paidAmount',
+        key: 'PAID_AMOUNT',
+        sorter: true,
+        sortOrder: sortOrder('PAID_AMOUNT'),
         width: 145,
         align: 'right' as const,
         render: (value: number | null) => formatCurrency(value, i18n.language),
@@ -99,6 +125,9 @@ export function InvoicesPage() {
       {
         title: t('invoice.column.remaining'),
         dataIndex: 'remainingAmount',
+        key: 'REMAINING_AMOUNT',
+        sorter: true,
+        sortOrder: sortOrder('REMAINING_AMOUNT'),
         width: 145,
         align: 'right' as const,
         render: (value: number | null) => (
@@ -132,6 +161,26 @@ export function InvoicesPage() {
       ),
     },
   ];
+
+  const handleTableChange: TableProps<Invoice>['onChange'] = (_pagination, _filters, sorter) => {
+    const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+    const columnKey = activeSorter?.columnKey;
+    const order = activeSorter?.order;
+    if (!order) {
+      setSortBy(undefined);
+      setSortDirection(undefined);
+      setPage(0);
+      return;
+    }
+
+    if (typeof columnKey !== 'string') {
+      return;
+    }
+
+    setSortBy(columnKey as InvoiceSortField);
+    setSortDirection(order === 'ascend' ? 'ASC' : 'DESC');
+    setPage(0);
+  };
 
   return (
     <div className={styles.page}>
@@ -176,7 +225,16 @@ export function InvoicesPage() {
           emptyDescription={t('invoice.empty.description')}
           onRetry={() => { void invoicesQuery.refetch(); }}
         >
-          <Table rowKey="id" columns={columns} dataSource={invoices} pagination={false} scroll={{ x: 1230 }} />
+          <Table
+            rowKey="id"
+            columns={columns}
+            dataSource={invoices}
+            pagination={false}
+            scroll={{ x: 1230 }}
+            sortDirections={TABLE_SORT_DIRECTIONS}
+            showSorterTooltip={false}
+            onChange={handleTableChange}
+          />
         </QueryState>
         {(invoicesQuery.data?.totalPages ?? 0) > 1 ? (
           <div className={styles.pagination}>

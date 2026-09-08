@@ -49,7 +49,9 @@ export function TeamMemberDrawer({
       afterOpenChange={(visible) => {
         if (visible) {
           form.setFieldsValue(selectedMember ? {
+            username: selectedMember.username,
             fullName: selectedMember.fullName,
+            password: undefined,
             roles: selectedMember.roles.filter((role) => role !== 'OWNER'),
             active: selectedMember.active,
           } : {
@@ -70,15 +72,14 @@ export function TeamMemberDrawer({
       )}
     >
       <Form form={form} layout="vertical" onFinish={onSubmit}>
-        {!selectedMember ? (
-          <Form.Item
-            label={t('team.drawer.username')}
-            name="username"
-            rules={[{ required: true, message: t('team.drawer.usernameRequired') }]}
-          >
-            <Input placeholder={t('team.drawer.usernamePlaceholder')} autoComplete="off" />
-          </Form.Item>
-        ) : null}
+        <Form.Item
+          label={t('team.drawer.username')}
+          name="username"
+          extra={selectedMember ? t('team.drawer.usernameChangeHint') : undefined}
+          rules={[{ required: true, message: t('team.drawer.usernameRequired') }]}
+        >
+          <Input placeholder={t('team.drawer.usernamePlaceholder')} autoComplete="off" />
+        </Form.Item>
         <Form.Item
           label={t('team.drawer.fullName')}
           name="fullName"
@@ -86,15 +87,16 @@ export function TeamMemberDrawer({
         >
           <Input placeholder={t('team.drawer.fullNamePlaceholder')} />
         </Form.Item>
-        {!selectedMember ? (
-          <Form.Item
-            label={t('team.drawer.temporaryPassword')}
-            name="password"
-            rules={[{ required: true, min: 8, message: t('team.drawer.passwordRequired') }]}
-          >
-            <Input.Password placeholder={t('team.drawer.passwordPlaceholder')} autoComplete="new-password" />
-          </Form.Item>
-        ) : null}
+        <Form.Item
+          label={selectedMember ? t('team.drawer.newPassword') : t('team.drawer.temporaryPassword')}
+          name="password"
+          extra={selectedMember ? t('team.drawer.newPasswordHint') : undefined}
+          rules={selectedMember
+            ? [{ min: 8, message: t('team.drawer.passwordRequired') }]
+            : [{ required: true, min: 8, message: t('team.drawer.passwordRequired') }]}
+        >
+          <Input.Password placeholder={t('team.drawer.passwordPlaceholder')} autoComplete="new-password" />
+        </Form.Item>
         <Form.Item
           label={t('team.drawer.roles')}
           name="roles"

@@ -28,12 +28,17 @@ export interface HelpAskPayload {
   context?: HelpConversationTurn[];
 }
 
+export type HelpHistorySortField = 'NEWEST' | 'ACTOR' | 'QUESTION' | 'ANSWER' | 'SOURCE' | 'STATUS';
+export type HelpHistorySortDirection = 'ASC' | 'DESC';
+
 export interface HelpHistoryParams {
   mineOnly: boolean;
   keyword?: string;
   blocked?: boolean;
   page: number;
   size: number;
+  sortBy?: HelpHistorySortField;
+  sortDirection?: HelpHistorySortDirection;
 }
 
 export interface HelpInteraction {

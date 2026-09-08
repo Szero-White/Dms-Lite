@@ -41,6 +41,7 @@ import {
   SalesOrderStatusTag,
 } from '../../../../components/common/StatusTag';
 import { formatCurrency, formatDateTime, formatNumber, toNumber } from '../../../../lib/format';
+import { compareBoolean, compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
 import { PERMISSIONS, canViewCustomerBalance, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
 import { useDashboardData } from '../../../dashboard';
@@ -361,23 +362,27 @@ export function ReportsPage() {
                           rowKey="id"
                           size="small"
                           scroll={{ x: 1180 }}
+                          sortDirections={TABLE_SORT_DIRECTIONS}
+                          showSorterTooltip={false}
                           dataSource={filteredReportOrders}
                           locale={{ emptyText: t('reports.empty.noSalesOrders') }}
                           columns={[
-                            { title: t('reports.table.order'), dataIndex: 'code', width: 160 },
+                            { title: t('reports.table.order'), dataIndex: 'code', width: 160, sorter: (first, second) => compareText(first.code, second.code) },
                             {
                               title: t('reports.table.customer'),
                               width: 230,
+                              sorter: (first, second) => compareText(first.customerName, second.customerName),
                               render: (_, order) => order.customerName ?? '--',
                             },
-                            { title: t('reports.table.reportDate'), dataIndex: 'reportDate', width: 170, render: (value) => formatDateTime(value) },
-                            { title: t('reports.table.status'), dataIndex: 'status', width: 130, render: (v) => <SalesOrderStatusTag status={v} /> },
-                            { title: t('reports.table.orderTotal'), dataIndex: 'totalAmount', width: 150, align: 'right', render: (value) => formatCurrency(value) },
-                            { title: t('reports.table.collected'), dataIndex: 'collectedAmount', width: 150, align: 'right', render: (value, order) => order.receivableRecognized ? formatCurrency(value) : t('reports.value.notApplicable') },
-                            { title: t('reports.table.remainingDebt'), dataIndex: 'remainingReceivable', width: 170, align: 'right', render: (value, order) => order.receivableRecognized ? formatCurrency(value) : t('reports.value.notRecognized') },
+                            { title: t('reports.table.reportDate'), dataIndex: 'reportDate', width: 170, defaultSortOrder: 'descend', sorter: (first, second) => compareDate(first.reportDate, second.reportDate), render: (value) => formatDateTime(value) },
+                            { title: t('reports.table.status'), dataIndex: 'status', width: 130, sorter: (first, second) => compareText(first.status, second.status), render: (v) => <SalesOrderStatusTag status={v} /> },
+                            { title: t('reports.table.orderTotal'), dataIndex: 'totalAmount', width: 150, align: 'right', sorter: (first, second) => compareNumber(first.totalAmount, second.totalAmount), render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.collected'), dataIndex: 'collectedAmount', width: 150, align: 'right', sorter: (first, second) => compareNumber(first.collectedAmount, second.collectedAmount), render: (value, order) => order.receivableRecognized ? formatCurrency(value) : t('reports.value.notApplicable') },
+                            { title: t('reports.table.remainingDebt'), dataIndex: 'remainingReceivable', width: 170, align: 'right', sorter: (first, second) => compareNumber(first.remainingReceivable, second.remainingReceivable), render: (value, order) => order.receivableRecognized ? formatCurrency(value) : t('reports.value.notRecognized') },
                             {
                               title: t('reports.table.collectionProgress'),
                               width: 180,
+                              sorter: (first, second) => compareNumber(first.collectionProgress, second.collectionProgress),
                               render: (_, order) => {
                                 if (!order.receivableRecognized || order.collectionProgress === null) {
                                   return t('reports.value.notApplicable');
@@ -433,15 +438,17 @@ export function ReportsPage() {
 
                       <Card title={t('reports.title')} className="panel-card">
                         <Table rowKey="id" size="small" scroll={{ x: 820 }}
+                          sortDirections={TABLE_SORT_DIRECTIONS}
+                          showSorterTooltip={false}
                           dataSource={products}
                           locale={{ emptyText: t('reports.empty.noInventory') }}
                           columns={[
-                            { title: t('reports.table.sku'), dataIndex: 'sku' },
-                            { title: t('reports.table.product'), dataIndex: 'name' },
-                            { title: t('reports.table.onHand'), dataIndex: 'stock', align: 'right' },
-                            { title: t('reports.table.minimum'), dataIndex: 'minStock', align: 'right' },
-                            { title: t('reports.table.costValue'), align: 'right', render: (_, r) => formatCurrency(toNumber(r.costPrice) * toNumber(r.stock)) },
-                            { title: t('reports.table.status'), render: (_, r) => <ProductStatusTag active={r.active} isLowStock={r.isLowStock} /> },
+                            { title: t('reports.table.sku'), dataIndex: 'sku', sorter: (first, second) => compareText(first.sku, second.sku) },
+                            { title: t('reports.table.product'), dataIndex: 'name', sorter: (first, second) => compareText(first.name, second.name) },
+                            { title: t('reports.table.onHand'), dataIndex: 'stock', align: 'right', sorter: (first, second) => compareNumber(first.stock, second.stock) },
+                            { title: t('reports.table.minimum'), dataIndex: 'minStock', align: 'right', sorter: (first, second) => compareNumber(first.minStock, second.minStock) },
+                            { title: t('reports.table.costValue'), align: 'right', sorter: (first, second) => compareNumber(toNumber(first.costPrice) * toNumber(first.stock), toNumber(second.costPrice) * toNumber(second.stock)), render: (_, r) => formatCurrency(toNumber(r.costPrice) * toNumber(r.stock)) },
+                            { title: t('reports.table.status'), sorter: (first, second) => compareBoolean(first.isLowStock, second.isLowStock) || compareBoolean(first.active, second.active), render: (_, r) => <ProductStatusTag active={r.active} isLowStock={r.isLowStock} /> },
                           ]}
                         />
                       </Card>
@@ -512,15 +519,24 @@ export function ReportsPage() {
 
                       <Card title={t('reports.title')} className="panel-card">
                         <Table rowKey="id" size="small" scroll={{ x: 900 }}
+                          sortDirections={TABLE_SORT_DIRECTIONS}
+                          showSorterTooltip={false}
                           dataSource={[...customers].sort((a, b) => toNumber(b.debtBalance) - toNumber(a.debtBalance))}
                           locale={{ emptyText: t('reports.empty.noReceivables') }}
                           columns={[
-                            { title: t('reports.table.customer'), dataIndex: 'name' },
-                            { title: t('reports.table.term'), dataIndex: 'paymentTermDays', render: (v) => t('reports.table.days', { count: v }) },
-                            { title: t('reports.table.debt'), dataIndex: 'debtBalance', align: 'right', render: (value) => formatCurrency(value) },
-                            { title: t('reports.table.creditLimit'), dataIndex: 'creditLimit', align: 'right', render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.customer'), dataIndex: 'name', sorter: (first, second) => compareText(first.name, second.name) },
+                            { title: t('reports.table.term'), dataIndex: 'paymentTermDays', sorter: (first, second) => compareNumber(first.paymentTermDays, second.paymentTermDays), render: (v) => t('reports.table.days', { count: v }) },
+                            { title: t('reports.table.debt'), dataIndex: 'debtBalance', align: 'right', defaultSortOrder: 'descend', sorter: (first, second) => compareNumber(first.debtBalance, second.debtBalance), render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.creditLimit'), dataIndex: 'creditLimit', align: 'right', sorter: (first, second) => compareNumber(first.creditLimit, second.creditLimit), render: (value) => formatCurrency(value) },
                             {
                               title: t('reports.table.utilization'), width: 220,
+                              sorter: (first, second) => {
+                                const firstLimit = toNumber(first.creditLimit);
+                                const secondLimit = toNumber(second.creditLimit);
+                                const firstUsage = firstLimit > 0 ? toNumber(first.debtBalance) / firstLimit : 0;
+                                const secondUsage = secondLimit > 0 ? toNumber(second.debtBalance) / secondLimit : 0;
+                                return firstUsage - secondUsage;
+                              },
                               render: (_, r) => {
                                 const lim = toNumber(r.creditLimit);
                                 const pct = lim > 0 ? Math.round((toNumber(r.debtBalance) / lim) * 100) : 0;

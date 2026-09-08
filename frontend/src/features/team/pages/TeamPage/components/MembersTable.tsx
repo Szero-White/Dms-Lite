@@ -19,9 +19,9 @@ import {
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../components/common/QueryState';
 import { roleLabel } from '../../../../../lib/roleDisplay';
+import { compareBoolean, compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../../lib/tableSorting';
 import type { TeamMember } from '../../../types/team.types';
 import styles from '../TeamPage.module.css';
-import { isOwner } from '../teamPage.utils';
 
 interface MembersTableProps {
   members: TeamMember[];
@@ -82,11 +82,14 @@ export function MembersTable({
           rowKey="id"
           dataSource={members}
           scroll={{ x: 980 }}
+          sortDirections={TABLE_SORT_DIRECTIONS}
+          showSorterTooltip={false}
           columns={[
             {
               title: t('team.members.column.member'),
               fixed: 'left',
               width: 280,
+              sorter: (first, second) => compareText(first.fullName || first.username, second.fullName || second.username),
               render: (_, record) => (
                 <div className={styles.memberCell}>
                   <Avatar icon={<UserOutlined />} />
@@ -100,6 +103,7 @@ export function MembersTable({
             {
               title: t('team.members.column.roles'),
               width: 260,
+              sorter: (first, second) => compareText(first.roles.join(','), second.roles.join(',')),
               render: (_, record) => (
                 <Space size={[6, 6]} wrap>
                   {record.roles.map((role) => (
@@ -113,6 +117,7 @@ export function MembersTable({
             {
               title: t('team.members.column.permissions'),
               width: 320,
+              sorter: (first, second) => compareNumber(first.permissions.length, second.permissions.length),
               render: (_, record) => (
                 <Typography.Text type="secondary">
                   {t('common.permissionsCount', { count: record.permissions.length })}
@@ -122,6 +127,7 @@ export function MembersTable({
             {
               title: t('common.status'),
               width: 130,
+              sorter: (first, second) => compareBoolean(first.active, second.active),
               render: (_, record) => (
                 <Tag color={record.active ? 'green' : 'default'}>
                   {record.active ? t('common.active') : t('common.inactive')}
@@ -132,7 +138,7 @@ export function MembersTable({
               title: t('common.actions'),
               fixed: 'right',
               width: 120,
-              render: (_, record) => (isOwner(record) ? (
+              render: (_, record) => (!record.manageable ? (
                 <Typography.Text type="secondary">{t('common.protected')}</Typography.Text>
               ) : (
                 <Space size={4}>

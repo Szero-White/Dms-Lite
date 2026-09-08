@@ -45,6 +45,7 @@ import {
   formatDateTime,
   toNumber,
 } from '../../../../lib/format';
+import { TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
 import type { SalesOrder, SalesOrderStatus } from '../../types/sales.types';
 import { SalesOrdersPulseBar } from './components/SalesOrdersPulseBar';
 import styles from './SalesOrdersPage.module.css';
@@ -128,6 +129,10 @@ export function SalesOrdersPage() {
         ts <= new Date(`${dateRange[1]}T23:59:59`).getTime()
       );
       return matchesKeyword && matchesStatus && matchesCustomer && matchesCollection && matchesDate;
+    }).sort((first, second) => {
+      const createdDifference =
+        new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime();
+      return createdDifference || second.id - first.id;
     });
   }, [collectionFilters, customerFilter, customersMap, dateRange, keyword, orders, statusFilters]);
 
@@ -366,6 +371,8 @@ export function SalesOrdersPage() {
           <Table
             rowKey="id"
             scroll={{ x: 1120 }}
+            sortDirections={TABLE_SORT_DIRECTIONS}
+            showSorterTooltip={false}
             dataSource={filteredOrders}
             columns={[
               {
@@ -373,6 +380,7 @@ export function SalesOrdersPage() {
                 dataIndex: 'code',
                 fixed: 'left',
                 width: 150,
+                sorter: (first, second) => first.code.localeCompare(second.code),
                 render: (value, record) => (
                   <Button type="link" className={styles.orderLink} onClick={() => setSelectedOrder(record)}>
                     {value}
@@ -382,6 +390,11 @@ export function SalesOrdersPage() {
               {
                 title: t('sales.column.customer'),
                 width: 220,
+                sorter: (first, second) => {
+                  const firstName = first.customerName ?? customersMap.get(first.customerId)?.name ?? '';
+                  const secondName = second.customerName ?? customersMap.get(second.customerId)?.name ?? '';
+                  return firstName.localeCompare(secondName);
+                },
                 render: (_, record) => {
                   const customerName = record.customerName
                     ?? customersMap.get(record.customerId)?.name
@@ -398,13 +411,55 @@ export function SalesOrdersPage() {
                   );
                 },
               },
-              { title: t('sales.column.created'), dataIndex: 'createdAt', width: 160, render: (v) => formatDateTime(v, i18n.language) },
-              { title: t('common.status'), width: 130, render: (_, r) => <SalesOrderStatusTag status={r.status} /> },
+              {
+                title: t('sales.column.created'),
+                dataIndex: 'createdAt',
+                width: 160,
+                defaultSortOrder: 'descend' as const,
+                sorter: (first, second) =>
+                  new Date(first.createdAt).getTime() - new Date(second.createdAt).getTime(),
+                render: (v) => formatDateTime(v, i18n.language),
+              },
+              {
+                title: t('common.status'),
+                width: 130,
+                sorter: (first, second) => first.status.localeCompare(second.status),
+                render: (_, r) => <SalesOrderStatusTag status={r.status} />,
+              },
               ...(canViewSalesOrderFinancials ? [
-                { title: t('sales.column.total'), dataIndex: 'totalAmount', align: 'right' as const, width: 150, render: (v: string | number | null) => <span className={styles.money}>{formatCurrency(v)}</span> },
-                { title: t('sales.column.paid'), dataIndex: 'paidAmount', align: 'right' as const, width: 150, render: (_, record) => <span className={styles.money}>{record.status === 'COMPLETED' ? formatCurrency(record.paidAmount) : t('sales.financial.notApplicable')}</span> },
                 {
-                  title: t('sales.column.debt'), dataIndex: 'debtAmount', align: 'right' as const, width: 180,
+                  title: t('sales.column.total'),
+                  dataIndex: 'totalAmount',
+                  align: 'right' as const,
+                  width: 150,
+                  sorter: (first: SalesOrder, second: SalesOrder) =>
+                    toNumber(first.totalAmount) - toNumber(second.totalAmount),
+                  render: (v: string | number | null) => (
+                    <span className={styles.money}>{formatCurrency(v)}</span>
+                  ),
+                },
+                {
+                  title: t('sales.column.paid'),
+                  dataIndex: 'paidAmount',
+                  align: 'right' as const,
+                  width: 150,
+                  sorter: (first: SalesOrder, second: SalesOrder) =>
+                    toNumber(first.paidAmount) - toNumber(second.paidAmount),
+                  render: (_, record) => (
+                    <span className={styles.money}>
+                      {record.status === 'COMPLETED'
+                        ? formatCurrency(record.paidAmount)
+                        : t('sales.financial.notApplicable')}
+                    </span>
+                  ),
+                },
+                {
+                  title: t('sales.column.debt'),
+                  dataIndex: 'debtAmount',
+                  align: 'right' as const,
+                  width: 180,
+                  sorter: (first: SalesOrder, second: SalesOrder) =>
+                    toNumber(first.debtAmount) - toNumber(second.debtAmount),
                   render: (_, record) => {
                     if (record.status === 'COMPLETED') {
                       return <span className={`${styles.money} ${toNumber(record.debtAmount) > 0 ? styles.debt : ''}`}>{formatCurrency(record.debtAmount)}</span>;
@@ -487,13 +542,15 @@ export function SalesOrdersPage() {
               <Table size="small" pagination={false}
                 rowKey={(item, i) => item.id ?? `${item.productId}-${i}`}
                 dataSource={selectedOrderDetail.items ?? []}
+                sortDirections={TABLE_SORT_DIRECTIONS}
+                showSorterTooltip={false}
                 columns={[
-                  { title: t('sales.drawer.product'), render: (_, item) => productsMap.get(item.productId)?.name || '--' },
-                  { title: t('inventory.history.qty'), dataIndex: 'quantity', align: 'right' },
+                  { title: t('sales.drawer.product'), sorter: (first, second) => (productsMap.get(first.productId)?.name ?? '').localeCompare(productsMap.get(second.productId)?.name ?? ''), render: (_, item) => productsMap.get(item.productId)?.name || '--' },
+                  { title: t('inventory.history.qty'), dataIndex: 'quantity', align: 'right', sorter: (first, second) => first.quantity - second.quantity },
                   ...(canViewSalesOrderFinancials ? [
-                    { title: t('sales.drawer.unitPrice'), dataIndex: 'unitPrice', align: 'right' as const, render: (value) => formatCurrency(value) },
-                    { title: t('sales.drawer.discount'), dataIndex: 'discountAmount', align: 'right' as const, render: (value) => formatCurrency(value) },
-                    { title: t('sales.drawer.lineTotal'), dataIndex: 'lineTotal', align: 'right' as const, render: (value) => formatCurrency(value) },
+                    { title: t('sales.drawer.unitPrice'), dataIndex: 'unitPrice', align: 'right' as const, sorter: (first, second) => toNumber(first.unitPrice) - toNumber(second.unitPrice), render: (value) => formatCurrency(value) },
+                    { title: t('sales.drawer.discount'), dataIndex: 'discountAmount', align: 'right' as const, sorter: (first, second) => toNumber(first.discountAmount) - toNumber(second.discountAmount), render: (value) => formatCurrency(value) },
+                    { title: t('sales.drawer.lineTotal'), dataIndex: 'lineTotal', align: 'right' as const, sorter: (first, second) => toNumber(first.lineTotal) - toNumber(second.lineTotal), render: (value) => formatCurrency(value) },
                   ] : []),
                 ]}
               />

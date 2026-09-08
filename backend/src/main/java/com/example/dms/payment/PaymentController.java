@@ -7,6 +7,7 @@ import org.springframework.core.io.ByteArrayResource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -46,7 +47,9 @@ public class PaymentController {
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueTo,
         @RequestParam(required = false) BigDecimal minRemaining,
-        @RequestParam(required = false) BigDecimal maxRemaining
+        @RequestParam(required = false) BigDecimal maxRemaining,
+        @RequestParam(defaultValue = "NEWEST") OutstandingOrderSort sortBy,
+        @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection
     ) {
         return ApiResponse.ok(paymentQueryService.listOutstandingOrders(
             page,
@@ -55,7 +58,9 @@ public class PaymentController {
             dueFrom,
             dueTo,
             minRemaining,
-            maxRemaining
+            maxRemaining,
+            sortBy,
+            sortDirection
         ));
     }
 
@@ -67,9 +72,11 @@ public class PaymentController {
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
         @RequestParam(required = false)
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+        @RequestParam(defaultValue = "NEWEST") PaymentHistorySort sortBy,
+        @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection
     ) {
-        return ApiResponse.ok(paymentQueryService.listHistory(page, search, from, to));
+        return ApiResponse.ok(paymentQueryService.listHistory(page, search, from, to, sortBy, sortDirection));
     }
 
     @PostMapping

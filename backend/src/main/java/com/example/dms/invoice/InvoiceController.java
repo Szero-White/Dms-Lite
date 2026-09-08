@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,9 +29,11 @@ public class InvoiceController {
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
         @RequestParam(required = false)
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+        @RequestParam(defaultValue = "NEWEST") InvoiceSort sortBy,
+        @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection
     ) {
-        return ApiResponse.ok(invoiceService.listInvoices(page, search, from, to));
+        return ApiResponse.ok(invoiceService.listInvoices(page, search, from, to, sortBy, sortDirection));
     }
 
     @GetMapping("/{id}")

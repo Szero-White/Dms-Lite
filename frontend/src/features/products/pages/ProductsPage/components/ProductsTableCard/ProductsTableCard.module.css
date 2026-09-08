@@ -40,10 +40,6 @@
   width: 172px;
 }
 
-.sort {
-  width: 192px;
-}
-
 .productCell {
   display: flex;
   align-items: center;
@@ -148,7 +144,6 @@
   .filterControls,
   .search,
   .filter,
-  .sort,
   .toolbar > :global(.ant-btn) {
     width: 100%;
   }

@@ -19,6 +19,8 @@ export function fetchOutstandingPaymentOrders(
     dueTo,
     minRemaining,
     maxRemaining,
+    sortBy,
+    sortDirection,
   } = filters;
 
   return unwrapResponse<PageResponse<OutstandingPaymentOrder>>(
@@ -31,15 +33,17 @@ export function fetchOutstandingPaymentOrders(
         dueTo,
         minRemaining,
         maxRemaining,
+        sortBy,
+        sortDirection,
       },
     }),
   );
 }
 
 export function fetchPaymentHistory(page = 0, filters: PaymentHistoryFilters = {}) {
-  const { search = '', from, to } = filters;
+  const { search = '', from, to, sortBy, sortDirection } = filters;
   return unwrapResponse<PageResponse<PaymentRecord>>(
-    apiClient.get('/payments/history', { params: { page, search, from, to } }),
+    apiClient.get('/payments/history', { params: { page, search, from, to, sortBy, sortDirection } }),
   );
 }
 

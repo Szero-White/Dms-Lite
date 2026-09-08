@@ -1,10 +1,33 @@
 import type { ReceivableDueStatus } from '../../../types';
 
+export type PaymentHistorySortField =
+  | 'NEWEST'
+  | 'PAYMENT_CODE'
+  | 'SALES_ORDER'
+  | 'CUSTOMER'
+  | 'AMOUNT'
+  | 'DEBT_AFTER'
+  | 'NOTE';
+
 export interface PaymentHistoryFilters {
   search?: string;
   from?: string;
   to?: string;
+  sortBy?: PaymentHistorySortField;
+  sortDirection?: SortDirection;
 }
+
+export type OutstandingPaymentSortField =
+  | 'NEWEST'
+  | 'ORDER_CODE'
+  | 'CUSTOMER'
+  | 'TOTAL_AMOUNT'
+  | 'PAID_AMOUNT'
+  | 'REMAINING_AMOUNT'
+  | 'DUE_DATE'
+  | 'DUE_STATUS';
+
+export type SortDirection = 'ASC' | 'DESC';
 
 export interface OutstandingPaymentFilters {
   search?: string;
@@ -13,6 +36,8 @@ export interface OutstandingPaymentFilters {
   dueTo?: string;
   minRemaining?: number;
   maxRemaining?: number;
+  sortBy?: OutstandingPaymentSortField;
+  sortDirection?: SortDirection;
 }
 
 export interface RecordPaymentPayload {
