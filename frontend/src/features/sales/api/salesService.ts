@@ -5,10 +5,14 @@ import type {
   SalesOrder,
 } from '../types/sales.types';
 
-export async function fetchSalesOrders(customerId?: number) {
+export async function fetchSalesOrders(customerId?: number, page = 0, size = 20) {
   return unwrapResponse<PageResponse<SalesOrder>>(
     apiClient.get('/sales-orders', {
-      params: customerId ? { customerId } : undefined,
+      params: {
+        page,
+        size,
+        ...(customerId ? { customerId } : {}),
+      },
     }),
   );
 }

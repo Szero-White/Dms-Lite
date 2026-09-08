@@ -2,6 +2,7 @@ package com.example.dms.customer;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.PageRequestPolicy;
 import com.example.dms.common.TenantContext;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.sales.SalesOrderRepository;
@@ -24,22 +25,20 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CustomerService {
 
-    private static final int DEFAULT_PAGE_SIZE = 20;
-
     private final CustomerRepository customerRepository;
     private final CustomerDebtRepository customerDebtRepository;
     private final SalesOrderRepository salesOrderRepository;
     private final AuditService auditService;
 
     @Transactional(readOnly = true)
-    public Page<CustomerResponse> list(String keyword, int page) {
+    public Page<CustomerResponse> list(String keyword, int page, int size) {
         Long tenantId = TenantContext.tenantRequired();
         Page<Customer> customers = customerRepository.findByTenantIdAndDeletedAtIsNullAndNameContainingIgnoreCase(
             tenantId,
             keyword,
             PageRequest.of(
-                Math.max(page, 0),
-                DEFAULT_PAGE_SIZE,
+                PageRequestPolicy.page(page),
+                PageRequestPolicy.size(size),
                 Sort.by(Sort.Order.desc("active"), Sort.Order.asc("name"))
             )
         );

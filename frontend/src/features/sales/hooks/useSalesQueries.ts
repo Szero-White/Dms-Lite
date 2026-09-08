@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { fetchAllPages } from '../../../lib/fetchAllPages';
 import { queryKeys } from '../../../lib/queryKeys';
 import { useMutationFeedback } from '../../../lib/useMutationFeedback';
 import {
@@ -18,10 +19,8 @@ interface SalesOrderQueryOptions {
 export function useSalesOrders(options: SalesOrderQueryOptions = {}) {
   return useQuery({
     queryKey: [...queryKeys.salesOrders, { customerId: options.customerId ?? null }],
-    queryFn: async () => {
-      const response = await fetchSalesOrders(options.customerId);
-      return response.content;
-    },
+    queryFn: () => fetchAllPages((page, size) =>
+      fetchSalesOrders(options.customerId, page, size)),
     enabled: options.enabled ?? true,
   });
 }

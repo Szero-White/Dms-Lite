@@ -1,18 +1,17 @@
 import { fetchInventoryStock } from '../../../features/inventory/api';
+import { fetchAllPages } from '../../../lib/fetchAllPages';
 import { apiClient, unwrapResponse } from '../../../services/apiClient';
 import { PageResponse } from '../../../types';
 import { Product, ProductFormValues, ProductRow } from '../types/product.types';
 
-export async function fetchProducts(keyword = '') {
+export async function fetchProducts(keyword = '', page = 0, size = 20) {
   return unwrapResponse<PageResponse<Product>>(
-    apiClient.get('/products', { params: { keyword } }),
+    apiClient.get('/products', { params: { keyword, page, size } }),
   );
 }
 
 export async function fetchProductsContent(keyword = '') {
-  const productsPage = await fetchProducts(keyword);
-
-  return productsPage.content;
+  return fetchAllPages((page, size) => fetchProducts(keyword, page, size));
 }
 
 export async function fetchProductRows() {

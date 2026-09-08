@@ -26,9 +26,10 @@ public class ProductController {
     @PreAuthorize("hasAuthority('PRODUCT_VIEW')")
     public ApiResponse<Page<ProductResponse>> list(
         @RequestParam(defaultValue = "") String keyword,
-        @RequestParam(defaultValue = "0") int page
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
     ) {
-        return ApiResponse.ok(productService.list(keyword, page));
+        return ApiResponse.ok(productService.list(keyword, page, size));
     }
 
     @PostMapping

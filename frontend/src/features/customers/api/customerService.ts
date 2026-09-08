@@ -1,3 +1,4 @@
+import { fetchAllPages } from '../../../lib/fetchAllPages';
 import { apiClient, unwrapResponse } from '../../../services/apiClient';
 import { PageResponse } from '../../../types';
 import {
@@ -6,15 +7,14 @@ import {
   DebtTransaction,
 } from '../types/customer.types';
 
-export async function fetchCustomers(keyword = '') {
+export async function fetchCustomers(keyword = '', page = 0, size = 20) {
   return unwrapResponse<PageResponse<Customer>>(
-    apiClient.get('/customers', { params: { keyword } }),
+    apiClient.get('/customers', { params: { keyword, page, size } }),
   );
 }
 
 export async function fetchCustomersContent(keyword = '') {
-  const response = await fetchCustomers(keyword);
-  return response.content;
+  return fetchAllPages((page, size) => fetchCustomers(keyword, page, size));
 }
 
 export async function fetchCustomer(customerId: number) {

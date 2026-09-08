@@ -2,6 +2,7 @@ package com.example.dms.product;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.PageRequestPolicy;
 import com.example.dms.common.TenantContext;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +22,13 @@ public class ProductService {
 
     private final AuditService auditService;
 
-    public Page<ProductResponse> list(String keyword, int page) {
+    public Page<ProductResponse> list(String keyword, int page, int size) {
         boolean includeCost = canViewCost();
 
         return productRepository.findByTenantIdAndDeletedAtIsNullAndNameContainingIgnoreCase(
             TenantContext.tenantRequired(),
             keyword,
-            PageRequest.of(Math.max(page, 0), 20)
+            PageRequest.of(PageRequestPolicy.page(page), PageRequestPolicy.size(size))
         ).map(product -> toResponse(product, includeCost));
     }
 
