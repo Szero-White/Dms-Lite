@@ -1,6 +1,4 @@
 import {
-  ArrowDownOutlined,
-  ArrowUpOutlined,
   CalendarOutlined,
   CheckCircleOutlined,
   EnvironmentOutlined,
@@ -18,7 +16,6 @@ import {
   Popconfirm,
   Progress,
   Space,
-  Table,
   Tag,
   Typography,
 } from 'antd';
@@ -34,11 +31,8 @@ import {
   useAuth,
 } from '../../../auth';
 import { SummaryCard } from '../../../../components/common/SummaryCard';
-import { SalesOrderStatusTag } from '../../../../components/common/StatusTag';
 import {
   formatCurrency,
-  formatDate,
-  formatDateTime,
   toNumber,
 } from '../../../../lib/format';
 import {
@@ -48,6 +42,8 @@ import {
   useReactivateCustomer,
 } from '../../hooks/useCustomerQueries';
 import { useSalesOrders } from '../../../../features/sales';
+import { CustomerDebtStatementCard } from './components/CustomerDebtStatementCard';
+import { CustomerSalesOrderHistoryCard } from './components/CustomerSalesOrderHistoryCard';
 import styles from './CustomerDetailPage.module.css';
 
 export function CustomerDetailPage() {
@@ -229,124 +225,14 @@ export function CustomerDetailPage() {
             </div>
 
             {canViewDebt ? (
-              <Card className="panel-card" title={t('customers.detail.debtStatement')}>
-              <Table
-                size="small"
-                rowKey="id"
-                scroll={{ x: 940 }}
-                locale={{ emptyText: t('customers.detail.noDebtTransactions') }}
-                dataSource={debtStatementQuery.data ?? []}
-                columns={[
-                  {
-                    title: t('customers.detail.date'),
-                    dataIndex: 'createdAt',
-                    width: 170,
-                    render: (value) => formatDateTime(value),
-                  },
-                  { title: t('customers.detail.type'), dataIndex: 'sourceType', width: 130, render: (value: string) => t(`customers.detail.sourceType.${value}`, { defaultValue: t('customers.detail.sourceType.UNKNOWN') }) },
-                  {
-                    title: t('customers.detail.reference'),
-                    dataIndex: 'sourceCode',
-                    width: 190,
-                    render: (value: string | null | undefined) => value || '--',
-                  },
-                  {
-                    title: t('customers.detail.direction'),
-                    dataIndex: 'direction',
-                    width: 135,
-                    render: (value: string) => {
-                      const isIncrease = value === 'INCREASE';
-
-                      return (
-                        <Tag className={isIncrease ? styles.increaseTag : styles.decreaseTag}>
-                          {isIncrease ? <ArrowUpOutlined /> : <ArrowDownOutlined />} {t(`customers.detail.directionValue.${value}`, { defaultValue: t('customers.detail.directionValue.UNKNOWN') })}
-                        </Tag>
-                      );
-                    },
-                  },
-                  {
-                    title: t('customers.detail.amount'),
-                    dataIndex: 'amount',
-                    align: 'right',
-                    render: (value, record) => (
-                      <Typography.Text className={record.direction === 'INCREASE'
-                        ? styles.debtOutstanding
-                        : styles.debtClear}
-                      >
-                        {formatCurrency(value)}
-                      </Typography.Text>
-                    ),
-                  },
-                  {
-                    title: t('customers.detail.remaining'),
-                    dataIndex: 'remainingAmount',
-                    align: 'right',
-                    render: (value, record) => record.direction === 'INCREASE'
-                      ? formatCurrency(value)
-                      : '--',
-                  },
-                  {
-                    title: t('customers.detail.dueDate'),
-                    dataIndex: 'dueDate',
-                    width: 130,
-                    render: (value) => value ? formatDate(value) : '--',
-                  },
-                  { title: t('inventory.history.note'), dataIndex: 'note', width: 200, ellipsis: true },
-                ]}
-              />
-              </Card>
+              <CustomerDebtStatementCard transactions={debtStatementQuery.data ?? []} />
             ) : null}
 
             {canViewOrders ? (
-              <Card className="panel-card" title={t('customers.detail.salesOrderHistory')}>
-              <Table
-                size="small"
-                rowKey="id"
-                scroll={{ x: 800 }}
-                locale={{ emptyText: t('customers.detail.noSalesOrders') }}
-                dataSource={orderHistory}
-                columns={[
-                  { title: t('customers.detail.code'), dataIndex: 'code' },
-                  {
-                    title: t('customers.detail.createdAt'),
-                    dataIndex: 'createdAt',
-                    render: (value) => formatDateTime(value),
-                  },
-                  {
-                    title: t('common.status'),
-                    dataIndex: 'status',
-                    render: (value) => <SalesOrderStatusTag status={value} />,
-                  },
-                  ...(showOrderFinancials ? [
-                    {
-                      title: t('sales.column.total'),
-                      dataIndex: 'totalAmount',
-                      render: (value: string | number | null) => formatCurrency(value),
-                    },
-                    {
-                      title: t('sales.column.paid'),
-                      dataIndex: 'paidAmount',
-                      render: (_: string | number | null, order) => order.status === 'COMPLETED'
-                        ? formatCurrency(order.paidAmount)
-                        : t('sales.financial.notApplicable'),
-                    },
-                    {
-                      title: t('sales.column.debt'),
-                      dataIndex: 'debtAmount',
-                      render: (_: string | number | null, order) => {
-                        if (order.status === 'COMPLETED') {
-                          return formatCurrency(order.debtAmount);
-                        }
-
-                        return order.status === 'DRAFT'
-                          ? t('sales.financial.projectedReceivable', { amount: formatCurrency(order.totalAmount) })
-                          : t('sales.financial.notIncurred');
-                      },
-                    },
-                  ] : []),
-                ]}
+              <CustomerSalesOrderHistoryCard
+                orders={orderHistory}
+                showFinancials={showOrderFinancials}
               />
-              </Card>
             ) : null}
           </div>
         ) : null}

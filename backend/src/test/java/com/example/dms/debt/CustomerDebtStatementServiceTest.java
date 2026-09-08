@@ -3,6 +3,7 @@ package com.example.dms.debt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
@@ -11,6 +12,7 @@ import com.example.dms.payment.PaymentRepository;
 import com.example.dms.sales.SalesOrder;
 import com.example.dms.sales.SalesOrderRepository;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -27,6 +29,8 @@ class CustomerDebtStatementServiceTest {
     @Mock
     private CustomerRepository customerRepository;
     @Mock
+    private BusinessTimeProvider businessTimeProvider;
+    @Mock
     private CustomerDebtRepository customerDebtRepository;
     @Mock
     private SalesOrderRepository salesOrderRepository;
@@ -39,11 +43,15 @@ class CustomerDebtStatementServiceTest {
     void setUp() {
         service = new CustomerDebtStatementService(
             customerRepository,
+            businessTimeProvider,
             customerDebtRepository,
             salesOrderRepository,
             paymentRepository
         );
         TenantContext.set(1L, 10L);
+        org.mockito.Mockito.lenient()
+            .when(businessTimeProvider.today())
+            .thenReturn(LocalDate.of(2026, 9, 8));
     }
 
     @AfterEach
@@ -64,6 +72,7 @@ class CustomerDebtStatementServiceTest {
             .direction("INCREASE")
             .amount(new BigDecimal("80000"))
             .remainingAmount(new BigDecimal("60000"))
+            .dueDate(LocalDate.of(2026, 9, 7))
             .note("SO-legacy-note")
             .build();
         CustomerDebtTransaction payment = CustomerDebtTransaction.builder()
@@ -90,5 +99,7 @@ class CustomerDebtStatementServiceTest {
             .containsExactly("PAY-20260906-0002", "SO-20260906-0001");
         assertThat(result.get(0).note()).isEqualTo("Bank transfer");
         assertThat(result.get(1).remainingAmount()).isEqualByComparingTo("60000");
+        assertThat(result.get(1).dueStatus()).isEqualTo(ReceivableDueStatus.OVERDUE);
+        assertThat(result.get(1).daysUntilDue()).isEqualTo(-1);
     }
 }

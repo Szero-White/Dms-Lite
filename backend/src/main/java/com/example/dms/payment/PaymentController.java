@@ -4,6 +4,7 @@ import com.example.dms.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -30,6 +31,7 @@ public class PaymentController {
         "and hasAuthority('SALES_ORDER_VIEW') and hasAuthority('DEBT_VIEW')";
 
     private final PaymentService paymentService;
+    private final PaymentQueryService paymentQueryService;
     private final PaymentReceiptService paymentReceiptService;
     private final PaymentReceiptPdfService paymentReceiptPdfService;
 
@@ -37,9 +39,24 @@ public class PaymentController {
     @PreAuthorize(PAYMENT_WORKSPACE)
     public ApiResponse<Page<PaymentOutstandingOrderResponse>> outstandingOrders(
         @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "") String search
+        @RequestParam(defaultValue = "") String search,
+        @RequestParam(defaultValue = "") String dueStatuses,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueFrom,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueTo,
+        @RequestParam(required = false) BigDecimal minRemaining,
+        @RequestParam(required = false) BigDecimal maxRemaining
     ) {
-        return ApiResponse.ok(paymentService.listOutstandingOrders(page, search));
+        return ApiResponse.ok(paymentQueryService.listOutstandingOrders(
+            page,
+            search,
+            dueStatuses,
+            dueFrom,
+            dueTo,
+            minRemaining,
+            maxRemaining
+        ));
     }
 
     @GetMapping("/history")
@@ -52,7 +69,7 @@ public class PaymentController {
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
     ) {
-        return ApiResponse.ok(paymentService.listHistory(page, search, from, to));
+        return ApiResponse.ok(paymentQueryService.listHistory(page, search, from, to));
     }
 
     @PostMapping

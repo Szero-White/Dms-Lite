@@ -6,6 +6,7 @@ export {
 } from './hooks/usePaymentQueries';
 export { downloadPaymentReceipt } from './api/paymentService';
 export type {
+  OutstandingPaymentFilters,
   OutstandingPaymentOrder,
   PaymentHistoryFilters,
   PaymentRecord,

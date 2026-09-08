@@ -1,3 +1,5 @@
+import type { ReceivableDueStatus } from '../../../types';
+
 export interface Customer {
   id: number;
   name: string;
@@ -27,6 +29,8 @@ export interface DebtTransaction {
   amount: string | number;
   remainingAmount: string | number;
   dueDate?: string;
+  dueStatus?: ReceivableDueStatus;
+  daysUntilDue?: number;
   note?: string;
   createdAt: string;
 }

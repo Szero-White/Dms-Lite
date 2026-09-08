@@ -4,6 +4,8 @@ import { SalesOrderStatusTag } from '../../../../../components/common/StatusTag'
 import { formatCurrency, formatDateTime } from '../../../../../lib/format';
 import type { ProductRow } from '../../../../products';
 import type { SalesOrder } from '../../../../sales';
+import type { ReceivableAttention } from '../../../types/dashboard.types';
+import { DashboardReceivableAttentionCard } from './DashboardReceivableAttentionCard';
 import styles from './DashboardAttentionSection.module.css';
 
 interface DashboardAttentionSectionProps {
@@ -12,12 +14,15 @@ interface DashboardAttentionSectionProps {
   healthyProducts: ProductRow[];
   lowStockProducts: ProductRow[];
   onOpenInventory: () => void;
+  onOpenReceivables?: () => void;
   onReviewOrders: () => void;
   onViewActivity: () => void;
   outOfStockProducts: ProductRow[];
   products: ProductRow[];
   recentOrders: SalesOrder[];
+  receivableAttention: ReceivableAttention;
   showInventory: boolean;
+  showReceivables: boolean;
   showOrders: boolean;
 }
 
@@ -27,12 +32,15 @@ export function DashboardAttentionSection({
   healthyProducts,
   lowStockProducts,
   onOpenInventory,
+  onOpenReceivables,
   onReviewOrders,
   onViewActivity,
   outOfStockProducts,
   products,
   recentOrders,
+  receivableAttention,
   showInventory,
+  showReceivables,
   showOrders,
 }: DashboardAttentionSectionProps) {
   const { t } = useTranslation();
@@ -48,8 +56,15 @@ export function DashboardAttentionSection({
         </div>
       </div>
       <div className={styles.actionGrid}>
+        {showReceivables ? (
+          <DashboardReceivableAttentionCard
+            attention={receivableAttention}
+            onOpenReceivables={onOpenReceivables}
+          />
+        ) : null}
+
         {showInventory ? (
-        <Card title={t('dashboard.attention.inventoryHealth')} className={`panel-card ${styles.actionCard}`}>
+          <Card title={t('dashboard.attention.inventoryHealth')} className={`panel-card ${styles.actionCard}`}>
           <div className={styles.healthSummary}>
             <div>
               <span>{t('dashboard.attention.healthy')}</span>
@@ -91,11 +106,11 @@ export function DashboardAttentionSection({
           <Button type="link" onClick={onOpenInventory}>
             {t('dashboard.attention.openInventory')}
           </Button>
-        </Card>
+          </Card>
         ) : null}
 
         {showOrders ? (
-        <Card title={t('dashboard.attention.ordersRequiringAttention')} className={`panel-card ${styles.actionCard}`}>
+          <Card title={t('dashboard.attention.ordersRequiringAttention')} className={`panel-card ${styles.actionCard}`}>
           <List
             dataSource={attentionOrders.slice(0, 4)}
             locale={{ emptyText: t('dashboard.attention.noDraftOrders') }}
@@ -118,11 +133,11 @@ export function DashboardAttentionSection({
           <Button type="link" onClick={onReviewOrders}>
             {t('dashboard.attention.reviewOrders')}
           </Button>
-        </Card>
+          </Card>
         ) : null}
 
         {showOrders ? (
-        <Card title={t('dashboard.attention.recentActivity')} className={`panel-card ${styles.actionCard}`}>
+          <Card title={t('dashboard.attention.recentActivity')} className={`panel-card ${styles.actionCard}`}>
           <List
             dataSource={recentOrders}
             locale={{ emptyText: t('dashboard.attention.noRecentActivity') }}
@@ -141,7 +156,7 @@ export function DashboardAttentionSection({
           <Button type="link" onClick={onViewActivity}>
             {t('dashboard.attention.viewActivity')}
           </Button>
-        </Card>
+          </Card>
         ) : null}
       </div>
     </section>

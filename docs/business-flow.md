@@ -79,7 +79,7 @@ Migration V6 chuyển các customer từng bị legacy soft-delete thành lifecy
 
 Payment workspace dùng:
 
-- `GET /api/payments/outstanding-orders` -> từng sales order `COMPLETED` còn `remaining_amount > 0`;
+- `GET /api/payments/outstanding-orders` -> từng sales order `COMPLETED` còn `remaining_amount > 0`; worklist hỗ trợ lọc trạng thái hạn (`CURRENT`, `DUE_SOON`, `DUE_TODAY`, `OVERDUE`), khoảng `dueDate` và khoảng số tiền còn phải thu trên toàn bộ paged result;
 - `POST /api/payments` -> ghi nhận tiền cho đúng một sales order;
 - `GET /api/payments/history` -> lịch sử từng `PAY`, hỗ trợ search PAY/SO/customer/note và `from` / `to` theo business date;
 - `GET /api/payments/{id}/receipt.pdf` -> biên nhận immutable của lần thu.
@@ -99,6 +99,8 @@ Quy trình payment mới:
 11. evict backend dashboard cache; frontend invalidate/refetch các query liên quan (sales order, customer/debt, report, invoice, notification) sau khi payment thành công.
 
 Một payment mới **không tự chạy sang order khác**. Nếu khách có nhiều order, kế toán ghi nhận từng order theo nội dung khách thanh toán. Partial payment và exact payment đều hợp lệ. Frontend có thể giới hạn giá trị nhập về số còn phải thu để thân thiện, nhưng backend vẫn reject overpayment nếu API bị gọi trực tiếp hoặc client lỗi.
+
+Trạng thái hạn dùng business date của backend: `DUE_SOON` là còn từ 1 đến 3 ngày, `DUE_TODAY` là đúng ngày đến hạn, `OVERDUE` là `dueDate < today`. UI hiển thị cùng semantics này ở Payment worklist và Customer debt statement để người dùng không phải tự suy ra từ ngày.
 
 `request_key` làm thao tác idempotent: retry cùng request hợp lệ trả lại payment đã tạo thay vì trừ công nợ lần hai.
 
@@ -137,6 +139,8 @@ Luồng mới: `COMPLETED order -> partial payments -> final payment -> automati
 Revenue chỉ ghi nhận order `COMPLETED`.
 
 Dashboard dùng `confirmed_at`, không dùng `created_at`, để đơn tạo hôm trước nhưng confirm hôm nay được ghi nhận vào ngày confirm.
+
+Dashboard còn có read endpoint riêng `GET /api/reports/dashboard/receivable-attention` (yêu cầu `REPORT_VIEW + DEBT_VIEW`) để tính theo **business date hiện tại** các khoản `Quá hạn`, `Đến hạn hôm nay`, `Sắp đến hạn trong 3 ngày` và preview khoản quá hạn lâu nhất. Endpoint này không dùng cache dashboard tổng hợp để trạng thái hạn không bị stale khi bước sang ngày mới.
 
 ## 8. Sales report semantics
 

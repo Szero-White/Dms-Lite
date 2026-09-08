@@ -14,6 +14,8 @@ public record CustomerDebtStatementResponse(
     BigDecimal amount,
     BigDecimal remainingAmount,
     LocalDate dueDate,
+    ReceivableDueStatus dueStatus,
+    Long daysUntilDue,
     String note,
     Instant createdAt
 ) {

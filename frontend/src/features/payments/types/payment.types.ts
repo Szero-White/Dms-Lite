@@ -1,7 +1,18 @@
+import type { ReceivableDueStatus } from '../../../types';
+
 export interface PaymentHistoryFilters {
   search?: string;
   from?: string;
   to?: string;
+}
+
+export interface OutstandingPaymentFilters {
+  search?: string;
+  dueStatuses?: ReceivableDueStatus[];
+  dueFrom?: string;
+  dueTo?: string;
+  minRemaining?: number;
+  maxRemaining?: number;
 }
 
 export interface RecordPaymentPayload {
@@ -21,6 +32,8 @@ export interface OutstandingPaymentOrder {
   remainingAmount: string | number;
   dueDate?: string;
   confirmedAt?: string;
+  dueStatus?: ReceivableDueStatus;
+  daysUntilDue?: number;
 }
 
 export interface PaymentRecord {

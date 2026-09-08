@@ -3,14 +3,12 @@ package com.example.dms.payment;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
-import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
@@ -27,15 +25,12 @@ import com.example.dms.tenant.TenantRepository;
 import com.example.dms.user.AppUser;
 import com.example.dms.user.AppUserRepository;
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.data.domain.PageImpl;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -43,7 +38,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PaymentServiceTest {
 
     @Mock private PaymentRepository paymentRepository;
-    @Mock private BusinessTimeProvider businessTimeProvider;
     @Mock private CustomerRepository customerRepository;
     @Mock private CustomerDebtRepository customerDebtRepository;
     @Mock private SalesOrderRepository salesOrderRepository;
@@ -59,7 +53,6 @@ class PaymentServiceTest {
     void setUp() {
         paymentService = new PaymentService(
             paymentRepository,
-            businessTimeProvider,
             customerRepository,
             customerDebtRepository,
             salesOrderRepository,
@@ -96,79 +89,6 @@ class PaymentServiceTest {
         TenantContext.clear();
     }
 
-
-    @Test
-    void listsOutstandingReceivablesAsOneRowPerSalesOrder() {
-        CustomerDebtRepository.OutstandingReceivableView view = org.mockito.Mockito.mock(
-            CustomerDebtRepository.OutstandingReceivableView.class
-        );
-        when(view.getSalesOrderId()).thenReturn(201L);
-        when(view.getSalesOrderCode()).thenReturn("SO-20260907-0201");
-        when(view.getCustomerId()).thenReturn(2L);
-        when(view.getCustomerName()).thenReturn("Cua hang Anh Duong");
-        when(view.getTotalAmount()).thenReturn(new BigDecimal("520000"));
-        when(view.getRemainingAmount()).thenReturn(new BigDecimal("20000"));
-        when(view.getDueDate()).thenReturn(LocalDate.of(2026, 9, 21));
-        when(view.getConfirmedAt()).thenReturn(Instant.parse("2026-09-07T01:00:00Z"));
-        when(customerDebtRepository.findOutstandingSalesOrderReceivables(
-            any(),
-            any(),
-            any(),
-            any()
-        )).thenReturn(new PageImpl<>(List.of(view)));
-
-        PaymentOutstandingOrderResponse result = paymentService.listOutstandingOrders(0, "Anh Duong")
-            .getContent()
-            .get(0);
-
-        assertThat(result.salesOrderCode()).isEqualTo("SO-20260907-0201");
-        assertThat(result.totalAmount()).isEqualByComparingTo("520000");
-        assertThat(result.paidAmount()).isEqualByComparingTo("500000");
-        assertThat(result.remainingAmount()).isEqualByComparingTo("20000");
-        assertThat(result.dueDate()).isEqualTo(LocalDate.of(2026, 9, 21));
-    }
-
-    @Test
-    void filtersPaymentHistoryByBusinessDateRange() {
-        LocalDate from = LocalDate.of(2026, 9, 1);
-        LocalDate to = LocalDate.of(2026, 9, 7);
-        Instant fromInclusive = Instant.parse("2026-08-31T17:00:00Z");
-        Instant toExclusive = Instant.parse("2026-09-07T17:00:00Z");
-
-        when(businessTimeProvider.startOfDay(from)).thenReturn(fromInclusive);
-        when(businessTimeProvider.startOfDay(to.plusDays(1))).thenReturn(toExclusive);
-        when(paymentRepository.searchHistory(
-            eq(1L),
-            eq("PAY-0001"),
-            eq(fromInclusive),
-            eq(toExclusive),
-            any()
-        )).thenReturn(new PageImpl<>(List.of()));
-
-        paymentService.listHistory(0, "  PAY-0001  ", from, to);
-
-        verify(paymentRepository).searchHistory(
-            eq(1L),
-            eq("PAY-0001"),
-            eq(fromInclusive),
-            eq(toExclusive),
-            any()
-        );
-    }
-
-    @Test
-    void rejectsReversedPaymentHistoryDateRange() {
-        assertThatThrownBy(() -> paymentService.listHistory(
-            0,
-            "",
-            LocalDate.of(2026, 9, 8),
-            LocalDate.of(2026, 9, 7)
-        ))
-            .isInstanceOf(BusinessException.class)
-            .hasMessage("Payment history start date must be on or before end date");
-
-        verify(paymentRepository, never()).searchHistory(any(), any(), any(), any(), any());
-    }
 
     @Test
     void appliesPartialPaymentOnlyToSelectedSalesOrder() {

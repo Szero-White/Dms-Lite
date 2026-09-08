@@ -70,6 +70,15 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
             "and customer.id=salesOrder.customerId and customer.deletedAt is null " +
             "and (:search='' or lower(salesOrder.code) like lower(concat('%', :search, '%')) " +
             "or lower(customer.name) like lower(concat('%', :search, '%'))) " +
+            "and (:dueFrom is null or debt.dueDate>=:dueFrom) " +
+            "and (:dueTo is null or debt.dueDate<=:dueTo) " +
+            "and (:minRemaining is null or debt.remainingAmount>=:minRemaining) " +
+            "and (:maxRemaining is null or debt.remainingAmount<=:maxRemaining) " +
+            "and (:dueFilterEnabled=false " +
+            "or (:includeOverdue=true and debt.dueDate<:today) " +
+            "or (:includeDueToday=true and debt.dueDate=:today) " +
+            "or (:includeDueSoon=true and debt.dueDate>:today and debt.dueDate<=:dueSoonThrough) " +
+            "or (:includeCurrent=true and debt.dueDate>:dueSoonThrough)) " +
             "order by debt.dueDate asc, salesOrder.confirmedAt asc, salesOrder.id asc",
         countQuery = "select count(debt) from CustomerDebtTransaction debt, SalesOrder salesOrder, Customer customer " +
             "where debt.tenantId=:tenantId and salesOrder.tenantId=:tenantId and customer.tenantId=:tenantId " +
@@ -77,12 +86,32 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
             "and salesOrder.id=debt.sourceId and salesOrder.status=:status " +
             "and customer.id=salesOrder.customerId and customer.deletedAt is null " +
             "and (:search='' or lower(salesOrder.code) like lower(concat('%', :search, '%')) " +
-            "or lower(customer.name) like lower(concat('%', :search, '%')))"
+            "or lower(customer.name) like lower(concat('%', :search, '%'))) " +
+            "and (:dueFrom is null or debt.dueDate>=:dueFrom) " +
+            "and (:dueTo is null or debt.dueDate<=:dueTo) " +
+            "and (:minRemaining is null or debt.remainingAmount>=:minRemaining) " +
+            "and (:maxRemaining is null or debt.remainingAmount<=:maxRemaining) " +
+            "and (:dueFilterEnabled=false " +
+            "or (:includeOverdue=true and debt.dueDate<:today) " +
+            "or (:includeDueToday=true and debt.dueDate=:today) " +
+            "or (:includeDueSoon=true and debt.dueDate>:today and debt.dueDate<=:dueSoonThrough) " +
+            "or (:includeCurrent=true and debt.dueDate>:dueSoonThrough))"
     )
     org.springframework.data.domain.Page<OutstandingReceivableView> findOutstandingSalesOrderReceivables(
         @Param("tenantId") Long tenantId,
         @Param("search") String search,
         @Param("status") com.example.dms.sales.SalesOrderStatus status,
+        @Param("dueFilterEnabled") boolean dueFilterEnabled,
+        @Param("includeCurrent") boolean includeCurrent,
+        @Param("includeDueSoon") boolean includeDueSoon,
+        @Param("includeDueToday") boolean includeDueToday,
+        @Param("includeOverdue") boolean includeOverdue,
+        @Param("today") LocalDate today,
+        @Param("dueSoonThrough") LocalDate dueSoonThrough,
+        @Param("dueFrom") LocalDate dueFrom,
+        @Param("dueTo") LocalDate dueTo,
+        @Param("minRemaining") BigDecimal minRemaining,
+        @Param("maxRemaining") BigDecimal maxRemaining,
         Pageable pageable
     );
 

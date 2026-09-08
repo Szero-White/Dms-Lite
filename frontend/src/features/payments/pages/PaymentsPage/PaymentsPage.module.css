@@ -163,3 +163,121 @@
   display: grid;
   gap: var(--spacing-lg);
 }
+
+.filterPanel {
+  display: grid;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  padding: 14px 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  background: var(--color-surface-muted);
+}
+
+.filterGroup,
+.filterField {
+  display: grid;
+  gap: 8px;
+}
+
+.filterLabel {
+  color: var(--color-text-primary);
+  font-size: 13px;
+}
+
+.statusChecks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filterChip {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 999px;
+  background: var(--color-card-background);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.filterChipActive {
+  border-color: rgba(99, 102, 241, 0.42);
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--color-text-primary);
+}
+
+.filterChip :global(.ant-checkbox-wrapper),
+.filterChip :global(.ant-checkbox) {
+  margin: 0;
+}
+
+.advancedFilters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filterField {
+  min-width: 0;
+}
+
+.filterField > :global(.ant-typography) {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dueDateRange {
+  width: min(300px, 100%);
+}
+
+.amountRange {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.amountRange :global(.ant-input-number) {
+  width: 150px;
+}
+
+.amountRange > span {
+  color: var(--color-text-muted);
+}
+
+.resetFilters {
+  margin-left: auto;
+}
+
+.overdueRow > td {
+  background: rgba(239, 68, 68, 0.035) !important;
+}
+
+.overdueRow:hover > td {
+  background: rgba(239, 68, 68, 0.065) !important;
+}
+
+@media (max-width: 760px) {
+  .advancedFilters,
+  .filterField,
+  .dueDateRange,
+  .amountRange,
+  .resetFilters {
+    width: 100%;
+  }
+
+  .amountRange :global(.ant-input-number) {
+    width: 100%;
+  }
+
+  .resetFilters {
+    margin-left: 0;
+  }
+}

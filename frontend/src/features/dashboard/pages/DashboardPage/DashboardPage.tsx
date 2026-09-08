@@ -12,7 +12,11 @@ import { useProducts } from '../../../products';
 import { useSalesReport } from '../../../reports/hooks/useSalesReportQueries';
 import { useSalesOrders } from '../../../sales';
 import { DashboardOrderStatusChart, DashboardRevenueChart } from '../../components';
-import { useDashboardData } from '../../hooks/useDashboardQueries';
+import { EMPTY_RECEIVABLE_ATTENTION } from '../../api/dashboardService';
+import {
+  useDashboardData,
+  useDashboardReceivableAttention,
+} from '../../hooks/useDashboardQueries';
 import { DashboardAttentionSection } from './components/DashboardAttentionSection';
 import { DashboardCommercialSection } from './components/DashboardCommercialSection';
 import { DashboardHeaderActions } from './components/DashboardHeaderActions';
@@ -35,10 +39,13 @@ export function DashboardPage() {
   const canViewCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_VIEW);
   const canViewOrders = hasPermission(user, PERMISSIONS.SALES_ORDER_VIEW);
   const canViewInventoryProducts = hasPermission(user, PERMISSIONS.PRODUCT_VIEW) && hasPermission(user, PERMISSIONS.INVENTORY_VIEW);
+  const canViewReceivables = hasPermission(user, PERMISSIONS.DEBT_VIEW);
+  const canOpenPaymentWorkspace = canAccessPath(user, '/payments');
   const canCreateOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CREATE)
     && canAccessPath(user, '/sales-orders/new');
   const canReceiveStock = hasPermission(user, PERMISSIONS.INVENTORY_MANAGE);
-  const canRecordPayment = hasPermission(user, PERMISSIONS.PAYMENT_CREATE);
+  const canRecordPayment = hasPermission(user, PERMISSIONS.PAYMENT_CREATE)
+    && canOpenPaymentWorkspace;
   const canManageCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_MANAGE);
   const [range, setRange] = useState<DashboardRange>('7_DAYS');
   const [refreshing, setRefreshing] = useState(false);
@@ -47,6 +54,7 @@ export function DashboardPage() {
     from: getRangeStart(range).toISOString(),
   }), [range]);
   const dashboardQuery = useDashboardData();
+  const receivableAttentionQuery = useDashboardReceivableAttention(canViewReceivables);
   const ordersQuery = useSalesOrders({ enabled: canViewOrders });
   const salesReportQuery = useSalesReport({
     enabled: canViewOrders,
@@ -80,16 +88,19 @@ export function DashboardPage() {
 
   const isLoading =
     dashboardQuery.isLoading ||
+    (canViewReceivables && receivableAttentionQuery.isLoading) ||
     (canViewOrders && (ordersQuery.isLoading || salesReportQuery.isLoading)) ||
     (canViewCustomers && customersQuery.isLoading) ||
     (canViewInventoryProducts && productsQuery.isLoading);
   const isError =
     dashboardQuery.isError ||
+    (canViewReceivables && receivableAttentionQuery.isError) ||
     (canViewOrders && (ordersQuery.isError || salesReportQuery.isError)) ||
     (canViewCustomers && customersQuery.isError) ||
     (canViewInventoryProducts && productsQuery.isError);
   const error =
     dashboardQuery.error ||
+    (canViewReceivables ? receivableAttentionQuery.error : null) ||
     (canViewOrders && (ordersQuery.error || salesReportQuery.error)) ||
     (canViewCustomers && customersQuery.error) ||
     (canViewInventoryProducts && productsQuery.error);
@@ -100,6 +111,7 @@ export function DashboardPage() {
     try {
       await Promise.all([
         dashboardQuery.refetch(),
+        canViewReceivables ? receivableAttentionQuery.refetch() : Promise.resolve(),
         canViewOrders ? ordersQuery.refetch() : Promise.resolve(),
         canViewOrders ? salesReportQuery.refetch() : Promise.resolve(),
         canViewCustomers ? customersQuery.refetch() : Promise.resolve(),
@@ -197,19 +209,22 @@ export function DashboardPage() {
 
             <DashboardCommercialSection dashboard={dashboardQuery.data} />
 
-            {canViewInventoryProducts || canViewOrders ? (
+            {canViewInventoryProducts || canViewOrders || canViewReceivables ? (
               <DashboardAttentionSection
                 attentionOrders={attentionOrders}
                 customersMap={customersMap}
                 healthyProducts={healthyProducts}
                 lowStockProducts={lowStockProducts}
                 onOpenInventory={() => navigate('/inventory')}
+                onOpenReceivables={canOpenPaymentWorkspace ? () => navigate('/payments') : undefined}
                 onReviewOrders={() => navigate('/sales-orders')}
                 onViewActivity={() => navigate('/sales-orders')}
                 outOfStockProducts={outOfStockProducts}
                 products={products}
                 recentOrders={recentOrders}
+                receivableAttention={receivableAttentionQuery.data ?? EMPTY_RECEIVABLE_ATTENTION}
                 showInventory={canViewInventoryProducts}
+                showReceivables={canViewReceivables}
                 showOrders={canViewOrders}
               />
             ) : null}

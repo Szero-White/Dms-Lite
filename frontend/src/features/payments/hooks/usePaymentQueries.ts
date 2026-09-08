@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../../../lib/queryKeys';
 import { useMutationFeedback } from '../../../lib/useMutationFeedback';
-import type { PaymentHistoryFilters } from '../types/payment.types';
+import type { OutstandingPaymentFilters, PaymentHistoryFilters } from '../types/payment.types';
 import {
   fetchOutstandingPaymentOrders,
   fetchPaymentHistory,
@@ -10,12 +10,12 @@ import {
 
 export function useOutstandingPaymentOrders(
   page = 0,
-  search = '',
+  filters: OutstandingPaymentFilters = {},
   options: { enabled?: boolean } = {},
 ) {
   return useQuery({
-    queryKey: queryKeys.paymentOutstanding(page, search),
-    queryFn: () => fetchOutstandingPaymentOrders(page, search),
+    queryKey: queryKeys.paymentOutstanding(page, filters),
+    queryFn: () => fetchOutstandingPaymentOrders(page, filters),
     enabled: options.enabled ?? true,
   });
 }

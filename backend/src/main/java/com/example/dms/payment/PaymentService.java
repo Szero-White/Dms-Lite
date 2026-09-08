@@ -2,7 +2,6 @@ package com.example.dms.payment;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
-import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
@@ -17,14 +16,10 @@ import com.example.dms.sales.SalesOrderStatus;
 import com.example.dms.tenant.TenantRepository;
 import com.example.dms.user.AppUserRepository;
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,13 +27,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PaymentService {
 
-    private static final int DEFAULT_PAGE_SIZE = 20;
     private static final String DEBT_DIRECTION_DECREASE = "DECREASE";
     private static final String SOURCE_TYPE_PAYMENT = "PAYMENT";
     private static final String AUDIT_ACTION_PAYMENT_RECORDED = "PAYMENT_RECORDED";
 
     private final PaymentRepository paymentRepository;
-    private final BusinessTimeProvider businessTimeProvider;
     private final CustomerRepository customerRepository;
     private final CustomerDebtRepository customerDebtRepository;
     private final SalesOrderRepository salesOrderRepository;
@@ -47,56 +40,6 @@ public class PaymentService {
     private final TenantRepository tenantRepository;
     private final AppUserRepository appUserRepository;
     private final InvoiceService invoiceService;
-
-    @Transactional(readOnly = true)
-    public Page<PaymentOutstandingOrderResponse> listOutstandingOrders(int page, String search) {
-        Long tenantId = TenantContext.tenantRequired();
-        String normalizedSearch = normalizeSearch(search);
-
-        return customerDebtRepository.findOutstandingSalesOrderReceivables(
-            tenantId,
-            normalizedSearch,
-            SalesOrderStatus.COMPLETED,
-            PageRequest.of(Math.max(page, 0), DEFAULT_PAGE_SIZE)
-        ).map(view -> {
-            BigDecimal total = zeroIfNull(view.getTotalAmount());
-            BigDecimal remaining = zeroIfNull(view.getRemainingAmount());
-            BigDecimal paid = total.subtract(remaining).max(BigDecimal.ZERO);
-            return new PaymentOutstandingOrderResponse(
-                view.getSalesOrderId(),
-                view.getSalesOrderCode(),
-                view.getCustomerId(),
-                view.getCustomerName(),
-                total,
-                paid,
-                remaining,
-                view.getDueDate(),
-                view.getConfirmedAt()
-            );
-        });
-    }
-
-    @Transactional(readOnly = true)
-    public Page<PaymentResponse> listHistory(
-        int page,
-        String search,
-        LocalDate from,
-        LocalDate to
-    ) {
-        validateHistoryDateRange(from, to);
-
-        Long tenantId = TenantContext.tenantRequired();
-        Instant fromInclusive = from == null ? null : businessTimeProvider.startOfDay(from);
-        Instant toExclusive = to == null ? null : businessTimeProvider.startOfDay(to.plusDays(1));
-
-        return paymentRepository.searchHistory(
-            tenantId,
-            normalizeSearch(search),
-            fromInclusive,
-            toExclusive,
-            PageRequest.of(Math.max(page, 0), DEFAULT_PAGE_SIZE)
-        ).map(PaymentResponse::from);
-    }
 
     @Transactional
     @CacheEvict(
@@ -254,16 +197,6 @@ public class PaymentService {
                 ? user.getUsername()
                 : user.getFullName())
             .orElse("User #" + userId);
-    }
-
-    private void validateHistoryDateRange(LocalDate from, LocalDate to) {
-        if (from != null && to != null && from.isAfter(to)) {
-            throw new BusinessException("Payment history start date must be on or before end date");
-        }
-    }
-
-    private String normalizeSearch(String search) {
-        return search == null ? "" : search.trim();
     }
 
     private String normalizeNote(String note) {

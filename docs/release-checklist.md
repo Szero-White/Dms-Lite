@@ -44,14 +44,15 @@ Dùng một customer và một product có stock đủ:
 7. Customer receivable phải còn `60`.
 8. Debt statement phải giữ cả receivable phát sinh và payment history.
 9. Dashboard total receivable và top customer debt phải cùng là `60` cho scenario này.
-10. Không nơi nào được tính thành `20`.
-11. Với customer có `creditLimit > 0`, tạo `DRAFT` vượt hạn mức phải chỉ cảnh báo; confirm/fulfill phải bị reject trước khi trừ stock hoặc tạo receivable.
-12. Confirm đúng bằng hạn mức phải được phép; `creditLimit = 0` phải tiếp tục được hiểu là chưa cấu hình hard limit.
+10. Nếu đổi `due_date` của khoản còn nợ sang trước business date, Dashboard `Công nợ cần chú ý` phải tăng `Quá hạn`, hiển thị đúng amount/count và preview khoản quá hạn; `Đến hạn hôm nay` / `Sắp đến hạn` phải cùng semantics với Payment worklist.
+11. Không nơi nào được tính thành `20`.
+12. Với customer có `creditLimit > 0`, tạo `DRAFT` vượt hạn mức phải chỉ cảnh báo; confirm/fulfill phải bị reject trước khi trừ stock hoặc tạo receivable.
+13. Confirm đúng bằng hạn mức phải được phép; `creditLimit = 0` phải tiếp tục được hiểu là chưa cấu hình hard limit.
 
 ## 4. Payment / receipt smoke
 
 - `/payments` chỉ mở khi user có đủ `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`; thiếu một quyền phải bị chặn cả route/API/AI/payment notification.
-- Tab `Thanh toán` phải hiển thị từng sales order `COMPLETED` còn nợ; `DRAFT`, `CANCELLED`, order đã tất toán không xuất hiện.
+- Tab `Thanh toán` phải hiển thị từng sales order `COMPLETED` còn nợ; `DRAFT`, `CANCELLED`, order đã tất toán không xuất hiện. Mỗi dòng phải hiện rõ hạn + badge `Còn hạn` / `Sắp đến hạn` / `Đến hạn hôm nay` / `Quá hạn X ngày`; checkbox trạng thái, khoảng hạn và khoảng còn phải thu phải lọc đúng trên backend-paged worklist.
 - Một khách có nhiều order phải thấy từng order độc lập, không gộp thành một dòng customer khó truy vết.
 - Chọn order còn `520.000`, ghi `500.000` phải còn `20.000`; payment không được chạm vào receivable của order khác.
 - Ghi tiếp `20.000` phải tất toán; order biến khỏi outstanding list nhưng PAY vẫn ở `Lịch sử` và report/order/audit vẫn giữ.
@@ -60,6 +61,7 @@ Dùng một customer và một product có stock đủ:
 - Mỗi payment mới trong `Lịch sử` phải hiện PAY, SO, customer, amount, remaining-after, note, detail và nút tải biên nhận; search PAY/SO/customer/note và bộ lọc `Từ ngày` / `Đến ngày` phải hoạt động trên toàn bộ paged history.
 - Partial payment vẫn tải được biên nhận; receipt cũ phải giữ debt-before/debt-after snapshot dù khách trả thêm sau đó.
 - Legacy payment trước V11 không được đoán sales order nếu lịch sử cũ có thể đã phân bổ qua nhiều receivable.
+- Customer debt statement phải dùng cùng due-status semantics với Payment worklist cho receivable `INCREASE` còn mở; payment row hoặc receivable đã tất toán không được gắn badge quá hạn.
 - `PAYMENT_RECORDED` chỉ hiển thị cho role đủ Payment workspace scope và notification mới nên nêu SO với payment order-specific.
 - `INVOICE_ISSUED` chỉ hiển thị cho role có `INVOICE_VIEW + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`; role chỉ có finance scope nhưng không có quyền Hóa đơn không được thấy event này.
 

@@ -37,8 +37,9 @@ DMS Lite addresses those problems with:
 - Sales order confirmation with stock deduction
 - Order-level receivable tracking with ledger-style payment history
 - Customer payment recording and debt reconciliation
+- Due-date worklist with current / due-soon / due-today / overdue receivable filters
 - Audit log for important business actions
-- Dashboard for revenue, receivable debt, and low-stock visibility
+- Dashboard for revenue, receivable debt, low-stock visibility, and due-date attention (overdue / due today / due soon)
 
 ## Business Value
 

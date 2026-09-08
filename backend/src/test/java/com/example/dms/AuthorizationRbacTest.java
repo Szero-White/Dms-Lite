@@ -87,6 +87,20 @@ class AuthorizationRbacTest {
     }
 
     @Test
+    void accountantCanReadReceivableAttentionWhileSalesCannot() throws Exception {
+        mvc.perform(get("/api/reports/dashboard/receivable-attention")
+                .header("Authorization", bearer("accountant")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.overdueAmount").exists())
+            .andExpect(jsonPath("$.data.dueTodayAmount").exists())
+            .andExpect(jsonPath("$.data.dueSoonAmount").exists());
+
+        mvc.perform(get("/api/reports/dashboard/receivable-attention")
+                .header("Authorization", bearer("sale")))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
     void salesCannotDeactivateCustomers() throws Exception {
         mvc.perform(post("/api/customers/{id}/deactivate", 1L)
                 .header("Authorization", bearer("sale")))

@@ -1,5 +1,6 @@
 package com.example.dms.payment;
 
+import com.example.dms.debt.ReceivableDueStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -13,6 +14,8 @@ public record PaymentOutstandingOrderResponse(
     BigDecimal paidAmount,
     BigDecimal remainingAmount,
     LocalDate dueDate,
-    Instant confirmedAt
+    Instant confirmedAt,
+    ReceivableDueStatus dueStatus,
+    Long daysUntilDue
 ) {
 }

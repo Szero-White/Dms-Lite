@@ -1,15 +1,38 @@
 import { apiClient, unwrapResponse } from '../../../services/apiClient';
 import type { PageResponse } from '../../../types';
 import type {
+  OutstandingPaymentFilters,
   OutstandingPaymentOrder,
   PaymentHistoryFilters,
   PaymentRecord,
   RecordPaymentPayload,
 } from '../types/payment.types';
 
-export function fetchOutstandingPaymentOrders(page = 0, search = '') {
+export function fetchOutstandingPaymentOrders(
+  page = 0,
+  filters: OutstandingPaymentFilters = {},
+) {
+  const {
+    search = '',
+    dueStatuses,
+    dueFrom,
+    dueTo,
+    minRemaining,
+    maxRemaining,
+  } = filters;
+
   return unwrapResponse<PageResponse<OutstandingPaymentOrder>>(
-    apiClient.get('/payments/outstanding-orders', { params: { page, search } }),
+    apiClient.get('/payments/outstanding-orders', {
+      params: {
+        page,
+        search,
+        dueStatuses: dueStatuses ? (dueStatuses.length > 0 ? dueStatuses.join(',') : 'NONE') : undefined,
+        dueFrom,
+        dueTo,
+        minRemaining,
+        maxRemaining,
+      },
+    }),
   );
 }
 

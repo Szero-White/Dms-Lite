@@ -1,6 +1,9 @@
 ﻿import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../../../lib/queryKeys';
-import { fetchDashboardSnapshot } from '../api/dashboardService';
+import {
+  fetchDashboardReceivableAttention,
+  fetchDashboardSnapshot,
+} from '../api/dashboardService';
 
 export function useDashboardData() {
   const dashboardQuery = useQuery({
@@ -15,4 +18,13 @@ export function useDashboardData() {
     error: dashboardQuery.error,
     refetch: dashboardQuery.refetch,
   };
+}
+
+export function useDashboardReceivableAttention(enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.dashboardReceivableAttention,
+    queryFn: fetchDashboardReceivableAttention,
+    enabled,
+    refetchOnWindowFocus: true,
+  });
 }
