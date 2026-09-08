@@ -690,14 +690,17 @@ Copy-Item ".\.env.example" ".\.env"
 notepad ".\.env"
 ```
 
-At minimum, replace the JWT secret with a strong private value of at least 32 characters:
+Before a public deployment, replace the placeholder credentials/secrets and set the real frontend origin:
 
 ```env
-APP_JWT_SECRET=replace-this-with-a-private-random-secret-at-least-32-characters
-APP_CORS_ALLOWED_ORIGINS=http://localhost:3000
+SPRING_DATASOURCE_PASSWORD=<private-database-password>
+SPRING_RABBITMQ_PASSWORD=<private-rabbitmq-password>
+GF_SECURITY_ADMIN_PASSWORD=<private-grafana-password>
+APP_JWT_SECRET=<private-random-secret-at-least-32-characters>
+APP_CORS_ALLOWED_ORIGINS=https://your-frontend-domain
 ```
 
-The backend actively rejects known unsafe/default JWT secrets when the active profile is `docker` or `prod`.
+The backend actively rejects known unsafe/default JWT secrets when the active profile is `docker` or `prod`. Docker Compose forwards the backend runtime options from `.env`, including business timezone, demo password, Gemini configuration, notification queue, and optional PDF font overrides.
 
 ### 2. Start the stack
 

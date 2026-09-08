@@ -1,11 +1,13 @@
 package com.example.dms.notification;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationProducer {
@@ -29,8 +31,11 @@ public class NotificationProducer {
                         new NotificationEvent(tenantId, type, title, message)
                     );
                     return;
-                } catch (Exception ignored) {
-                    // Fallback below keeps local/dev flow usable even if RabbitMQ is down.
+                } catch (Exception exception) {
+                    log.warn(
+                        "RabbitMQ notification publish failed; falling back to database persistence: {}",
+                        exception.getMessage()
+                    );
                 }
             }
         }

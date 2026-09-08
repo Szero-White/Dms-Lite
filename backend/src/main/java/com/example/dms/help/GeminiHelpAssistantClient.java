@@ -132,7 +132,6 @@ public class GeminiHelpAssistantClient {
     Map<String, Object> buildGenerationConfig() {
         return Map.of(
             "maxOutputTokens", properties.getMaxOutputTokens(),
-            "temperature", 0.7,
             "responseMimeType", "application/json",
             "responseSchema", Map.of(
                 "type", "OBJECT",
