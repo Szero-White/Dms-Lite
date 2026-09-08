@@ -321,6 +321,8 @@
   "dashboard.performance.title": "Hiệu suất chính",
   "dashboard.performance.totalReceivables": "Tổng công nợ phải thu",
   "dashboard.performance.totalReceivablesNote": "Công nợ khách hàng còn tồn",
+  "dashboard.performance.receivables.clearTitle": "Không có đơn cần xử lý",
+  "dashboard.performance.receivables.summary": "{{overdue}} quá hạn · {{dueToday}} hôm nay · {{dueSoon}} sắp đến hạn",
   "dashboard.performance.vsThisMonth": "so với tháng này",
   "dashboard.range.30_DAYS": "30 ngày",
   "dashboard.range.7_DAYS": "7 ngày",

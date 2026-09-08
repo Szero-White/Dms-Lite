@@ -321,6 +321,8 @@
   "dashboard.performance.title": "Key performance",
   "dashboard.performance.totalReceivables": "Total Receivables",
   "dashboard.performance.totalReceivablesNote": "Outstanding customer receivables",
+  "dashboard.performance.receivables.clearTitle": "No orders need attention",
+  "dashboard.performance.receivables.summary": "{{overdue}} overdue · {{dueToday}} today · {{dueSoon}} due soon",
   "dashboard.performance.vsThisMonth": "vs. this month",
   "dashboard.range.30_DAYS": "30 days",
   "dashboard.range.7_DAYS": "7 days",

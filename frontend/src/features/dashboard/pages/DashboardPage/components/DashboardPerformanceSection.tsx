@@ -12,8 +12,7 @@ import { Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { SummaryCard } from '../../../../../components/common/SummaryCard/SummaryCard';
 import { formatCurrency, formatNumber } from '../../../../../lib/format';
-import type { DashboardSnapshot } from '../../../types/dashboard.types';
-import type { ProductRow } from '../../../../products';
+import type { DashboardSnapshot, ReceivableAttention } from '../../../types/dashboard.types';
 import type { SalesReportOrder } from '../../../../reports/types/salesReport.types';
 import type { DashboardRange } from '../dashboardPage.types';
 import styles from './DashboardPerformanceSection.module.css';
@@ -21,13 +20,11 @@ import styles from './DashboardPerformanceSection.module.css';
 interface DashboardPerformanceSectionProps {
   activeCustomers: number;
   canViewCustomers: boolean;
-  canViewInventory: boolean;
   canViewOrders: boolean;
   dashboard: DashboardSnapshot;
   analyticsOrders: SalesReportOrder[];
-  lowStockProducts: ProductRow[];
-  products: ProductRow[];
   range: DashboardRange;
+  receivableAttention?: ReceivableAttention;
 }
 
 function MiniGauge({ color, pct }: { color: string; pct: number }) {
@@ -66,22 +63,27 @@ function MiniGauge({ color, pct }: { color: string; pct: number }) {
 export function DashboardPerformanceSection({
   activeCustomers,
   canViewCustomers,
-  canViewInventory,
   canViewOrders,
   dashboard,
   analyticsOrders,
-  lowStockProducts,
-  products,
   range,
+  receivableAttention,
 }: DashboardPerformanceSectionProps) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const rangeLabel = t(`dashboard.range.${range}`);
   const completedOrders = analyticsOrders.filter((order) => order.status === 'COMPLETED');
   const totalOrders = analyticsOrders.length || 1;
   const completedPct = Math.round((completedOrders.length / totalOrders) * 100);
-  const healthyPct = products.length
-    ? Math.round(((products.length - lowStockProducts.length) / products.length) * 100)
-    : 100;
+  const totalReceivableAttentionCount = receivableAttention
+    ? receivableAttention.overdueCount
+      + receivableAttention.dueTodayCount
+      + receivableAttention.dueSoonCount
+    : 0;
+  const receivableColor = !receivableAttention || totalReceivableAttentionCount === 0
+    ? '#10b981'
+    : receivableAttention.overdueCount > 0
+      ? '#ef4444'
+      : '#f59e0b';
 
   const kpis = [
     {
@@ -109,14 +111,19 @@ export function DashboardPerformanceSection({
       subLabel: t('dashboard.performance.completedPercent', { percent: completedPct }),
       value: String(formatNumber(analyticsOrders.filter((order) => order.status === 'DRAFT').length)),
     }] : []),
-    ...(canViewInventory ? [{
-      color: '#06b6d4',
-      icon: <AppstoreOutlined />,
-      label: t('dashboard.performance.activeSkus'),
-      pct: healthyPct,
-      showGauge: true,
-      subLabel: t('dashboard.performance.inventoryHealthy', { percent: healthyPct }),
-      value: String(formatNumber(products.length)),
+    ...(receivableAttention ? [{
+      color: receivableColor,
+      icon: <WarningOutlined />,
+      label: t('dashboard.attention.receivables.title'),
+      showGauge: false,
+      subLabel: totalReceivableAttentionCount === 0
+        ? t('dashboard.performance.receivables.clearTitle')
+        : t('dashboard.performance.receivables.summary', {
+          overdue: receivableAttention.overdueCount,
+          dueToday: receivableAttention.dueTodayCount,
+          dueSoon: receivableAttention.dueSoonCount,
+        }),
+      value: formatCurrency(receivableAttention.overdueAmount, i18n.language),
     }] : []),
   ];
 

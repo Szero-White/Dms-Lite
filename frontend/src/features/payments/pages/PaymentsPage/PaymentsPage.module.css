@@ -165,87 +165,64 @@
 }
 
 .filterPanel {
-  display: grid;
-  gap: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: var(--spacing-lg);
-  padding: 14px 16px;
+  padding: 12px 14px;
   border: 1px solid var(--color-border-subtle);
   border-radius: 12px;
   background: var(--color-surface-muted);
 }
 
-.filterGroup,
-.filterField {
+.filterPanel .search {
+  flex: 0 1 250px;
+  width: 250px;
+}
+
+.statusFilterTrigger {
+  flex: 0 0 auto;
+  min-width: 142px;
+}
+
+.statusFilterMenu {
+  display: grid;
+  min-width: 220px;
+  gap: 10px;
+}
+
+.statusFilterAll {
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.statusFilterOptions {
   display: grid;
   gap: 8px;
 }
 
-.filterLabel {
-  color: var(--color-text-primary);
-  font-size: 13px;
-}
-
-.statusChecks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.filterChip {
-  display: inline-flex;
-  min-height: 34px;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 10px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 999px;
-  background: var(--color-card-background);
+.statusFilterMenu :global(.ant-checkbox-wrapper) {
+  margin-inline-start: 0;
   color: var(--color-text-secondary);
-  cursor: pointer;
   font-size: 13px;
-  font-weight: 600;
-  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
-}
-
-.filterChipActive {
-  border-color: rgba(99, 102, 241, 0.42);
-  background: rgba(99, 102, 241, 0.08);
-  color: var(--color-text-primary);
-}
-
-.filterChip :global(.ant-checkbox-wrapper),
-.filterChip :global(.ant-checkbox) {
-  margin: 0;
-}
-
-.advancedFilters {
-  display: flex;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.filterField {
-  min-width: 0;
-}
-
-.filterField > :global(.ant-typography) {
-  font-size: 12px;
-  font-weight: 600;
 }
 
 .dueDateRange {
-  width: min(300px, 100%);
+  flex: 0 1 260px;
+  width: 260px;
 }
 
 .amountRange {
   display: flex;
+  flex: 0 1 270px;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
+  min-width: 240px;
 }
 
 .amountRange :global(.ant-input-number) {
-  width: 150px;
+  width: 124px;
 }
 
 .amountRange > span {
@@ -253,6 +230,7 @@
 }
 
 .resetFilters {
+  flex: 0 0 auto;
   margin-left: auto;
 }
 
@@ -265,15 +243,18 @@
 }
 
 @media (max-width: 760px) {
-  .advancedFilters,
-  .filterField,
+  .filterPanel .search,
+  .statusFilterTrigger,
   .dueDateRange,
   .amountRange,
   .resetFilters {
+    flex-basis: 100%;
     width: 100%;
+    min-width: 0;
   }
 
   .amountRange :global(.ant-input-number) {
+    flex: 1 1 0;
     width: 100%;
   }
 

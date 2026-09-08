@@ -181,13 +181,13 @@ export function DashboardPage() {
             <DashboardPerformanceSection
               activeCustomers={activeCustomers}
               canViewCustomers={canViewCustomers}
-              canViewInventory={canViewInventoryProducts}
               canViewOrders={canViewOrders}
               dashboard={dashboardQuery.data}
               analyticsOrders={dashboardAnalyticsOrders}
-              lowStockProducts={lowStockProducts}
-              products={products}
               range={range}
+              receivableAttention={canViewReceivables
+                ? receivableAttentionQuery.data ?? EMPTY_RECEIVABLE_ATTENTION
+                : undefined}
             />
 
             {canViewOrders ? (

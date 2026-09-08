@@ -1,5 +1,5 @@
-import { Button, Checkbox, DatePicker, Input, InputNumber, Typography } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { FilterOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, Checkbox, DatePicker, Input, InputNumber, Popover, Typography } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ReceivableDueStatus } from '../../../../../types';
@@ -31,16 +31,49 @@ export function OutstandingReceivableFilters({
   );
 
   function setDueStatusChecked(status: ReceivableDueStatus, checked: boolean) {
-    const next = checked
-      ? dueStatuses.includes(status) ? dueStatuses : [...dueStatuses, status]
-      : dueStatuses.filter((value) => value !== status);
-    onChange({ dueStatuses: next });
+    const selectedStatuses = new Set(dueStatuses);
+    if (checked) {
+      selectedStatuses.add(status);
+    } else {
+      selectedStatuses.delete(status);
+    }
+
+    onChange({
+      dueStatuses: ALL_DUE_STATUSES.filter((value) => selectedStatuses.has(value)),
+    });
   }
 
   function reset() {
     setDatePickerResetKey((current) => current + 1);
     onReset();
   }
+
+  const dueStatusMenu = (
+    <div className={styles.statusFilterMenu}>
+      <Typography.Text strong>{t('payments.filters.dueStatus')}</Typography.Text>
+      <Checkbox
+        className={styles.statusFilterAll}
+        checked={allDueStatusesSelected}
+        indeterminate={dueStatuses.length > 0 && !allDueStatusesSelected}
+        onChange={(event) => onChange({
+          dueStatuses: event.target.checked ? ALL_DUE_STATUSES : [],
+        })}
+      >
+        {t('payments.filters.all')}
+      </Checkbox>
+      <div className={styles.statusFilterOptions}>
+        {ALL_DUE_STATUSES.map((status) => (
+          <Checkbox
+            key={status}
+            checked={dueStatuses.includes(status)}
+            onChange={(event) => setDueStatusChecked(status, event.target.checked)}
+          >
+            {t(`payments.filters.status.${status}`)}
+          </Checkbox>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className={styles.filterPanel}>
@@ -53,81 +86,49 @@ export function OutstandingReceivableFilters({
         onChange={(event) => onChange({ search: event.target.value })}
       />
 
-      <div className={styles.filterGroup}>
-        <Typography.Text strong className={styles.filterLabel}>
+      <Popover content={dueStatusMenu} placement="bottomLeft" trigger="click">
+        <Button className={styles.statusFilterTrigger} icon={<FilterOutlined />}>
           {t('payments.filters.dueStatus')}
-        </Typography.Text>
-        <div className={styles.statusChecks}>
-          <label className={`${styles.filterChip} ${allDueStatusesSelected ? styles.filterChipActive : ''}`}>
-            <Checkbox
-              checked={allDueStatusesSelected}
-              indeterminate={dueStatuses.length > 0 && !allDueStatusesSelected}
-              onChange={(event) => onChange({
-                dueStatuses: event.target.checked ? ALL_DUE_STATUSES : [],
-              })}
-            />
-            <span>{t('payments.filters.all')}</span>
-          </label>
-          {ALL_DUE_STATUSES.map((status) => {
-            const checked = dueStatuses.includes(status);
-            return (
-              <label
-                key={status}
-                className={`${styles.filterChip} ${checked ? styles.filterChipActive : ''}`}
-              >
-                <Checkbox
-                  checked={checked}
-                  onChange={(event) => setDueStatusChecked(status, event.target.checked)}
-                />
-                <span>{t(`payments.filters.status.${status}`)}</span>
-              </label>
-            );
+          {!allDueStatusesSelected ? ` (${dueStatuses.length})` : ''}
+        </Button>
+      </Popover>
+
+      <DatePicker.RangePicker
+        key={`due-range-${datePickerResetKey}`}
+        allowClear
+        className={styles.dueDateRange}
+        placeholder={[t('payments.filters.fromDate'), t('payments.filters.toDate')]}
+        onChange={(values) => onChange({
+          dueFrom: values?.[0]?.format('YYYY-MM-DD'),
+          dueTo: values?.[1]?.format('YYYY-MM-DD'),
+        })}
+      />
+
+      <div className={styles.amountRange}>
+        <InputNumber
+          min={0}
+          controls={false}
+          placeholder={t('payments.filters.minAmount')}
+          value={filters.minRemaining}
+          onChange={(value) => onChange({
+            minRemaining: typeof value === 'number' ? value : undefined,
           })}
-        </div>
+        />
+        <span aria-hidden="true">–</span>
+        <InputNumber
+          min={0}
+          controls={false}
+          placeholder={t('payments.filters.maxAmount')}
+          value={filters.maxRemaining}
+          onChange={(value) => onChange({
+            maxRemaining: typeof value === 'number' ? value : undefined,
+          })}
+        />
       </div>
 
-      <div className={styles.advancedFilters}>
-        <div className={styles.filterField}>
-          <Typography.Text type="secondary">{t('payments.filters.dueDateRange')}</Typography.Text>
-          <DatePicker.RangePicker
-            key={`due-range-${datePickerResetKey}`}
-            allowClear
-            className={styles.dueDateRange}
-            placeholder={[t('payments.filters.fromDate'), t('payments.filters.toDate')]}
-            onChange={(values) => onChange({
-              dueFrom: values?.[0]?.format('YYYY-MM-DD'),
-              dueTo: values?.[1]?.format('YYYY-MM-DD'),
-            })}
-          />
-        </div>
-        <div className={styles.filterField}>
-          <Typography.Text type="secondary">{t('payments.filters.remainingRange')}</Typography.Text>
-          <div className={styles.amountRange}>
-            <InputNumber
-              min={0}
-              controls={false}
-              placeholder={t('payments.filters.minAmount')}
-              value={filters.minRemaining}
-              onChange={(value) => onChange({
-                minRemaining: typeof value === 'number' ? value : undefined,
-              })}
-            />
-            <span aria-hidden="true">–</span>
-            <InputNumber
-              min={0}
-              controls={false}
-              placeholder={t('payments.filters.maxAmount')}
-              value={filters.maxRemaining}
-              onChange={(value) => onChange({
-                maxRemaining: typeof value === 'number' ? value : undefined,
-              })}
-            />
-          </div>
-        </div>
-        <Button className={styles.resetFilters} disabled={!hasFilters} onClick={reset}>
-          {t('payments.filters.reset')}
-        </Button>
-      </div>
+      <Button className={styles.resetFilters} disabled={!hasFilters} onClick={reset}>
+        {t('payments.filters.reset')}
+      </Button>
     </div>
   );
 }
