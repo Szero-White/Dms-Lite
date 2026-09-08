@@ -229,3 +229,41 @@
 .collectionProgressDetail {
   max-width: 320px;
 }
+
+.salesTableFilters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.salesSearch {
+  width: min(300px, 100%);
+}
+
+.salesFilter {
+  min-width: 150px;
+}
+
+.salesCustomerFilter {
+  min-width: 210px;
+}
+
+.collectionFilterMenu {
+  display: grid;
+  min-width: 220px;
+  gap: 10px;
+}
+
+.collectionFilterGroup {
+  display: grid;
+  gap: 8px;
+}
+
+.salesFilterChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}

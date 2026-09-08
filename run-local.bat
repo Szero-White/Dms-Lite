@@ -59,6 +59,19 @@ if not exist "frontend\package.json" (
     exit /b 1
 )
 
+if not exist "frontend\node_modules" (
+    echo [SETUP] frontend\node_modules not found. Running npm ci...
+    pushd "frontend"
+    call npm ci
+    if errorlevel 1 (
+        popd
+        echo [ERROR] npm ci failed. Fix the npm error and run this launcher again.
+        pause
+        exit /b 1
+    )
+    popd
+)
+
 echo [1/2] Starting Backend...
 start "DMS Lite - Backend" /D "%~dp0backend" cmd /k mvn spring-boot:run
 

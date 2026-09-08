@@ -8,18 +8,22 @@ import org.junit.jupiter.api.Test;
 class NotificationPermissionPolicyTest {
 
     @Test
-    void cashierOnlySeesPaymentEvents() {
-        Set<String> permissions = Set.of(
+    void paymentRecordedRequiresFullPaymentWorkspaceScope() {
+        Set<String> incompletePermissions = Set.of(
             "NOTIFICATION_VIEW",
             "CUSTOMER_VIEW",
             "PAYMENT_CREATE"
         );
+        Set<String> fullWorkspacePermissions = Set.of(
+            "NOTIFICATION_VIEW",
+            "CUSTOMER_VIEW",
+            "SALES_ORDER_VIEW",
+            "DEBT_VIEW",
+            "PAYMENT_CREATE"
+        );
 
-        assertThat(NotificationPermissionPolicy.canView("PAYMENT_RECORDED", permissions)).isTrue();
-        assertThat(NotificationPermissionPolicy.canView("OVERDUE_DEBT", permissions)).isFalse();
-        assertThat(NotificationPermissionPolicy.canView("LOW_STOCK", permissions)).isFalse();
-        assertThat(NotificationPermissionPolicy.canView("SALES_ORDER_CONFIRMED", permissions)).isFalse();
-        assertThat(NotificationPermissionPolicy.canView("SALES_ORDER_CANCELLED", permissions)).isFalse();
+        assertThat(NotificationPermissionPolicy.canView("PAYMENT_RECORDED", incompletePermissions)).isFalse();
+        assertThat(NotificationPermissionPolicy.canView("PAYMENT_RECORDED", fullWorkspacePermissions)).isTrue();
     }
 
     @Test
@@ -37,6 +41,26 @@ class NotificationPermissionPolicyTest {
         assertThat(NotificationPermissionPolicy.canView("SALES_ORDER_CANCELLED", createOnly)).isFalse();
         assertThat(NotificationPermissionPolicy.canView("SALES_ORDER_CONFIRMED", viewer)).isTrue();
         assertThat(NotificationPermissionPolicy.canView("SALES_ORDER_CANCELLED", viewer)).isTrue();
+    }
+
+    @Test
+    void invoiceIssuedRequiresInvoiceViewAndFinanceReadScope() {
+        Set<String> financeWithoutInvoiceView = Set.of(
+            "NOTIFICATION_VIEW",
+            "CUSTOMER_VIEW",
+            "SALES_ORDER_VIEW",
+            "DEBT_VIEW"
+        );
+        Set<String> invoiceFinanceViewer = Set.of(
+            "NOTIFICATION_VIEW",
+            "INVOICE_VIEW",
+            "CUSTOMER_VIEW",
+            "SALES_ORDER_VIEW",
+            "DEBT_VIEW"
+        );
+
+        assertThat(NotificationPermissionPolicy.canView("INVOICE_ISSUED", financeWithoutInvoiceView)).isFalse();
+        assertThat(NotificationPermissionPolicy.canView("INVOICE_ISSUED", invoiceFinanceViewer)).isTrue();
     }
 
     @Test

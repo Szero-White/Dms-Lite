@@ -1,12 +1,14 @@
 package com.example.dms.debt;
 
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.payment.Payment;
 import com.example.dms.payment.PaymentRepository;
 import com.example.dms.sales.SalesOrder;
 import com.example.dms.sales.SalesOrderRepository;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,7 @@ public class CustomerDebtStatementService {
     private static final String SOURCE_TYPE_PAYMENT = "PAYMENT";
 
     private final CustomerRepository customerRepository;
+    private final BusinessTimeProvider businessTimeProvider;
     private final CustomerDebtRepository customerDebtRepository;
     private final SalesOrderRepository salesOrderRepository;
     private final PaymentRepository paymentRepository;
@@ -42,6 +45,7 @@ public class CustomerDebtStatementService {
             );
 
         Map<Long, String> salesOrderCodes = loadSalesOrderCodes(tenantId, transactions);
+        LocalDate today = businessTimeProvider.today();
         Map<Long, String> paymentCodes = loadPaymentCodes(tenantId, transactions);
 
         return transactions.stream()
@@ -55,10 +59,31 @@ public class CustomerDebtStatementService {
                 transaction.getAmount(),
                 transaction.getRemainingAmount(),
                 transaction.getDueDate(),
+                dueStatus(transaction, today),
+                daysUntilDue(transaction, today),
                 transaction.getNote(),
                 transaction.getCreatedAt()
             ))
             .toList();
+    }
+
+    private ReceivableDueStatus dueStatus(CustomerDebtTransaction transaction, LocalDate today) {
+        return isOutstandingReceivable(transaction)
+            ? ReceivableDueStatus.from(transaction.getDueDate(), today)
+            : null;
+    }
+
+    private Long daysUntilDue(CustomerDebtTransaction transaction, LocalDate today) {
+        return isOutstandingReceivable(transaction)
+            ? ReceivableDueStatus.daysUntilDue(transaction.getDueDate(), today)
+            : null;
+    }
+
+    private boolean isOutstandingReceivable(CustomerDebtTransaction transaction) {
+        return SOURCE_TYPE_SALES_ORDER.equals(transaction.getSourceType())
+            && "INCREASE".equals(transaction.getDirection())
+            && transaction.getRemainingAmount() != null
+            && transaction.getRemainingAmount().signum() > 0;
     }
 
     private Map<Long, String> loadSalesOrderCodes(

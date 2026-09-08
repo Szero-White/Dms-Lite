@@ -17,6 +17,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../components/common/QueryState';
 import { roleLabel } from '../../../../../lib/roleDisplay';
+import { compareBoolean, compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../../lib/tableSorting';
 import type { RoleOption } from '../../../types/team.types';
 import styles from '../TeamPage.module.css';
 import { permissionLabel } from '../permissionDisplay';
@@ -75,11 +76,17 @@ export function RolesTable({
           rowKey="id"
           dataSource={roles}
           scroll={{ x: 980 }}
+          sortDirections={TABLE_SORT_DIRECTIONS}
+          showSorterTooltip={false}
           columns={[
             {
               title: t('team.roles.column.role'),
               fixed: 'left',
               width: 260,
+              sorter: (first, second) => {
+                const labelOrder = compareText(roleLabel(first.name, t), roleLabel(second.name, t));
+                return labelOrder || compareBoolean(first.systemRole, second.systemRole);
+              },
               render: (_, record) => (
                 <div className={styles.roleCell}>
                   <div>
@@ -95,6 +102,7 @@ export function RolesTable({
             {
               title: t('team.roles.column.coverage'),
               width: 220,
+              sorter: (first, second) => compareNumber(first.permissions.length, second.permissions.length),
               render: (_, record) => (
                 <Typography.Text>{t('common.permissionsCount', { count: record.permissions.length })}</Typography.Text>
               ),
@@ -102,6 +110,7 @@ export function RolesTable({
             {
               title: t('team.roles.column.keyPermissions'),
               width: 420,
+              sorter: (first, second) => compareText(first.permissions.join(','), second.permissions.join(',')),
               render: (_, record) => (
                 <Space size={[6, 6]} wrap>
                   {record.permissions.slice(0, 5).map((permission) => (

@@ -1,15 +1,19 @@
 import {
   BellOutlined,
+  CheckOutlined,
   DollarOutlined,
+  MailOutlined,
   SearchOutlined,
   ShoppingCartOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
 import {
+  Button,
   Card,
   Input,
   List,
   Segmented,
+  Tooltip,
   Typography,
 } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
@@ -20,8 +24,8 @@ import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatDateTime } from '../../../../lib/format';
 import {
-  useMarkNotificationRead,
   useNotifications,
+  useSetNotificationReadState,
 } from '../../hooks/useNotificationQueries';
 import styles from './NotificationsPage.module.css';
 
@@ -118,6 +122,15 @@ function localizedNotificationMessage(item: { type: string; message: string }, t
     });
   }
 
+  const orderPaymentMatch = item.message.match(/^(.+) paid (.+) VND for order (.+)\.?$/);
+  if (item.type === 'PAYMENT_RECORDED' && orderPaymentMatch) {
+    return t('notifications.types.PAYMENT_RECORDED.orderMessage', {
+      customer: localizedEntityFallback(orderPaymentMatch[1], 'customer', t),
+      amount: orderPaymentMatch[2],
+      orderCode: orderPaymentMatch[3].replace(/\.$/, ''),
+    });
+  }
+
   const paymentMatch = item.message.match(/^(.+) paid (.+) VND\.?$/);
   if (item.type === 'PAYMENT_RECORDED' && paymentMatch) {
     return t('notifications.types.PAYMENT_RECORDED.message', {
@@ -162,7 +175,7 @@ function localizedNotificationMessage(item: { type: string; message: string }, t
 export function NotificationsPage() {
   const { i18n, t } = useTranslation();
   const notificationsQuery = useNotifications();
-  const markReadMutation = useMarkNotificationRead();
+  const readStateMutation = useSetNotificationReadState();
   const [activeCategory, setActiveCategory] = useState<NotificationCategory>('ALL');
   const [keyword, setKeyword] = useState('');
   const notifications = notificationsQuery.data ?? [];
@@ -238,20 +251,25 @@ export function NotificationsPage() {
             dataSource={filteredNotifications}
             renderItem={(item) => {
               const isUnread = item.readFlag === false;
+              const nextReadFlag = !item.readFlag;
 
               return (
                 <List.Item
-                  className={`${styles.activityItem} ${isUnread ? styles.unread : ''} ${styles.interactiveItem}`}
-                  role="button"
-                  tabIndex={0}
+                  className={`${styles.activityItem} ${isUnread ? styles.unread : ''} ${isUnread ? styles.interactiveItem : ''}`}
+                  role={isUnread ? 'button' : undefined}
+                  tabIndex={isUnread ? 0 : undefined}
                   aria-label={isUnread ? t('notifications.action.markRead') : undefined}
-                  onClick={() => markReadMutation.mutate(item)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      markReadMutation.mutate(item);
-                    }
-                  }}
+                  onClick={isUnread
+                    ? () => readStateMutation.mutate({ notification: item, read: true })
+                    : undefined}
+                  onKeyDown={isUnread
+                    ? (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          readStateMutation.mutate({ notification: item, read: true });
+                        }
+                      }
+                    : undefined}
                 >
                   <div className={`${styles.activityIcon} ${styles[categoryForType(item.type)?.toLowerCase() || 'defaultIcon']}`}>
                     {iconForType(item.type)}
@@ -265,13 +283,38 @@ export function NotificationsPage() {
                         {isUnread && <span className={styles.unreadDot} aria-label={t('notifications.unread')} />}
                         <NotificationTypeTag type={item.type} />
                       </div>
-                      <Typography.Text
-                        type="secondary"
-                        className={styles.timestamp}
-                        title={formatDateTime(item.createdAt, i18n.language)}
-                      >
-                        {relativeTime(item.createdAt, t, i18n.language)}
-                      </Typography.Text>
+                      <div className={styles.itemActions}>
+                        <Typography.Text
+                          type="secondary"
+                          className={styles.timestamp}
+                          title={formatDateTime(item.createdAt, i18n.language)}
+                        >
+                          {relativeTime(item.createdAt, t, i18n.language)}
+                        </Typography.Text>
+                        <Tooltip
+                          title={isUnread
+                            ? t('notifications.action.markRead')
+                            : t('notifications.action.markUnread')}
+                        >
+                          <Button
+                            type="text"
+                            size="small"
+                            className={styles.readStateButton}
+                            icon={isUnread ? <CheckOutlined /> : <MailOutlined />}
+                            aria-label={isUnread
+                              ? t('notifications.action.markRead')
+                              : t('notifications.action.markUnread')}
+                            loading={readStateMutation.isPending &&
+                              readStateMutation.variables?.notification.id === item.id &&
+                              readStateMutation.variables?.notification.source === item.source}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              readStateMutation.mutate({ notification: item, read: nextReadFlag });
+                            }}
+                            onKeyDown={(event) => event.stopPropagation()}
+                          />
+                        </Tooltip>
+                      </div>
                     </div>
                     <Typography.Paragraph className={styles.message}>
                       {localizedNotificationMessage(item, t)}

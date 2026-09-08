@@ -13,12 +13,12 @@ spring:
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:rabbitmq}
     port: ${SPRING_RABBITMQ_PORT:5672}
-    username: ${SPRING_RABBITMQ_USERNAME:guest}
-    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+    username: ${SPRING_RABBITMQ_USERNAME:dms}
+    password: ${SPRING_RABBITMQ_PASSWORD:dms-local-only}
 
 app:
   demo:
-    enabled: ${APP_DEMO_ENABLED:true}
+    enabled: ${APP_DEMO_ENABLED:false}
   messaging:
     rabbitmq:
       enabled: true

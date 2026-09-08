@@ -6,7 +6,11 @@ import {
 } from '../../features/auth';
 
 export function PublicRoute() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, isSessionReady, user } = useAuth();
+
+  if (!isSessionReady) {
+    return null;
+  }
 
   return isAuthenticated ? <Navigate to={firstAuthorizedPath(user)} replace /> : <LoginPage />;
 }

@@ -11,3 +11,5 @@ export interface PageResponse<T> {
   size: number;
   number: number;
 }
+
+export type ReceivableDueStatus = 'CURRENT' | 'DUE_SOON' | 'DUE_TODAY' | 'OVERDUE';

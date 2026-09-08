@@ -25,6 +25,7 @@ class GeminiHelpAssistantClientTest {
         Map<String, Object> config = client.buildGenerationConfig();
 
         assertThat(config).containsEntry("responseMimeType", "application/json");
+        assertThat(config).doesNotContainKeys("temperature", "topP", "topK");
         assertThat(config.get("responseSchema")).isInstanceOf(Map.class);
 
         Map<?, ?> schema = (Map<?, ?>) config.get("responseSchema");

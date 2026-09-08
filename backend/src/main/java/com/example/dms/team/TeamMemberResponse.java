@@ -8,6 +8,7 @@ public record TeamMemberResponse(
     String fullName,
     boolean active,
     List<String> roles,
-    List<String> permissions
+    List<String> permissions,
+    boolean manageable
 ) {
 }

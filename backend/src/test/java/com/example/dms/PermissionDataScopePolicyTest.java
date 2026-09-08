@@ -17,11 +17,11 @@ class PermissionDataScopePolicyTest {
     }
 
     @Test
-    void operationalSalesAndPaymentPermissionsCanSeeCustomerBalance() {
+    void salesOrderCreateCanSeeCustomerBalanceButPaymentCreateAloneCannot() {
         assertThat(CustomerAccessPolicy.canViewBalance(List.of(PermissionNames.SALES_ORDER_CREATE)))
             .isTrue();
         assertThat(CustomerAccessPolicy.canViewBalance(List.of(PermissionNames.PAYMENT_CREATE)))
-            .isTrue();
+            .isFalse();
     }
 
     @Test

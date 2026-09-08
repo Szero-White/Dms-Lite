@@ -1,5 +1,6 @@
 package com.example.dms.notification;
 
+import com.example.dms.payment.PaymentWorkspaceAccessPolicy;
 import com.example.dms.user.PermissionNames;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,11 +39,12 @@ final class NotificationPermissionPolicy {
         return switch (type) {
             case LOW_STOCK -> hasAll(permissions, PermissionNames.PRODUCT_VIEW, PermissionNames.INVENTORY_VIEW);
             case OVERDUE_DEBT -> hasAll(permissions, PermissionNames.CUSTOMER_VIEW, PermissionNames.DEBT_VIEW);
-            case PAYMENT_RECORDED -> hasAll(permissions, PermissionNames.CUSTOMER_VIEW, PermissionNames.PAYMENT_CREATE);
+            case PAYMENT_RECORDED -> PaymentWorkspaceAccessPolicy.canAccess(permissions);
             case SALES_ORDER_CONFIRMED, SALES_ORDER_CANCELLED -> permissions.contains(PermissionNames.SALES_ORDER_VIEW);
-            // Legacy invoice events may expose both order and receivable information. Keep them conservative.
+            // Invoice-issued events expose order/financial context, so keep them behind the finance read boundary.
             case INVOICE_ISSUED -> hasAll(
                 permissions,
+                PermissionNames.INVOICE_VIEW,
                 PermissionNames.CUSTOMER_VIEW,
                 PermissionNames.SALES_ORDER_VIEW,
                 PermissionNames.DEBT_VIEW

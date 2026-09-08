@@ -7,3 +7,4 @@ export {
   SalesOrderStatusTag,
 } from './StatusTag';
 export { SummaryCard } from './SummaryCard';
+export { ReceivableDueTag } from './ReceivableDueTag';

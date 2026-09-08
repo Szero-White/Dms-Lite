@@ -11,7 +11,7 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
     Optional<AppUser> findByIdAndTenantId(Long id, Long tenantId);
 
-    List<AppUser> findByTenantIdOrderByUsernameAsc(Long tenantId);
+    List<AppUser> findByTenantIdOrderByIdDesc(Long tenantId);
 
     List<AppUser> findByTenantIdAndIdIn(Long tenantId, Collection<Long> ids);
 

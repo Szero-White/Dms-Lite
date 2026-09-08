@@ -1,4 +1,4 @@
-import { CloseOutlined, DownloadOutlined, LeftOutlined, SendOutlined } from '@ant-design/icons';
+import { DownloadOutlined, LeftOutlined, SendOutlined } from '@ant-design/icons';
 import { App, Button, Card, Descriptions, Progress, Space, Table, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { useMemo } from 'react';
@@ -7,10 +7,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatCurrency, formatDate, getErrorMessage, toNumber } from '../../../../lib/format';
+import { compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
 import { PERMISSIONS, canViewInvoiceReceivableState, hasPermission, useAuth } from '../../../auth';
 import { InvoiceStatusTag } from '../../InvoiceStatusTag';
 import { downloadInvoicePdf } from '../../api/invoiceService';
-import { useCancelInvoice, useInvoice, useIssueInvoice } from '../../hooks/useInvoiceQueries';
+import { useInvoice, useIssueInvoice } from '../../hooks/useInvoiceQueries';
 import type { InvoiceItem } from '../../types/invoice.types';
 import styles from './InvoiceDetailPage.module.css';
 
@@ -19,14 +20,12 @@ export function InvoiceDetailPage() {
   const invoiceId = Number(id);
   const { user } = useAuth();
   const { i18n, t } = useTranslation();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const invoiceQuery = useInvoice(Number.isFinite(invoiceId) ? invoiceId : undefined);
   const issueMutation = useIssueInvoice();
-  const cancelMutation = useCancelInvoice();
   const invoice = invoiceQuery.data;
   const canIssue = hasPermission(user, PERMISSIONS.INVOICE_ISSUE);
-  const canCancel = hasPermission(user, PERMISSIONS.INVOICE_CANCEL);
   const canViewReceivableState = canViewInvoiceReceivableState(user);
   const progress = invoice && canViewReceivableState && toNumber(invoice.totalAmount) > 0
     ? Math.min(100, Math.round((toNumber(invoice.paidAmount) / toNumber(invoice.totalAmount)) * 100))
@@ -53,6 +52,7 @@ export function InvoiceDetailPage() {
     {
       title: t('invoice.item.product'),
       dataIndex: 'productName',
+      sorter: (first, second) => compareText(first.productName ?? first.productCode, second.productName ?? second.productCode),
       render: (value, item) => (
         <div className={styles.productCell}>
           <Typography.Text strong>{value ?? t('invoice.productFallback')}</Typography.Text>
@@ -60,10 +60,10 @@ export function InvoiceDetailPage() {
         </div>
       ),
     },
-    { title: t('invoice.item.quantity'), dataIndex: 'quantity', width: 90, align: 'right' },
-    { title: t('invoice.item.unitPrice'), dataIndex: 'unitPrice', width: 140, align: 'right', render: (v) => formatCurrency(v, i18n.language) },
-    { title: t('invoice.item.discount'), dataIndex: 'discountAmount', width: 130, align: 'right', render: (v) => formatCurrency(v, i18n.language) },
-    { title: t('invoice.item.total'), dataIndex: 'lineTotal', width: 140, align: 'right', render: (v) => formatCurrency(v, i18n.language) },
+    { title: t('invoice.item.quantity'), dataIndex: 'quantity', width: 90, align: 'right', sorter: (first, second) => compareNumber(first.quantity, second.quantity) },
+    { title: t('invoice.item.unitPrice'), dataIndex: 'unitPrice', width: 140, align: 'right', sorter: (first, second) => compareNumber(first.unitPrice, second.unitPrice), render: (v) => formatCurrency(v, i18n.language) },
+    { title: t('invoice.item.discount'), dataIndex: 'discountAmount', width: 130, align: 'right', sorter: (first, second) => compareNumber(first.discountAmount, second.discountAmount), render: (v) => formatCurrency(v, i18n.language) },
+    { title: t('invoice.item.total'), dataIndex: 'lineTotal', width: 140, align: 'right', sorter: (first, second) => compareNumber(first.lineTotal, second.lineTotal), render: (v) => formatCurrency(v, i18n.language) },
   ], [i18n.language, t]);
 
   return (
@@ -88,22 +88,6 @@ export function InvoiceDetailPage() {
                 {canIssue && invoice.status === 'DRAFT' ? (
                   <Button type="primary" icon={<SendOutlined />} loading={issueMutation.isPending} onClick={() => issueMutation.mutate(invoice.id)}>
                     {t('invoice.action.issue')}
-                  </Button>
-                ) : null}
-                {canCancel && ['DRAFT', 'ISSUED', 'OVERDUE'].includes(invoice.status) ? (
-                  <Button
-                    danger
-                    icon={<CloseOutlined />}
-                    loading={cancelMutation.isPending}
-                    onClick={() => modal.confirm({
-                      title: t('invoice.cancel.title'),
-                      content: t('invoice.cancel.description'),
-                      okText: t('invoice.action.cancel'),
-                      okButtonProps: { danger: true },
-                      onOk: () => cancelMutation.mutateAsync(invoice.id),
-                    })}
-                  >
-                    {t('invoice.action.cancel')}
                   </Button>
                 ) : null}
                 {['ISSUED', 'PAID', 'OVERDUE'].includes(invoice.status) ? (
@@ -138,7 +122,15 @@ export function InvoiceDetailPage() {
           </div>
 
           <Card className="panel-card" title={t('invoice.itemsTitle')}>
-            <Table rowKey="id" columns={columns} dataSource={invoice.items} pagination={false} scroll={{ x: 760 }} />
+            <Table
+              rowKey="id"
+              columns={columns}
+              dataSource={invoice.items}
+              pagination={false}
+              scroll={{ x: 760 }}
+              sortDirections={TABLE_SORT_DIRECTIONS}
+              showSorterTooltip={false}
+            />
           </Card>
         </div>
       ) : null}

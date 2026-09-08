@@ -120,3 +120,14 @@
     width: 100%;
   }
 }
+
+.collectionFilterMenu {
+  display: grid;
+  min-width: 220px;
+  gap: 10px;
+}
+
+.collectionFilterGroup {
+  display: grid;
+  gap: 8px;
+}

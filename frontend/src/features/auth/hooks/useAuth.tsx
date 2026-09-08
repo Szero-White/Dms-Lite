@@ -3,14 +3,19 @@ import {
   PropsWithChildren,
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { getErrorMessage } from '../../../lib/format';
-import { login as loginRequest } from '../api/authService';
+import {
+  fetchCurrentSession,
+  login as loginRequest,
+} from '../api/authService';
 import type {
+  AuthSession,
   AuthUser,
   LoginPayload,
 } from '../types/auth.types';
@@ -20,6 +25,7 @@ const STORAGE_KEY = 'dms-lite-auth';
 interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  isSessionReady: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   logout: () => void;
 }
@@ -40,16 +46,72 @@ function readStoredUser() {
   }
 }
 
+function toAuthUser(accessToken: string, session: AuthSession): AuthUser {
+  return {
+    accessToken,
+    ...session,
+  };
+}
+
+function sameAuthorizationSnapshot(left: AuthUser, right: AuthUser) {
+  return left.userId === right.userId
+    && left.tenantId === right.tenantId
+    && left.roles.join('|') === right.roles.join('|')
+    && left.permissions.join('|') === right.permissions.join('|');
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
-  const [user, setUser] = useState<AuthUser | null>(readStoredUser);
+  const [initialUser] = useState<AuthUser | null>(readStoredUser);
+  const [user, setUser] = useState<AuthUser | null>(initialUser);
+  const [isSessionReady, setSessionReady] = useState(!initialUser?.accessToken);
   const queryClient = useQueryClient();
   const { message } = App.useApp();
   const { t } = useTranslation();
+
+  useEffect(() => {
+    const accessToken = initialUser?.accessToken;
+    if (!accessToken) {
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchCurrentSession()
+      .then((session) => {
+        const currentStoredUser = readStoredUser();
+        if (cancelled || currentStoredUser?.accessToken !== accessToken) {
+          return;
+        }
+
+        const refreshedUser = toAuthUser(accessToken, session);
+        if (!sameAuthorizationSnapshot(initialUser, refreshedUser)) {
+          // Server state may contain fields that are no longer visible after a role change.
+          queryClient.clear();
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(refreshedUser));
+        setUser(refreshedUser);
+      })
+      .catch(() => {
+        // A 401 is handled by the shared API interceptor. For temporary network errors,
+        // keep the local session so the user can retry when the backend is reachable.
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setSessionReady(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialUser, queryClient]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       isAuthenticated: Boolean(user?.accessToken),
+      isSessionReady,
       async login(payload) {
         try {
           const authUser = await loginRequest(payload);
@@ -58,6 +120,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           queryClient.clear();
           localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser));
           setUser(authUser);
+          setSessionReady(true);
           message.success(t('toast.auth.welcome', { name: authUser.fullName || authUser.username }));
         } catch (error) {
           message.error(getErrorMessage(error));
@@ -71,9 +134,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
         // removed whenever the browser session changes identity.
         queryClient.clear();
         setUser(null);
+        setSessionReady(true);
       },
     }),
-    [message, queryClient, t, user],
+    [isSessionReady, message, queryClient, t, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

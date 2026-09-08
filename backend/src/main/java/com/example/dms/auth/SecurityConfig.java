@@ -31,9 +31,12 @@ public class SecurityConfig {
             .sessionManagement(
                 session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
+            .exceptionHandling(exception -> exception.authenticationEntryPoint(
+                (request, response, authenticationException) -> response.sendError(401)
+            ))
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
-                    "/api/auth/**",
+                    "/api/auth/login",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/v3/api-docs/**",

@@ -48,7 +48,7 @@ public class TeamService {
     @Transactional(readOnly = true)
     public List<TeamMemberResponse> listMembers() {
         Long tenantId = TenantContext.tenantRequired();
-        return users.findByTenantIdOrderByUsernameAsc(tenantId)
+        return users.findByTenantIdOrderByIdDesc(tenantId)
             .stream()
             .map(this::toResponse)
             .toList();
@@ -57,10 +57,7 @@ public class TeamService {
     @Transactional
     public TeamMemberResponse createMember(TeamMemberCreateRequest request) {
         String username = normalizeUsername(request.username());
-        users.findByUsername(username)
-            .ifPresent(user -> {
-                throw new BusinessException("Username already exists");
-            });
+        ensureUsernameAvailable(username, null);
 
         AppUser user = AppUser.builder()
             .username(username)
@@ -81,9 +78,19 @@ public class TeamService {
         AppUser user = findTenantMember(userId);
         ensureManageableStaff(user);
 
+        String username = normalizeUsername(request.username());
+        ensureUsernameAvailable(username, user.getId());
+
+        user.setUsername(username);
         user.setFullName(request.fullName().trim());
         user.setActive(request.active());
         user.setRoles(resolveAssignableRoles(request.roles()));
+        if (request.password() != null) {
+            if (request.password().isBlank()) {
+                throw new BusinessException("Password cannot be blank");
+            }
+            user.setPasswordHash(passwordEncoder.encode(request.password()));
+        }
 
         AppUser savedUser = users.save(user);
         auditService.log("TEAM_MEMBER_UPDATED", "AppUser", savedUser.getId(), savedUser.getUsername());
@@ -107,8 +114,7 @@ public class TeamService {
     }
 
     private void ensureManageableStaff(AppUser user) {
-        if (demoProperties.isEnabled()
-            && DEMO_USERNAMES.contains(user.getUsername().toLowerCase(Locale.ROOT))) {
+        if (isProtectedDemoAccount(user)) {
             throw new BusinessException("Demo accounts are protected while demo mode is enabled");
         }
 
@@ -116,14 +122,27 @@ public class TeamService {
             throw new BusinessException("You cannot change your own access from Team Management");
         }
 
-        boolean isOwner = user.getRoles()
+        if (isOwner(user)) {
+            throw new BusinessException("Owner access cannot be changed from Team Management");
+        }
+    }
+
+    private boolean isManageableStaff(AppUser user) {
+        return !isProtectedDemoAccount(user)
+            && !user.getId().equals(TenantContext.user())
+            && !isOwner(user);
+    }
+
+    private boolean isProtectedDemoAccount(AppUser user) {
+        return demoProperties.isEnabled()
+            && DEMO_USERNAMES.contains(user.getUsername().toLowerCase(Locale.ROOT));
+    }
+
+    private boolean isOwner(AppUser user) {
+        return user.getRoles()
             .stream()
             .map(Role::getName)
             .anyMatch(OWNER_ROLE::equals);
-
-        if (isOwner) {
-            throw new BusinessException("Owner access cannot be changed from Team Management");
-        }
     }
 
     private Set<Role> resolveAssignableRoles(Set<String> roleNames) {
@@ -154,6 +173,14 @@ public class TeamService {
             .collect(Collectors.toCollection(HashSet::new));
     }
 
+    private void ensureUsernameAvailable(String username, Long currentUserId) {
+        users.findByUsername(username)
+            .filter(existing -> currentUserId == null || !existing.getId().equals(currentUserId))
+            .ifPresent(existing -> {
+                throw new BusinessException("Username already exists");
+            });
+    }
+
     private String normalizeUsername(String username) {
         return username.trim().toLowerCase(Locale.ROOT);
     }
@@ -178,7 +205,8 @@ public class TeamService {
             user.getFullName(),
             user.isActive(),
             roleNames,
-            permissionNames
+            permissionNames,
+            isManageableStaff(user)
         );
     }
 }

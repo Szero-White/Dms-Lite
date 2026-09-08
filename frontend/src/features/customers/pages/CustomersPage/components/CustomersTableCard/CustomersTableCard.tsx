@@ -26,6 +26,7 @@ import { useNavigate } from 'react-router-dom';
 import { QueryState } from '../../../../../../components/common/QueryState';
 import { CustomerDebtTag } from '../../../../../../components/common/StatusTag';
 import { formatCurrency, toNumber } from '../../../../../../lib/format';
+import { TABLE_SORT_DIRECTIONS } from '../../../../../../lib/tableSorting';
 import type { Customer } from '../../../../types/customer.types';
 import styles from './CustomersTableCard.module.css';
 
@@ -158,6 +159,8 @@ export function CustomersTableCard({
         <Table
           rowKey="id"
           scroll={{ x: 1240 }}
+          sortDirections={TABLE_SORT_DIRECTIONS}
+          showSorterTooltip={false}
           dataSource={filteredCustomers}
           rowClassName={(record) => {
             if (!showFinancials) {
@@ -175,6 +178,7 @@ export function CustomersTableCard({
               fixed: 'left',
               width: 300,
               ellipsis: true,
+              sorter: (first, second) => first.name.localeCompare(second.name),
               render: (_, record) => (
                 <div className={styles.customerCell}>
                   <Avatar>{record.name.slice(0, 2).toUpperCase()}</Avatar>
@@ -196,23 +200,33 @@ export function CustomersTableCard({
               dataIndex: 'phone',
               width: 170,
               ellipsis: true,
+              sorter: (first, second) => (first.phone ?? '').localeCompare(second.phone ?? ''),
             },
             {
               title: t('customers.column.address'),
               dataIndex: 'address',
               width: 260,
               ellipsis: true,
+              sorter: (first, second) => (first.address ?? '').localeCompare(second.address ?? ''),
             },
             {
               title: t('customers.column.paymentTerm'),
               dataIndex: 'paymentTermDays',
               width: 150,
+              sorter: (first, second) => first.paymentTermDays - second.paymentTermDays,
               render: (value) => t('customers.paymentTermDays', { count: value }),
             },
             ...(showFinancials ? [
               {
                 title: t('customers.column.creditUsage'),
                 width: 240,
+                sorter: (first: Customer, second: Customer) => {
+                  const firstLimit = toNumber(first.creditLimit);
+                  const secondLimit = toNumber(second.creditLimit);
+                  const firstUsage = firstLimit > 0 ? toNumber(first.debtBalance) / firstLimit : 0;
+                  const secondUsage = secondLimit > 0 ? toNumber(second.debtBalance) / secondLimit : 0;
+                  return firstUsage - secondUsage;
+                },
                 render: (_: unknown, record: Customer) => {
                   const debt = toNumber(record.debtBalance);
                   const limit = toNumber(record.creditLimit);
@@ -246,6 +260,8 @@ export function CustomersTableCard({
                 title: t('customers.column.debtBalance'),
                 dataIndex: 'debtBalance',
                 width: 190,
+                sorter: (first: Customer, second: Customer) =>
+                  toNumber(first.debtBalance) - toNumber(second.debtBalance),
                 render: (value: string | number | null) => (
                   <Space direction="vertical" size={0}>
                     <Typography.Text

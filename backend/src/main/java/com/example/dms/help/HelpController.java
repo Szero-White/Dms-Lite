@@ -1,12 +1,13 @@
 package com.example.dms.help;
 
 import com.example.dms.common.ApiResponse;
+import com.example.dms.common.PageRequestPolicy;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -48,8 +49,19 @@ public class HelpController {
         @RequestParam(defaultValue = "false") boolean mineOnly,
         @RequestParam(defaultValue = "") String keyword,
         @RequestParam(required = false) Boolean blocked,
-        @PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "12") int size,
+        @RequestParam(defaultValue = "NEWEST") HelpHistorySort sortBy,
+        @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection
     ) {
+        HelpHistorySort resolvedSort = sortBy == null ? HelpHistorySort.NEWEST : sortBy;
+        Sort.Direction resolvedDirection = sortDirection == null ? Sort.Direction.DESC : sortDirection;
+        Pageable pageable = PageRequest.of(
+            PageRequestPolicy.page(page),
+            PageRequestPolicy.size(size),
+            Sort.by(new Sort.Order(resolvedDirection, resolvedSort.property()).nullsLast())
+                .and(Sort.by(Sort.Order.desc("id")))
+        );
         return ApiResponse.ok(helpInteractionService.history(mineOnly, keyword, blocked, pageable));
     }
 

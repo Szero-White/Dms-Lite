@@ -25,6 +25,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
+import { getTableSortOrder, TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
 import { formatDateTime } from '../../../../lib/format';
 import { roleListLabel } from '../../../../lib/roleDisplay';
 import {
@@ -36,7 +37,7 @@ import {
   answerSourceTranslationKey,
   generationProviderTranslationKey,
 } from '../../utils/answerProvenance';
-import type { HelpAnswerSource, HelpInteraction } from '../../types/help.types';
+import type { HelpAnswerSource, HelpHistorySortDirection, HelpHistorySortField, HelpInteraction } from '../../types/help.types';
 import styles from './AIHistoryPage.module.css';
 
 type HistoryStatusFilter = 'all' | 'answered' | 'blocked';
@@ -76,6 +77,8 @@ export function AIHistoryPage() {
   const [statusFilter, setStatusFilter] = useState<HistoryStatusFilter>('all');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+  const [sortBy, setSortBy] = useState<HelpHistorySortField>();
+  const [sortDirection, setSortDirection] = useState<HelpHistorySortDirection>();
   const [selectedItem, setSelectedItem] = useState<HelpInteraction | null>(null);
   const historyQuery = useHelpHistory({
     mineOnly,
@@ -83,6 +86,8 @@ export function AIHistoryPage() {
     blocked: statusToBlocked(statusFilter),
     page,
     size: pageSize,
+    sortBy,
+    sortDirection,
   });
   const deleteHistoryItem = useDeleteHelpHistoryItem();
 
@@ -124,6 +129,21 @@ export function AIHistoryPage() {
     setSearchDraft('');
     setKeyword('');
     setStatusFilter('all');
+    resetToFirstPage();
+  }
+
+  const sortOrder = (field: HelpHistorySortField) =>
+    getTableSortOrder(sortBy, sortDirection, field);
+
+  function handleSort(field: HelpHistorySortField, order: 'ascend' | 'descend' | null | undefined) {
+    if (!order) {
+      setSortBy(undefined);
+      setSortDirection(undefined);
+      resetToFirstPage();
+      return;
+    }
+    setSortBy(field);
+    setSortDirection(order === 'ascend' ? 'ASC' : 'DESC');
     resetToFirstPage();
   }
 
@@ -225,6 +245,8 @@ export function AIHistoryPage() {
             rowKey="id"
             size="small"
             scroll={{ x: 1240 }}
+            sortDirections={TABLE_SORT_DIRECTIONS}
+            showSorterTooltip={false}
             dataSource={history}
             pagination={{
               current: page + 1,
@@ -237,10 +259,24 @@ export function AIHistoryPage() {
                 setPageSize(nextPageSize);
               },
             }}
+            onChange={(_pagination, _filters, sorter) => {
+              const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+              const key = activeSorter?.columnKey;
+              if (!activeSorter?.order) {
+                setSortBy(undefined);
+                setSortDirection(undefined);
+                resetToFirstPage();
+              } else if (typeof key === 'string') {
+                handleSort(key as HelpHistorySortField, activeSorter.order);
+              }
+            }}
             columns={[
               {
                 title: t('aiHistory.column.actor'),
                 dataIndex: 'actorFullName',
+                key: 'ACTOR',
+                sorter: true,
+                sortOrder: sortOrder('ACTOR'),
                 width: 210,
                 render: (_, record) => (
                   <div className={styles.actorCell}>
@@ -257,18 +293,27 @@ export function AIHistoryPage() {
               {
                 title: t('aiHistory.column.question'),
                 dataIndex: 'question',
+                key: 'QUESTION',
+                sorter: true,
+                sortOrder: sortOrder('QUESTION'),
                 width: 300,
                 render: (value: string) => <Typography.Text ellipsis={{ tooltip: value }}>{value}</Typography.Text>,
               },
               {
                 title: t('aiHistory.column.answerPreview'),
                 dataIndex: 'answer',
+                key: 'ANSWER',
+                sorter: true,
+                sortOrder: sortOrder('ANSWER'),
                 width: 340,
                 render: (value: string) => <Typography.Text ellipsis={{ tooltip: value }}>{value}</Typography.Text>,
               },
               {
                 title: t('aiHistory.column.source'),
                 dataIndex: 'answerSource',
+                key: 'SOURCE',
+                sorter: true,
+                sortOrder: sortOrder('SOURCE'),
                 width: 160,
                 render: (source: HelpAnswerSource) => (
                   <Tag color={sourceTagColor(source)}>
@@ -279,6 +324,9 @@ export function AIHistoryPage() {
               {
                 title: t('common.status'),
                 dataIndex: 'blocked',
+                key: 'STATUS',
+                sorter: true,
+                sortOrder: sortOrder('STATUS'),
                 width: 120,
                 render: (blocked: boolean) => blocked
                   ? <Tag color="red">{t('aiHistory.status.blocked')}</Tag>
@@ -287,6 +335,9 @@ export function AIHistoryPage() {
               {
                 title: t('common.time'),
                 dataIndex: 'createdAt',
+                key: 'NEWEST',
+                sorter: true,
+                sortOrder: sortOrder('NEWEST'),
                 width: 170,
                 render: (value: string) => formatDateTime(value),
               },

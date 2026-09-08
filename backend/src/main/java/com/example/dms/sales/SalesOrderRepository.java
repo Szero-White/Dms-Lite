@@ -36,6 +36,7 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
         Pageable pageable
     );
 
+
     long countByTenantId(Long tenantId);
 
     boolean existsByTenantIdAndCustomerIdAndStatus(

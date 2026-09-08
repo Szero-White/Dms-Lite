@@ -1,12 +1,15 @@
 package com.example.dms.invoice;
 
 import com.example.dms.common.ApiResponse;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +23,17 @@ public class InvoiceController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('INVOICE_VIEW')")
-    public ApiResponse<Page<InvoiceResponse>> list(@RequestParam(defaultValue = "0") int page) {
-        return ApiResponse.ok(invoiceService.listInvoices(page));
+    public ApiResponse<Page<InvoiceResponse>> list(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "") String search,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+        @RequestParam(defaultValue = "NEWEST") InvoiceSort sortBy,
+        @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection
+    ) {
+        return ApiResponse.ok(invoiceService.listInvoices(page, search, from, to, sortBy, sortDirection));
     }
 
     @GetMapping("/{id}")
@@ -30,22 +42,10 @@ public class InvoiceController {
         return ApiResponse.ok(invoiceService.getInvoice(id));
     }
 
-    @PostMapping("/from-sales-order/{salesOrderId}")
-    @PreAuthorize("hasAuthority('INVOICE_CREATE')")
-    public ApiResponse<InvoiceResponse> createFromSalesOrder(@PathVariable Long salesOrderId) {
-        return ApiResponse.ok(invoiceService.createFromSalesOrder(salesOrderId));
-    }
-
     @PostMapping("/{id}/issue")
     @PreAuthorize("hasAuthority('INVOICE_ISSUE')")
     public ApiResponse<InvoiceResponse> issue(@PathVariable Long id) {
         return ApiResponse.ok(invoiceService.issueInvoice(id));
-    }
-
-    @PostMapping("/{id}/cancel")
-    @PreAuthorize("hasAuthority('INVOICE_CANCEL')")
-    public ApiResponse<InvoiceResponse> cancel(@PathVariable Long id) {
-        return ApiResponse.ok(invoiceService.cancelInvoice(id));
     }
 
     @GetMapping("/{id}/pdf")

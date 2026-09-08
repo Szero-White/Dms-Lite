@@ -1,292 +1,515 @@
-# DMS Lite - B2B Sales, Inventory & Receivable Management SaaS
+# DMS Lite
+
+**B2B Sales, Inventory & Receivable Management SaaS**
 
 [![CI](https://github.com/Szero-White/Dms-Lite/actions/workflows/ci.yml/badge.svg)](https://github.com/Szero-White/Dms-Lite/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-17-informational)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.5-informational)
+![React](https://img.shields.io/badge/React-18.3-informational)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20Docker-informational)
 ![Release](https://img.shields.io/badge/release-v1.1.0-informational)
 
-DMS Lite is a mini distribution management system for small wholesalers and distributors. It helps businesses manage customers, products, stock, sales orders, receivable debt, customer payments, audit logs, notifications, and business dashboards.
+> **Live Demo:** **Coming soon**
+> This line is intentionally kept near the top of the README. Replace `Coming soon` with the public deployment URL when the recruiter/demo environment is online.
+
+**Repository:** https://github.com/Szero-White/Dms-Lite
+**Local Swagger UI:** http://localhost:8080/swagger-ui/index.html
+**Local Frontend:** http://localhost:3000
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [What the System Solves](#what-the-system-solves)
+- [Main Features](#main-features)
+- [Demo Accounts and Roles](#demo-accounts-and-roles)
+- [Core Business Flow](#core-business-flow)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting the Source Code](#getting-the-source-code)
+- [Quick Start - Windows](#quick-start---windows)
+- [Manual Local Setup](#manual-local-setup)
+- [Local URLs](#local-urls)
+- [Reset Local Demo Data](#reset-local-demo-data)
+- [Docker Compose](#docker-compose)
+- [Environment Configuration](#environment-configuration)
+- [Build and Test](#build-and-test)
+- [Database and Flyway](#database-and-flyway)
+- [Security and RBAC](#security-and-rbac)
+- [Current Business Invariants](#current-business-invariants)
+- [Deployment Notes](#deployment-notes)
+- [CI](#ci)
+- [Documentation](#documentation)
+- [Roadmap](#roadmap)
+
+---
 
 ## Overview
 
-Small B2B distributors often need more than a product list and order form. They need to know:
+DMS Lite is a full-stack distribution management system for small B2B wholesalers and distributors. It combines customer management, product catalog, inventory, sales orders, receivables, payments, invoices, notifications, audit logs, reporting, and permission-aware workflow assistance in one modular application.
 
-- Who owes money and how much
-- Which stock movements changed inventory
-- Whether an order can be confirmed safely
-- Who performed important actions in the system
-- How the business is performing across sales, debt, and stock
+The project is designed as a **deployable portfolio system**, not only a CRUD sample. Its main purpose is to demonstrate how related business operations remain consistent across sales, inventory, receivables, payments, reporting, and authorization boundaries.
 
-DMS Lite is a **deployable full-stack portfolio system** built as a modular monolith. Local development stays lightweight, while public demo and production-style deployments are configured through environment-specific settings.
+Current application version: **1.1.0**.
 
-## Problem Statement
+### Current source status
 
-Many small distributors still operate through a mix of Zalo, Excel, phone calls, and paper notebooks. That creates recurring business problems:
+The current source contains:
 
-- Customer orders are scattered across chats and spreadsheets.
-- Owners do not know the exact receivable debt of each customer.
-- Stock can become inaccurate when multiple staff sell the same product.
-- It is hard to trace who changed prices, confirmed orders, or recorded payments.
-- Monthly debt reconciliation is slow, manual, and error-prone.
+- Spring Boot backend with PostgreSQL and Flyway migrations
+- React + TypeScript + Vite frontend
+- JWT authentication and permission-based authorization
+- Tenant-aware data access
+- Server-paged receivable/payment worklists
+- Due-date classification for receivables
+- Order-specific partial/full payments
+- Immutable payment receipt snapshots
+- Automatic Draft invoice creation after final payment
+- Dashboard KPIs and receivable-attention reporting
+- Audit and notification modules
+- Permission-aware workflow AI/help module with optional Gemini wording assistance
+- Windows local launcher and local demo-data reset utility
+- Docker Compose integration stack
+- GitHub Actions CI
 
-## Solution
+The repository currently includes Flyway migrations **V1 through V12**. Sales-order expiry/timeout is **not** part of the current persisted lifecycle; current statuses are `DRAFT`, `COMPLETED`, and `CANCELLED`.
 
-DMS Lite addresses those problems with:
+---
 
-- Centralized customer, product, and sales order management
-- Inventory transaction history for stock movement traceability
-- Sales order confirmation with stock deduction
-- Receivable tracking with open-item allocation and ledger-style payment history
-- Customer payment recording and debt reconciliation
-- Audit log for important business actions
-- Dashboard for revenue, receivable debt, and low-stock visibility
+## What the System Solves
 
-## Business Value
+Small distributors often run day-to-day operations through spreadsheets, chat messages, phone calls, and paper notes. That makes several questions unnecessarily difficult:
 
-- Reduces manual tracking across chat apps, spreadsheets, and notebooks
-- Improves stock accuracy and reduces fulfillment mistakes
-- Makes receivable debt visible and easier to reconcile
-- Helps business owners monitor staff actions and operational flow
-- Creates a foundation for a small distributor SaaS product instead of a simple internal CRUD demo
+- Which customers still owe money?
+- Which exact sales order is a payment settling?
+- Which stock movement changed the current quantity?
+- Can an order be fulfilled without making stock negative?
+- Which employee confirmed, cancelled, paid, or changed important business data?
+- Which receivables are current, due soon, due today, or overdue?
+- Does a user have permission to see or mutate a specific business area?
 
-## Portfolio Demo
+DMS Lite brings these flows into one system and keeps the financial and operational relationships explicit.
 
-Current stable release: **v1.1.0**.
-
-The public recruiter deployment intentionally runs in demo mode so reviewers can test role-specific workflows without creating accounts first. **Live Demo:** https://dms-lite.vercel.app/
-
-| Role | Demo account | Main workflow |
-| --- | --- | --- |
-| Owner | `owner / 123456` | Dashboard, reports, audit, team access |
-| Sales | `sale / 123456` | Customers, products/stock visibility, draft sales orders |
-| Warehouse | `warehouse / 123456` | Inventory operations and order fulfillment |
-| Accountant | `accountant / 123456` | Receivables, payments, financial reports |
-
-Demo identities are protected from Team Management changes while demo mode is enabled. A real production deployment should set `APP_DEMO_ENABLED=false`, and `VITE_DEMO_MODE=false` hides demo-account cards in a non-demo frontend build.
-
-### Deployment Topology
-
-```text
-Browser
-  -> React / Vite static frontend
-  -> HTTPS REST API
-  -> Spring Boot application
-  -> PostgreSQL
-```
-
-Database credentials, JWT secrets, CORS origins, API base URL, and demo-mode switches are supplied through deployment environment variables rather than committed secrets.
-
-## Technical Value
-
-- Demonstrates backend design beyond basic CRUD
-- Models sales, inventory, and debt as related business flows
-- Uses transactional stock deduction and domain-specific ledger tracking
-- Applies JWT authentication, role-based permissions, and tenant isolation
-- Supports local-first development with a separate Docker-oriented profile
-- Includes schema versioning, API documentation, monitoring, and CI foundations
-
-## Target Users
-
-- Water distributors
-- Wholesale cosmetics shops
-- Phone accessories wholesalers
-- Food dry-goods distributors
-- Office supply distributors
-- Material and equipment dealers
-- Small B2B shops that allow customers to buy on credit
+---
 
 ## Main Features
 
-### Authentication & Authorization
+### Authentication and authorization
 
 - JWT-based authentication
+- Stateless Spring Security configuration
 - Role and permission model
-- Tenant-aware access design with `tenant_id`
+- Backend method-level authorization with `@PreAuthorize`
+- Frontend route/action guards
+- `/api/auth/me` refresh flow for reconciling persisted frontend authorization with current backend roles and permissions
+- Tenant-aware request scope
 
-### Product Management
+### Product management
 
 - Product catalog
-- SKU, pricing, and stock-related product data
+- SKU and barcode data
+- Cost and selling prices with permission-aware exposure
+- Minimum-stock configuration
+- Soft-delete lifecycle
 
-### Customer & Receivable Management
+### Customer management
 
 - Customer profiles
-- Credit-related business data
-- Receivable debt tracking by transactions
+- Credit limits and payment terms
+- Customer lifecycle controls
+- Customer-specific sales-order history
+- Customer receivable statement
 
-### Inventory Management
+### Inventory management
 
-- Stock items by product
-- Single operational warehouse in the current MVP; the UI resolves its database ID/name from the backend instead of hardcoding `1`
+- Warehouse-backed stock items
+- Receive and adjust stock flows
 - Inventory transaction history
-- Low-stock visibility
+- Low-stock detection
+- Stock mutation inside transactional business flows
+- Tenant and warehouse validation instead of assuming a hard-coded warehouse ID
 
-### Sales Order Management
+### Sales orders
 
-- Sales order creation
-- Sales order confirmation/fulfillment flow (`DRAFT -> COMPLETED`)
-- Stock deduction during confirmation inside one transaction
+- Create sales orders as `DRAFT`
+- Confirm/fulfill `DRAFT -> COMPLETED`
+- Cancel `DRAFT -> CANCELLED`
+- Stock is deducted only during confirmation/fulfillment
+- Credit-limit validation before stock/debt mutation
+- List and detail APIs are separated so list responses do not carry line items unnecessarily
 
-### Payment Management
+### Receivables
 
-- Customer payment recording
-- FIFO customer payment allocation against open receivables
+Open receivables are represented by debt transactions instead of a single mutable customer balance field.
 
-### Invoice Management
+Current due-date semantics are:
 
-- Invoice documents generated only from completed sales orders
-- Invoice issuance/cancellation is permission controlled and does not create a second receivable balance
-- Paid/remaining invoice amounts stay synchronized with the canonical sales-order payment workflow
-- PDF export for active issued invoices
+| Status | Meaning |
+| --- | --- |
+| `CURRENT` | More than 3 days remain |
+| `DUE_SOON` | 1-3 days remain |
+| `DUE_TODAY` | Due on the current business date |
+| `OVERDUE` | Due date is before the current business date |
 
-### Audit Log
+`DUE_TODAY` is intentionally **not** treated as overdue.
 
-- Tracks important user actions
-- Supports traceability for operational changes
+### Payments
 
-### Notification
+- One new payment is attached to exactly one `COMPLETED` sales order
+- Partial payment supported
+- Exact final settlement supported
+- Overpayment rejected
+- Outstanding worklist is server-paged and server-filtered
+- Pessimistic locking protects financial mutation
+- Client request key supports idempotent retry behavior
+- Payment history preserves `PAY -> SO` traceability
+- PDF receipt uses immutable payment-time snapshots
 
-- Persisted business notifications plus permission-filtered derived alerts
-- Low-stock and overdue-receivable visibility
-- Notification content is filtered by business permissions, including custom roles
-- Docker profile extension path for RabbitMQ-based messaging
+The Payment workspace requires the combined permission scope:
 
-### Workflow AI Help
+```text
+PAYMENT_CREATE
++ CUSTOMER_VIEW
++ SALES_ORDER_VIEW
++ DEBT_VIEW
+```
 
-- Permission-aware workflow guidance for system and custom roles
-- Live stock, receivable, sales-order, product, and customer lookups are guarded server-side before data access
-- Server-generated live-data answers are kept out of external AI conversation context
-- Backend-owned answer provenance distinguishes live DMS data, deterministic workflow knowledge, Gemini-assisted wording, and system fallback without letting the external model claim its own authority
-- AI interaction history is restricted to team administrators and preserves provenance for support/audit review
+### Invoices
 
-### Dashboard / Reports
+- No manual invoice creation in the current workflow
+- Partial payment does not create an invoice
+- Final payment automatically creates exactly one Draft invoice in the same transaction
+- Existing fully paid orders are backfilled by Flyway V12
+- Draft invoice can be issued with permission control
+- Invoice PDF export supports Vietnamese/English content
+- Invoice financial state remains derived from the canonical sales-order/payment flow
 
-- Revenue overview
-- Receivable debt visibility
-- Stock-related reporting signals
+### Dashboard and reports
 
-## Key Business Flow
+- Monthly revenue
+- Revenue today
+- Total receivables
+- Active products
+- Low-stock count
+- Active customers
+- Orders needing attention
+- Receivable-attention KPI
+- Detailed overdue / due-today / due-soon receivable card
+- Reporting read repositories keep report SQL separate from write-domain services
 
-`Login -> create customer/product -> check stock -> create DRAFT sales order -> warehouse confirms/fulfills -> order becomes COMPLETED -> deduct stock inside transaction -> create open receivable if unpaid -> optionally generate/issue invoice -> record customer payment FIFO -> update receivable statement -> view dashboard/audit log`
+### Notifications
 
-This flow reflects a real B2B operational slice rather than isolated CRUD screens.
+- Persisted business notifications
+- Permission-filtered derived alerts
+- Per-user read/unread state
+- Low-stock and overdue-debt visibility rules
+- Payment/invoice notifications respect business permissions
+- Local profile does not require RabbitMQ
+- Docker profile can use RabbitMQ with a persistence fallback path
 
-## Why This Is Not Just CRUD
+### Audit log
 
-- Inventory cannot go negative during the confirmation flow.
-- Receivable is tracked as open `INCREASE` items plus payment history; current balance is the sum of remaining open receivables, not a mutable `customer.debt` field.
-- Sales confirmation is handled inside a transaction.
-- Important business actions are stored in audit logs.
-- The data model is tenant-aware through `tenant_id`.
-- Local and Docker profiles are separated for different runtime needs.
-- Flyway is used for database schema versioning.
-- Customer list debt balances are aggregated per page instead of issuing one balance query per customer.
-- Sales order list/detail APIs are separated so list responses stay small and details fetch items only when needed.
-- Report SQL is isolated in a read repository; receivable formulas remain centralized in the debt repository.
+- Important business actions are written to an audit trail
+- Supports operational traceability and review
+
+### Workflow AI / Help
+
+- Permission-aware workflow guidance
+- Server-side live-data guards before data access
+- External AI is not the authorization authority
+- Live backend data is not blindly replayed into later external-model context
+- Gemini assistance is optional and used only when enabled **and** an API key is present
+- Deterministic/system fallback remains available when Gemini is unavailable
+
+---
+
+## Demo Accounts and Roles
+
+When backend demo mode is enabled, the application seeds these accounts:
+
+| Role | Username | Password | Typical workflow |
+| --- | --- | --- | --- |
+| Owner | `owner` | `Demo@2026` | Full business/admin workflow |
+| Sales | `sale` | `Demo@2026` | Customers and Draft sales orders |
+| Warehouse | `warehouse` | `Demo@2026` | Inventory and order confirmation |
+| Accountant | `accountant` | `Demo@2026` | Receivables, payments, invoices, reports |
+
+The backend local profile enables demo seeding by default.
+
+The frontend demo-account cards are controlled separately by `VITE_DEMO_MODE=true`. The accounts can still be entered manually even when those convenience cards are hidden.
+
+For a real production deployment, use real identities and set demo mode appropriately instead of relying on the demo credentials above.
+
+---
+
+## Core Business Flow
+
+```text
+Login
+  -> create customer / product
+  -> receive or verify stock
+  -> create DRAFT sales order
+  -> warehouse confirms / fulfills
+  -> order becomes COMPLETED
+  -> stock is deducted inside the confirmation transaction
+  -> open receivable is created when money is still owed
+  -> accountant selects the exact outstanding order
+  -> record partial or final payment
+  -> final payment automatically creates one Draft invoice
+  -> optionally issue/download invoice
+  -> dashboard / report / audit / notifications reflect the business state
+```
+
+### Why this is more than CRUD
+
+- Sales confirmation changes stock and receivable state transactionally.
+- Inventory is checked before mutation and cannot silently go negative through the normal confirmation flow.
+- Receivable state uses open-item ledger data instead of repeatedly overwriting a single debt number.
+- Payments are order-specific and guarded by locking/idempotency behavior.
+- Final payment and invoice creation share one transaction boundary.
+- Authorization is enforced at backend endpoints/services, not only hidden in the UI.
+- Tenant IDs scope business data across repositories and services.
+- Business dates are calculated using an application business timezone instead of relying on the browser timezone.
+
+---
 
 ## Architecture
 
-### Style
+DMS Lite uses a **modular monolith / package-by-feature** architecture.
 
-- Modular Monolith
+```text
+Browser
+  -> React + TypeScript + Vite
+  -> Axios / React Query
+  -> HTTPS/REST API
+  -> Spring Boot
+  -> Spring Security / JWT / permission checks
+  -> Feature services and repositories
+  -> PostgreSQL
+  -> Flyway migrations
+```
 
-### Backend Modules
+Optional integration services are available through Docker Compose:
 
-- `auth`
-- `user`
-- `tenant`
-- `product`
-- `customer`
-- `inventory`
-- `sales`
-- `debt`
-- `payment`
-- `invoice`
-- `document`
-- `audit`
-- `notification`
-- `report`
-- `help`
-- `team`
+```text
+Redis
+RabbitMQ
+Prometheus
+Grafana
+```
 
-### Frontend
+The default local development profile intentionally requires only PostgreSQL.
 
-- React
-- TypeScript
-- Vite
-- Ant Design
-
-### Database
-
-- PostgreSQL
-- Flyway migration
-
-### Optional Infrastructure
-
-- Redis
-- RabbitMQ
-- Prometheus
-- Grafana
-
-Those optional services are Docker-oriented extension points rather than dependencies of the default local-first or recruiter-demo workflow. Fuller Redis/RabbitMQ integration coverage remains on the roadmap.
+---
 
 ## Tech Stack
 
-| Layer | Technologies |
+| Layer | Technology |
 | --- | --- |
-| Backend | Java 17, Spring Boot 3, Spring Security, JWT, Spring Data JPA, PostgreSQL, Flyway, Swagger/OpenAPI |
-| Frontend | React, TypeScript, Vite, Ant Design, React Query, Axios |
-| Testing | JUnit 5, Mockito, Spring Security Test |
-| DevOps | Docker Compose, GitHub Actions, Prometheus, Grafana |
+| Backend | Java 17, Spring Boot 3.3.5 |
+| Security | Spring Security, JWT (JJWT 0.12.6) |
+| Persistence | Spring Data JPA / Hibernate |
+| Database | PostgreSQL |
+| Migration | Flyway |
+| API docs | springdoc OpenAPI / Swagger UI |
+| PDF | Apache PDFBox |
+| Frontend | React 18, TypeScript 5.6, Vite 5 |
+| UI | Ant Design 5, Ant Design Charts |
+| Server state | TanStack React Query 5 |
+| HTTP | Axios |
+| i18n | i18next / react-i18next |
+| Testing | JUnit 5, Spring Boot Test, Mockito, Spring Security Test |
+| Optional infra | Redis, RabbitMQ, Prometheus, Grafana |
+| CI | GitHub Actions |
 
-## Database Design Highlights
+---
 
-The project models business operations through dedicated tables and flows instead of flattening everything into simple counters:
+## Project Structure
 
-- `sales_orders`, `sales_order_items`
-  Used to represent order headers and order line items.
-- `stock_items`, `inventory_transactions`
-  Separate current stock state from stock movement history.
-- `customer_debt_transactions`
-  Tracks receivable debt as ledger entries.
-- `payments`
-  Records customer payments explicitly.
-- `invoices`, `invoice_items`
-  Store sales-document snapshots linked to completed sales orders; financial balances remain owned by the sales/receivable flow.
-- `audit_logs`
-  Stores important traceable actions.
-- `notifications`
-  Keeps application notifications as part of the business flow.
-- `tenant_id`
-  Supports tenant isolation for multi-tenant SaaS design.
-
-## Local Development
-
-Detailed step-by-step notes are also available in [RUN_LOCAL.md](RUN_LOCAL.md).
-
-Before publishing a portfolio release, use [docs/release-checklist.md](docs/release-checklist.md) for the role, business-flow, build, and deployment smoke tests.
-
-On Windows, `run-local.bat` in the project root opens backend and frontend terminals automatically. PostgreSQL must already be running.
-
-### Reset local demo data
-
-To clear local test data and return to a clean seeded demo baseline without dropping the schema or Flyway history:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File ".\scripts\local\reset-dms-local-jdbc.ps1"
+```text
+Dms-Lite/
+├─ backend/
+│  ├─ pom.xml
+│  └─ src/
+│     ├─ main/java/com/example/dms/
+│     │  ├─ audit/
+│     │  ├─ auth/
+│     │  ├─ common/
+│     │  ├─ customer/
+│     │  ├─ debt/
+│     │  ├─ document/
+│     │  ├─ help/
+│     │  ├─ inventory/
+│     │  ├─ invoice/
+│     │  ├─ notification/
+│     │  ├─ payment/
+│     │  ├─ product/
+│     │  ├─ report/
+│     │  ├─ sales/
+│     │  ├─ seed/
+│     │  ├─ team/
+│     │  ├─ tenant/
+│     │  └─ user/
+│     └─ main/resources/
+│        ├─ application.yml
+│        ├─ application-local.yml
+│        ├─ application-docker.yml
+│        └─ db/migration/
+├─ frontend/
+│  ├─ package.json
+│  ├─ deploy/
+│  └─ src/
+│     ├─ components/
+│     ├─ features/
+│     │  ├─ audit/
+│     │  ├─ auth/
+│     │  ├─ customers/
+│     │  ├─ dashboard/
+│     │  ├─ help/
+│     │  ├─ inventory/
+│     │  ├─ invoice/
+│     │  ├─ notifications/
+│     │  ├─ payments/
+│     │  ├─ products/
+│     │  ├─ reports/
+│     │  ├─ sales/
+│     │  └─ team/
+│     └─ services/
+├─ scripts/local/
+│  └─ reset-dms-local-jdbc.ps1
+├─ docs/
+├─ .github/workflows/ci.yml
+├─ docker-compose.yml
+├─ .env.example
+├─ run-local.bat
+├─ run-local.env.example.bat
+├─ RUN_LOCAL.md
+└─ README.md
 ```
 
-The reset utility is **local-only**. It preserves `flyway_schema_history`, truncates application tables with identity reset, writes a row-count snapshot to `Downloads`, and then starts `run-local.bat` so demo seed data is recreated.
+---
 
-The CSV snapshot is not a restorable database backup. Use `pg_dump` separately when a full restore point is required.
+## Getting the Source Code
+
+### Option A - Git clone
+
+```powershell
+git clone https://github.com/Szero-White/Dms-Lite.git
+cd Dms-Lite
+```
+
+### Option B - GitHub ZIP
+
+1. Open the repository on GitHub.
+2. Choose **Code -> Download ZIP**.
+3. Extract the ZIP.
+4. Open PowerShell/Terminal in the extracted project root.
+5. Continue with the setup steps below.
+
+Git is recommended because it makes updates, diff review, and branch management much easier.
+
+---
+
+## Quick Start - Windows
+
+This is the shortest repeatable local workflow supported by the current repository.
 
 ### Prerequisites
 
+Install:
+
 - Java 17+
 - Maven 3.9+
-- Node.js 18+
-- PostgreSQL 14+
+- Node.js 18+ (CI currently uses Node 20)
+- npm
+- PostgreSQL 14+ **or** Docker Desktop
 
-### 1. Create PostgreSQL Database
+Verify the command-line tools:
+
+```powershell
+java -version
+mvn -version
+node -v
+npm -v
+```
+
+### Fastest option: Docker only for PostgreSQL
+
+From the project root:
+
+```powershell
+docker compose up -d postgres
+```
+
+The repository's PostgreSQL container uses:
+
+```text
+Database: dms_lite
+User:     dms
+Password: dms
+Port:     5432
+```
+
+Create the machine-local launcher environment file:
+
+```powershell
+Copy-Item ".\run-local.env.example.bat" ".\run-local.env.bat"
+notepad ".\run-local.env.bat"
+```
+
+For the Docker PostgreSQL service, make sure these values are present:
+
+```bat
+@echo off
+set "SPRING_PROFILES_ACTIVE=local"
+set "SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/dms_lite"
+set "SPRING_DATASOURCE_USERNAME=dms"
+set "SPRING_DATASOURCE_PASSWORD=dms"
+set "APP_DEMO_PASSWORD=Demo@2026"
+set "VITE_DEMO_MODE=true"
+set "VITE_DEMO_PASSWORD=Demo@2026"
+```
+
+`run-local.env.bat` is ignored by Git and is the correct place for machine-specific local credentials.
+
+Install frontend dependencies once after clone/download:
+
+```powershell
+cd frontend
+npm ci
+cd ..
+```
+
+> **First run:** if `frontend/node_modules` is missing, `run-local.bat` automatically runs `npm ci` before starting Vite. You can still run `npm ci` manually when you want an explicit clean dependency install.
+
+Start backend and frontend:
+
+```powershell
+.\run-local.bat
+```
+
+The launcher opens two terminals:
+
+- backend: Spring Boot on port `8080`
+- frontend: Vite on port `3000`
+
+Then open:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## Manual Local Setup
+
+Use this section if you do not want the Windows launcher or if you want to understand every step.
+
+### 1. Create PostgreSQL database manually
+
+Connect using a PostgreSQL administrator account and run:
 
 ```sql
 CREATE USER dms WITH PASSWORD 'dms';
@@ -294,100 +517,562 @@ CREATE DATABASE dms_lite OWNER dms;
 GRANT ALL PRIVILEGES ON DATABASE dms_lite TO dms;
 ```
 
-If you use another PostgreSQL account, update environment variables or `backend/src/main/resources/application-local.yml`.
+If the `dms` role already exists, do not recreate it; update the password/ownership as appropriate for your local machine.
 
-### 2. Run Backend with Local Profile
+### 2. Create local environment file
+
+```powershell
+Copy-Item ".\run-local.env.example.bat" ".\run-local.env.bat"
+```
+
+Edit it so the datasource values match the PostgreSQL account you actually created.
+
+Recommended local example:
+
+```bat
+@echo off
+set "SPRING_PROFILES_ACTIVE=local"
+set "SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/dms_lite"
+set "SPRING_DATASOURCE_USERNAME=dms"
+set "SPRING_DATASOURCE_PASSWORD=dms"
+set "APP_DEMO_PASSWORD=Demo@2026"
+set "VITE_DEMO_MODE=true"
+set "VITE_DEMO_PASSWORD=Demo@2026"
+```
+
+### 3. Install frontend dependencies
+
+```powershell
+cd frontend
+npm ci
+cd ..
+```
+
+### 4. Run backend manually
+
+PowerShell terminal 1:
+
+```powershell
+cd backend
+$env:SPRING_PROFILES_ACTIVE="local"
+$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/dms_lite"
+$env:SPRING_DATASOURCE_USERNAME="dms"
+$env:SPRING_DATASOURCE_PASSWORD="dms"
+mvn spring-boot:run
+```
+
+Or, when the required environment is already available:
 
 ```powershell
 cd backend
 mvn spring-boot:run "-Dspring-boot.run.arguments=--spring.profiles.active=local"
 ```
 
-### 3. Run Frontend
+Flyway validates/applies the schema during backend startup.
 
-Open another terminal:
+### 5. Run frontend manually
 
-```bash
+PowerShell terminal 2:
+
+```powershell
 cd frontend
-npm ci
+$env:VITE_DEMO_MODE="true"
+$env:VITE_DEMO_PASSWORD="Demo@2026"
 npm run dev
 ```
 
-### 4. Local URLs
+The frontend API client defaults to:
 
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:8080`
-- Swagger: `http://localhost:8080/swagger-ui/index.html`
+```text
+http://localhost:8080/api
+```
 
-### Local Profile Notes
+Set `VITE_API_BASE_URL` before `npm run dev` when using another backend URL.
 
-- Redis is not required; the app uses simple cache in local mode.
-- RabbitMQ is not required; notifications can be persisted without the full messaging stack.
-- Docker Compose is not required for day-to-day local development.
+### Optional Gemini configuration
 
-## Demo Accounts
+Gemini is not required to run the application.
 
-Local and recruiter-demo deployments use the four seeded accounts listed in **Portfolio Demo** above. Demo seeding can be disabled for a real production deployment with `APP_DEMO_ENABLED=false`.
+To enable provider-assisted wording locally:
 
-## API Documentation
+```powershell
+$env:GEMINI_ENABLED="true"
+$env:GEMINI_API_KEY="your_key"
+```
 
-Swagger UI:
+If the key is missing or the provider fails, the help module falls back to backend-owned deterministic/system responses.
 
-- `http://localhost:8080/swagger-ui/index.html`
+---
 
-## Docker
+## Local URLs
 
-`docker-compose.yml` is a **local integration/demo stack**, not the public production manifest. It brings up PostgreSQL, Redis, RabbitMQ, the backend, frontend, Prometheus, and Grafana together for integration testing.
+| Service | URL |
+| --- | --- |
+| Frontend | http://localhost:3000 |
+| Backend | http://localhost:8080 |
+| Swagger UI | http://localhost:8080/swagger-ui/index.html |
+| OpenAPI JSON | http://localhost:8080/v3/api-docs |
+| Health | http://localhost:8080/actuator/health |
+| Info | http://localhost:8080/actuator/info |
 
-Before starting it, set `APP_JWT_SECRET` (required) and `APP_CORS_ALLOWED_ORIGINS` in `.env`, then run:
+Swagger, health, and info are intentionally permitted without authentication by the current Spring Security configuration. Other application API routes require authentication unless explicitly permitted.
 
-```bash
+---
+
+## Reset Local Demo Data
+
+The repository includes a dedicated **local-only factory reset utility**:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\scripts\local\reset-dms-local-jdbc.ps1"
+```
+
+### What the reset script does
+
+The script:
+
+1. Resolves the repository root.
+2. Reads PostgreSQL configuration from `run-local.env.bat`.
+3. Refuses to run unless the JDBC target is a local host (`localhost`, `127.0.0.1`, or `[::1]`).
+4. Refuses to run unless the database name is exactly `dms_lite`.
+5. Refuses to run while backend port `8080` or frontend port `3000` is listening.
+6. Requires explicit confirmation by typing exactly:
+
+```text
+RESET
+```
+
+7. Finds the PostgreSQL JDBC driver from the local Maven cache (`~/.m2/repository`).
+8. Writes a row-count CSV snapshot to the user's `Downloads` directory.
+9. Truncates application tables with `RESTART IDENTITY CASCADE`.
+10. Preserves `flyway_schema_history` and therefore preserves the current schema/migration history.
+11. Starts `run-local.bat` again so demo seed data can be recreated.
+
+### Before running reset
+
+- PostgreSQL must be running.
+- Stop the backend on port `8080`.
+- Stop the frontend on port `3000`.
+- `run-local.env.bat` must exist and point to the intended local database.
+- Java must be available.
+- The PostgreSQL JDBC driver must already exist in the Maven cache. Running the backend or Maven build once normally satisfies this requirement.
+
+### Important safety note
+
+The generated CSV is **only a row-count inventory**. It is not a restorable database backup.
+
+If the local data matters, create a real PostgreSQL backup with `pg_dump` before resetting.
+
+### Full local schema rebuild
+
+The reset script above is the recommended day-to-day option because it preserves Flyway history.
+
+If you intentionally need a completely empty local database, stop the application, drop/recreate **only your local `dms_lite` database**, and restart the backend so Flyway can replay the repository migrations. Do not use this procedure against a shared, staging, or production database, and do not edit/repair historical migrations merely to fix local data.
+
+---
+
+## Docker Compose
+
+`docker-compose.yml` provides an integration/demo stack containing:
+
+- PostgreSQL 16
+- Redis 7
+- RabbitMQ 3 with management UI
+- Spring Boot backend
+- React/Nginx frontend
+- Prometheus
+- Grafana
+
+### 1. Create Docker environment file
+
+```powershell
+Copy-Item ".\.env.example" ".\.env"
+notepad ".\.env"
+```
+
+Before a public deployment, replace the placeholder credentials/secrets and set the real frontend origin:
+
+```env
+SPRING_DATASOURCE_PASSWORD=<private-database-password>
+SPRING_RABBITMQ_PASSWORD=<private-rabbitmq-password>
+GF_SECURITY_ADMIN_PASSWORD=<private-grafana-password>
+APP_JWT_SECRET=<private-random-secret-at-least-32-characters>
+APP_CORS_ALLOWED_ORIGINS=https://your-frontend-domain
+```
+
+The backend actively rejects known unsafe/default JWT secrets when the active profile is `docker` or `prod`. Docker Compose forwards the backend runtime options from `.env`, including business timezone, demo password, Gemini configuration, notification queue, and optional PDF font overrides.
+
+### 2. Start the stack
+
+```powershell
 docker compose up -d --build
 ```
 
-Main service URLs:
+### 3. Check container state
 
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:8080`
-- Swagger: `http://localhost:8080/swagger-ui/index.html`
-- RabbitMQ Management: `http://localhost:15672`
-- Prometheus: `http://localhost:9090`
-- Grafana: `http://localhost:3001`
+```powershell
+docker compose ps
+```
 
-## Project Status
+### 4. View logs
 
-The current portfolio version focuses on a stable local/deployable vertical slice: authentication, product, customer, inventory, sales order, receivable debt, payment, invoice, dashboard/reporting, audit, notification, AI help, and team/permission management.
+```powershell
+docker compose logs -f backend
+docker compose logs -f frontend
+```
+
+### Docker URLs
+
+| Service | URL |
+| --- | --- |
+| Frontend | http://localhost:3000 |
+| Backend | http://localhost:8080 |
+| Swagger | http://localhost:8080/swagger-ui/index.html |
+| RabbitMQ Management | http://localhost:15672 |
+| Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3001 |
+
+### Stop Docker services
+
+```powershell
+docker compose down
+```
+
+To also delete the Docker PostgreSQL volume, use the destructive local command below only when you intentionally want to remove Docker data:
+
+```powershell
+docker compose down -v
+```
+
+### Monitoring note
+
+The Compose file includes Prometheus/Grafana as an integration scaffold. The backend security configuration does not expose `/actuator/prometheus` anonymously, so a real deployment should configure a secure scrape/authentication strategy instead of making metrics public.
+
+---
+
+## Environment Configuration
+
+### Backend variables
+
+| Variable | Purpose | Current default / note |
+| --- | --- | --- |
+| `SPRING_PROFILES_ACTIVE` | Runtime profile | local launcher uses `local`; Docker uses `docker` |
+| `SPRING_DATASOURCE_URL` | PostgreSQL JDBC URL | `jdbc:postgresql://localhost:5432/dms_lite` |
+| `SPRING_DATASOURCE_USERNAME` | DB username | `dms` in app config |
+| `SPRING_DATASOURCE_PASSWORD` | DB password | `dms` in app config; override outside local demo |
+| `APP_JWT_SECRET` | JWT signing secret | must be >= 32 chars; must be changed for docker/prod |
+| `APP_JWT_MINUTES` | Token lifetime | `180` |
+| `APP_CORS_ALLOWED_ORIGINS` | Allowed frontend origins | `http://localhost:3000` |
+| `APP_BUSINESS_ZONE` | Business timezone | `Asia/Ho_Chi_Minh` |
+| `APP_DEMO_ENABLED` | Backend demo seeding | local profile enables demo; Docker defaults to false and must opt in explicitly |
+| `APP_DEMO_PASSWORD` | Demo user password | `Demo@2026` |
+| `GEMINI_ENABLED` | Enable optional Gemini wording provider | `true` |
+| `GEMINI_API_KEY` | Gemini API key | blank by default |
+| `GEMINI_MODEL` | Gemini model name | configured in `application.yml` |
+| `GEMINI_MAX_OUTPUT_TOKENS` | Gemini output limit | `900` |
+| `SPRING_REDIS_HOST` | Redis host | profile-dependent |
+| `SPRING_RABBITMQ_HOST` | RabbitMQ host | profile-dependent |
+
+### Frontend variables
+
+| Variable | Purpose | Current default / note |
+| --- | --- | --- |
+| `VITE_API_BASE_URL` | REST API base URL | `http://localhost:8080/api` |
+| `VITE_DEMO_MODE` | Show demo-account login cards | false unless set to string `true` |
+| `VITE_DEMO_PASSWORD` | Password displayed/used by demo convenience UI | falls back to `Demo@2026` |
+
+### Secret handling
+
+Do not commit:
+
+- `.env`
+- `run-local.env.bat`
+- private JWT secrets
+- real database passwords
+- Gemini/API provider keys
+- private certificates/keys
+
+The repository `.gitignore` already excludes the main machine-specific secret files.
+
+---
+
+## Build and Test
+
+### Backend
+
+From the project root:
+
+```powershell
+cd backend
+mvn verify
+```
+
+The CI job also uses `mvn -B verify` with PostgreSQL 16 available.
+
+If your local test set requires the default database connection, make sure PostgreSQL is running or override the datasource variables for the test environment.
+
+### Frontend clean build
+
+```powershell
+cd frontend
+npm ci
+npm run build
+```
+
+Current frontend build script:
+
+```text
+tsc -b && vite build
+```
+
+Therefore a successful frontend build validates TypeScript compilation before producing the Vite bundle.
+
+### Recommended pre-commit checks
+
+```powershell
+git diff --check
+git status --short
+git diff --stat
+```
+
+Then run the affected backend tests and/or frontend build before committing.
+
+---
+
+## Database and Flyway
+
+- Database: PostgreSQL
+- Hibernate schema mode: `validate`
+- Flyway: enabled
+- Current repository migrations: `V1` through `V12`
+- Application business timezone default: `Asia/Ho_Chi_Minh`
+- Hibernate JDBC timezone: UTC
+
+Migration files live in:
+
+```text
+backend/src/main/resources/db/migration/
+```
+
+### Migration rules
+
+- Never edit an already-applied migration for a normal feature change.
+- Add a new migration for schema changes.
+- Do not use `flyway repair` as a shortcut for ordinary local-data problems.
+- Use the local reset utility for demo-data cleanup when schema history should remain intact.
+
+---
+
+## Security and RBAC
+
+### Authentication
+
+The backend uses JWT bearer authentication and stateless Spring Security sessions.
+
+Publicly permitted backend routes in the current security configuration include:
+
+```text
+/api/auth/login
+/swagger-ui/**
+/v3/api-docs/**
+/actuator/health
+/actuator/info
+```
+
+Other routes require authentication.
+
+### Role overview
+
+| Role | Main capabilities |
+| --- | --- |
+| Owner | Full operational/admin permission set |
+| Sales | Customer/product visibility, customer management, Draft order creation/cancel, supporting views |
+| Warehouse | Product/inventory operations and sales-order confirmation |
+| Accountant | Customer/order finance visibility, payments, debt, invoices, reports |
+
+Custom roles are also supported through Team/Role Management.
+
+### Tenant isolation
+
+Business entities and repository queries are tenant-scoped. Backend authorization remains authoritative even when the frontend hides routes or actions.
+
+### JWT deployment guard
+
+`APP_JWT_SECRET` must be at least 32 characters. In `docker` or `prod` profiles, the backend rejects known repository/default placeholder secrets during startup.
+
+---
 
 ## Current Business Invariants
 
-- Persisted sales order statuses are `DRAFT`, `COMPLETED`, and `CANCELLED`; current MVP confirm also performs fulfillment.
-- Revenue is recognized only for `COMPLETED` orders; report/dashboard analytics use the backend reporting read model and `confirmed_at` as the recognition time for completed orders.
-- Current receivable balance is `SUM(remaining_amount)` of open `INCREASE` transactions. `DECREASE` entries preserve payment history and are not subtracted twice.
-- Customer payments lock open receivables before validation/allocation.
-- Sales-order `paidAmount`/`debtAmount` snapshots are synchronized in the same payment transaction; open receivable `remainingAmount` stays the canonical balance. Draft/cancelled orders are not exposed as actual receivables.
-- Customer and sales-order detail screens use dedicated detail APIs instead of searching only the first list page.
-- Warehouse-dependent actions resolve and validate the configured tenant warehouse instead of assuming warehouse ID `1`.
-- New Sales Order, Invoice, and Payment references use tenant-scoped business-date numbering (`SO-`, `INV-`, `PAY-`) rather than database IDs.
-- Business-date rules use `APP_BUSINESS_ZONE` (default `Asia/Ho_Chi_Minh`) so due dates, overdue state, document numbering, and date-based reporting do not depend on the server machine timezone.
+These are important rules represented by the current source and should remain true unless a future change deliberately updates the business model.
+
+### Sales order
+
+```text
+DRAFT -> COMPLETED
+DRAFT -> CANCELLED
+```
+
+- Draft orders do not deduct stock.
+- Draft orders do not create revenue.
+- Draft orders do not create receivables.
+- Confirmation/fulfillment is allowed only from Draft.
+- Confirmation deducts stock, changes the order to Completed, stores `confirmedAt`, and creates receivable state when money remains owed.
+- Cancellation is allowed only from Draft and does not mutate stock/revenue/debt.
+
+### Payment
+
+- One payment targets one Completed sales order.
+- Partial settlement keeps an outstanding balance.
+- Final settlement removes the order from the outstanding worklist.
+- Overpayment is rejected.
+- Financial mutation uses locking and idempotency safeguards.
+- Receipt snapshots remain immutable after later payments.
+
+### Invoice
+
+- Invoice creation is automatic after final payment.
+- Partial payment does not create an invoice.
+- Final payment and invoice creation share the same transaction boundary.
+- Invoice issuance does not create a second receivable.
+
+### Receivable due date
+
+```text
+CURRENT   = more than 3 days remaining
+DUE_SOON  = 1-3 days remaining
+DUE_TODAY = today
+OVERDUE   = before today
+```
+
+The backend business date is authoritative for these classifications.
+
+---
+
+## Deployment Notes
+
+There is **no public demo URL committed in this README yet**. When a deployment is ready, replace the `Live Demo: Coming soon` line near the top with the actual HTTPS frontend URL.
+
+A typical public topology is:
+
+```text
+Browser
+  -> HTTPS frontend
+  -> HTTPS backend /api
+  -> PostgreSQL
+```
+
+### Backend deployment checklist
+
+Configure at least:
+
+```text
+SPRING_PROFILES_ACTIVE=prod   (or your provider's production profile strategy)
+SPRING_DATASOURCE_URL=...
+SPRING_DATASOURCE_USERNAME=...
+SPRING_DATASOURCE_PASSWORD=...
+APP_JWT_SECRET=<private 32+ character secret>
+APP_CORS_ALLOWED_ORIGINS=https://your-frontend-domain
+APP_BUSINESS_ZONE=Asia/Ho_Chi_Minh
+APP_DEMO_ENABLED=true|false
+```
+
+If the recruiter environment intentionally uses seeded demo identities, enable demo mode only against demo data.
+
+### Frontend deployment checklist
+
+Build-time variables include:
+
+```text
+VITE_API_BASE_URL=https://your-backend-domain/api
+VITE_DEMO_MODE=true|false
+VITE_DEMO_PASSWORD=<demo password when applicable>
+```
+
+The frontend uses Vite, so `VITE_*` values are build-time public configuration. Never place private backend secrets in frontend environment variables.
+
+### SPA routing
+
+A public static host must rewrite application routes to `index.html` so direct refreshes of routes such as `/dashboard`, `/sales-orders`, or `/payments` do not return a static-host 404.
+
+### Production hardening
+
+- Use HTTPS.
+- Use a private JWT secret.
+- Restrict CORS to the actual frontend origin.
+- Use a dedicated managed PostgreSQL account/password.
+- Keep metrics protected.
+- Do not expose real customer/company data in a recruiter demo.
+- Disable or isolate demo accounts for real production use.
+- Keep provider-specific secrets outside Git.
+
+---
+
+## CI
+
+GitHub Actions runs on every push and pull request.
+
+Current workflow:
+
+```text
+PostgreSQL 16 service
+  -> Java 17 / Maven cache
+  -> backend: mvn -B verify
+  -> Node 20 / npm cache
+  -> frontend: npm ci && npm run build
+```
+
+Workflow file:
+
+```text
+.github/workflows/ci.yml
+```
+
+---
+
+## Documentation
+
+Additional project documentation:
+
+- [`RUN_LOCAL.md`](RUN_LOCAL.md) - focused local run/reset guide
+- [`docs/architecture.md`](docs/architecture.md) - backend/system architecture notes
+- [`docs/business-flow.md`](docs/business-flow.md) - business workflow notes
+- [`docs/frontend/ARCHITECTURE.md`](docs/frontend/ARCHITECTURE.md) - frontend architecture notes
+- [`docs/release-checklist.md`](docs/release-checklist.md) - pre-release and UAT checklist
+
+Swagger/OpenAPI is available at runtime from the backend.
+
+---
 
 ## Roadmap
 
-- Complete end-to-end server-side pagination/search for high-volume list, lookup, statement, and report views
-- Improve frontend UX/UI
-- Add advanced dashboard charts
-- Add Excel import/export
-- Add PDF delivery note
-- Add more integration tests
-- Add inventory concurrency test coverage
-- Add fuller Redis/RabbitMQ Docker profile workflow
-- Maintain provider-specific deployment/runbook documentation
+Possible next iterations should preserve the current business invariants and permission model while extending the product deliberately.
 
-## CV Highlights
+Current roadmap themes:
 
-- Built a full-stack B2B distribution management SaaS using Java Spring Boot and React.
-- Designed a modular monolith backend with authentication, role-based permissions, product, customer, inventory, sales, debt, payment, audit, and reporting modules.
-- Implemented open-item receivable tracking with FIFO payment allocation, payment history, and pessimistic locking for concurrent payment safety.
-- Used PostgreSQL and Flyway for schema versioning.
-- Designed inventory transaction history and stock deduction flow.
-- Added Swagger API documentation and a local-first development profile.
-- Prepared Docker Compose, GitHub Actions, and a monitoring stack for a production-like setup.
+- Complete end-to-end server-side pagination/search for remaining high-volume views
+- Continue UI/UX consistency improvements
+- Expand dashboard/report visualization
+- Add Excel import/export workflows
+- Add delivery-note PDF support
+- Expand integration/concurrency coverage
+- Harden provider-specific deployment runbooks
+- Expand Redis/RabbitMQ integration where it provides real operational value
+
+Large architectural changes should be driven by actual requirements rather than added only for complexity.
+
+---
+
+## Portfolio Summary
+
+DMS Lite demonstrates:
+
+- Full-stack B2B workflow design with Spring Boot and React
+- Modular monolith / package-by-feature organization
+- JWT authentication, RBAC, and tenant-aware access
+- Transactional sales/inventory/receivable flows
+- Order-specific partial payments with idempotency and locking
+- Automatic invoice creation after final settlement
+- PostgreSQL + Flyway schema versioning
+- Permission-aware dashboard, notification, audit, and AI/help behavior
+- Local-first developer workflow plus Docker/CI foundations

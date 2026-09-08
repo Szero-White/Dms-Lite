@@ -42,6 +42,8 @@ class HelpAssistantServiceProvenanceTest {
         List.of(
             new SimpleGrantedAuthority("AI_HELP_VIEW"),
             new SimpleGrantedAuthority("CUSTOMER_VIEW"),
+            new SimpleGrantedAuthority("SALES_ORDER_VIEW"),
+            new SimpleGrantedAuthority("DEBT_VIEW"),
             new SimpleGrantedAuthority("PAYMENT_CREATE")
         )
     );

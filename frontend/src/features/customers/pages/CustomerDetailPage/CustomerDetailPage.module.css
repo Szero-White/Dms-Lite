@@ -139,6 +139,11 @@
 .debtOutstanding { color: #dc2626; font-weight: 700; font-variant-numeric: tabular-nums; }
 .debtClear { color: #059669; font-weight: 700; font-variant-numeric: tabular-nums; }
 
+.dueDateCell {
+  display: grid;
+  gap: 6px;
+}
+
 .fullWidth { width: 100%; }
 
 .modal :global(.ant-modal-body) { padding-top: 8px !important; }

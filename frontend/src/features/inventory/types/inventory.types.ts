@@ -28,6 +28,5 @@ export interface InventoryTransaction {
   beforeQuantity: number;
   afterQuantity: number;
   note?: string;
-  createdBy?: number;
   createdAt: string;
 }

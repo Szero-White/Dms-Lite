@@ -35,13 +35,13 @@ public class InventoryController {
 
     @GetMapping("/stock")
     @PreAuthorize("hasAuthority('INVENTORY_VIEW')")
-    public ApiResponse<List<StockItem>> stock() {
+    public ApiResponse<List<StockItemResponse>> stock() {
         return ApiResponse.ok(inventoryService.stock());
     }
 
     @GetMapping("/transactions")
     @PreAuthorize("hasAuthority('INVENTORY_VIEW')")
-    public ApiResponse<Page<InventoryTransaction>> history(
+    public ApiResponse<Page<InventoryTransactionResponse>> history(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "50") int size
     ) {

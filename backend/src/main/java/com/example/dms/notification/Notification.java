@@ -36,6 +36,12 @@ public class Notification {
     @Column(columnDefinition = "text")
     private String message;
 
+    /**
+     * Legacy V1 column kept for schema compatibility. User-specific read state is stored
+     * in notification_reads and this column must never be used as authorization/UI state.
+     */
+    @Deprecated
+    @Column(name = "read_flag", updatable = false)
     private boolean readFlag;
 
     private Instant createdAt;

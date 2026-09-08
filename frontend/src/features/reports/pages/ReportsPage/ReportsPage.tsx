@@ -5,8 +5,10 @@ import {
   DownOutlined,
   DownloadOutlined,
   EyeOutlined,
+  FilterOutlined,
   InboxOutlined,
   ReloadOutlined,
+  SearchOutlined,
   ShoppingCartOutlined,
   TeamOutlined,
   WarningOutlined,
@@ -14,11 +16,15 @@ import {
 import {
   Button,
   Card,
+  Checkbox,
   DatePicker,
   Descriptions,
   Drawer,
   Dropdown,
+  Input,
+  Popover,
   Progress,
+  Select,
   Space,
   Table,
   Tooltip,
@@ -35,6 +41,7 @@ import {
   SalesOrderStatusTag,
 } from '../../../../components/common/StatusTag';
 import { formatCurrency, formatDateTime, formatNumber, toNumber } from '../../../../lib/format';
+import { compareBoolean, compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
 import { PERMISSIONS, canViewCustomerBalance, hasPermission, useAuth } from '../../../auth';
 import { useCustomers } from '../../../customers';
 import { useDashboardData } from '../../../dashboard';
@@ -91,6 +98,10 @@ export function ReportsPage() {
   const [dateRange, setDateRange] = useState<[number, number] | null>(null);
   const [exporting, setExporting] = useState(false);
   const [selectedReportOrder, setSelectedReportOrder] = useState<SalesReportOrder | null>(null);
+  const [salesKeyword, setSalesKeyword] = useState('');
+  const [salesStatus, setSalesStatus] = useState('ALL');
+  const [salesCustomer, setSalesCustomer] = useState<number | 'ALL'>('ALL');
+  const [collectionFilters, setCollectionFilters] = useState<string[]>(['ALL']);
   const resolvedActiveTab = availableTabs.includes(activeTab) ? activeTab : availableTabs[0] ?? 'sales';
 
   const salesReportRange = useMemo(
@@ -111,6 +122,34 @@ export function ReportsPage() {
   const products = canViewInventoryProducts ? productsQuery.data ?? [] : [];
   const reportOrders = canViewOrders ? salesReportQuery.data?.orders ?? [] : [];
   const salesSummary = salesReportQuery.data?.summary;
+  const reportCustomers = useMemo(() => {
+    const byId = new Map<number, string>();
+    reportOrders.forEach((order) => byId.set(order.customerId, order.customerName ?? `#${order.customerId}`));
+    return [...byId.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+  }, [reportOrders]);
+  const filteredReportOrders = useMemo(() => {
+    const keyword = salesKeyword.trim().toLowerCase();
+    return reportOrders.filter((order) => {
+      const matchesKeyword = !keyword
+        || order.code.toLowerCase().includes(keyword)
+        || (order.customerName ?? '').toLowerCase().includes(keyword);
+      const matchesStatus = salesStatus === 'ALL' || order.status === salesStatus;
+      const matchesCustomer = salesCustomer === 'ALL' || order.customerId === salesCustomer;
+      const matchesCollection = collectionFilters.includes('ALL') || (
+        order.receivableRecognized && (
+          (collectionFilters.includes('UNPAID') && toNumber(order.collectedAmount) <= 0 && toNumber(order.remainingReceivable) > 0) ||
+          (collectionFilters.includes('PARTIAL') && toNumber(order.collectedAmount) > 0 && toNumber(order.remainingReceivable) > 0) ||
+          (collectionFilters.includes('PAID') && toNumber(order.remainingReceivable) <= 0)
+        )
+      );
+      return matchesKeyword && matchesStatus && matchesCustomer && matchesCollection;
+    });
+  }, [collectionFilters, reportOrders, salesCustomer, salesKeyword, salesStatus]);
+  const hasSalesTableFilters = Boolean(
+    salesKeyword || salesStatus !== 'ALL' || salesCustomer !== 'ALL' || !collectionFilters.includes('ALL')
+  );
   const salesRevenue = toNumber(salesSummary?.recognizedRevenue);
   const averageOrderValue = toNumber(salesSummary?.averageCompletedOrderValue);
   const completedCount = salesSummary?.completedOrders ?? 0;
@@ -144,7 +183,7 @@ export function ReportsPage() {
       await exportReport(format, {
         activeTab: resolvedActiveTab,
         customers,
-        salesOrders: reportOrders,
+        salesOrders: resolvedActiveTab === 'sales' ? filteredReportOrders : reportOrders,
         products,
         t,
       });
@@ -226,27 +265,124 @@ export function ReportsPage() {
                       </div>
 
                       <Card title={t('reports.title')} className="panel-card">
+                        <div className={styles.salesTableFilters}>
+                          <Input
+                            allowClear
+                            className={styles.salesSearch}
+                            prefix={<SearchOutlined />}
+                            placeholder={t('reports.filters.searchPlaceholder')}
+                            value={salesKeyword}
+                            onChange={(event) => setSalesKeyword(event.target.value)}
+                          />
+                          <Select
+                            className={styles.salesFilter}
+                            value={salesStatus}
+                            onChange={setSalesStatus}
+                            options={[
+                              { value: 'ALL', label: t('reports.filters.allStatuses') },
+                              { value: 'DRAFT', label: t('status.sales.DRAFT') },
+                              { value: 'COMPLETED', label: t('status.sales.COMPLETED') },
+                              { value: 'CANCELLED', label: t('status.sales.CANCELLED') },
+                            ]}
+                          />
+                          <Select
+                            showSearch
+                            optionFilterProp="label"
+                            className={styles.salesCustomerFilter}
+                            value={salesCustomer}
+                            onChange={setSalesCustomer}
+                            options={[
+                              { value: 'ALL', label: t('reports.filters.allCustomers') },
+                              ...reportCustomers.map((customer) => ({ value: customer.id, label: customer.name })),
+                            ]}
+                          />
+                          <Popover
+                            trigger="click"
+                            placement="bottomLeft"
+                            content={(
+                              <div className={styles.collectionFilterMenu}>
+                                <Typography.Text strong>{t('reports.filters.collectionStatus')}</Typography.Text>
+                                <Checkbox.Group
+                                  className={styles.collectionFilterGroup}
+                                  value={collectionFilters}
+                                  options={[
+                                    { value: 'ALL', label: t('reports.filters.collectionAll') },
+                                    { value: 'UNPAID', label: t('reports.filters.collectionUnpaid') },
+                                    { value: 'PARTIAL', label: t('reports.filters.collectionPartial') },
+                                    { value: 'PAID', label: t('reports.filters.collectionPaid') },
+                                  ]}
+                                  onChange={(values) => {
+                                    const next = values.map(String);
+                                    const previousAll = collectionFilters.includes('ALL');
+                                    const nextAll = next.includes('ALL');
+                                    if (nextAll && !previousAll) {
+                                      setCollectionFilters(['ALL']);
+                                      return;
+                                    }
+                                    const specific = next.filter((value) => value !== 'ALL');
+                                    setCollectionFilters(specific.length > 0 ? specific : ['ALL']);
+                                  }}
+                                />
+                              </div>
+                            )}
+                          >
+                            <Button icon={<FilterOutlined />}>
+                              {t('reports.filters.collectionStatus')}
+                              {!collectionFilters.includes('ALL') ? ` (${collectionFilters.length})` : ''}
+                            </Button>
+                          </Popover>
+                          <Button
+                            disabled={!hasSalesTableFilters}
+                            onClick={() => {
+                              setSalesKeyword('');
+                              setSalesStatus('ALL');
+                              setSalesCustomer('ALL');
+                              setCollectionFilters(['ALL']);
+                            }}
+                          >
+                            {t('common.clearFilters')}
+                          </Button>
+                        </div>
+                        {hasSalesTableFilters ? (
+                          <div className={styles.salesFilterChips}>
+                            {salesKeyword ? <Tag closable onClose={() => setSalesKeyword('')}>{t('reports.filters.searchChip', { keyword: salesKeyword })}</Tag> : null}
+                            {salesStatus !== 'ALL' ? <Tag closable onClose={() => setSalesStatus('ALL')}>{t(`status.sales.${salesStatus}`)}</Tag> : null}
+                            {salesCustomer !== 'ALL' ? <Tag closable onClose={() => setSalesCustomer('ALL')}>{reportCustomers.find((customer) => customer.id === salesCustomer)?.name ?? salesCustomer}</Tag> : null}
+                            {!collectionFilters.includes('ALL') ? collectionFilters.map((filter) => (
+                              <Tag key={filter} closable onClose={() => {
+                                const next = collectionFilters.filter((value) => value !== filter);
+                                setCollectionFilters(next.length > 0 ? next : ['ALL']);
+                              }}>
+                                {t(`reports.filters.collection.${filter}`)}
+                              </Tag>
+                            )) : null}
+                          </div>
+                        ) : null}
                         <Table
                           rowKey="id"
                           size="small"
                           scroll={{ x: 1180 }}
-                          dataSource={reportOrders}
+                          sortDirections={TABLE_SORT_DIRECTIONS}
+                          showSorterTooltip={false}
+                          dataSource={filteredReportOrders}
                           locale={{ emptyText: t('reports.empty.noSalesOrders') }}
                           columns={[
-                            { title: t('reports.table.order'), dataIndex: 'code', width: 160 },
+                            { title: t('reports.table.order'), dataIndex: 'code', width: 160, sorter: (first, second) => compareText(first.code, second.code) },
                             {
                               title: t('reports.table.customer'),
                               width: 230,
+                              sorter: (first, second) => compareText(first.customerName, second.customerName),
                               render: (_, order) => order.customerName ?? '--',
                             },
-                            { title: t('reports.table.reportDate'), dataIndex: 'reportDate', width: 170, render: (value) => formatDateTime(value) },
-                            { title: t('reports.table.status'), dataIndex: 'status', width: 130, render: (v) => <SalesOrderStatusTag status={v} /> },
-                            { title: t('reports.table.orderTotal'), dataIndex: 'totalAmount', width: 150, align: 'right', render: (value) => formatCurrency(value) },
-                            { title: t('reports.table.collected'), dataIndex: 'collectedAmount', width: 150, align: 'right', render: (value, order) => order.receivableRecognized ? formatCurrency(value) : t('reports.value.notApplicable') },
-                            { title: t('reports.table.remainingDebt'), dataIndex: 'remainingReceivable', width: 170, align: 'right', render: (value, order) => order.receivableRecognized ? formatCurrency(value) : t('reports.value.notRecognized') },
+                            { title: t('reports.table.reportDate'), dataIndex: 'reportDate', width: 170, defaultSortOrder: 'descend', sorter: (first, second) => compareDate(first.reportDate, second.reportDate), render: (value) => formatDateTime(value) },
+                            { title: t('reports.table.status'), dataIndex: 'status', width: 130, sorter: (first, second) => compareText(first.status, second.status), render: (v) => <SalesOrderStatusTag status={v} /> },
+                            { title: t('reports.table.orderTotal'), dataIndex: 'totalAmount', width: 150, align: 'right', sorter: (first, second) => compareNumber(first.totalAmount, second.totalAmount), render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.collected'), dataIndex: 'collectedAmount', width: 150, align: 'right', sorter: (first, second) => compareNumber(first.collectedAmount, second.collectedAmount), render: (value, order) => order.receivableRecognized ? formatCurrency(value) : t('reports.value.notApplicable') },
+                            { title: t('reports.table.remainingDebt'), dataIndex: 'remainingReceivable', width: 170, align: 'right', sorter: (first, second) => compareNumber(first.remainingReceivable, second.remainingReceivable), render: (value, order) => order.receivableRecognized ? formatCurrency(value) : t('reports.value.notRecognized') },
                             {
                               title: t('reports.table.collectionProgress'),
                               width: 180,
+                              sorter: (first, second) => compareNumber(first.collectionProgress, second.collectionProgress),
                               render: (_, order) => {
                                 if (!order.receivableRecognized || order.collectionProgress === null) {
                                   return t('reports.value.notApplicable');
@@ -302,15 +438,17 @@ export function ReportsPage() {
 
                       <Card title={t('reports.title')} className="panel-card">
                         <Table rowKey="id" size="small" scroll={{ x: 820 }}
+                          sortDirections={TABLE_SORT_DIRECTIONS}
+                          showSorterTooltip={false}
                           dataSource={products}
                           locale={{ emptyText: t('reports.empty.noInventory') }}
                           columns={[
-                            { title: t('reports.table.sku'), dataIndex: 'sku' },
-                            { title: t('reports.table.product'), dataIndex: 'name' },
-                            { title: t('reports.table.onHand'), dataIndex: 'stock', align: 'right' },
-                            { title: t('reports.table.minimum'), dataIndex: 'minStock', align: 'right' },
-                            { title: t('reports.table.costValue'), align: 'right', render: (_, r) => formatCurrency(toNumber(r.costPrice) * toNumber(r.stock)) },
-                            { title: t('reports.table.status'), render: (_, r) => <ProductStatusTag active={r.active} isLowStock={r.isLowStock} /> },
+                            { title: t('reports.table.sku'), dataIndex: 'sku', sorter: (first, second) => compareText(first.sku, second.sku) },
+                            { title: t('reports.table.product'), dataIndex: 'name', sorter: (first, second) => compareText(first.name, second.name) },
+                            { title: t('reports.table.onHand'), dataIndex: 'stock', align: 'right', sorter: (first, second) => compareNumber(first.stock, second.stock) },
+                            { title: t('reports.table.minimum'), dataIndex: 'minStock', align: 'right', sorter: (first, second) => compareNumber(first.minStock, second.minStock) },
+                            { title: t('reports.table.costValue'), align: 'right', sorter: (first, second) => compareNumber(toNumber(first.costPrice) * toNumber(first.stock), toNumber(second.costPrice) * toNumber(second.stock)), render: (_, r) => formatCurrency(toNumber(r.costPrice) * toNumber(r.stock)) },
+                            { title: t('reports.table.status'), sorter: (first, second) => compareBoolean(first.isLowStock, second.isLowStock) || compareBoolean(first.active, second.active), render: (_, r) => <ProductStatusTag active={r.active} isLowStock={r.isLowStock} /> },
                           ]}
                         />
                       </Card>
@@ -381,15 +519,24 @@ export function ReportsPage() {
 
                       <Card title={t('reports.title')} className="panel-card">
                         <Table rowKey="id" size="small" scroll={{ x: 900 }}
+                          sortDirections={TABLE_SORT_DIRECTIONS}
+                          showSorterTooltip={false}
                           dataSource={[...customers].sort((a, b) => toNumber(b.debtBalance) - toNumber(a.debtBalance))}
                           locale={{ emptyText: t('reports.empty.noReceivables') }}
                           columns={[
-                            { title: t('reports.table.customer'), dataIndex: 'name' },
-                            { title: t('reports.table.term'), dataIndex: 'paymentTermDays', render: (v) => t('reports.table.days', { count: v }) },
-                            { title: t('reports.table.debt'), dataIndex: 'debtBalance', align: 'right', render: (value) => formatCurrency(value) },
-                            { title: t('reports.table.creditLimit'), dataIndex: 'creditLimit', align: 'right', render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.customer'), dataIndex: 'name', sorter: (first, second) => compareText(first.name, second.name) },
+                            { title: t('reports.table.term'), dataIndex: 'paymentTermDays', sorter: (first, second) => compareNumber(first.paymentTermDays, second.paymentTermDays), render: (v) => t('reports.table.days', { count: v }) },
+                            { title: t('reports.table.debt'), dataIndex: 'debtBalance', align: 'right', defaultSortOrder: 'descend', sorter: (first, second) => compareNumber(first.debtBalance, second.debtBalance), render: (value) => formatCurrency(value) },
+                            { title: t('reports.table.creditLimit'), dataIndex: 'creditLimit', align: 'right', sorter: (first, second) => compareNumber(first.creditLimit, second.creditLimit), render: (value) => formatCurrency(value) },
                             {
                               title: t('reports.table.utilization'), width: 220,
+                              sorter: (first, second) => {
+                                const firstLimit = toNumber(first.creditLimit);
+                                const secondLimit = toNumber(second.creditLimit);
+                                const firstUsage = firstLimit > 0 ? toNumber(first.debtBalance) / firstLimit : 0;
+                                const secondUsage = secondLimit > 0 ? toNumber(second.debtBalance) / secondLimit : 0;
+                                return firstUsage - secondUsage;
+                              },
                               render: (_, r) => {
                                 const lim = toNumber(r.creditLimit);
                                 const pct = lim > 0 ? Math.round((toNumber(r.debtBalance) / lim) * 100) : 0;

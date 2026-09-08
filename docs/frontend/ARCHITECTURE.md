@@ -30,8 +30,13 @@ frontend/src/
 │   ├── audit/
 │   ├── help/
 │   └── team/
+├── i18n/
 ├── lib/
+├── services/
+│   └── apiClient.ts
 ├── styles/
+├── types/
+│   └── index.ts
 ├── main.tsx
 └── vite-env.d.ts
 ```
@@ -90,7 +95,8 @@ The naming may differ slightly where frontend routes use plural form, but owners
 - Truly shared UI components belong in `src/components/common`.
 - Application shell, navigation, route guards, and provider composition belong in `src/app`.
 - App-level layouts belong in `src/app/layouts`.
-- Shared utilities such as `apiClient`, formatters, and reusable helpers belong in `src/lib`.
+- Shared formatters/query-key helpers belong in `src/lib`; the singleton HTTP transport client lives in `src/services/apiClient.ts`.
+- `src/types/index.ts` is reserved for genuinely cross-feature transport wrappers such as `ApiResponse<T>` and `PageResponse<T>`; domain models stay inside their owning feature.
 - CSS Modules must sit next to the component that owns them.
 - Global CSS must stay inside `src/styles`.
 - A component used by only one page must not be moved into shared.
@@ -129,7 +135,7 @@ The naming may differ slightly where frontend routes use plural form, but owners
 ## Anti-Patterns
 
 - `useAppQueries.ts` containing queries for the entire system.
-- `types/index.ts` acting as one global dumping ground for all domains.
+- `types/index.ts` acting as a global dumping ground for domain models instead of containing only small shared transport contracts.
 - One feature split across `pages`, `hooks`, `services`, and `types` at app root with no clear ownership.
 - Shared folders containing components used by only one page.
 - Keeping legacy app shell code in `src/components/layout` after it has moved to `src/app/layouts`.

@@ -29,9 +29,10 @@ public class CustomerController {
     @PreAuthorize("hasAuthority('CUSTOMER_VIEW')")
     public ApiResponse<Page<CustomerResponse>> list(
         @RequestParam(defaultValue = "") String keyword,
-        @RequestParam(defaultValue = "0") int page
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
     ) {
-        return ApiResponse.ok(customerService.list(keyword, page));
+        return ApiResponse.ok(customerService.list(keyword, page, size));
     }
 
     @GetMapping("/{id}")

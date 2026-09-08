@@ -23,7 +23,6 @@ public interface HelpInteractionRepository extends JpaRepository<HelpInteraction
             or lower(h.answer) like lower(concat('%', :keyword, '%'))
             or lower(coalesce(h.scopeNotice, '')) like lower(concat('%', :keyword, '%'))
           )
-        order by h.createdAt desc
         """)
     Page<HelpInteraction> searchHistory(
         @Param("tenantId") Long tenantId,

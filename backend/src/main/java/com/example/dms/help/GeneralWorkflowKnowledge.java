@@ -162,18 +162,14 @@ final class GeneralWorkflowKnowledge {
                 : "Monitor the sales orders you are allowed to view and hand actions to the role with the matching permission.");
         }
 
-        if (scope.has(PermissionNames.INVOICE_ISSUE) || scope.has(PermissionNames.INVOICE_CANCEL)) {
+        if (scope.has(PermissionNames.INVOICE_ISSUE)) {
             steps.add(locale == HelpLocale.VI
-                ? "Kiểm tra hóa đơn Nháp/Đã phát hành và chỉ phát hành hoặc hủy khi đúng điều kiện nghiệp vụ."
-                : "Review Draft/Issued invoices and only issue or cancel them when business rules allow it.");
-        } else if (scope.has(PermissionNames.INVOICE_CREATE)) {
-            steps.add(locale == HelpLocale.VI
-                ? "Tạo hóa đơn từ đơn bán hàng đã Hoàn tất; không tạo thêm công nợ lần thứ hai."
-                : "Create invoices from Completed sales orders without creating a second receivable.");
+                ? "Theo dõi hóa đơn tự sinh khi đơn đã thu đủ và phát hành chứng từ sau khi kiểm tra thông tin."
+                : "Review invoices created automatically after full collection and issue documents after checking their details.");
         } else if (scope.has(PermissionNames.INVOICE_VIEW)) {
             steps.add(locale == HelpLocale.VI
-                ? "Kiểm tra các hóa đơn được phép xem và chuyển thao tác phát hành/hủy cho vai trò có quyền."
-                : "Review visible invoices and hand issue/cancel actions to an authorized role.");
+                ? "Theo dõi hóa đơn tự sinh của các đơn đã thu đủ; không cần tạo hóa đơn thủ công."
+                : "Review automatically generated invoices for fully paid orders; manual invoice creation is not required.");
         }
 
         if (scope.has(PermissionNames.INVENTORY_MANAGE)) {
@@ -186,14 +182,10 @@ final class GeneralWorkflowKnowledge {
                 : "Monitor stock and low-stock alerts, and hand adjustments to a role with inventory management permission.");
         }
 
-        if (scope.has(PermissionNames.PAYMENT_CREATE) && scope.has(PermissionNames.DEBT_VIEW)) {
+        if (scope.canUsePayments()) {
             steps.add(locale == HelpLocale.VI
-                ? "Đối chiếu công nợ rồi ghi nhận đúng khoản tiền thực nhận của khách hàng."
-                : "Reconcile receivables and record the exact amount actually received from the customer.");
-        } else if (scope.has(PermissionNames.PAYMENT_CREATE)) {
-            steps.add(locale == HelpLocale.VI
-                ? "Ghi nhận khoản tiền thực nhận trong Thanh toán theo phạm vi dữ liệu được cấp."
-                : "Record money actually received in Payments within your assigned data scope.");
+                ? "Đối chiếu công nợ, chọn đúng đơn còn phải thu rồi ghi nhận đúng khoản tiền thực nhận cho đơn đó."
+                : "Reconcile receivables, select the exact outstanding sales order, and record the amount actually received for that order.");
         } else if (scope.has(PermissionNames.DEBT_VIEW)) {
             steps.add(locale == HelpLocale.VI
                 ? "Theo dõi công nợ và khoản quá hạn; việc ghi nhận tiền phải do vai trò có quyền Thanh toán thực hiện."

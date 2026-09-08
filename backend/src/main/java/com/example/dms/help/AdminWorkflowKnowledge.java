@@ -13,6 +13,8 @@ final class AdminWorkflowKnowledge {
                     "Mở Quản lý truy cập.",
                     "Chọn Tạo nhân viên mới, sau đó nhập tên đăng nhập, họ tên và mật khẩu tạm thời.",
                     "Gán vai trò đúng với công việc như Nhân viên bán hàng, Nhân viên kho hoặc Kế toán.",
+                    "Với tài khoản nhân viên tự tạo, có thể đổi tên đăng nhập hoặc đặt mật khẩu mới; hệ thống không bao giờ hiển thị mật khẩu hiện tại.",
+                    "Bốn tài khoản demo mặc định được bảo vệ khi chế độ demo đang bật.",
                     "Chỉ tạo vai trò tùy chỉnh khi vai trò hệ thống chưa khớp với mô hình vận hành của doanh nghiệp.",
                     "Khi nhân viên nghỉ việc, nên vô hiệu hóa tài khoản thay vì xóa dấu vết kiểm toán."
                 ),
@@ -32,6 +34,8 @@ final class AdminWorkflowKnowledge {
                 "Open Team Access.",
                 "Choose New Member, then enter username, full name and a temporary password.",
                 "Assign the role that matches the employee's job, such as Sales, Warehouse or Accountant.",
+                "For staff accounts created by the company, you can change the username or set a new password; the current password is never displayed.",
+                "The four default demo accounts stay protected while demo mode is enabled.",
                 "Create a custom role only when the default system roles do not match the customer's operating model.",
                 "Deactivate staff who leave the company instead of deleting their audit trail."
             ),

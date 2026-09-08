@@ -7,16 +7,26 @@ import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
 import com.example.dms.debt.CustomerDebtTransaction;
+import com.example.dms.inventory.InventoryTransaction;
+import com.example.dms.inventory.InventoryTransactionRepository;
 import com.example.dms.inventory.StockItem;
 import com.example.dms.inventory.StockItemRepository;
 import com.example.dms.product.Product;
 import com.example.dms.product.ProductRepository;
+import com.example.dms.payment.Payment;
+import com.example.dms.payment.PaymentRepository;
+import com.example.dms.payment.PaymentWorkspaceAccessPolicy;
 import com.example.dms.user.PermissionNames;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -51,7 +61,11 @@ public class NotificationQueryService {
 
     private final NotificationRepository notificationRepository;
 
+    private final NotificationReadRepository notificationReads;
+
     private final StockItemRepository stockItems;
+
+    private final InventoryTransactionRepository inventoryTransactions;
 
     private final ProductRepository products;
 
@@ -59,16 +73,53 @@ public class NotificationQueryService {
 
     private final CustomerRepository customers;
 
+    private final PaymentRepository payments;
+
     private final BusinessTimeProvider businessTimeProvider;
 
     @Transactional(readOnly = true)
     public List<NotificationFeedItem> listRecent(int size, Authentication authentication) {
         Long tenantId = TenantContext.tenantRequired();
+        Long userId = userRequired();
         Set<String> permissions = permissions(authentication);
         int boundedSize = Math.min(Math.max(size, 1), MAX_FEED_SIZE);
-        List<NotificationFeedItem> feed = new ArrayList<>();
+        List<NotificationFeedItem> feed = buildVisibleFeed(tenantId, permissions, boundedSize);
 
+        return applyPerUserReadState(feed, tenantId, userId);
+    }
+
+    @Transactional
+    public void setReadState(String notificationId, boolean read, Authentication authentication) {
+        Long tenantId = TenantContext.tenantRequired();
+        Long userId = userRequired();
+        Set<String> permissions = permissions(authentication);
+        NotificationFeedItem item = resolveVisibleNotification(notificationId, tenantId, permissions);
+        String notificationKey = readStateKey(item);
+
+        if (read) {
+            notificationReads.insertIfAbsent(tenantId, userId, notificationKey);
+        } else {
+            notificationReads.deleteReceipt(tenantId, userId, notificationKey);
+        }
+    }
+
+    private List<NotificationFeedItem> buildVisibleFeed(Long tenantId, Set<String> permissions, int size) {
+        List<NotificationFeedItem> feed = new ArrayList<>();
         feed.addAll(apiNotifications(tenantId, permissions));
+        feed.addAll(derivedNotifications(tenantId, permissions));
+
+        return feed.stream()
+            .sorted(
+                Comparator.comparing(NotificationFeedItem::createdAt)
+                    .reversed()
+                    .thenComparing(NotificationFeedItem::id)
+            )
+            .limit(size)
+            .toList();
+    }
+
+    private List<NotificationFeedItem> derivedNotifications(Long tenantId, Set<String> permissions) {
+        List<NotificationFeedItem> feed = new ArrayList<>();
         if (canBuildStockNotifications(permissions)) {
             feed.addAll(lowStockNotifications(tenantId));
         }
@@ -78,30 +129,97 @@ public class NotificationQueryService {
         if (canBuildPaymentNotifications(permissions)) {
             feed.addAll(paymentNotifications(tenantId));
         }
+        return feed;
+    }
+
+    private NotificationFeedItem resolveVisibleNotification(
+        String notificationId,
+        Long tenantId,
+        Set<String> permissions
+    ) {
+        if (notificationId.matches("\\d+")) {
+            try {
+                Long persistedId = Long.valueOf(notificationId);
+                Notification notification = notificationRepository.findByIdAndTenantId(persistedId, tenantId)
+                    .orElseThrow(() -> new BusinessException("Notification not found"));
+                if (!NotificationPermissionPolicy.canView(notification.getType(), permissions)) {
+                    throw new BusinessException("Notification not found");
+                }
+                return persistedNotificationItem(notification);
+            } catch (NumberFormatException exception) {
+                throw new BusinessException("Notification not found");
+            }
+        }
+
+        return derivedNotifications(tenantId, permissions)
+            .stream()
+            .filter(candidate -> candidate.id().equals(notificationId))
+            .findFirst()
+            .orElseThrow(() -> new BusinessException("Notification not found"));
+    }
+
+    private List<NotificationFeedItem> applyPerUserReadState(
+        List<NotificationFeedItem> feed,
+        Long tenantId,
+        Long userId
+    ) {
+        if (feed.isEmpty()) {
+            return feed;
+        }
+
+        Set<String> keys = feed.stream()
+            .map(this::readStateKey)
+            .collect(Collectors.toSet());
+        Set<String> readKeys = notificationReads.findByTenantIdAndUserIdAndNotificationKeyIn(
+                tenantId,
+                userId,
+                keys
+            )
+            .stream()
+            .map(NotificationRead::getNotificationKey)
+            .collect(Collectors.toCollection(HashSet::new));
 
         return feed.stream()
-            .sorted(Comparator.comparing(NotificationFeedItem::createdAt).reversed())
-            .limit(boundedSize)
+            .map(item -> new NotificationFeedItem(
+                item.id(),
+                item.type(),
+                item.title(),
+                item.message(),
+                readKeys.contains(readStateKey(item)),
+                item.createdAt(),
+                item.source()
+            ))
             .toList();
     }
 
-    @Transactional
-    public void markRead(Long notificationId, Authentication authentication) {
-        Set<String> permissions = permissions(authentication);
-        Notification notification = notificationRepository.findByIdAndTenantId(
-                notificationId,
-                TenantContext.tenantRequired()
-            )
-            .orElseThrow(() -> new BusinessException("Notification not found"));
-
-        // Treat an out-of-scope notification as not found so the endpoint does not reveal its existence.
-        if (!NotificationPermissionPolicy.canView(notification.getType(), permissions)) {
-            throw new BusinessException("Notification not found");
+    private String readStateKey(NotificationFeedItem item) {
+        if (API_SOURCE.equals(item.source())) {
+            return API_SOURCE + ":" + item.id();
         }
 
-        if (!notification.isReadFlag()) {
-            notification.setReadFlag(true);
+        // Derived notifications do not have their own persisted event row. Version the
+        // receipt by the current business message so a materially changed low-stock or
+        // overdue condition can become unread again for the same user.
+        String fingerprintSource = item.type() + "\n" + item.message();
+        return DERIVED_SOURCE + ":" + item.id() + ":" + shortSha256(fingerprintSource);
+    }
+
+    private String shortSha256(String value) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                .digest(value.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest, 0, 12);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
         }
+    }
+
+    private Long userRequired() {
+        Long userId = TenantContext.user();
+        if (userId == null) {
+            throw new IllegalStateException("Missing authenticated user");
+        }
+        return userId;
     }
 
     private List<NotificationFeedItem> apiNotifications(Long tenantId, Set<String> permissions) {
@@ -116,16 +234,20 @@ public class NotificationQueryService {
                 PageRequest.of(0, API_NOTIFICATION_LIMIT)
             )
             .stream()
-            .map(notification -> new NotificationFeedItem(
-                String.valueOf(notification.getId()),
-                notification.getType(),
-                notification.getTitle(),
-                notification.getMessage(),
-                notification.isReadFlag(),
-                notification.getCreatedAt(),
-                API_SOURCE
-            ))
+            .map(this::persistedNotificationItem)
             .toList();
+    }
+
+    private NotificationFeedItem persistedNotificationItem(Notification notification) {
+        return new NotificationFeedItem(
+            String.valueOf(notification.getId()),
+            notification.getType(),
+            notification.getTitle(),
+            notification.getMessage(),
+            false,
+            notification.getCreatedAt(),
+            API_SOURCE
+        );
     }
 
     private List<NotificationFeedItem> lowStockNotifications(Long tenantId) {
@@ -136,13 +258,19 @@ public class NotificationQueryService {
         Map<Long, Product> productMap = productsById(tenantId, lowStockItems.stream()
             .map(StockItem::getProductId)
             .collect(Collectors.toSet()));
-        Instant createdAt = Instant.now();
-
         return lowStockItems.stream()
             .map(stockItem -> {
                 Product product = productMap.get(stockItem.getProductId());
                 String productName = product == null ? "Product #" + stockItem.getProductId() : product.getName();
                 int minStock = product == null ? 0 : product.getMinStock();
+                Instant eventAt = inventoryTransactions
+                    .findFirstByTenantIdAndWarehouseIdAndProductIdOrderByCreatedAtDesc(
+                        tenantId,
+                        stockItem.getWarehouseId(),
+                        stockItem.getProductId()
+                    )
+                    .map(InventoryTransaction::getCreatedAt)
+                    .orElse(Instant.EPOCH);
 
                 return new NotificationFeedItem(
                     "low-stock-" + stockItem.getId(),
@@ -151,7 +279,7 @@ public class NotificationQueryService {
                     productName + " is at " + stockItem.getQuantityOnHand() +
                         " units, at or below minimum " + minStock + ".",
                     false,
-                    createdAt,
+                    eventAt,
                     DERIVED_SOURCE
                 );
             })
@@ -177,23 +305,28 @@ public class NotificationQueryService {
             BigDecimal remaining = debt.getRemainingAmount() == null
                 ? BigDecimal.ZERO
                 : debt.getRemainingAmount();
-            Instant createdAt = debt.getCreatedAt() == null ? Instant.EPOCH : debt.getCreatedAt();
+            Instant eventAt = overdueEventAt(debt);
 
             summaries.merge(
                 customerId,
-                new OverdueDebtSummary(customerId, remaining, createdAt),
+                new OverdueDebtSummary(customerId, remaining, eventAt),
                 (current, incoming) -> new OverdueDebtSummary(
                     customerId,
                     current.amount().add(incoming.amount()),
-                    current.createdAt().isBefore(incoming.createdAt())
-                        ? current.createdAt()
-                        : incoming.createdAt()
+                    current.eventAt().isAfter(incoming.eventAt())
+                        ? current.eventAt()
+                        : incoming.eventAt()
                 )
             );
         }
 
         List<OverdueDebtSummary> limitedSummaries = summaries.values()
             .stream()
+            .sorted(
+                Comparator.comparing(OverdueDebtSummary::eventAt)
+                    .reversed()
+                    .thenComparing(OverdueDebtSummary::customerId)
+            )
             .limit(DERIVED_GROUP_LIMIT)
             .toList();
         Map<Long, Customer> customerMap = customersById(tenantId, limitedSummaries.stream()
@@ -208,33 +341,58 @@ public class NotificationQueryService {
                 customerName(customerMap, summary.customerId()) + " has overdue receivable of " +
                     formatMoney(summary.amount()) + " VND.",
                 false,
-                summary.createdAt(),
+                summary.eventAt(),
                 DERIVED_SOURCE
             ))
             .toList();
     }
 
+    private Instant overdueEventAt(CustomerDebtTransaction debt) {
+        if (debt.getDueDate() != null) {
+            return businessTimeProvider.startOfDay(debt.getDueDate().plusDays(1));
+        }
+        return debt.getCreatedAt() == null ? Instant.EPOCH : debt.getCreatedAt();
+    }
+
     private List<NotificationFeedItem> paymentNotifications(Long tenantId) {
-        List<CustomerDebtTransaction> payments = debts.findByTenantIdAndSourceTypeOrderByCreatedAtDesc(
+        List<CustomerDebtTransaction> paymentEntries = debts.findByTenantIdAndSourceTypeOrderByCreatedAtDesc(
             tenantId,
             PAYMENT_SOURCE,
             PageRequest.of(0, DERIVED_GROUP_LIMIT)
         );
-        Map<Long, Customer> customerMap = customersById(tenantId, payments.stream()
+        Map<Long, Customer> customerMap = customersById(tenantId, paymentEntries.stream()
             .map(CustomerDebtTransaction::getCustomerId)
             .collect(Collectors.toSet()));
+        Set<Long> paymentIds = paymentEntries.stream()
+            .map(CustomerDebtTransaction::getSourceId)
+            .filter(java.util.Objects::nonNull)
+            .collect(Collectors.toSet());
+        Map<Long, Payment> paymentMap = paymentIds.isEmpty()
+            ? Map.of()
+            : payments.findByTenantIdAndIdIn(tenantId, paymentIds)
+                .stream()
+                .collect(Collectors.toMap(Payment::getId, Function.identity()));
 
-        return payments.stream()
-            .map(payment -> new NotificationFeedItem(
-                "payment-" + payment.getId(),
-                "PAYMENT_RECORDED",
-                "Payment recorded",
-                customerName(customerMap, payment.getCustomerId()) + " paid " +
-                    formatMoney(payment.getAmount()) + " VND.",
-                false,
-                payment.getCreatedAt(),
-                DERIVED_SOURCE
-            ))
+        return paymentEntries.stream()
+            .map(paymentEntry -> {
+                Payment payment = paymentMap.get(paymentEntry.getSourceId());
+                String customer = customerName(customerMap, paymentEntry.getCustomerId());
+                String amount = formatMoney(paymentEntry.getAmount());
+                String orderCode = payment == null ? null : payment.getSalesOrderCodeSnapshot();
+                String message = orderCode == null || orderCode.isBlank()
+                    ? customer + " paid " + amount + " VND."
+                    : customer + " paid " + amount + " VND for order " + orderCode + ".";
+
+                return new NotificationFeedItem(
+                    "payment-" + paymentEntry.getId(),
+                    "PAYMENT_RECORDED",
+                    "Payment recorded",
+                    message,
+                    false,
+                    paymentEntry.getCreatedAt(),
+                    DERIVED_SOURCE
+                );
+            })
             .toList();
     }
 
@@ -243,9 +401,8 @@ public class NotificationQueryService {
             return Map.of();
         }
 
-        return products.findAllById(productIds)
+        return products.findByTenantIdAndIdInAndDeletedAtIsNull(tenantId, productIds)
             .stream()
-            .filter(product -> tenantId.equals(product.getTenantId()) && product.getDeletedAt() == null)
             .collect(Collectors.toMap(Product::getId, Function.identity()));
     }
 
@@ -254,9 +411,8 @@ public class NotificationQueryService {
             return Map.of();
         }
 
-        return customers.findAllById(customerIds)
+        return customers.findByTenantIdAndIdInAndDeletedAtIsNull(tenantId, customerIds)
             .stream()
-            .filter(customer -> tenantId.equals(customer.getTenantId()) && customer.getDeletedAt() == null)
             .collect(Collectors.toMap(Customer::getId, Function.identity()));
     }
 
@@ -271,14 +427,13 @@ public class NotificationQueryService {
     }
 
     private boolean canBuildPaymentNotifications(Set<String> permissions) {
-        return permissions.contains(PermissionNames.CUSTOMER_VIEW)
-            && permissions.contains(PermissionNames.PAYMENT_CREATE);
+        return PaymentWorkspaceAccessPolicy.canAccess(permissions);
     }
 
     private record OverdueDebtSummary(
         Long customerId,
         BigDecimal amount,
-        Instant createdAt
+        Instant eventAt
     ) {
     }
 

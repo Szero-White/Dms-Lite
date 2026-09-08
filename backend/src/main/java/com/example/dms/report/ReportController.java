@@ -36,4 +36,10 @@ public class ReportController {
     public ApiResponse<DashboardReport> dashboard() {
         return ApiResponse.ok(reportService.dashboard());
     }
+
+    @GetMapping("/dashboard/receivable-attention")
+    @PreAuthorize("hasAuthority('REPORT_VIEW') and hasAuthority('DEBT_VIEW')")
+    public ApiResponse<ReceivableAttentionReport> receivableAttention() {
+        return ApiResponse.ok(reportService.receivableAttention());
+    }
 }

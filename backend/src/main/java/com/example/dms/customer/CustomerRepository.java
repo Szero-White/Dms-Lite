@@ -23,6 +23,11 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     List<Customer> findByTenantIdAndIdIn(Long tenantId, Collection<Long> ids);
 
+    List<Customer> findByTenantIdAndIdInAndDeletedAtIsNull(
+        Long tenantId,
+        Collection<Long> ids
+    );
+
     Optional<Customer> findByIdAndTenantId(Long id, Long tenantId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

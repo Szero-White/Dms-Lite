@@ -24,9 +24,10 @@ public class SalesOrderController {
     @PreAuthorize("hasAuthority('SALES_ORDER_VIEW')")
     public ApiResponse<Page<SalesOrderResponse>> list(
         @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size,
         @RequestParam(required = false) Long customerId
     ) {
-        return ApiResponse.ok(salesOrderService.listOrders(page, customerId));
+        return ApiResponse.ok(salesOrderService.listOrders(page, size, customerId));
     }
 
     @GetMapping("/{id}")

@@ -1,9 +1,6 @@
 import {
-  ArrowDownOutlined,
-  ArrowUpOutlined,
   CalendarOutlined,
   CheckCircleOutlined,
-  DollarOutlined,
   EnvironmentOutlined,
   LeftOutlined,
   PhoneOutlined,
@@ -16,18 +13,12 @@ import {
   Avatar,
   Button,
   Card,
-  Form,
-  Input,
-  InputNumber,
-  Modal,
   Popconfirm,
   Progress,
   Space,
-  Table,
   Tag,
   Typography,
 } from 'antd';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
@@ -40,11 +31,8 @@ import {
   useAuth,
 } from '../../../auth';
 import { SummaryCard } from '../../../../components/common/SummaryCard';
-import { SalesOrderStatusTag } from '../../../../components/common/StatusTag';
 import {
   formatCurrency,
-  formatDate,
-  formatDateTime,
   toNumber,
 } from '../../../../lib/format';
 import {
@@ -53,14 +41,14 @@ import {
   useDeactivateCustomer,
   useReactivateCustomer,
 } from '../../hooks/useCustomerQueries';
-import { useRecordCustomerPayment } from '../../../../features/payments';
 import { useSalesOrders } from '../../../../features/sales';
+import { CustomerDebtStatementCard } from './components/CustomerDebtStatementCard';
+import { CustomerSalesOrderHistoryCard } from './components/CustomerSalesOrderHistoryCard';
 import styles from './CustomerDetailPage.module.css';
 
 export function CustomerDetailPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const canRecordPayment = hasPermission(user, PERMISSIONS.PAYMENT_CREATE);
   const canChangeCustomerStatus = hasPermission(user, PERMISSIONS.CUSTOMER_DEACTIVATE);
   const canViewDebt = hasPermission(user, PERMISSIONS.DEBT_VIEW);
   const showCustomerFinancials = canViewCustomerBalance(user);
@@ -74,14 +62,11 @@ export function CustomerDetailPage() {
     customerId: numericCustomerId,
     enabled: canViewOrders && Number.isFinite(numericCustomerId),
   });
-  const paymentMutation = useRecordCustomerPayment();
   const deactivateCustomer = useDeactivateCustomer();
   const reactivateCustomer = useReactivateCustomer();
   const debtStatementQuery = useCustomerDebtStatement(numericCustomerId, {
     enabled: canViewDebt && Number.isFinite(numericCustomerId),
   });
-  const [paymentOpen, setPaymentOpen] = useState(false);
-  const [form] = Form.useForm<{ amount: number; note?: string }>();
 
   const customer = customerQuery.data;
   const orderHistory = salesOrdersQuery.data ?? [];
@@ -127,16 +112,6 @@ export function CustomerDetailPage() {
                   {t('customers.action.reactivate')}
                 </Button>
               )
-            ) : null}
-            {canRecordPayment ? (
-              <Button
-                type="primary"
-                icon={<DollarOutlined />}
-                onClick={() => setPaymentOpen(true)}
-                disabled={!customer}
-              >
-                {t('payments.recordPayment')}
-              </Button>
             ) : null}
           </Space>
         }
@@ -250,171 +225,19 @@ export function CustomerDetailPage() {
             </div>
 
             {canViewDebt ? (
-              <Card className="panel-card" title={t('customers.detail.debtStatement')}>
-              <Table
-                size="small"
-                rowKey="id"
-                scroll={{ x: 940 }}
-                locale={{ emptyText: t('customers.detail.noDebtTransactions') }}
-                dataSource={debtStatementQuery.data ?? []}
-                columns={[
-                  {
-                    title: t('customers.detail.date'),
-                    dataIndex: 'createdAt',
-                    width: 170,
-                    render: (value) => formatDateTime(value),
-                  },
-                  { title: t('customers.detail.type'), dataIndex: 'sourceType', width: 130, render: (value: string) => t(`customers.detail.sourceType.${value}`, { defaultValue: t('customers.detail.sourceType.UNKNOWN') }) },
-                  {
-                    title: t('customers.detail.reference'),
-                    dataIndex: 'sourceCode',
-                    width: 190,
-                    render: (value: string | null | undefined) => value || '--',
-                  },
-                  {
-                    title: t('customers.detail.direction'),
-                    dataIndex: 'direction',
-                    width: 135,
-                    render: (value: string) => {
-                      const isIncrease = value === 'INCREASE';
-
-                      return (
-                        <Tag className={isIncrease ? styles.increaseTag : styles.decreaseTag}>
-                          {isIncrease ? <ArrowUpOutlined /> : <ArrowDownOutlined />} {t(`customers.detail.directionValue.${value}`, { defaultValue: t('customers.detail.directionValue.UNKNOWN') })}
-                        </Tag>
-                      );
-                    },
-                  },
-                  {
-                    title: t('customers.detail.amount'),
-                    dataIndex: 'amount',
-                    align: 'right',
-                    render: (value, record) => (
-                      <Typography.Text className={record.direction === 'INCREASE'
-                        ? styles.debtOutstanding
-                        : styles.debtClear}
-                      >
-                        {formatCurrency(value)}
-                      </Typography.Text>
-                    ),
-                  },
-                  {
-                    title: t('customers.detail.remaining'),
-                    dataIndex: 'remainingAmount',
-                    align: 'right',
-                    render: (value, record) => record.direction === 'INCREASE'
-                      ? formatCurrency(value)
-                      : '--',
-                  },
-                  {
-                    title: t('customers.detail.dueDate'),
-                    dataIndex: 'dueDate',
-                    width: 130,
-                    render: (value) => value ? formatDate(value) : '--',
-                  },
-                  { title: t('inventory.history.note'), dataIndex: 'note', width: 200, ellipsis: true },
-                ]}
-              />
-              </Card>
+              <CustomerDebtStatementCard transactions={debtStatementQuery.data ?? []} />
             ) : null}
 
             {canViewOrders ? (
-              <Card className="panel-card" title={t('customers.detail.salesOrderHistory')}>
-              <Table
-                size="small"
-                rowKey="id"
-                scroll={{ x: 800 }}
-                locale={{ emptyText: t('customers.detail.noSalesOrders') }}
-                dataSource={orderHistory}
-                columns={[
-                  { title: t('customers.detail.code'), dataIndex: 'code' },
-                  {
-                    title: t('customers.detail.createdAt'),
-                    dataIndex: 'createdAt',
-                    render: (value) => formatDateTime(value),
-                  },
-                  {
-                    title: t('common.status'),
-                    dataIndex: 'status',
-                    render: (value) => <SalesOrderStatusTag status={value} />,
-                  },
-                  ...(showOrderFinancials ? [
-                    {
-                      title: t('sales.column.total'),
-                      dataIndex: 'totalAmount',
-                      render: (value: string | number | null) => formatCurrency(value),
-                    },
-                    {
-                      title: t('sales.column.paid'),
-                      dataIndex: 'paidAmount',
-                      render: (_: string | number | null, order) => order.status === 'COMPLETED'
-                        ? formatCurrency(order.paidAmount)
-                        : t('sales.financial.notApplicable'),
-                    },
-                    {
-                      title: t('sales.column.debt'),
-                      dataIndex: 'debtAmount',
-                      render: (_: string | number | null, order) => {
-                        if (order.status === 'COMPLETED') {
-                          return formatCurrency(order.debtAmount);
-                        }
-
-                        return order.status === 'DRAFT'
-                          ? t('sales.financial.projectedReceivable', { amount: formatCurrency(order.totalAmount) })
-                          : t('sales.financial.notIncurred');
-                      },
-                    },
-                  ] : []),
-                ]}
+              <CustomerSalesOrderHistoryCard
+                orders={orderHistory}
+                showFinancials={showOrderFinancials}
               />
-              </Card>
             ) : null}
           </div>
         ) : null}
       </QueryState>
 
-      {canRecordPayment ? (
-        <Modal
-          rootClassName={styles.modal}
-          title={t('payments.recordPayment')}
-          open={paymentOpen}
-          confirmLoading={paymentMutation.isPending}
-          onCancel={() => setPaymentOpen(false)}
-          onOk={() => form.submit()}
-        >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={async (values) => {
-              if (!customer) {
-                return;
-              }
-
-              await paymentMutation.mutateAsync({
-                customerId: customer.id,
-                amount: values.amount,
-                note: values.note,
-              });
-              form.resetFields();
-              setPaymentOpen(false);
-            }}
-          >
-            <Form.Item label={t('customers.column.customer')}>
-              <Input value={customer?.name} disabled />
-            </Form.Item>
-            <Form.Item name="amount" label={t('payments.amount')} rules={[{ required: true }]}>
-              <InputNumber
-                className={styles.fullWidth}
-                min={1}
-                max={toNumber(customer?.debtBalance)}
-              />
-            </Form.Item>
-            <Form.Item name="note" label={t('inventory.receive.note')}>
-              <Input.TextArea rows={3} />
-            </Form.Item>
-          </Form>
-        </Modal>
-      ) : null}
     </div>
   );
 }

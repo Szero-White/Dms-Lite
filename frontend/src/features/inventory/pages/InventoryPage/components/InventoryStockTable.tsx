@@ -4,6 +4,7 @@ import type { TableColumnsType } from 'antd';
 import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { formatDateTime, toNumber } from '../../../../../lib/format';
+import { compareBoolean, compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../../lib/tableSorting';
 import type { ProductRow } from '../../../../products';
 import type { StockFilter } from '../inventoryPage.types';
 import styles from './InventoryStockTable.module.css';
@@ -24,12 +25,13 @@ const stockColumns = (
   latestMovementByProduct: Map<number, string>,
   t: TFunction,
 ): TableColumnsType<ProductRow> => [
-  { title: t('inventory.column.sku'), dataIndex: 'sku', width: 120 },
-  { title: t('inventory.column.product'), dataIndex: 'name', width: 220 },
+  { title: t('inventory.column.sku'), dataIndex: 'sku', width: 120, sorter: (first, second) => compareText(first.sku, second.sku) },
+  { title: t('inventory.column.product'), dataIndex: 'name', width: 220, sorter: (first, second) => compareText(first.name, second.name) },
   {
     title: t('inventory.column.onHand'),
     dataIndex: 'stock',
     width: 120,
+    sorter: (first, second) => compareNumber(first.stock, second.stock),
     render: (value, record) => {
       const minimum = Math.max(toNumber(record.minStock), 1);
       const percent = Math.min(Math.round((toNumber(value) / minimum) * 100), 100);
@@ -47,10 +49,14 @@ const stockColumns = (
       );
     },
   },
-  { title: t('inventory.column.minimum'), dataIndex: 'minStock', width: 100 },
+  { title: t('inventory.column.minimum'), dataIndex: 'minStock', width: 100, sorter: (first, second) => compareNumber(first.minStock, second.minStock) },
   {
     title: t('inventory.column.lastMovement'),
     width: 170,
+    sorter: (first, second) => compareDate(
+      latestMovementByProduct.get(first.id),
+      latestMovementByProduct.get(second.id),
+    ),
     render: (_, record) => {
       const lastMovement = latestMovementByProduct.get(record.id);
 
@@ -60,6 +66,7 @@ const stockColumns = (
   {
     title: t('common.status'),
     width: 120,
+    sorter: (first, second) => compareBoolean(first.isLowStock, second.isLowStock),
     render: (_, record) => (
       <Tag
         className={`${tagStyles.stockTag} ${
@@ -113,6 +120,8 @@ export function InventoryStockTable({
         rowKey="id"
         className={styles.stockTable}
         scroll={{ x: 820, y: 520 }}
+        sortDirections={TABLE_SORT_DIRECTIONS}
+        showSorterTooltip={false}
         locale={{
           emptyText: hasFilters
             ? t('inventory.stock.noFiltered')

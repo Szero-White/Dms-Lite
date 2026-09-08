@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @AutoConfigureMockMvc
 class AuthorizationRbacTest {
 
-    private static final String DEMO_PASSWORD = "123456";
+    private static final String DEMO_PASSWORD = "Demo@2026";
 
     @Autowired
     private MockMvc mvc;
@@ -34,6 +34,25 @@ class AuthorizationRbacTest {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Test
+    void currentSessionRequiresAuthentication() throws Exception {
+        mvc.perform(get("/api/auth/me"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void currentSessionReflectsAuthoritativeServerPermissions() throws Exception {
+        mvc.perform(get("/api/auth/me")
+                .header("Authorization", bearer("warehouse")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.username").value("warehouse"))
+            .andExpect(jsonPath("$.data.accessToken").doesNotExist())
+            .andExpect(jsonPath("$.data.permissions", org.hamcrest.Matchers.hasItem("SALES_ORDER_CONFIRM")))
+            .andExpect(jsonPath("$.data.permissions", org.hamcrest.Matchers.not(
+                org.hamcrest.Matchers.hasItem("PAYMENT_CREATE")
+            )));
+    }
 
     @Test
     void ownerCanReadAuditLogs() throws Exception {
@@ -68,6 +87,20 @@ class AuthorizationRbacTest {
     }
 
     @Test
+    void accountantCanReadReceivableAttentionWhileSalesCannot() throws Exception {
+        mvc.perform(get("/api/reports/dashboard/receivable-attention")
+                .header("Authorization", bearer("accountant")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.overdueAmount").exists())
+            .andExpect(jsonPath("$.data.dueTodayAmount").exists())
+            .andExpect(jsonPath("$.data.dueSoonAmount").exists());
+
+        mvc.perform(get("/api/reports/dashboard/receivable-attention")
+                .header("Authorization", bearer("sale")))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
     void salesCannotDeactivateCustomers() throws Exception {
         mvc.perform(post("/api/customers/{id}/deactivate", 1L)
                 .header("Authorization", bearer("sale")))
@@ -78,7 +111,9 @@ class AuthorizationRbacTest {
     void salesCanReadInventoryButCannotReceiveStock() throws Exception {
         mvc.perform(get("/api/inventory/stock")
                 .header("Authorization", bearer("sale")))
-            .andExpect(status().isOk());
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data[0].tenantId").doesNotExist())
+            .andExpect(jsonPath("$.data[0].version").doesNotExist());
 
         mvc.perform(post("/api/inventory/receive")
                 .header("Authorization", bearer("sale"))
@@ -146,14 +181,13 @@ class AuthorizationRbacTest {
         JsonNode permissions = objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
         JsonNode inventoryView = findPermission(permissions, "INVENTORY_VIEW");
         JsonNode productManage = findPermission(permissions, "PRODUCT_MANAGE");
-        JsonNode invoiceCreate = findPermission(permissions, "INVOICE_CREATE");
 
         assertThat(toTextList(inventoryView.path("requires")))
             .containsExactly("PRODUCT_VIEW");
         assertThat(toTextList(productManage.path("requires")))
             .containsExactly("PRODUCT_VIEW");
-        assertThat(toTextList(invoiceCreate.path("requires")))
-            .containsExactlyInAnyOrder("INVOICE_VIEW", "SALES_ORDER_VIEW");
+        assertThat(permissions.findValuesAsText("name"))
+            .doesNotContain("INVOICE_CREATE", "INVOICE_CANCEL");
     }
 
     @Test
@@ -169,6 +203,26 @@ class AuthorizationRbacTest {
                     "sellingPrice", 1200,
                     "minStock", 1
                 ))))
+            .andExpect(status().isForbidden());
+    }
+
+
+    @Test
+    void paymentWorkspaceRequiresCompleteFinanceScope() throws Exception {
+        mvc.perform(get("/api/payments/outstanding-orders")
+                .header("Authorization", bearer("accountant")))
+            .andExpect(status().isOk());
+
+        mvc.perform(get("/api/payments/history")
+                .header("Authorization", bearer("accountant")))
+            .andExpect(status().isOk());
+
+        mvc.perform(get("/api/payments/outstanding-orders")
+                .header("Authorization", bearer("sale")))
+            .andExpect(status().isForbidden());
+
+        mvc.perform(get("/api/payments/history")
+                .header("Authorization", bearer("warehouse")))
             .andExpect(status().isForbidden());
     }
 
@@ -195,6 +249,7 @@ class AuthorizationRbacTest {
         for (JsonNode member : members) {
             if ("sale".equals(member.path("username").asText())) {
                 salesUserId = member.path("id").asLong();
+                assertThat(member.path("manageable").asBoolean()).isFalse();
                 break;
             }
         }
@@ -271,7 +326,7 @@ class AuthorizationRbacTest {
                     "permissions", new String[] { "PAYMENT_CREATE" }
                 ))))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value("PAYMENT_CREATE requires: CUSTOMER_VIEW"));
+            .andExpect(jsonPath("$.message").value("PAYMENT_CREATE requires: CUSTOMER_VIEW, DEBT_VIEW, SALES_ORDER_VIEW"));
     }
 
     @Test

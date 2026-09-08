@@ -2,6 +2,7 @@ package com.example.dms.sales;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.PageRequestPolicy;
 import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.customer.Customer;
@@ -37,7 +38,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SalesOrderService {
 
-    private static final int DEFAULT_PAGE_SIZE = 20;
     private static final String SALES_ORDER_ENTITY = "SalesOrder";
     private static final String SALES_ORDER_SOURCE = "SALES_ORDER";
     private static final String DEBT_DIRECTION_INCREASE = "INCREASE";
@@ -56,9 +56,9 @@ public class SalesOrderService {
     private final BusinessTimeProvider businessTimeProvider;
 
     @Transactional(readOnly = true)
-    public Page<SalesOrderResponse> listOrders(int page, Long customerId) {
+    public Page<SalesOrderResponse> listOrders(int page, int size, Long customerId) {
         Long tenantId = TenantContext.tenantRequired();
-        PageRequest pageRequest = PageRequest.of(Math.max(page, 0), DEFAULT_PAGE_SIZE);
+        PageRequest pageRequest = PageRequest.of(PageRequestPolicy.page(page), PageRequestPolicy.size(size));
         Page<SalesOrder> orders = customerId == null
             ? salesOrderRepository.findByTenantIdOrderByCreatedAtDesc(tenantId, pageRequest)
             : salesOrderRepository.findByTenantIdAndCustomerIdOrderByCreatedAtDesc(

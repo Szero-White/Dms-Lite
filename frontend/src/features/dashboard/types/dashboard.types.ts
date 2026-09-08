@@ -19,6 +19,26 @@ export interface TopSellingProduct {
   revenue: number;
 }
 
+export interface OverdueReceivablePreview {
+  salesOrderId: number;
+  salesOrderCode: string;
+  customerId: number;
+  customerName: string;
+  remainingAmount: string | number;
+  dueDate: string;
+  daysOverdue: number;
+}
+
+export interface ReceivableAttention {
+  overdueAmount: string | number;
+  overdueCount: number;
+  dueTodayAmount: string | number;
+  dueTodayCount: number;
+  dueSoonAmount: string | number;
+  dueSoonCount: number;
+  oldestOverdue?: OverdueReceivablePreview | null;
+}
+
 export interface DashboardSnapshot {
   summary: DashboardSummary;
   topCustomersByDebt: DebtLeader[];

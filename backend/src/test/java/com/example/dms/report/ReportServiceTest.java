@@ -8,6 +8,7 @@ import com.example.dms.common.TenantContext;
 import com.example.dms.debt.CustomerDebtRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ReportServiceTest {
 
     @Mock private ReportReadRepository reportReadRepository;
+    @Mock private DashboardReadRepository dashboardReadRepository;
     @Mock private CustomerDebtRepository customerDebtRepository;
     @Mock private BusinessTimeProvider businessTimeProvider;
 
@@ -27,13 +29,50 @@ class ReportServiceTest {
 
     @BeforeEach
     void setUp() {
-        reportService = new ReportService(reportReadRepository, customerDebtRepository, businessTimeProvider);
+        reportService = new ReportService(
+            reportReadRepository,
+            dashboardReadRepository,
+            customerDebtRepository,
+            businessTimeProvider
+        );
         TenantContext.set(1L, 10L);
     }
 
     @AfterEach
     void tearDown() {
         TenantContext.clear();
+    }
+
+
+    @Test
+    void receivableAttentionUsesBusinessDateAndThreeDayWarningWindow() {
+        LocalDate today = LocalDate.of(2026, 9, 8);
+        ReceivableAttentionReport attention = new ReceivableAttentionReport(
+            new BigDecimal("80000"),
+            1,
+            new BigDecimal("250000"),
+            2,
+            new BigDecimal("960000"),
+            1,
+            new ReceivableAttentionReport.OverduePreview(
+                201L,
+                "SO-20260907-0004",
+                2L,
+                "Tap hoa Co Lan",
+                new BigDecimal("80000"),
+                LocalDate.of(2026, 9, 7),
+                1
+            )
+        );
+
+        when(businessTimeProvider.today()).thenReturn(today);
+        when(dashboardReadRepository.receivableAttention(1L, today, LocalDate.of(2026, 9, 11)))
+            .thenReturn(attention);
+
+        ReceivableAttentionReport result = reportService.receivableAttention();
+
+        assertThat(result).isEqualTo(attention);
+        assertThat(result.oldestOverdue().daysOverdue()).isEqualTo(1);
     }
 
     @Test

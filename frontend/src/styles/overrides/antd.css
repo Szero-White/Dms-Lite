@@ -77,6 +77,40 @@
   display: none !important; /* Remove column resize divider */
 }
 
+/* Consistent sorting affordance across DMS data tables. */
+.ant-table-wrapper th.ant-table-column-has-sorters .ant-table-column-sorters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.ant-table-wrapper th.ant-table-column-has-sorters .ant-table-column-title {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  line-height: 1.25;
+}
+
+.ant-table-wrapper .ant-table-column-sorter {
+  flex: 0 0 auto;
+  margin-inline-start: 0;
+  color: var(--color-text-tertiary);
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.ant-table-wrapper .ant-table-column-sorter-up.active,
+.ant-table-wrapper .ant-table-column-sorter-down.active {
+  color: var(--color-primary) !important;
+}
+
+.ant-table-wrapper th.ant-table-column-has-sorters:hover .ant-table-column-sorter {
+  color: var(--color-text-secondary);
+}
+
 .ant-table-tbody > tr > td {
   padding-block: 13px !important;
   color: var(--color-text-primary);

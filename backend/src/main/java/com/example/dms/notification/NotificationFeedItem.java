@@ -7,7 +7,7 @@ public record NotificationFeedItem(
     String type,
     String title,
     String message,
-    Boolean readFlag,
+    boolean readFlag,
     Instant createdAt,
     String source
 ) {

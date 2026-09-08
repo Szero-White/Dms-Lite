@@ -4,6 +4,7 @@ import com.example.dms.common.BusinessException;
 import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
 import com.example.dms.debt.CustomerDebtRepository;
+import com.example.dms.debt.ReceivableDueStatus;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -24,6 +25,7 @@ public class ReportService {
     private static final int LEADERBOARD_SIZE = 5;
 
     private final ReportReadRepository reportReadRepository;
+    private final DashboardReadRepository dashboardReadRepository;
     private final CustomerDebtRepository customerDebtRepository;
     private final BusinessTimeProvider businessTimeProvider;
 
@@ -38,11 +40,11 @@ public class ReportService {
         LocalDate monthStart = today.withDayOfMonth(1);
 
         return new DashboardReport(
-            reportReadRepository.revenueSince(tenantId, businessTimeProvider.startOfDay(today)),
-            reportReadRepository.revenueSince(tenantId, businessTimeProvider.startOfDay(monthStart)),
+            dashboardReadRepository.revenueSince(tenantId, businessTimeProvider.startOfDay(today)),
+            dashboardReadRepository.revenueSince(tenantId, businessTimeProvider.startOfDay(monthStart)),
             customerDebtRepository.totalReceivable(tenantId),
-            reportReadRepository.lowStockCount(tenantId),
-            reportReadRepository.productCount(tenantId),
+            dashboardReadRepository.lowStockCount(tenantId),
+            dashboardReadRepository.productCount(tenantId),
             customerDebtRepository.topDebtLeaders(tenantId, PageRequest.of(0, LEADERBOARD_SIZE))
                 .stream()
                 .map(view -> new DashboardReport.DebtLeader(
@@ -51,7 +53,18 @@ public class ReportService {
                     view.getBalance()
                 ))
                 .toList(),
-            reportReadRepository.topSellingProducts(tenantId)
+            dashboardReadRepository.topSellingProducts(tenantId)
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public ReceivableAttentionReport receivableAttention() {
+        Long tenantId = TenantContext.tenantRequired();
+        LocalDate today = businessTimeProvider.today();
+        return dashboardReadRepository.receivableAttention(
+            tenantId,
+            today,
+            today.plusDays(ReceivableDueStatus.DUE_SOON_DAYS)
         );
     }
 

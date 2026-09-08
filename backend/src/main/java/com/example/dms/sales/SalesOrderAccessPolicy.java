@@ -8,7 +8,6 @@ public final class SalesOrderAccessPolicy {
 
     private static final Set<String> FINANCIAL_PERMISSIONS = Set.of(
         PermissionNames.DEBT_VIEW,
-        PermissionNames.PAYMENT_CREATE,
         PermissionNames.REPORT_VIEW,
         PermissionNames.SALES_ORDER_CREATE
     );

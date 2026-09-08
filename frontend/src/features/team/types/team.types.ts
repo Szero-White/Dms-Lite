@@ -5,6 +5,7 @@ export interface TeamMember {
   active: boolean;
   roles: string[];
   permissions: string[];
+  manageable: boolean;
 }
 
 export interface RoleOption {
@@ -32,7 +33,9 @@ export interface TeamMemberCreatePayload {
 }
 
 export interface TeamMemberUpdatePayload {
+  username: string;
   fullName: string;
+  password?: string;
   roles: string[];
   active: boolean;
 }

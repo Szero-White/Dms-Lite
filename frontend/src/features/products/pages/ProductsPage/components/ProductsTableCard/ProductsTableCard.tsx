@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../../components/common/QueryState';
 import { ProductStatusTag } from '../../../../../../components/common/StatusTag';
 import { formatCurrency, toNumber } from '../../../../../../lib/format';
+import { TABLE_SORT_DIRECTIONS } from '../../../../../../lib/tableSorting';
 import type { ProductRow } from '../../../../types/product.types';
 import styles from './ProductsTableCard.module.css';
 
@@ -37,15 +38,11 @@ interface ProductsTableCardProps {
   onRetry: () => void;
   onSelectProduct: (product: ProductRow | null) => void;
   onSetDrawerOpen: (open: boolean) => void;
-  onSortByChange: (
-    value: 'DEFAULT' | 'NAME' | 'STOCK_ASC' | 'STOCK_DESC' | 'PRICE_DESC',
-  ) => void;
   onStatusFilterChange: (value: 'ALL' | 'ACTIVE' | 'INACTIVE') => void;
   onStockFilterChange: (value: 'ALL' | 'HEALTHY' | 'LOW_STOCK') => void;
   productsError: unknown;
   showFinancials: boolean;
   showInventory: boolean;
-  sortBy: 'DEFAULT' | 'NAME' | 'STOCK_ASC' | 'STOCK_DESC' | 'PRICE_DESC';
   statusFilter: 'ALL' | 'ACTIVE' | 'INACTIVE';
   stockFilter: 'ALL' | 'HEALTHY' | 'LOW_STOCK';
 }
@@ -64,13 +61,11 @@ export function ProductsTableCard({
   onRetry,
   onSelectProduct,
   onSetDrawerOpen,
-  onSortByChange,
   onStatusFilterChange,
   onStockFilterChange,
   productsError,
   showFinancials,
   showInventory,
-  sortBy,
   statusFilter,
   stockFilter,
 }: ProductsTableCardProps) {
@@ -119,20 +114,6 @@ export function ProductsTableCard({
               ]}
             />
           ) : null}
-          <Select
-            className={styles.sort}
-            value={sortBy}
-            onChange={onSortByChange}
-            options={[
-              { value: 'DEFAULT', label: t('products.filters.defaultOrder') },
-              { value: 'NAME', label: t('products.filters.nameAsc') },
-              ...(showInventory ? [
-                { value: 'STOCK_ASC', label: t('products.filters.stockAsc') },
-                { value: 'STOCK_DESC', label: t('products.filters.stockDesc') },
-              ] : []),
-              { value: 'PRICE_DESC', label: t('products.filters.priceDesc') },
-            ]}
-          />
         </div>
         <Button disabled={!hasFilters} onClick={onClearFilters}>
           {t('common.clearFilters')}
@@ -174,6 +155,8 @@ export function ProductsTableCard({
         <Table
           rowKey="id"
           scroll={{ x: 1260 }}
+          sortDirections={TABLE_SORT_DIRECTIONS}
+          showSorterTooltip={false}
           dataSource={filteredProducts}
           rowClassName={(record) => (showInventory && record.isLowStock ? styles.lowStockRow : '')}
           onRow={(record) => ({
@@ -185,6 +168,7 @@ export function ProductsTableCard({
               fixed: 'left',
               width: 320,
               ellipsis: true,
+              sorter: (first, second) => first.name.localeCompare(second.name),
               render: (_, record) => (
                 <div className={styles.productCell}>
                   <Avatar shape="square">{record.name.slice(0, 2).toUpperCase()}</Avatar>
@@ -201,6 +185,7 @@ export function ProductsTableCard({
               title: t('products.column.sku'),
               dataIndex: 'sku',
               width: 170,
+              sorter: (first, second) => first.sku.localeCompare(second.sku),
               render: (value) => <span className={styles.sku}>{value}</span>,
             },
             ...(showFinancials ? [{
@@ -208,6 +193,8 @@ export function ProductsTableCard({
               dataIndex: 'costPrice',
               align: 'right' as const,
               width: 160,
+              sorter: (first: ProductRow, second: ProductRow) =>
+                toNumber(first.costPrice) - toNumber(second.costPrice),
               render: (value: string | number | null) => (
                 <span className={styles.money}>{formatCurrency(value)}</span>
               ),
@@ -217,6 +204,8 @@ export function ProductsTableCard({
               dataIndex: 'sellingPrice',
               align: 'right',
               width: 170,
+              sorter: (first, second) =>
+                toNumber(first.sellingPrice) - toNumber(second.sellingPrice),
               render: (value) => (
                 <span className={styles.money}>{formatCurrency(value)}</span>
               ),
@@ -225,6 +214,17 @@ export function ProductsTableCard({
               title: t('products.column.margin'),
               width: 110,
               align: 'right' as const,
+              sorter: (first: ProductRow, second: ProductRow) => {
+                const firstSellingPrice = toNumber(first.sellingPrice);
+                const secondSellingPrice = toNumber(second.sellingPrice);
+                const firstMargin = firstSellingPrice > 0
+                  ? (firstSellingPrice - toNumber(first.costPrice)) / firstSellingPrice
+                  : 0;
+                const secondMargin = secondSellingPrice > 0
+                  ? (secondSellingPrice - toNumber(second.costPrice)) / secondSellingPrice
+                  : 0;
+                return firstMargin - secondMargin;
+              },
               render: (_: unknown, record: ProductRow) => {
                 const sellingPrice = toNumber(record.sellingPrice);
                 const margin =
@@ -238,6 +238,7 @@ export function ProductsTableCard({
             ...(showInventory ? [{
               title: t('products.column.stockHealth'),
               width: 210,
+              sorter: (first: ProductRow, second: ProductRow) => first.stock - second.stock,
               render: (_: unknown, record: ProductRow) => {
                 const stockPercent =
                   record.minStock > 0
@@ -263,6 +264,7 @@ export function ProductsTableCard({
             {
               title: t('common.status'),
               width: 150,
+              sorter: (first, second) => Number(first.active) - Number(second.active),
               render: (_, record) => (
                 <ProductStatusTag isLowStock={showInventory && record.isLowStock} active={record.active} />
               ),

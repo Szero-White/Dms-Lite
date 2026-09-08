@@ -25,7 +25,7 @@ Quy ước:
 - Controller chỉ nhận request, permission và trả response; không chứa SQL/report calculation.
 - Business rule quan trọng phải có một source of truth ở backend.
 - Query reporting phức tạp nằm trong read repository (`ReportReadRepository`), không nằm trong controller.
-- Receivable balance và allocation query nằm trong `CustomerDebtRepository`; report/customer/payment không tự viết lại công thức công nợ.
+- Receivable balance và order-specific receivable query nằm trong `CustomerDebtRepository`; report/customer/payment không tự viết lại công thức công nợ.
 - DTO summary và detail được tách khi payload khác nhau, ví dụ Sales Order.
 
 ## Sales Order lifecycle hiện tại
@@ -59,19 +59,23 @@ DMS Lite hiện dùng **open-item receivable model có ledger history**:
 - Order phát sinh nợ tạo transaction `INCREASE`.
 - `INCREASE.amount` là giá trị phát sinh ban đầu.
 - `INCREASE.remaining_amount` là số tiền còn mở của khoản phải thu đó.
-- Payment được phân bổ FIFO vào các `INCREASE` còn mở và giảm `remaining_amount`.
+- Mỗi payment mới bắt buộc chọn đúng **một** sales order `COMPLETED` còn phải thu; payment chỉ giảm `remaining_amount` của receivable thuộc order đó.
+- Partial payment và exact settlement đều hợp lệ; payment lớn hơn số còn phải thu của order bị backend từ chối.
 - Đồng thời payment tạo transaction `DECREASE` để giữ lịch sử thanh toán/audit statement.
 - **Current receivable balance = SUM(remaining_amount) của các `INCREASE` còn mở.**
 - Transaction `DECREASE` không được trừ thêm lần nữa khi tính balance, tránh double-count.
+- Payment trước migration V11 có thể là legacy FIFO payment; lịch sử cũ được giữ nguyên và không đoán ngược một sales order nếu trước đây tiền đã trải qua nhiều receivable.
 
-Khi record payment, các open receivable rows được lock bằng `PESSIMISTIC_WRITE` trước khi kiểm tra balance và phân bổ, nhằm tránh hai payment đồng thời làm sai công nợ. Sales-order `paidAmount`/`debtAmount` được đồng bộ trong cùng transaction để list/detail không hiển thị snapshot cũ; receivable `remainingAmount` vẫn là nguồn balance chuẩn.
+Khi record payment mới, sales order được lock bằng `PESSIMISTIC_WRITE`, sau đó receivable `SALES_ORDER/INCREASE` tương ứng cũng được lock trước khi kiểm tra và mutate. Sales-order `paidAmount`/`debtAmount` được đồng bộ trong cùng transaction; receivable `remainingAmount` vẫn là nguồn balance chuẩn. Client-generated `request_key` giúp retry cùng thao tác không tạo payment thứ hai.
 
 ## Invoice document
 
 Invoice là chứng từ bán hàng của một sales order `COMPLETED`, không phải nguồn công nợ thứ hai:
 
 - mỗi sales order có tối đa một invoice;
-- issue/cancel invoice không tạo hoặc thay đổi receivable;
+- invoice `DRAFT` được tạo **tự động trong cùng transaction với lần thanh toán cuối** khi remaining receivable của order về `0`; không còn API/nút tạo invoice thủ công;
+- invoice list chỉ hiển thị invoice của order đã thu đủ và hỗ trợ search `INV/SO/customer` + `from/to` business date;
+- issue invoice không tạo hoặc thay đổi receivable;
 - `paidAmount`/`remainingAmount` của invoice được suy ra từ receivable/payment hiện tại;
 - `PAID`/`OVERDUE` là trạng thái đọc suy ra, không tạo lifecycle tài chính riêng;
 - invoice chỉ `OVERDUE` sau khi đã qua ngày đến hạn theo business timezone, không phải ngay trong chính ngày đến hạn;
@@ -158,7 +162,7 @@ Current MVP vận hành theo **một warehouse chính cho mỗi tenant**. Databa
 
 Các màn hình composite chỉ gọi API mà role hiện tại có permission; thiếu một permission phụ không được làm cả page bị 403 nếu section đó có thể ẩn độc lập.
 
-Các custom role cũng được validate dependency cho các workflow UI bắt buộc (ví dụ `PAYMENT_CREATE` cần `CUSTOMER_VIEW`, `INVENTORY_MANAGE` cần quyền xem inventory/product, `SALES_ORDER_CREATE` cần dữ liệu customer/product/inventory). Mục tiêu là không tạo ra role "có nút thao tác nhưng mở màn hình lại 403".
+Các custom role cũng được validate dependency cho các workflow UI bắt buộc (ví dụ `PAYMENT_CREATE` cần `CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`, `INVENTORY_MANAGE` cần quyền xem inventory/product, `SALES_ORDER_CREATE` cần dữ liệu customer/product/inventory). Mục tiêu là không tạo ra role "có nút thao tác nhưng mở màn hình lại 403".
 
 ### Permission coherence cho custom role
 
@@ -168,21 +172,25 @@ Permission là nguồn sự thật chung cho cả frontend và backend, không s
 - Sidebar, page search, route guard và action button chỉ hiển thị/chạy khi permission tương ứng tồn tại. Protected route chưa khai báo permission bị **deny by default** thay vì tự mở.
 - User đã đăng nhập nhưng không có business page nào được đưa tới `/no-access`; gateway như AI vẫn có thể hoạt động nếu chính permission của gateway được cấp.
 - `PRODUCT_VIEW` cho xem catalog/giá bán; tồn kho cần `INVENTORY_VIEW`; giá vốn/margin chỉ dành cho `PRODUCT_MANAGE` hoặc `REPORT_VIEW`.
-- `CUSTOMER_VIEW` cho xem hồ sơ/hạn mức. Balance công nợ chỉ được trả cho workflow cần số dư (`DEBT_VIEW`, `PAYMENT_CREATE`, `REPORT_VIEW`, `SALES_ORDER_CREATE`); debt statement chi tiết vẫn chỉ có `DEBT_VIEW`.
-- `PAYMENT_CREATE` được dùng số dư cần thiết để thu tiền nhưng không tự mở dashboard/top-debtor analytics nếu thiếu `DEBT_VIEW`/`REPORT_VIEW`.
+- `CUSTOMER_VIEW` cho xem hồ sơ/hạn mức. Balance công nợ chỉ được trả cho workflow cần số dư (`DEBT_VIEW`, `REPORT_VIEW`, `SALES_ORDER_CREATE`); Payment workspace có `DEBT_VIEW` như dependency bắt buộc. Debt statement chi tiết vẫn chỉ có `DEBT_VIEW`.
+- `PAYMENT_CREATE` không đứng một mình: custom role phải có `CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW` để mở Payment workspace; `REPORT_VIEW` vẫn là quyền riêng cho dashboard/top-debtor analytics.
 - `REPORT_VIEW` cho aggregate dashboard/report; các tab/bảng chi tiết chỉ fetch module data khi user có thêm permission đọc module tương ứng, tránh bảng trống hoặc dữ liệu vượt scope.
+- Payment workspace yêu cầu đồng thời `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`; Notification/AI dùng cùng boundary để không lộ payment/receivable ngoài scope.
 - DTO API redact dữ liệu nhạy cảm theo permission; frontend ẩn field chỉ là UX layer, backend vẫn là authorization boundary cuối cùng.
+- Khi app khởi động lại từ một JWT đã lưu, frontend gọi `GET /api/auth/me` để lấy lại role/permission hiện tại từ backend. Nếu authorization snapshot thay đổi, server-state cache cũ bị clear trước khi render workspace; backend vẫn kiểm tra permission ở từng request nên localStorage không phải nguồn quyền tin cậy.
 
 ### AI và Notification theo permission
 
 `AI_HELP_VIEW` và `NOTIFICATION_VIEW` chỉ là **gateway permission** để mở trợ lý hoặc feed thông báo; chúng không tự cấp quyền đọc dữ liệu nghiệp vụ.
 
-- AI workflow guidance có thể dựa trên action permission (ví dụ `PAYMENT_CREATE` để hướng dẫn ghi nhận thanh toán), nhưng dữ liệu thật phải có view permission tương ứng (`DEBT_VIEW`, `SALES_ORDER_VIEW`, `INVENTORY_VIEW`, `PRODUCT_VIEW`, `CUSTOMER_VIEW`).
+- AI workflow guidance có thể dựa trên action permission, nhưng hướng dẫn Payment chỉ mở khi đủ Payment workspace scope; dữ liệu thật vẫn phải có view permission tương ứng (`DEBT_VIEW`, `SALES_ORDER_VIEW`, `INVENTORY_VIEW`, `PRODUCT_VIEW`, `CUSTOMER_VIEW`).
 - Mỗi câu trả lời trợ lý mang provenance do backend quyết định: `LIVE_DATA`, `WORKFLOW_KNOWLEDGE`, `SYSTEM_FALLBACK` hoặc `LEGACY_UNKNOWN`; provider diễn đạt được lưu riêng (`GEMINI`, `NONE`, `LEGACY_UNKNOWN`). Gemini không được tự quyết định hai metadata này.
 - Frontend nhân viên chỉ hiển thị provenance ở mức nghiệp vụ (`Dữ liệu DMS`, `Quy trình DMS`, `AI hỗ trợ`); chi tiết fallback/provider chỉ dành cho AI History của Owner để hỗ trợ audit và vận hành.
-- Notification được lọc tiếp theo loại sự kiện và permission nghiệp vụ. Ví dụ payment event cần `PAYMENT_CREATE` + `CUSTOMER_VIEW`, overdue debt cần `DEBT_VIEW` + `CUSTOMER_VIEW`, sales-order event cần `SALES_ORDER_VIEW`.
+- Notification được lọc tiếp theo loại sự kiện và permission nghiệp vụ. Payment event cần đủ `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`; overdue debt cần `DEBT_VIEW + CUSTOMER_VIEW`; sales-order event cần `SALES_ORDER_VIEW`; invoice-issued event cần `INVOICE_VIEW + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`.
 - Notification type chưa được khai báo policy bị **deny by default** để event mới không vô tình vượt RBAC.
-- Endpoint mark-read áp dụng cùng policy; notification ngoài scope được xử lý như không tồn tại để không làm lộ sự hiện diện của event bị giới hạn.
+- Trạng thái đọc được lưu theo **tenant + user + notification key** trong `notification_reads`; một nhân viên đọc thông báo không làm thay đổi trạng thái của nhân viên khác.
+- `PUT /api/notifications/{id}/read-state` với body `{ "read": true|false }` là API chuẩn để đặt trạng thái đọc theo user một cách idempotent. Hai endpoint `/read` cũ vẫn được giữ tương thích ngược. Mọi thao tác áp dụng cùng permission policy; notification ngoài scope được xử lý như không tồn tại để không làm lộ event bị giới hạn.
+- Persisted notification dùng key ổn định theo ID; derived alert dùng fingerprint nội dung hiện tại để một điều kiện nghiệp vụ thay đổi đáng kể có thể trở thành chưa đọc lại.
 
 ### Notification signal-to-noise
 

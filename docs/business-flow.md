@@ -77,54 +77,70 @@ Migration V6 chuyển các customer từng bị legacy soft-delete thành lifecy
 
 ## 5. Customer payment
 
-`POST /api/payments/customer`
+Payment workspace dùng:
 
-Quy trình:
+- `GET /api/payments/outstanding-orders` -> từng sales order `COMPLETED` còn `remaining_amount > 0`; worklist hỗ trợ lọc trạng thái hạn (`CURRENT`, `DUE_SOON`, `DUE_TODAY`, `OVERDUE`), khoảng `dueDate` và khoảng số tiền còn phải thu trên toàn bộ paged result;
+- `POST /api/payments` -> ghi nhận tiền cho đúng một sales order;
+- `GET /api/payments/history` -> lịch sử từng `PAY`, hỗ trợ search PAY/SO/customer/note và `from` / `to` theo business date;
+- `GET /api/payments/{id}/receipt.pdf` -> biên nhận immutable của lần thu.
 
-1. validate customer;
-2. lock toàn bộ open receivable của customer theo FIFO;
-3. tính current balance từ các row đã lock;
-4. reject nếu payment lớn hơn current balance;
-5. phân bổ payment vào khoản cũ nhất trước;
-6. giảm `INCREASE.remainingAmount` tương ứng;
-7. đồng bộ `sales_orders.paid_amount` và `debt_amount` của các order được phân bổ;
-8. lưu `payments`;
+Quy trình payment mới:
+
+1. user phải có `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`;
+2. chọn đúng sales order đang còn phải thu;
+3. lock sales order bằng `PESSIMISTIC_WRITE`;
+4. lock đúng receivable `SALES_ORDER/INCREASE` của order đó;
+5. reject nếu order không `COMPLETED`, đã tất toán hoặc amount vượt `remaining_amount`;
+6. giảm `INCREASE.remaining_amount` đúng bằng số tiền thực nhận;
+7. đồng bộ `sales_orders.paid_amount` và `debt_amount` của **chính order được chọn**;
+8. lưu `payments` với snapshot `SO`, customer, debt before/after và client `request_key`;
 9. tạo `DECREASE` transaction để giữ payment history;
 10. audit action `PAYMENT_RECORDED`;
-11. invalidate dashboard cache của đúng tenant.
+11. evict backend dashboard cache; frontend invalidate/refetch các query liên quan (sales order, customer/debt, report, invoice, notification) sau khi payment thành công.
 
-`DECREASE.amount` dùng cho statement/history và **không bị trừ thêm lần nữa khỏi balance**.
+Một payment mới **không tự chạy sang order khác**. Nếu khách có nhiều order, kế toán ghi nhận từng order theo nội dung khách thanh toán. Partial payment và exact payment đều hợp lệ. Frontend có thể giới hạn giá trị nhập về số còn phải thu để thân thiện, nhưng backend vẫn reject overpayment nếu API bị gọi trực tiếp hoặc client lỗi.
+
+Trạng thái hạn dùng business date của backend: `DUE_SOON` là còn từ 1 đến 3 ngày, `DUE_TODAY` là đúng ngày đến hạn, `OVERDUE` là `dueDate < today`. UI hiển thị cùng semantics này ở Payment worklist và Customer debt statement để người dùng không phải tự suy ra từ ngày.
+
+`request_key` làm thao tác idempotent: retry cùng request hợp lệ trả lại payment đã tạo thay vì trừ công nợ lần hai.
+
+`DECREASE.amount` dùng cho statement/history và **không bị trừ thêm lần nữa khỏi current balance**. Current customer balance vẫn là tổng `remaining_amount` của các receivable `INCREASE` còn mở.
+
+Payment trước migration V11 có thể là legacy FIFO payment. Vì một payment cũ có thể từng được phân bổ qua nhiều receivable, migration không đoán một `sales_order_id`; UI/PDF ghi rõ đây là lịch sử cũ.
 
 ### Ví dụ regression bắt buộc
 
-- Order debt: `100`
-- Payment: `40`
-- Open receivable remaining: `60`
-- Current customer balance: `60`
-- Dashboard total receivable: `60`
-- Top customer debt: `60`
-
-Không màn hình nào được trả `20`.
+- `SO-A` total: `520.000`; remaining: `520.000`;
+- `SO-B` remaining: `300.000`;
+- chọn `SO-A`, payment: `500.000`;
+- `SO-A` remaining phải thành `20.000`;
+- `SO-B` vẫn `300.000`;
+- payment history phải ghi `PAY -> SO-A -> 500.000 -> remaining 20.000`;
+- payment `520.001` cho `SO-A` phải bị backend reject và không mutate dữ liệu;
+- payment `20.000` tiếp theo cho `SO-A` tất toán order và order biến khỏi outstanding worklist nhưng vẫn còn trong history/report/audit.
 
 ## 6. Invoice document
 
-Invoice trong DMS Lite là **chứng từ bán hàng gắn với một order đã `COMPLETED`**, không phải một luồng kế toán thứ hai.
+Invoice trong DMS Lite là **chứng từ bán hàng gắn với một order `COMPLETED` đã thu đủ**, không phải một luồng kế toán thứ hai.
 
-- chỉ `COMPLETED` sales order mới tạo được invoice;
-- mỗi sales order có tối đa một invoice; gọi tạo lại trả invoice hiện có thay vì nhân bản;
-- tạo/phát hành/hủy invoice không tạo, tăng hoặc giảm receivable;
+- payment vẫn được ghi tại Payment workspace và gắn với đúng một sales order còn phải thu;
+- khi lần thanh toán cuối đưa remaining receivable của order về `0`, backend tạo đúng một invoice `DRAFT` **trong cùng transaction**; nếu tạo invoice lỗi thì final payment cũng rollback;
+- không còn nút/API `Tạo hóa đơn` thủ công và permission `INVOICE_CREATE`; mỗi sales order vẫn có tối đa một invoice nhờ unique invariant;
+- migration V12 backfill invoice cho các order `COMPLETED` đã thu đủ trước khi cơ chế tự động được bật, đồng thời loại permission manual-create cũ;
+- invoice list chỉ hiển thị các order đã thu đủ, hỗ trợ search `INV/SO/customer` và `from/to` theo business date;
+- phát hành invoice không tạo, tăng hoặc giảm receivable;
 - `paidAmount` và `remainingAmount` khi đọc invoice lấy theo trạng thái tài chính hiện tại của sales order;
-- customer payment vẫn chỉ được ghi qua `POST /api/payments/customer`;
-- invoice đã có payment không được hủy;
 - PDF chỉ tải được khi invoice đã phát hành và còn hiệu lực; nội dung PDF theo ngôn ngữ `Accept-Language` của giao diện (`vi`/`en`), dùng font Unicode để giữ nguyên tiếng Việt và hiển thị số tiền theo locale.
 
-Luồng: `COMPLETED order -> DRAFT invoice -> ISSUED -> PAID/OVERDUE` (trạng thái `PAID/OVERDUE` được suy ra từ receivable hiện tại). `OVERDUE` chỉ áp dụng sau khi đã qua ngày đến hạn theo business timezone; đúng ngày đến hạn vẫn là `ISSUED` nếu chưa thanh toán hết.
+Luồng mới: `COMPLETED order -> partial payments -> final payment -> automatic DRAFT invoice -> ISSUED -> PAID`.
 
 ## 7. Revenue
 
 Revenue chỉ ghi nhận order `COMPLETED`.
 
 Dashboard dùng `confirmed_at`, không dùng `created_at`, để đơn tạo hôm trước nhưng confirm hôm nay được ghi nhận vào ngày confirm.
+
+Dashboard còn có read endpoint riêng `GET /api/reports/dashboard/receivable-attention` (yêu cầu `REPORT_VIEW + DEBT_VIEW`) để tính theo **business date hiện tại** các khoản `Quá hạn`, `Đến hạn hôm nay`, `Sắp đến hạn trong 3 ngày` và preview khoản quá hạn lâu nhất. Endpoint này không dùng cache dashboard tổng hợp để trạng thái hạn không bị stale khi bước sang ngày mới.
 
 ## 8. Sales report semantics
 
@@ -142,17 +158,21 @@ Sales report là read model riêng, không lấy page đầu của `GET /api/sal
 
 ## 9. Read APIs
 
+- `GET /api/auth/me` -> session snapshot hiện tại (user, tenant, roles, permissions) cho authenticated frontend; dùng để refresh authorization state sau reload, không thay thế backend authorization.
 - `GET /api/customers` -> customer page summary.
 - `GET /api/customers/{id}` -> customer detail.
 - `GET /api/customers/{id}/debt-statement` -> statement, yêu cầu `DEBT_VIEW`.
 - `GET /api/sales-orders` -> paged order summary; hỗ trợ `customerId` filter.
 - `GET /api/sales-orders/{id}` -> order detail + items.
 - `GET /api/reports/sales` -> sales reporting read model; hỗ trợ `from` / `to` ISO-8601 và yêu cầu cả `REPORT_VIEW` + `SALES_ORDER_VIEW`.
+- `GET /api/inventory/stock` và `GET /api/inventory/transactions` -> response DTO tenant-safe; JPA entity/internal fields như `tenantId`, optimistic-lock `version` hoặc `createdBy` không phải public API contract.
 
 Frontend không được giả định list summary chứa order items. Với order chưa `COMPLETED`, API vẫn có thể trả `totalAmount` cho giá trị đơn nhưng `paidAmount`/`debtAmount` không được trình bày như khoản phải thu thực tế.
 
-- `GET /api/invoices` -> paged invoice summary, yêu cầu `INVOICE_VIEW`.
+- `GET /api/invoices` -> paged invoice summary của các order đã thu đủ; hỗ trợ search `INV/SO/customer` và `from` / `to`, yêu cầu `INVOICE_VIEW`.
 - `GET /api/invoices/{id}` -> invoice detail + snapshot items.
+- `GET /api/payments/outstanding-orders` -> paged outstanding orders cho Payment workspace.
+- `GET /api/payments/history` -> paged payment history, tìm theo PAY/SO/customer/note và hỗ trợ `from` / `to` business date.
 
 
 ## Business document numbering

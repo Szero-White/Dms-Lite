@@ -29,6 +29,18 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
         BigDecimal getRemainingAmount();
     }
 
+    interface OutstandingReceivableView {
+        Long getReceivableId();
+        Long getSalesOrderId();
+        String getSalesOrderCode();
+        Long getCustomerId();
+        String getCustomerName();
+        BigDecimal getTotalAmount();
+        BigDecimal getRemainingAmount();
+        LocalDate getDueDate();
+        java.time.Instant getConfirmedAt();
+    }
+
     List<CustomerDebtTransaction> findByTenantIdAndCustomerIdOrderByCreatedAtDesc(
         Long tenantId,
         Long customerId
@@ -37,13 +49,90 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query(
         "select debt from CustomerDebtTransaction debt " +
-        "where debt.tenantId=:tenantId and debt.customerId=:customerId " +
-        "and debt.direction='INCREASE' and debt.remainingAmount>0 " +
-        "order by debt.dueDate asc, debt.createdAt asc"
+        "where debt.tenantId=:tenantId and debt.sourceType='SALES_ORDER' " +
+        "and debt.sourceId=:salesOrderId and debt.direction='INCREASE' " +
+        "order by debt.createdAt desc, debt.id desc"
     )
-    List<CustomerDebtTransaction> lockOpenReceivables(
+    List<CustomerDebtTransaction> lockSalesOrderReceivables(
         @Param("tenantId") Long tenantId,
-        @Param("customerId") Long customerId
+        @Param("salesOrderId") Long salesOrderId
+    );
+
+    @Query(
+        value = "select debt.id as receivableId, salesOrder.id as salesOrderId, " +
+            "salesOrder.code as salesOrderCode, customer.id as customerId, customer.name as customerName, " +
+            "salesOrder.totalAmount as totalAmount, debt.remainingAmount as remainingAmount, " +
+            "debt.dueDate as dueDate, salesOrder.confirmedAt as confirmedAt " +
+            "from CustomerDebtTransaction debt, SalesOrder salesOrder, Customer customer " +
+            "where debt.tenantId=:tenantId and salesOrder.tenantId=:tenantId and customer.tenantId=:tenantId " +
+            "and debt.sourceType='SALES_ORDER' and debt.direction='INCREASE' and debt.remainingAmount>0 " +
+            "and salesOrder.id=debt.sourceId and salesOrder.status=:status " +
+            "and customer.id=salesOrder.customerId and customer.deletedAt is null " +
+            "and (:search='' or lower(salesOrder.code) like lower(concat('%', :search, '%')) " +
+            "or lower(customer.name) like lower(concat('%', :search, '%'))) " +
+            "and (:dueFrom is null or debt.dueDate>=:dueFrom) " +
+            "and (:dueTo is null or debt.dueDate<=:dueTo) " +
+            "and (:minRemaining is null or debt.remainingAmount>=:minRemaining) " +
+            "and (:maxRemaining is null or debt.remainingAmount<=:maxRemaining) " +
+            "and (:dueFilterEnabled=false " +
+            "or (:includeOverdue=true and debt.dueDate<:today) " +
+            "or (:includeDueToday=true and debt.dueDate=:today) " +
+            "or (:includeDueSoon=true and debt.dueDate>:today and debt.dueDate<=:dueSoonThrough) " +
+            "or (:includeCurrent=true and debt.dueDate>:dueSoonThrough)) " +
+            "order by " +
+            "case when :sortBy='NEWEST' and :sortDirection='ASC' then salesOrder.confirmedAt end asc, " +
+            "case when :sortBy='NEWEST' and :sortDirection='DESC' then salesOrder.confirmedAt end desc, " +
+            "case when :sortBy='ORDER_CODE' and :sortDirection='ASC' then salesOrder.code end asc, " +
+            "case when :sortBy='ORDER_CODE' and :sortDirection='DESC' then salesOrder.code end desc, " +
+            "case when :sortBy='CUSTOMER' and :sortDirection='ASC' then lower(customer.name) end asc, " +
+            "case when :sortBy='CUSTOMER' and :sortDirection='DESC' then lower(customer.name) end desc, " +
+            "case when :sortBy='TOTAL_AMOUNT' and :sortDirection='ASC' then salesOrder.totalAmount end asc, " +
+            "case when :sortBy='TOTAL_AMOUNT' and :sortDirection='DESC' then salesOrder.totalAmount end desc, " +
+            "case when :sortBy='PAID_AMOUNT' and :sortDirection='ASC' then salesOrder.totalAmount-debt.remainingAmount end asc, " +
+            "case when :sortBy='PAID_AMOUNT' and :sortDirection='DESC' then salesOrder.totalAmount-debt.remainingAmount end desc, " +
+            "case when :sortBy='REMAINING_AMOUNT' and :sortDirection='ASC' then debt.remainingAmount end asc, " +
+            "case when :sortBy='REMAINING_AMOUNT' and :sortDirection='DESC' then debt.remainingAmount end desc, " +
+            "case when :sortBy='DUE_DATE' and :sortDirection='ASC' then debt.dueDate end asc, " +
+            "case when :sortBy='DUE_DATE' and :sortDirection='DESC' then debt.dueDate end desc, " +
+            "case when :sortBy='DUE_STATUS' and :sortDirection='ASC' then debt.dueDate end asc, " +
+            "case when :sortBy='DUE_STATUS' and :sortDirection='DESC' then debt.dueDate end desc, " +
+            "salesOrder.id desc",
+        countQuery = "select count(debt) from CustomerDebtTransaction debt, SalesOrder salesOrder, Customer customer " +
+            "where debt.tenantId=:tenantId and salesOrder.tenantId=:tenantId and customer.tenantId=:tenantId " +
+            "and debt.sourceType='SALES_ORDER' and debt.direction='INCREASE' and debt.remainingAmount>0 " +
+            "and salesOrder.id=debt.sourceId and salesOrder.status=:status " +
+            "and customer.id=salesOrder.customerId and customer.deletedAt is null " +
+            "and (:search='' or lower(salesOrder.code) like lower(concat('%', :search, '%')) " +
+            "or lower(customer.name) like lower(concat('%', :search, '%'))) " +
+            "and (:dueFrom is null or debt.dueDate>=:dueFrom) " +
+            "and (:dueTo is null or debt.dueDate<=:dueTo) " +
+            "and (:minRemaining is null or debt.remainingAmount>=:minRemaining) " +
+            "and (:maxRemaining is null or debt.remainingAmount<=:maxRemaining) " +
+            "and (:dueFilterEnabled=false " +
+            "or (:includeOverdue=true and debt.dueDate<:today) " +
+            "or (:includeDueToday=true and debt.dueDate=:today) " +
+            "or (:includeDueSoon=true and debt.dueDate>:today and debt.dueDate<=:dueSoonThrough) " +
+            "or (:includeCurrent=true and debt.dueDate>:dueSoonThrough)) " +
+            "and :sortBy is not null and :sortDirection is not null"
+    )
+    org.springframework.data.domain.Page<OutstandingReceivableView> findOutstandingSalesOrderReceivables(
+        @Param("tenantId") Long tenantId,
+        @Param("search") String search,
+        @Param("status") com.example.dms.sales.SalesOrderStatus status,
+        @Param("dueFilterEnabled") boolean dueFilterEnabled,
+        @Param("includeCurrent") boolean includeCurrent,
+        @Param("includeDueSoon") boolean includeDueSoon,
+        @Param("includeDueToday") boolean includeDueToday,
+        @Param("includeOverdue") boolean includeOverdue,
+        @Param("today") LocalDate today,
+        @Param("dueSoonThrough") LocalDate dueSoonThrough,
+        @Param("dueFrom") LocalDate dueFrom,
+        @Param("dueTo") LocalDate dueTo,
+        @Param("minRemaining") BigDecimal minRemaining,
+        @Param("maxRemaining") BigDecimal maxRemaining,
+        @Param("sortBy") String sortBy,
+        @Param("sortDirection") String sortDirection,
+        Pageable pageable
     );
 
     @Query(

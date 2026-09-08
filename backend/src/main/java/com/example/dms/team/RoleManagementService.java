@@ -52,18 +52,20 @@ public class RoleManagementService {
             Set.of(PermissionNames.SALES_ORDER_VIEW, PermissionNames.INVENTORY_VIEW)
         ),
         Map.entry(PermissionNames.SALES_ORDER_CANCEL, Set.of(PermissionNames.SALES_ORDER_VIEW)),
-        Map.entry(
-            PermissionNames.INVOICE_CREATE,
-            Set.of(PermissionNames.INVOICE_VIEW, PermissionNames.SALES_ORDER_VIEW)
-        ),
         Map.entry(PermissionNames.INVOICE_ISSUE, Set.of(PermissionNames.INVOICE_VIEW)),
-        Map.entry(PermissionNames.INVOICE_CANCEL, Set.of(PermissionNames.INVOICE_VIEW)),
         Map.entry(PermissionNames.INVENTORY_VIEW, Set.of(PermissionNames.PRODUCT_VIEW)),
         Map.entry(
             PermissionNames.INVENTORY_MANAGE,
             Set.of(PermissionNames.INVENTORY_VIEW, PermissionNames.PRODUCT_VIEW)
         ),
-        Map.entry(PermissionNames.PAYMENT_CREATE, Set.of(PermissionNames.CUSTOMER_VIEW)),
+        Map.entry(
+            PermissionNames.PAYMENT_CREATE,
+            Set.of(
+                PermissionNames.CUSTOMER_VIEW,
+                PermissionNames.SALES_ORDER_VIEW,
+                PermissionNames.DEBT_VIEW
+            )
+        ),
         Map.entry(PermissionNames.DEBT_VIEW, Set.of(PermissionNames.CUSTOMER_VIEW))
     );
 
@@ -77,13 +79,11 @@ public class RoleManagementService {
         entry(PermissionNames.SALES_ORDER_CREATE, "Create sales orders", "Sales", "Create draft sales orders."),
         entry(PermissionNames.SALES_ORDER_CONFIRM, "Confirm sales orders", "Sales", "Confirm orders for fulfillment."),
         entry(PermissionNames.SALES_ORDER_CANCEL, "Cancel sales orders", "Sales", "Cancel incorrect or invalid orders."),
-        entry(PermissionNames.INVOICE_VIEW, "View invoices", "Finance", "See invoices generated from completed sales orders."),
-        entry(PermissionNames.INVOICE_CREATE, "Create invoices", "Finance", "Create an invoice from a completed sales order."),
+        entry(PermissionNames.INVOICE_VIEW, "View invoices", "Finance", "See invoices generated automatically when completed sales orders are fully paid."),
         entry(PermissionNames.INVOICE_ISSUE, "Issue invoices", "Finance", "Issue prepared sales invoices."),
-        entry(PermissionNames.INVOICE_CANCEL, "Cancel invoices", "Finance", "Cancel an unpaid invoice document."),
         entry(PermissionNames.INVENTORY_VIEW, "View inventory", "Inventory", "See stock by warehouse and product."),
         entry(PermissionNames.INVENTORY_MANAGE, "Manage inventory", "Inventory", "Receive or adjust stock levels."),
-        entry(PermissionNames.PAYMENT_CREATE, "Record payments", "Finance", "Record customer payments."),
+        entry(PermissionNames.PAYMENT_CREATE, "Record payments", "Finance", "Record payments against outstanding completed sales orders."),
         entry(PermissionNames.DEBT_VIEW, "View debt", "Finance", "See customer receivables."),
         entry(PermissionNames.REPORT_VIEW, "View reports", "Insights", "See dashboard and business reports."),
         entry(PermissionNames.AUDIT_VIEW, "View audit logs", "Administration", "Review system activity logs."),

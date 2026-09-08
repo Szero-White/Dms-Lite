@@ -341,7 +341,7 @@ try {
     Write-Host 'Frontend: http://localhost:3000' -ForegroundColor Cyan
     Write-Host 'Backend : http://localhost:8080' -ForegroundColor Cyan
     Write-Host ''
-    Write-Host 'Expected seeded accounts use password 123456:' -ForegroundColor DarkGray
+    Write-Host 'Expected seeded accounts use password Demo@2026:' -ForegroundColor DarkGray
     Write-Host '  owner' -ForegroundColor DarkGray
     Write-Host '  sale' -ForegroundColor DarkGray
     Write-Host '  warehouse' -ForegroundColor DarkGray

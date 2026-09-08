@@ -1,5 +1,6 @@
 package com.example.dms.help;
 
+import com.example.dms.payment.PaymentWorkspaceAccessPolicy;
 import com.example.dms.sales.SalesOrderAccessPolicy;
 import com.example.dms.user.PermissionNames;
 import java.util.ArrayList;
@@ -55,9 +56,7 @@ public class HelpPermissionScope {
 
     public boolean canUseInvoices() {
         return has(PermissionNames.INVOICE_VIEW)
-            || has(PermissionNames.INVOICE_CREATE)
-            || has(PermissionNames.INVOICE_ISSUE)
-            || has(PermissionNames.INVOICE_CANCEL);
+            || has(PermissionNames.INVOICE_ISSUE);
     }
 
     /**
@@ -72,12 +71,16 @@ public class HelpPermissionScope {
         return has(PermissionNames.INVENTORY_VIEW);
     }
 
+    public boolean canUsePayments() {
+        return PaymentWorkspaceAccessPolicy.canAccess(permissions);
+    }
+
     /**
-     * PAYMENT_CREATE permits payment workflow guidance; receivable values require DEBT_VIEW.
+     * Finance guidance is available for receivable viewers and for users who can access
+     * the complete payment workspace. Payment-specific actions never rely on PAYMENT_CREATE alone.
      */
     public boolean canUseFinance() {
-        return has(PermissionNames.PAYMENT_CREATE)
-            || has(PermissionNames.DEBT_VIEW);
+        return canUsePayments() || has(PermissionNames.DEBT_VIEW);
     }
 
     public boolean canViewDebtData() {
@@ -123,7 +126,9 @@ public class HelpPermissionScope {
         addIfAllowed(modules, PermissionNames.PRODUCT_VIEW, "Products");
         addIfAllowed(modules, PermissionNames.CUSTOMER_VIEW, "Customers");
         addIfAllowed(modules, PermissionNames.INVENTORY_VIEW, "Inventory");
-        addIfAllowed(modules, PermissionNames.PAYMENT_CREATE, "Payments");
+        if (canUsePayments()) {
+            modules.add("Payments");
+        }
         addIfAllowed(modules, PermissionNames.AUDIT_VIEW, "Audit Logs");
         addIfAllowed(modules, PermissionNames.NOTIFICATION_VIEW, "Notifications");
         addIfAllowed(modules, PermissionNames.TEAM_MANAGE, "Team Access");
@@ -166,7 +171,7 @@ public class HelpPermissionScope {
             case "Products" -> canUseProducts();
             case "Customers" -> canUseCustomers();
             case "Inventory" -> canUseInventory();
-            case "Payments" -> has(PermissionNames.PAYMENT_CREATE);
+            case "Payments" -> canUsePayments();
             case "Payments/Debt" -> canUseFinance();
             case "Team Access", "Roles & Permissions" -> canManageTeam();
             case "Audit Logs" -> has(PermissionNames.AUDIT_VIEW);

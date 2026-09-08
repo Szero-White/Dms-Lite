@@ -9,7 +9,7 @@ public class DemoProperties {
 
     private boolean enabled = true;
 
-    private String password = "123456";
+    private String password = "Demo@2026";
 
     public boolean isEnabled() {
         return enabled;

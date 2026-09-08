@@ -13,9 +13,13 @@ class InvoiceAccessPolicyTest {
     }
 
     @Test
-    void existingFinancialPermissionsCanExposeReceivableState() {
+    void paymentCreateAloneDoesNotExposeReceivableState() {
+        assertThat(InvoiceAccessPolicy.canViewReceivableState(List.of("PAYMENT_CREATE"))).isFalse();
+    }
+
+    @Test
+    void debtReportAndSalesCreationCanExposeReceivableState() {
         assertThat(InvoiceAccessPolicy.canViewReceivableState(List.of("DEBT_VIEW"))).isTrue();
-        assertThat(InvoiceAccessPolicy.canViewReceivableState(List.of("PAYMENT_CREATE"))).isTrue();
         assertThat(InvoiceAccessPolicy.canViewReceivableState(List.of("REPORT_VIEW"))).isTrue();
         assertThat(InvoiceAccessPolicy.canViewReceivableState(List.of("SALES_ORDER_CREATE"))).isTrue();
     }

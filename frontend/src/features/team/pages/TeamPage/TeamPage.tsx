@@ -30,7 +30,6 @@ import styles from './TeamPage.module.css';
 import {
   OWNER_ONLY_PERMISSIONS,
   groupPermissions,
-  isOwner,
 } from './teamPage.utils';
 
 export function TeamPage() {
@@ -87,7 +86,7 @@ export function TeamPage() {
   }
 
   function openEditMemberDrawer(member: TeamMember) {
-    if (isOwner(member)) {
+    if (!member.manageable) {
       return;
     }
 
@@ -121,6 +120,7 @@ export function TeamPage() {
     reactivateMember.mutate({
       userId: member.id,
       payload: {
+        username: member.username,
         fullName: member.fullName,
         roles: member.roles,
         active: true,
@@ -138,7 +138,11 @@ export function TeamPage() {
     if (selectedMember) {
       await updateMember.mutateAsync({
         userId: selectedMember.id,
-        payload,
+        payload: {
+          ...payload,
+          username: values.username?.trim() ?? selectedMember.username,
+          password: values.password || undefined,
+        },
       });
     } else {
       await createMember.mutateAsync({

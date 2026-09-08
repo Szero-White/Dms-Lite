@@ -122,15 +122,20 @@ public class InventoryService {
         );
     }
 
-    public List<StockItem> stock() {
-        return stockItemRepository.findByTenantId(TenantContext.tenantRequired());
+    @Transactional(readOnly = true)
+    public List<StockItemResponse> stock() {
+        return stockItemRepository.findByTenantId(TenantContext.tenantRequired())
+            .stream()
+            .map(StockItemResponse::from)
+            .toList();
     }
 
-    public Page<InventoryTransaction> history(Pageable pageable) {
+    @Transactional(readOnly = true)
+    public Page<InventoryTransactionResponse> history(Pageable pageable) {
         return inventoryTransactionRepository.findByTenantIdOrderByCreatedAtDesc(
             TenantContext.tenantRequired(),
             pageable
-        );
+        ).map(InventoryTransactionResponse::from);
     }
 
     private void saveTransaction(

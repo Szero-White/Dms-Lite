@@ -32,7 +32,7 @@ Script sẽ mở:
 - terminal Backend: Spring Boot local profile;
 - terminal Frontend: Vite port `3000`.
 
-Nếu frontend chưa có `node_modules`, script chạy `npm ci` trước.
+Nếu frontend chưa có `node_modules`, launcher tự chạy `npm ci` trước rồi mới mở Vite.
 
 **PostgreSQL phải đang chạy trước khi chạy script.**
 
@@ -68,10 +68,10 @@ npm run dev
 
 ## 6. Demo accounts
 
-- `owner / 123456`
-- `sale / 123456`
-- `warehouse / 123456`
-- `accountant / 123456`
+- `owner / Demo@2026`
+- `sale / Demo@2026`
+- `warehouse / Demo@2026`
+- `accountant / Demo@2026`
 
 Các credential này chỉ dành cho local/demo data, không dùng cho dữ liệu production thực. Local profile bật demo mode mặc định; public recruiter demo dùng `APP_DEMO_ENABLED=true`, còn production thật nên đặt `APP_DEMO_ENABLED=false`.
 

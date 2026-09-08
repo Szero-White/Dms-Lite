@@ -41,34 +41,34 @@ export function CustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [form] = Form.useForm<CustomerFormValues>();
 
-  const filteredCustomers = useMemo(
-    () =>
-      (customersQuery.data ?? []).filter((customer) => {
-        const matchesKeyword = [customer.name, customer.phone, customer.address].some((value) =>
-          value?.toLowerCase().includes(keyword.toLowerCase()),
-        );
-        const debt = showCustomerFinancials ? toNumber(customer.debtBalance) : 0;
-        const creditLimit = toNumber(customer.creditLimit);
-        const creditUsage = showCustomerFinancials && creditLimit > 0 ? debt / creditLimit : 0;
-        const matchesActive =
-          activeFilter === 'ALL' ||
-          (activeFilter === 'ACTIVE' && customer.active) ||
-          (activeFilter === 'INACTIVE' && !customer.active);
-        const matchesDebt =
-          !showCustomerFinancials ||
-          debtFilter === 'ALL' ||
-          (debtFilter === 'WITH_DEBT' && debt > 0) ||
-          (debtFilter === 'CLEAR' && debt <= 0);
-        const matchesCredit =
-          !showCustomerFinancials ||
-          creditFilter === 'ALL' ||
-          (creditFilter === 'NEAR_LIMIT' && creditLimit > 0 && creditUsage >= 0.8) ||
-          (creditFilter === 'OVER_LIMIT' && creditLimit > 0 && creditUsage > 1);
+  const filteredCustomers = useMemo(() => {
+    const filtered = (customersQuery.data ?? []).filter((customer) => {
+      const matchesKeyword = [customer.name, customer.phone, customer.address].some((value) =>
+        value?.toLowerCase().includes(keyword.toLowerCase()),
+      );
+      const debt = showCustomerFinancials ? toNumber(customer.debtBalance) : 0;
+      const creditLimit = toNumber(customer.creditLimit);
+      const creditUsage = showCustomerFinancials && creditLimit > 0 ? debt / creditLimit : 0;
+      const matchesActive =
+        activeFilter === 'ALL' ||
+        (activeFilter === 'ACTIVE' && customer.active) ||
+        (activeFilter === 'INACTIVE' && !customer.active);
+      const matchesDebt =
+        !showCustomerFinancials ||
+        debtFilter === 'ALL' ||
+        (debtFilter === 'WITH_DEBT' && debt > 0) ||
+        (debtFilter === 'CLEAR' && debt <= 0);
+      const matchesCredit =
+        !showCustomerFinancials ||
+        creditFilter === 'ALL' ||
+        (creditFilter === 'NEAR_LIMIT' && creditLimit > 0 && creditUsage >= 0.8) ||
+        (creditFilter === 'OVER_LIMIT' && creditLimit > 0 && creditUsage > 1);
 
-        return matchesKeyword && matchesActive && matchesDebt && matchesCredit;
-      }),
-    [activeFilter, creditFilter, customersQuery.data, debtFilter, keyword, showCustomerFinancials],
-  );
+      return matchesKeyword && matchesActive && matchesDebt && matchesCredit;
+    });
+
+    return [...filtered].sort((first, second) => second.id - first.id);
+  }, [activeFilter, creditFilter, customersQuery.data, debtFilter, keyword, showCustomerFinancials]);
 
   const customers = customersQuery.data ?? [];
   const totalReceivables = showCustomerFinancials

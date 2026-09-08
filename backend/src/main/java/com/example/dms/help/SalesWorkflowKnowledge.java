@@ -74,54 +74,49 @@ final class SalesWorkflowKnowledge {
     public HelpAnswerResponse invoiceAnswer(HelpPermissionScope scope, HelpLocale locale) {
         if (locale == HelpLocale.VI) {
             List<String> steps = new ArrayList<>();
-            steps.add("Hóa đơn chỉ được tạo từ đơn bán hàng đã Hoàn tất; hóa đơn không tạo thêm một khoản công nợ mới.");
-            if (scope.has(PermissionNames.INVOICE_CREATE)) {
-                steps.add("Mở Đơn bán hàng, chọn một đơn Hoàn tất và dùng thao tác Tạo hóa đơn. Tạo lại cùng đơn sẽ mở hóa đơn hiện có thay vì nhân bản.");
-            }
+            steps.add("Khi một đơn bán hàng Hoàn tất được thu đủ, hệ thống tự tạo một hóa đơn Nháp cho đúng đơn đó; không cần thao tác Tạo hóa đơn thủ công.");
             if (scope.has(PermissionNames.INVOICE_ISSUE)) {
-                steps.add("Kiểm tra khách hàng, số tiền và hạn thanh toán rồi phát hành hóa đơn nháp.");
+                steps.add("Kiểm tra khách hàng, số tiền và chứng từ rồi phát hành hóa đơn để tải PDF.");
             }
-            if (scope.has(PermissionNames.PAYMENT_CREATE)) {
-                steps.add("Tiền đã thu và còn phải thu trên hóa đơn luôn lấy từ công nợ của đơn bán hàng; ghi nhận tiền tại mục Thanh toán.");
+            if (scope.canUsePayments()) {
+                steps.add("Thanh toán vẫn ghi theo từng đơn; lần thu cuối đưa còn phải thu về 0 và tạo hóa đơn trong cùng giao dịch.");
             } else {
                 steps.add("Tiền đã thu và còn phải thu lấy từ công nợ của đơn bán hàng; khoản thu do vai trò có quyền Thanh toán ghi nhận.");
             }
 
             return response(
-                "Hóa đơn là chứng từ bán hàng gắn với đơn đã hoàn tất, còn thanh toán và công nợ vẫn dùng quy trình tài chính hiện tại.",
+                "Hóa đơn là chứng từ bán hàng tự sinh khi đơn đã thu đủ, còn thanh toán và công nợ vẫn dùng quy trình tài chính hiện tại.",
                 steps,
                 scope.relatedModules(locale, "Invoices", "Sales Orders", "Payments"),
                 List.of(
                     "Không dùng hóa đơn để tạo hoặc điều chỉnh công nợ lần thứ hai.",
-                    "Không hủy hóa đơn sau khi đơn hàng đã được ghi nhận thanh toán."
+                    "Không tạo hóa đơn thủ công hoặc nhân bản hóa đơn cho cùng một đơn bán hàng."
                 ),
                 locale
             );
         }
 
         List<String> steps = new ArrayList<>();
-        steps.add("Invoices can only be created from Completed sales orders and do not create a second receivable balance.");
-        if (scope.has(PermissionNames.INVOICE_CREATE)) {
-            steps.add("Open Sales Orders, choose a Completed order and use Create invoice. Repeating it for the same order returns the existing invoice instead of duplicating it.");
-        }
+        steps.add("When a Completed sales order becomes fully paid, DMS automatically creates one Draft invoice for that order; there is no manual Create invoice step.");
         if (scope.has(PermissionNames.INVOICE_ISSUE)) {
-            steps.add("Review customer, amount and due date, then issue the draft invoice.");
+            steps.add("Review the customer, amount and document, then issue the invoice to enable PDF download.");
         }
-        if (scope.has(PermissionNames.PAYMENT_CREATE)) {
-            steps.add("Collected and remaining amounts come from the linked sales-order receivable; record money only in Payments.");
+        if (scope.canUsePayments()) {
+            steps.add("Payments remain order-specific; the final collection sets remaining debt to zero and creates the invoice in the same transaction.");
         } else {
             steps.add("Collected and remaining amounts come from the linked sales-order receivable; payment posting is handled by a role with payment permission.");
         }
 
         return response(
-            "An invoice is a sales document linked to a completed order, while payments and receivables remain in the canonical finance workflow.",
+            "An invoice is generated automatically when a completed order is fully paid, while payments and receivables remain in the canonical finance workflow.",
             steps,
             scope.relatedModules(locale, "Invoices", "Sales Orders", "Payments"),
             List.of(
                 "Do not use invoices to create or adjust receivables a second time.",
-                "Do not cancel an invoice after payment has been recorded for its order."
+                "Do not manually create or duplicate an invoice for the same sales order."
             ),
             locale
         );
     }
+
 }

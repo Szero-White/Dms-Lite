@@ -1,0 +1,1 @@
+export { ReceivableDueTag } from './ReceivableDueTag';

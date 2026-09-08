@@ -1,6 +1,6 @@
 import {
   CheckCircleOutlined,
-  FileTextOutlined,
+  FilterOutlined,
   MoreOutlined,
   PlusOutlined,
   SearchOutlined,
@@ -11,10 +11,12 @@ import {
   Avatar,
   Button,
   Card,
+  Checkbox,
   DatePicker,
   Descriptions,
   Drawer,
   Dropdown,
+  Popover,
   Input,
   Select,
   Space,
@@ -32,7 +34,6 @@ import { PERMISSIONS, canAccessPath, canViewOrderFinancials, hasPermission, useA
 import { SalesOrderStatusTag } from '../../../../components/common/StatusTag';
 import { useCustomers } from '../../../customers';
 import { useProductList } from '../../../products';
-import { useCreateInvoiceFromSalesOrder } from '../../../invoice';
 import {
   useCancelSalesOrder,
   useConfirmSalesOrder,
@@ -44,7 +45,8 @@ import {
   formatDateTime,
   toNumber,
 } from '../../../../lib/format';
-import type { SalesOrder } from '../../types/sales.types';
+import { TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
+import type { SalesOrder, SalesOrderStatus } from '../../types/sales.types';
 import { SalesOrdersPulseBar } from './components/SalesOrdersPulseBar';
 import styles from './SalesOrdersPage.module.css';
 
@@ -69,7 +71,6 @@ export function SalesOrdersPage() {
   const canViewSalesOrderFinancials = canViewOrderFinancials(user);
   const canConfirmSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CONFIRM);
   const canCancelSalesOrder = hasPermission(user, PERMISSIONS.SALES_ORDER_CANCEL);
-  const canCreateInvoice = hasPermission(user, PERMISSIONS.INVOICE_CREATE);
   const { modal } = App.useApp();
   const navigate = useNavigate();
   const ordersQuery = useSalesOrders();
@@ -77,10 +78,10 @@ export function SalesOrdersPage() {
   const productsQuery = useProductList({ enabled: canViewProducts });
   const confirmMutation = useConfirmSalesOrder();
   const cancelMutation = useCancelSalesOrder();
-  const createInvoiceMutation = useCreateInvoiceFromSalesOrder();
   const [keyword, setKeyword] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [statusFilters, setStatusFilters] = useState<Array<SalesOrderStatus | 'ALL'>>(['ALL']);
   const [customerFilter, setCustomerFilter] = useState<number | 'ALL'>('ALL');
+  const [collectionFilters, setCollectionFilters] = useState<string[]>(['ALL']);
   const [dateRange, setDateRange] = useState<[string, string] | null>(null);
   const [datePickerKey, setDatePickerKey] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<SalesOrder | null>(null);
@@ -113,23 +114,37 @@ export function SalesOrdersPage() {
     return orders.filter((order) => {
       const cName = order.customerName ?? customersMap.get(order.customerId)?.name ?? '';
       const matchesKeyword = !kw || order.code.toLowerCase().includes(kw) || cName.toLowerCase().includes(kw);
-      const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
+      const matchesStatus = statusFilters.includes('ALL') || statusFilters.includes(order.status);
       const matchesCustomer = customerFilter === 'ALL' || order.customerId === customerFilter;
+      const matchesCollection = collectionFilters.includes('ALL') || (
+        order.status === 'COMPLETED' && (
+          (collectionFilters.includes('UNPAID') && toNumber(order.paidAmount) <= 0 && toNumber(order.debtAmount) > 0) ||
+          (collectionFilters.includes('PARTIAL') && toNumber(order.paidAmount) > 0 && toNumber(order.debtAmount) > 0) ||
+          (collectionFilters.includes('PAID') && toNumber(order.debtAmount) <= 0)
+        )
+      );
       const ts = new Date(order.createdAt).getTime();
       const matchesDate = !dateRange || (
         ts >= new Date(`${dateRange[0]}T00:00:00`).getTime() &&
         ts <= new Date(`${dateRange[1]}T23:59:59`).getTime()
       );
-      return matchesKeyword && matchesStatus && matchesCustomer && matchesDate;
+      return matchesKeyword && matchesStatus && matchesCustomer && matchesCollection && matchesDate;
+    }).sort((first, second) => {
+      const createdDifference =
+        new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime();
+      return createdDifference || second.id - first.id;
     });
-  }, [customerFilter, customersMap, dateRange, keyword, orders, statusFilter]);
+  }, [collectionFilters, customerFilter, customersMap, dateRange, keyword, orders, statusFilters]);
 
-  const hasFilters = Boolean(keyword || statusFilter !== 'ALL' || customerFilter !== 'ALL' || dateRange);
+  const hasFilters = Boolean(
+    keyword || !statusFilters.includes('ALL') || customerFilter !== 'ALL' || dateRange || !collectionFilters.includes('ALL')
+  );
 
   function clearFilters() {
     setKeyword('');
-    setStatusFilter('ALL');
+    setStatusFilters(['ALL']);
     setCustomerFilter('ALL');
+    setCollectionFilters(['ALL']);
     setDateRange(null);
     setDatePickerKey((c) => c + 1);
   }
@@ -161,17 +176,6 @@ export function SalesOrdersPage() {
     });
   }
 
-  function createInvoice(order: SalesOrder) {
-    if (!canCreateInvoice || order.status !== 'COMPLETED') {
-      return;
-    }
-
-    createInvoiceMutation.mutate(order.id, {
-      onSuccess: (invoice) => navigate(`/invoices/${invoice.id}`),
-    });
-  }
-
-
 
   return (
     <div className={styles.page}>
@@ -191,8 +195,8 @@ export function SalesOrdersPage() {
         cancelledCount={statusCounts.CANCELLED}
         completedCount={statusCounts.COMPLETED}
         draftCount={statusCounts.DRAFT}
-        onStatusFilterChange={setStatusFilter}
-        statusFilter={statusFilter}
+        onStatusFiltersChange={setStatusFilters}
+        statusFilters={statusFilters}
         totalOrders={totalOrders}
       />
       {/* Table card */}
@@ -207,17 +211,41 @@ export function SalesOrdersPage() {
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
             />
-            <Select
-              className={styles.filter}
-              value={statusFilter}
-              onChange={setStatusFilter}
-              options={[
-                { value: 'ALL', label: t('sales.filters.allStatuses') },
-                { value: 'DRAFT', label: t('status.sales.DRAFT') },
-                { value: 'COMPLETED', label: t('status.sales.COMPLETED') },
-                { value: 'CANCELLED', label: t('status.sales.CANCELLED') },
-              ]}
-            />
+            <Popover
+              trigger="click"
+              placement="bottomLeft"
+              content={(
+                <div className={styles.collectionFilterMenu}>
+                  <Typography.Text strong>{t('sales.filters.orderStatus')}</Typography.Text>
+                  <Checkbox.Group
+                    className={styles.collectionFilterGroup}
+                    value={statusFilters}
+                    options={[
+                      { value: 'ALL', label: t('sales.filters.allStatuses') },
+                      { value: 'DRAFT', label: t('status.sales.DRAFT') },
+                      { value: 'COMPLETED', label: t('status.sales.COMPLETED') },
+                      { value: 'CANCELLED', label: t('status.sales.CANCELLED') },
+                    ]}
+                    onChange={(values) => {
+                      const next = values.map(String) as Array<SalesOrderStatus | 'ALL'>;
+                      const previousAll = statusFilters.includes('ALL');
+                      const nextAll = next.includes('ALL');
+                      if (nextAll && !previousAll) {
+                        setStatusFilters(['ALL']);
+                        return;
+                      }
+                      const specific = next.filter((value): value is SalesOrderStatus => value !== 'ALL');
+                      setStatusFilters(specific.length > 0 ? specific : ['ALL']);
+                    }}
+                  />
+                </div>
+              )}
+            >
+              <Button className={styles.filter} icon={<FilterOutlined />}>
+                {t('sales.filters.orderStatus')}
+                {!statusFilters.includes('ALL') ? ` (${statusFilters.length})` : ''}
+              </Button>
+            </Popover>
             {canViewCustomers ? (
               <Select
                 showSearch
@@ -230,6 +258,43 @@ export function SalesOrdersPage() {
                   ...customers.map((c) => ({ value: c.id, label: c.name })),
                 ]}
               />
+            ) : null}
+            {canViewSalesOrderFinancials ? (
+              <Popover
+                trigger="click"
+                placement="bottomLeft"
+                content={(
+                  <div className={styles.collectionFilterMenu}>
+                    <Typography.Text strong>{t('sales.filters.collectionStatus')}</Typography.Text>
+                    <Checkbox.Group
+                      className={styles.collectionFilterGroup}
+                      value={collectionFilters}
+                      options={[
+                        { value: 'ALL', label: t('sales.filters.collectionAll') },
+                        { value: 'UNPAID', label: t('sales.filters.collectionUnpaid') },
+                        { value: 'PARTIAL', label: t('sales.filters.collectionPartial') },
+                        { value: 'PAID', label: t('sales.filters.collectionPaid') },
+                      ]}
+                      onChange={(values) => {
+                        const next = values.map(String);
+                        const previousAll = collectionFilters.includes('ALL');
+                        const nextAll = next.includes('ALL');
+                        if (nextAll && !previousAll) {
+                          setCollectionFilters(['ALL']);
+                          return;
+                        }
+                        const specific = next.filter((value) => value !== 'ALL');
+                        setCollectionFilters(specific.length > 0 ? specific : ['ALL']);
+                      }}
+                    />
+                  </div>
+                )}
+              >
+                <Button icon={<FilterOutlined />}>
+                  {t('sales.filters.collectionStatus')}
+                  {!collectionFilters.includes('ALL') ? ` (${collectionFilters.length})` : ''}
+                </Button>
+              </Popover>
             ) : null}
             <DatePicker.RangePicker
               key={datePickerKey}
@@ -244,12 +309,35 @@ export function SalesOrdersPage() {
         {hasFilters && (
           <div className={styles.filterChips}>
             {keyword && <Tag closable onClose={() => setKeyword('')}>{t('sales.filters.searchChip', { keyword })}</Tag>}
-            {statusFilter !== 'ALL' && <Tag closable onClose={() => setStatusFilter('ALL')}>{t('sales.filters.statusChip', { status: t(`status.sales.${statusFilter}`) })}</Tag>}
+            {!statusFilters.includes('ALL') && statusFilters.map((status) => (
+              <Tag
+                key={status}
+                closable
+                onClose={() => {
+                  const next = statusFilters.filter((value) => value !== status);
+                  setStatusFilters(next.length > 0 ? next : ['ALL']);
+                }}
+              >
+                {t('sales.filters.statusChip', { status: t(`status.sales.${status}`) })}
+              </Tag>
+            ))}
             {customerFilter !== 'ALL' && (
               <Tag closable onClose={() => setCustomerFilter('ALL')}>
                 {t('sales.filters.customerChip', { customer: customersMap.get(customerFilter)?.name || customerFilter })}
               </Tag>
             )}
+            {!collectionFilters.includes('ALL') && collectionFilters.map((filter) => (
+              <Tag
+                key={filter}
+                closable
+                onClose={() => {
+                  const next = collectionFilters.filter((value) => value !== filter);
+                  setCollectionFilters(next.length > 0 ? next : ['ALL']);
+                }}
+              >
+                {t(`sales.filters.collection.${filter}`)}
+              </Tag>
+            ))}
             {dateRange && (
               <Tag closable onClose={() => { setDateRange(null); setDatePickerKey((c) => c + 1); }}>
                 {t('sales.filters.dateChip', { start: dateRange[0], end: dateRange[1] })}
@@ -283,6 +371,8 @@ export function SalesOrdersPage() {
           <Table
             rowKey="id"
             scroll={{ x: 1120 }}
+            sortDirections={TABLE_SORT_DIRECTIONS}
+            showSorterTooltip={false}
             dataSource={filteredOrders}
             columns={[
               {
@@ -290,6 +380,7 @@ export function SalesOrdersPage() {
                 dataIndex: 'code',
                 fixed: 'left',
                 width: 150,
+                sorter: (first, second) => first.code.localeCompare(second.code),
                 render: (value, record) => (
                   <Button type="link" className={styles.orderLink} onClick={() => setSelectedOrder(record)}>
                     {value}
@@ -299,6 +390,11 @@ export function SalesOrdersPage() {
               {
                 title: t('sales.column.customer'),
                 width: 220,
+                sorter: (first, second) => {
+                  const firstName = first.customerName ?? customersMap.get(first.customerId)?.name ?? '';
+                  const secondName = second.customerName ?? customersMap.get(second.customerId)?.name ?? '';
+                  return firstName.localeCompare(secondName);
+                },
                 render: (_, record) => {
                   const customerName = record.customerName
                     ?? customersMap.get(record.customerId)?.name
@@ -315,13 +411,55 @@ export function SalesOrdersPage() {
                   );
                 },
               },
-              { title: t('sales.column.created'), dataIndex: 'createdAt', width: 160, render: (v) => formatDateTime(v, i18n.language) },
-              { title: t('common.status'), width: 130, render: (_, r) => <SalesOrderStatusTag status={r.status} /> },
+              {
+                title: t('sales.column.created'),
+                dataIndex: 'createdAt',
+                width: 160,
+                defaultSortOrder: 'descend' as const,
+                sorter: (first, second) =>
+                  new Date(first.createdAt).getTime() - new Date(second.createdAt).getTime(),
+                render: (v) => formatDateTime(v, i18n.language),
+              },
+              {
+                title: t('common.status'),
+                width: 130,
+                sorter: (first, second) => first.status.localeCompare(second.status),
+                render: (_, r) => <SalesOrderStatusTag status={r.status} />,
+              },
               ...(canViewSalesOrderFinancials ? [
-                { title: t('sales.column.total'), dataIndex: 'totalAmount', align: 'right' as const, width: 150, render: (v: string | number | null) => <span className={styles.money}>{formatCurrency(v)}</span> },
-                { title: t('sales.column.paid'), dataIndex: 'paidAmount', align: 'right' as const, width: 150, render: (_, record) => <span className={styles.money}>{record.status === 'COMPLETED' ? formatCurrency(record.paidAmount) : t('sales.financial.notApplicable')}</span> },
                 {
-                  title: t('sales.column.debt'), dataIndex: 'debtAmount', align: 'right' as const, width: 180,
+                  title: t('sales.column.total'),
+                  dataIndex: 'totalAmount',
+                  align: 'right' as const,
+                  width: 150,
+                  sorter: (first: SalesOrder, second: SalesOrder) =>
+                    toNumber(first.totalAmount) - toNumber(second.totalAmount),
+                  render: (v: string | number | null) => (
+                    <span className={styles.money}>{formatCurrency(v)}</span>
+                  ),
+                },
+                {
+                  title: t('sales.column.paid'),
+                  dataIndex: 'paidAmount',
+                  align: 'right' as const,
+                  width: 150,
+                  sorter: (first: SalesOrder, second: SalesOrder) =>
+                    toNumber(first.paidAmount) - toNumber(second.paidAmount),
+                  render: (_, record) => (
+                    <span className={styles.money}>
+                      {record.status === 'COMPLETED'
+                        ? formatCurrency(record.paidAmount)
+                        : t('sales.financial.notApplicable')}
+                    </span>
+                  ),
+                },
+                {
+                  title: t('sales.column.debt'),
+                  dataIndex: 'debtAmount',
+                  align: 'right' as const,
+                  width: 180,
+                  sorter: (first: SalesOrder, second: SalesOrder) =>
+                    toNumber(first.debtAmount) - toNumber(second.debtAmount),
                   render: (_, record) => {
                     if (record.status === 'COMPLETED') {
                       return <span className={`${styles.money} ${toNumber(record.debtAmount) > 0 ? styles.debt : ''}`}>{formatCurrency(record.debtAmount)}</span>;
@@ -347,15 +485,11 @@ export function SalesOrdersPage() {
                       ...(record.status === 'DRAFT' && canCancelSalesOrder ? [
                         { key: 'cancel', label: t('sales.action.cancelOrder'), icon: <StopOutlined />, danger: true },
                       ] : []),
-                      ...(record.status === 'COMPLETED' && canCreateInvoice ? [
-                        { key: 'invoice', label: t('sales.action.createInvoice'), icon: <FileTextOutlined /> },
-                      ] : []),
                     ],
                     onClick: ({ key }) => {
                       if (key === 'view') setSelectedOrder(record);
                       if (key === 'confirm') confirmOrder(record);
                       if (key === 'cancel') cancelOrder(record);
-                      if (key === 'invoice') createInvoice(record);
                     },
                   }}>
                     <Button type="text" icon={<MoreOutlined />} aria-label={t('sales.action.actionsFor', { code: record.code })} />
@@ -408,13 +542,15 @@ export function SalesOrdersPage() {
               <Table size="small" pagination={false}
                 rowKey={(item, i) => item.id ?? `${item.productId}-${i}`}
                 dataSource={selectedOrderDetail.items ?? []}
+                sortDirections={TABLE_SORT_DIRECTIONS}
+                showSorterTooltip={false}
                 columns={[
-                  { title: t('sales.drawer.product'), render: (_, item) => productsMap.get(item.productId)?.name || '--' },
-                  { title: t('inventory.history.qty'), dataIndex: 'quantity', align: 'right' },
+                  { title: t('sales.drawer.product'), sorter: (first, second) => (productsMap.get(first.productId)?.name ?? '').localeCompare(productsMap.get(second.productId)?.name ?? ''), render: (_, item) => productsMap.get(item.productId)?.name || '--' },
+                  { title: t('inventory.history.qty'), dataIndex: 'quantity', align: 'right', sorter: (first, second) => first.quantity - second.quantity },
                   ...(canViewSalesOrderFinancials ? [
-                    { title: t('sales.drawer.unitPrice'), dataIndex: 'unitPrice', align: 'right' as const, render: (value) => formatCurrency(value) },
-                    { title: t('sales.drawer.discount'), dataIndex: 'discountAmount', align: 'right' as const, render: (value) => formatCurrency(value) },
-                    { title: t('sales.drawer.lineTotal'), dataIndex: 'lineTotal', align: 'right' as const, render: (value) => formatCurrency(value) },
+                    { title: t('sales.drawer.unitPrice'), dataIndex: 'unitPrice', align: 'right' as const, sorter: (first, second) => toNumber(first.unitPrice) - toNumber(second.unitPrice), render: (value) => formatCurrency(value) },
+                    { title: t('sales.drawer.discount'), dataIndex: 'discountAmount', align: 'right' as const, sorter: (first, second) => toNumber(first.discountAmount) - toNumber(second.discountAmount), render: (value) => formatCurrency(value) },
+                    { title: t('sales.drawer.lineTotal'), dataIndex: 'lineTotal', align: 'right' as const, sorter: (first, second) => toNumber(first.lineTotal) - toNumber(second.lineTotal), render: (value) => formatCurrency(value) },
                   ] : []),
                 ]}
               />
@@ -440,16 +576,6 @@ export function SalesOrdersPage() {
                   </Button>
                 ) : null}
               </Space>
-            ) : null}
-            {selectedOrderDetail.status === 'COMPLETED' && canCreateInvoice ? (
-              <Button
-                type="primary"
-                icon={<FileTextOutlined />}
-                loading={createInvoiceMutation.isPending}
-                onClick={() => createInvoice(selectedOrderDetail)}
-              >
-                {t('sales.action.createInvoice')}
-              </Button>
             ) : null}
           </div>
         )}

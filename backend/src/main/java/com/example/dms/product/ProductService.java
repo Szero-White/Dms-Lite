@@ -2,12 +2,14 @@ package com.example.dms.product;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.PageRequestPolicy;
 import com.example.dms.common.TenantContext;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,13 +23,17 @@ public class ProductService {
 
     private final AuditService auditService;
 
-    public Page<ProductResponse> list(String keyword, int page) {
+    public Page<ProductResponse> list(String keyword, int page, int size) {
         boolean includeCost = canViewCost();
 
         return productRepository.findByTenantIdAndDeletedAtIsNullAndNameContainingIgnoreCase(
             TenantContext.tenantRequired(),
             keyword,
-            PageRequest.of(Math.max(page, 0), 20)
+            PageRequest.of(
+                PageRequestPolicy.page(page),
+                PageRequestPolicy.size(size),
+                Sort.by(Sort.Order.desc("id"))
+            )
         ).map(product -> toResponse(product, includeCost));
     }
 

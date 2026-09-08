@@ -1,5 +1,9 @@
 ﻿import { apiClient, unwrapResponse } from '../../../services/apiClient';
-import type { DashboardSnapshot, DashboardSummary } from '../types/dashboard.types';
+import type {
+  DashboardSnapshot,
+  DashboardSummary,
+  ReceivableAttention,
+} from '../types/dashboard.types';
 
 interface DashboardResponse {
   revenueToday: string | number;
@@ -11,6 +15,16 @@ interface DashboardResponse {
   topSellingProducts: DashboardSnapshot['topSellingProducts'];
 }
 
+export const EMPTY_RECEIVABLE_ATTENTION: ReceivableAttention = {
+  overdueAmount: 0,
+  overdueCount: 0,
+  dueTodayAmount: 0,
+  dueTodayCount: 0,
+  dueSoonAmount: 0,
+  dueSoonCount: 0,
+  oldestOverdue: null,
+};
+
 export async function fetchDashboardSnapshot() {
   const response = await unwrapResponse<DashboardResponse>(apiClient.get('/reports/dashboard'));
 
@@ -19,6 +33,22 @@ export async function fetchDashboardSnapshot() {
     topCustomersByDebt: response.topCustomersByDebt ?? [],
     topSellingProducts: response.topSellingProducts ?? [],
   } satisfies DashboardSnapshot;
+}
+
+export async function fetchDashboardReceivableAttention() {
+  const response = await unwrapResponse<Partial<ReceivableAttention>>(
+    apiClient.get('/reports/dashboard/receivable-attention'),
+  );
+
+  return {
+    overdueAmount: response.overdueAmount ?? 0,
+    overdueCount: response.overdueCount ?? 0,
+    dueTodayAmount: response.dueTodayAmount ?? 0,
+    dueTodayCount: response.dueTodayCount ?? 0,
+    dueSoonAmount: response.dueSoonAmount ?? 0,
+    dueSoonCount: response.dueSoonCount ?? 0,
+    oldestOverdue: response.oldestOverdue ?? null,
+  } satisfies ReceivableAttention;
 }
 
 export async function fetchDashboardSummary() {
