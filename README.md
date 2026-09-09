@@ -1,24 +1,19 @@
 # DMS Lite
 
-**B2B Sales, Inventory & Receivable Management SaaS**
+### B2B Sales, Inventory & Receivable Management SaaS
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Open_App-6C63FF?style=for-the-badge&logo=vercel&logoColor=white)](https://dms-lite.vercel.app)
 [![CI](https://github.com/Szero-White/Dms-Lite/actions/workflows/ci.yml/badge.svg)](https://github.com/Szero-White/Dms-Lite/actions/workflows/ci.yml)
-![Java](https://img.shields.io/badge/Java-17-informational)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.5-informational)
-![React](https://img.shields.io/badge/React-18.3-informational)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20Docker-informational)
 ![Release](https://img.shields.io/badge/release-v1.1.0-informational)
 
-> **Live Demo:** [https://dms-lite.vercel.app](https://dms-lite.vercel.app)
-> Public recruiter/demo environment is online. Demo accounts are listed in [Demo Accounts and Roles](#demo-accounts-and-roles).
+**Java 17 · Spring Boot · React · TypeScript · PostgreSQL**
 
-**Repository:** https://github.com/Szero-White/Dms-Lite
-**Local Swagger UI:** http://localhost:8080/swagger-ui/index.html
-**Local Frontend:** http://localhost:3000
+Manage customers, products, inventory, sales orders, receivables, payments, invoices, reports, notifications, and role-based workflows in one system.
 
----
+**Demo:** `owner` / `Demo@2026`
 
-## Table of Contents
+<details>
+<summary><strong>Contents</strong></summary>
 
 - [Overview](#overview)
 - [What the System Solves](#what-the-system-solves)
@@ -43,6 +38,8 @@
 - [CI](#ci)
 - [Documentation](#documentation)
 - [Roadmap](#roadmap)
+
+</details>
 
 ---
 
