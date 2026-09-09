@@ -9,8 +9,8 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20Docker-informational)
 ![Release](https://img.shields.io/badge/release-v1.1.0-informational)
 
-> **Live Demo:** **Coming soon**
-> This line is intentionally kept near the top of the README. Replace `Coming soon` with the public deployment URL when the recruiter/demo environment is online.
+> **Live Demo:** [https://dms-lite.vercel.app](https://dms-lite.vercel.app)
+> Public recruiter/demo environment is online. Demo accounts are listed in [Demo Accounts and Roles](#demo-accounts-and-roles).
 
 **Repository:** https://github.com/Szero-White/Dms-Lite
 **Local Swagger UI:** http://localhost:8080/swagger-ui/index.html
@@ -951,7 +951,7 @@ The backend business date is authoritative for these classifications.
 
 ## Deployment Notes
 
-There is **no public demo URL committed in this README yet**. When a deployment is ready, replace the `Live Demo: Coming soon` line near the top with the actual HTTPS frontend URL.
+The public recruiter/demo frontend is available at **https://dms-lite.vercel.app**.
 
 A typical public topology is:
 
