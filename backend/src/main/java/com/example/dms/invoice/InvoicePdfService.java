@@ -208,6 +208,7 @@ public class InvoicePdfService {
         }
         candidates.add("C:\\Windows\\Fonts\\arial.ttf");
         candidates.add("C:\\Windows\\Fonts\\segoeui.ttf");
+        candidates.add("/usr/share/fonts/dejavu/DejaVuSans.ttf");
         candidates.add("/usr/share/fonts/ttf-dejavu/DejaVuSans.ttf");
         candidates.add("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
         candidates.add("/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf");
@@ -224,6 +225,7 @@ public class InvoicePdfService {
         }
         candidates.add("C:\\Windows\\Fonts\\arialbd.ttf");
         candidates.add("C:\\Windows\\Fonts\\segoeuib.ttf");
+        candidates.add("/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf");
         candidates.add("/usr/share/fonts/ttf-dejavu/DejaVuSans-Bold.ttf");
         candidates.add("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf");
         candidates.add("/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf");

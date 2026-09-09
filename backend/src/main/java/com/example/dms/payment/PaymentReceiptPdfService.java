@@ -183,6 +183,7 @@ public class PaymentReceiptPdfService {
         }
         candidates.add("C:\\Windows\\Fonts\\arial.ttf");
         candidates.add("C:\\Windows\\Fonts\\segoeui.ttf");
+        candidates.add("/usr/share/fonts/dejavu/DejaVuSans.ttf");
         candidates.add("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
         candidates.add("/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf");
         candidates.add("/System/Library/Fonts/Supplemental/Arial.ttf");
@@ -198,6 +199,7 @@ public class PaymentReceiptPdfService {
         }
         candidates.add("C:\\Windows\\Fonts\\arialbd.ttf");
         candidates.add("C:\\Windows\\Fonts\\segoeuib.ttf");
+        candidates.add("/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf");
         candidates.add("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf");
         candidates.add("/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf");
         candidates.add("/System/Library/Fonts/Supplemental/Arial Bold.ttf");
