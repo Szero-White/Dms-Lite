@@ -28,7 +28,7 @@ export function fetchOutstandingPaymentOrders(
       params: {
         page,
         search,
-        dueStatuses: dueStatuses ? (dueStatuses.length > 0 ? dueStatuses.join(',') : 'NONE') : undefined,
+        dueStatuses: dueStatuses?.length ? dueStatuses.join(',') : undefined,
         dueFrom,
         dueTo,
         minRemaining,

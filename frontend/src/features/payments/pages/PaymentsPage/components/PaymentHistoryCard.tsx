@@ -19,7 +19,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../components/common/QueryState';
 import { formatCurrency, formatDateTime } from '../../../../../lib/format';
-import { getTableSortOrder, TABLE_SORT_DIRECTIONS } from '../../../../../lib/tableSorting';
+import { getTableSortOrder, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../../lib/tableSorting';
 import { usePaymentHistory } from '../../../hooks/usePaymentQueries';
 import { usePaymentReceiptDownload } from '../../../hooks/usePaymentReceiptDownload';
 import type {
@@ -220,7 +220,7 @@ export function PaymentHistoryCard({ enabled, onViewPayment }: PaymentHistoryCar
           pagination={false}
           scroll={{ x: 1220 }}
           sortDirections={TABLE_SORT_DIRECTIONS}
-          showSorterTooltip={false}
+          showSorterTooltip={TABLE_SORTER_TOOLTIP}
           dataSource={query.data?.content ?? []}
           columns={columns}
           onChange={handleTableChange}

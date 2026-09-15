@@ -1,195 +1,75 @@
 .scoreboard {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-  border-radius: 18px;
-  border: 1.5px solid var(--color-border-subtle);
-  background: #fff;
-  overflow: hidden;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
-}
-
-.scoreDivider {
-  width: 1px;
-  background: var(--color-border-subtle);
-  flex-shrink: 0;
-  align-self: stretch;
-}
-
-.scoreHero {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 24px 32px;
-  background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 100%);
-  flex-shrink: 0;
-}
-
-.scoreHeroIcon {
-  width: 52px;
-  height: 52px;
   display: grid;
-  place-items: center;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.12);
-  color: #fff;
-  font-size: 24px;
-  flex-shrink: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 18px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.035);
 }
 
-.scoreHeroBig {
-  font-size: 42px;
-  font-weight: 800;
-  color: #fff;
-  line-height: 1;
-  letter-spacing: -1.5px;
+.metric {
+  min-width: 0;
+  padding: 18px 20px;
+  border-right: 1px solid var(--color-border-subtle);
 }
 
-.scoreHeroLbl {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.55);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-top: 4px;
+.metric:last-child {
+  border-right: 0;
 }
 
-.scoreDonut {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 20px 24px;
-}
-
-.donutChart {
-  position: relative;
-  width: 72px;
-  height: 72px;
-  flex-shrink: 0;
-}
-
-.donutSvg {
-  width: 72px;
-  height: 72px;
-}
-
-.donutCenter {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.donutPct {
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--color-text-primary);
-}
-
-.donutLegend {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.donutLegend span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12.5px;
-  font-weight: 500;
+.metricLabel {
+  margin-bottom: 6px;
   color: var(--color-text-secondary);
-}
-
-.dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.scoreAlert {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-  padding: 20px 24px;
-}
-
-.scoreAlertTop {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.scoreAlertNum {
-  font-size: 28px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.5px;
-}
-
-.scoreAlertLbl {
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--color-text-muted);
+  letter-spacing: 0.035em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 2px;
 }
 
-.scoreFinancials {
-  flex: 1.2;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 14px;
-  padding: 20px 28px;
-}
-
-.scoreFinRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.scoreFinRow > :global(.anticon) {
-  flex-shrink: 0;
-}
-
-.scoreFinVal {
-  font-size: 16px;
-  font-weight: 800;
+.metricValue {
+  overflow: hidden;
   color: var(--color-text-primary);
-  letter-spacing: -0.3px;
+  font-size: 22px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.35px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.scoreFinLbl {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.metricSecondary {
+  margin-top: 3px;
+  color: var(--color-text-tertiary);
+  font-size: 12px;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1000px) {
   .scoreboard {
-    flex-wrap: wrap;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .scoreHero {
-    width: 100%;
+  .metric:nth-child(2n) {
+    border-right: 0;
   }
 
-  .scoreDivider {
-    display: none;
+  .metric:nth-child(n + 3) {
+    border-top: 1px solid var(--color-border-subtle);
+  }
+}
+
+@media (max-width: 560px) {
+  .scoreboard {
+    grid-template-columns: 1fr;
+  }
+
+  .metric,
+  .metric:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .metric:nth-child(n + 2) {
+    border-top: 1px solid var(--color-border-subtle);
   }
 }

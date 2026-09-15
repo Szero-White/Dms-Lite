@@ -20,10 +20,8 @@
   flex-direction: column;
   gap: 2px;
   margin: 6px 0 16px;
-  padding: 12px 14px;
-  border-left: 3px solid var(--color-primary);
-  border-radius: 0 10px 10px 0;
-  background: linear-gradient(to right, rgba(99,102,241,0.06), transparent);
+  padding: 12px 0 10px;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .sectionHeading :global(.ant-typography:first-child) {
@@ -38,4 +36,8 @@
 
 .fullWidth {
   width: 100%;
+}
+
+.codeHint {
+  margin: -4px 0 18px;
 }

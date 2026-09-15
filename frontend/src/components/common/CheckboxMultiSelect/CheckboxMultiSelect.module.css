@@ -1,0 +1,43 @@
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.checkbox {
+  pointer-events: none;
+  flex: 0 0 auto;
+}
+
+.optionLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.allOption {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  padding: 7px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.allOption:hover {
+  background: var(--color-surface-muted);
+}
+
+.allOption:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}

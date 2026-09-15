@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { roleLabel } from '../../../../lib/roleDisplay';
+import { newestFirst } from '../../../../lib/tableSorting';
 import {
   useCreateTeamMember,
   useCreateTeamRole,
@@ -52,8 +53,8 @@ export function TeamPage() {
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [selectedRole, setSelectedRole] = useState<RoleOption | null>(null);
 
-  const members = membersQuery.data ?? [];
-  const roles = rolesQuery.data ?? [];
+  const members = useMemo(() => newestFirst(membersQuery.data ?? []), [membersQuery.data]);
+  const roles = useMemo(() => newestFirst(rolesQuery.data ?? []), [rolesQuery.data]);
   const permissions = permissionsQuery.data ?? [];
   const activeMembers = members.filter((member) => member.active).length;
   const customRoles = roles.filter((role) => role.editable).length;

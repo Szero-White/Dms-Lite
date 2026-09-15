@@ -29,16 +29,10 @@
   place-items: center;
   flex: 0 0 auto;
   border-radius: 11px;
-  background: var(--gradient-primary);
+  background: var(--color-primary);
   color: #fff;
   font-size: 17px;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
-  transition: box-shadow var(--transition-smooth), transform var(--transition-smooth);
-}
-
-.brand:hover .brandBadge {
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
-  transform: scale(1.06);
+  box-shadow: none;
 }
 
 .brandCopy {
@@ -125,11 +119,7 @@
 
 /* Active item */
 .sidebar :global(.ant-menu-item-selected) {
-  background: linear-gradient(
-    135deg,
-    rgba(99, 102, 241, 0.1) 0%,
-    rgba(139, 92, 246, 0.06) 100%
-  ) !important;
+  background: var(--color-primary-light) !important;
   color: var(--color-primary) !important;
   font-weight: 700 !important;
 }
@@ -146,8 +136,8 @@
   width: 3px;
   height: 22px;
   border-radius: 0 3px 3px 0;
-  background: var(--gradient-primary);
-  box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+  background: var(--color-primary);
+  box-shadow: none;
   content: '';
   transform: translateY(-50%);
 }
@@ -179,9 +169,9 @@
 }
 
 .userSummary :global(.ant-avatar) {
-  background: var(--gradient-primary) !important;
+  background: var(--color-primary) !important;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  box-shadow: none;
   border-radius: 8px !important;
 }
 

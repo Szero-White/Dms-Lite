@@ -19,7 +19,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../components/common/QueryState';
 import { roleLabel } from '../../../../../lib/roleDisplay';
-import { compareBoolean, compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../../lib/tableSorting';
+import { compareBoolean, compareNumber, compareText, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../../lib/tableSorting';
 import type { TeamMember } from '../../../types/team.types';
 import styles from '../TeamPage.module.css';
 
@@ -83,7 +83,7 @@ export function MembersTable({
           dataSource={members}
           scroll={{ x: 980 }}
           sortDirections={TABLE_SORT_DIRECTIONS}
-          showSorterTooltip={false}
+          showSorterTooltip={TABLE_SORTER_TOOLTIP}
           columns={[
             {
               title: t('team.members.column.member'),

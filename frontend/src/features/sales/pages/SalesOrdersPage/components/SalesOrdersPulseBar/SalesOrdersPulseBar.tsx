@@ -13,8 +13,8 @@ interface SalesOrdersPulseBarProps {
   draftCount: number;
   completedCount: number;
   cancelledCount: number;
-  statusFilters: Array<SalesOrderStatus | 'ALL'>;
-  onStatusFiltersChange: (statuses: Array<SalesOrderStatus | 'ALL'>) => void;
+  statusFilters: SalesOrderStatus[];
+  onStatusFiltersChange: (statuses: SalesOrderStatus[]) => void;
 }
 
 export function SalesOrdersPulseBar({
@@ -29,15 +29,13 @@ export function SalesOrdersPulseBar({
   const { t } = useTranslation();
   const activeArc = totalOrders > 0 ? (activeOrders / totalOrders) * 201 : 0;
 
-  const isStatusSelected = (status: SalesOrderStatus) =>
-    !statusFilters.includes('ALL') && statusFilters.includes(status);
+  const isStatusSelected = (status: SalesOrderStatus) => statusFilters.includes(status);
 
   const toggleStatus = (status: SalesOrderStatus) => {
-    const specific = statusFilters.filter((value): value is SalesOrderStatus => value !== 'ALL');
-    const next = specific.includes(status)
-      ? specific.filter((value) => value !== status)
-      : [...specific, status];
-    onStatusFiltersChange(next.length > 0 ? next : ['ALL']);
+    const next = statusFilters.includes(status)
+      ? statusFilters.filter((value) => value !== status)
+      : [...statusFilters, status];
+    onStatusFiltersChange(next);
   };
 
   return (

@@ -82,19 +82,18 @@
 
 /* Quick Create button */
 .actions :global(.ant-btn-primary) {
-  background: var(--gradient-primary) !important;
-  border: none !important;
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
   height: 40px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 13.5px;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.28) !important;
-  transition: all var(--transition-smooth) !important;
+  box-shadow: none !important;
 }
 
 .actions :global(.ant-btn-primary:hover) {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.42) !important;
-  transform: translateY(-1px);
+  background: var(--color-primary-hover) !important;
+  border-color: var(--color-primary-hover) !important;
+  box-shadow: none !important;
 }
 
 
@@ -143,8 +142,7 @@
   border-color: var(--color-primary) !important;
   background: var(--color-primary-light) !important;
   color: var(--color-primary) !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  box-shadow: none;
 }
 
 /* Bell badge */
@@ -185,10 +183,10 @@
 }
 
 .avatar {
-  background: var(--gradient-primary) !important;
+  background: var(--color-primary) !important;
   color: #fff;
-  border: 2px solid rgba(255,255,255,0.8);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  border: 1px solid var(--color-primary);
+  box-shadow: none;
   border-radius: 8px !important;
 }
 

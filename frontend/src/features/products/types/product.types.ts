@@ -13,7 +13,6 @@ export interface Product {
 
 export interface ProductFormValues {
   name: string;
-  sku: string;
   barcode?: string;
   costPrice: number;
   sellingPrice: number;

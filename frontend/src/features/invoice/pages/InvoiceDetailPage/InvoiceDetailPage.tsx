@@ -7,7 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatCurrency, formatDate, getErrorMessage, toNumber } from '../../../../lib/format';
-import { compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
+import { compareNumber, compareText, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../lib/tableSorting';
 import { PERMISSIONS, canViewInvoiceReceivableState, hasPermission, useAuth } from '../../../auth';
 import { InvoiceStatusTag } from '../../InvoiceStatusTag';
 import { downloadInvoicePdf } from '../../api/invoiceService';
@@ -129,7 +129,7 @@ export function InvoiceDetailPage() {
               pagination={false}
               scroll={{ x: 760 }}
               sortDirections={TABLE_SORT_DIRECTIONS}
-              showSorterTooltip={false}
+              showSorterTooltip={TABLE_SORTER_TOOLTIP}
             />
           </Card>
         </div>

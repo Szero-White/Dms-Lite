@@ -15,7 +15,6 @@ import {
   Input,
   Popconfirm,
   Segmented,
-  Select,
   Space,
   Table,
   Tag,
@@ -24,8 +23,9 @@ import {
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
+import { TableMultiSelectFilter } from '../../../../components/common/TableMultiSelectFilter';
 import { QueryState } from '../../../../components/common/QueryState';
-import { getTableSortOrder, TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
+import { getTableSortOrder, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../lib/tableSorting';
 import { formatDateTime } from '../../../../lib/format';
 import { roleListLabel } from '../../../../lib/roleDisplay';
 import {
@@ -40,7 +40,7 @@ import {
 import type { HelpAnswerSource, HelpHistorySortDirection, HelpHistorySortField, HelpInteraction } from '../../types/help.types';
 import styles from './AIHistoryPage.module.css';
 
-type HistoryStatusFilter = 'all' | 'answered' | 'blocked';
+type HistoryStatusFilter = 'answered' | 'blocked';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
@@ -57,16 +57,12 @@ function sourceTagColor(source: HelpAnswerSource) {
   }
 }
 
-function statusToBlocked(status: HistoryStatusFilter) {
-  if (status === 'blocked') {
-    return true;
+function statusToBlocked(statusFilters: HistoryStatusFilter[]) {
+  if (statusFilters.length !== 1) {
+    return undefined;
   }
 
-  if (status === 'answered') {
-    return false;
-  }
-
-  return undefined;
+  return statusFilters[0] === 'blocked';
 }
 
 export function AIHistoryPage() {
@@ -74,7 +70,7 @@ export function AIHistoryPage() {
   const [mineOnly, setMineOnly] = useState(false);
   const [searchDraft, setSearchDraft] = useState('');
   const [keyword, setKeyword] = useState('');
-  const [statusFilter, setStatusFilter] = useState<HistoryStatusFilter>('all');
+  const [statusFilters, setStatusFilters] = useState<HistoryStatusFilter[]>([]);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [sortBy, setSortBy] = useState<HelpHistorySortField>();
@@ -83,7 +79,7 @@ export function AIHistoryPage() {
   const historyQuery = useHelpHistory({
     mineOnly,
     keyword,
-    blocked: statusToBlocked(statusFilter),
+    blocked: statusToBlocked(statusFilters),
     page,
     size: pageSize,
     sortBy,
@@ -95,7 +91,7 @@ export function AIHistoryPage() {
   const history = historyPage?.content ?? [];
   const blockedCount = history.filter((item) => item.blocked).length;
   const actorCount = new Set(history.map((item) => item.actorId)).size;
-  const hasActiveFilter = Boolean(keyword) || statusFilter !== 'all';
+  const hasActiveFilter = Boolean(keyword) || statusFilters.length > 0;
 
   const emptyCopy = useMemo(() => {
     if (hasActiveFilter) {
@@ -128,7 +124,7 @@ export function AIHistoryPage() {
   function clearFilters() {
     setSearchDraft('');
     setKeyword('');
-    setStatusFilter('all');
+    setStatusFilters([]);
     resetToFirstPage();
   }
 
@@ -199,15 +195,16 @@ export function AIHistoryPage() {
                 { value: 'mine', label: t('aiHistory.scope.mine') },
               ]}
             />
-            <Select<HistoryStatusFilter>
+            <TableMultiSelectFilter
+              ariaLabel={t('aiHistory.status.all')}
               className={styles.statusSelect}
-              value={statusFilter}
-              onChange={(value) => {
-                setStatusFilter(value);
+              value={statusFilters}
+              onChange={(values) => {
+                setStatusFilters(values);
                 resetToFirstPage();
               }}
+              placeholder={t('aiHistory.status.all')}
               options={[
-                { value: 'all', label: t('aiHistory.status.all') },
                 { value: 'answered', label: t('aiHistory.status.answered') },
                 { value: 'blocked', label: t('aiHistory.status.blocked') },
               ]}
@@ -246,7 +243,7 @@ export function AIHistoryPage() {
             size="small"
             scroll={{ x: 1240 }}
             sortDirections={TABLE_SORT_DIRECTIONS}
-            showSorterTooltip={false}
+            showSorterTooltip={TABLE_SORTER_TOOLTIP}
             dataSource={history}
             pagination={{
               current: page + 1,

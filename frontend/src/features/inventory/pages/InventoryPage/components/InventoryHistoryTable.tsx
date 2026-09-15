@@ -4,7 +4,7 @@ import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { inventoryDirectionLabel, inventoryNoteLabel, inventorySourceLabel } from '../../../../../lib/businessDisplay';
 import { formatDateTime } from '../../../../../lib/format';
-import { compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../../lib/tableSorting';
+import { compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../../lib/tableSorting';
 import type { ProductRow } from '../../../../products';
 import type { InventoryTransaction } from '../../../types/inventory.types';
 import styles from './InventoryHistoryTable.module.css';
@@ -21,7 +21,6 @@ const historyColumns = (
   {
     title: t('common.time'),
     dataIndex: 'createdAt',
-    defaultSortOrder: 'descend',
     sorter: (first, second) => compareDate(first.createdAt, second.createdAt),
     render: (value) => formatDateTime(value),
   },
@@ -78,7 +77,7 @@ export function InventoryHistoryTable({
         rowKey="id"
         scroll={{ x: 1000 }}
         sortDirections={TABLE_SORT_DIRECTIONS}
-        showSorterTooltip={false}
+        showSorterTooltip={TABLE_SORTER_TOOLTIP}
         locale={{ emptyText: t('inventory.history.empty') }}
         dataSource={history}
         columns={historyColumns(products, t)}

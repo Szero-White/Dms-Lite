@@ -13,6 +13,8 @@ export const TABLE_SORT_DIRECTIONS: TableSortDirection[] = [
   'descend',
 ];
 
+export const TABLE_SORTER_TOOLTIP = { target: 'full-header' } as const;
+
 export function getTableSortOrder<Field extends string>(
   activeField: Field | null | undefined,
   activeDirection: ApiSortDirection | null | undefined,
@@ -52,4 +54,35 @@ export function compareDate(first: unknown, second: unknown) {
 
 export function compareBoolean(first: unknown, second: unknown) {
   return Number(Boolean(first)) - Number(Boolean(second));
+}
+
+export interface NewestRecord {
+  id?: number | string | null;
+  createdAt?: string | null;
+}
+
+/**
+ * Deterministic default list order used when the user has not activated a
+ * column sorter. Newer business records stay at the top without lighting a
+ * sorter arrow in Ant Design.
+ */
+export function compareNewestFirst(first: NewestRecord, second: NewestRecord) {
+  const firstTime = first.createdAt ? Date.parse(first.createdAt) : Number.NaN;
+  const secondTime = second.createdAt ? Date.parse(second.createdAt) : Number.NaN;
+
+  if (Number.isFinite(firstTime) && Number.isFinite(secondTime) && firstTime !== secondTime) {
+    return secondTime - firstTime;
+  }
+
+  const firstId = Number(first.id);
+  const secondId = Number(second.id);
+  if (Number.isFinite(firstId) && Number.isFinite(secondId) && firstId !== secondId) {
+    return secondId - firstId;
+  }
+
+  return compareText(second.id, first.id);
+}
+
+export function newestFirst<RecordType extends NewestRecord>(records: readonly RecordType[]) {
+  return [...records].sort(compareNewestFirst);
 }

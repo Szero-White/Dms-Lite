@@ -14,7 +14,6 @@ import {
   Input,
   Popconfirm,
   Progress,
-  Select,
   Space,
   Table,
   Tag,
@@ -24,30 +23,31 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { QueryState } from '../../../../../../components/common/QueryState';
+import { TableMultiSelectFilter } from '../../../../../../components/common/TableMultiSelectFilter';
 import { CustomerDebtTag } from '../../../../../../components/common/StatusTag';
 import { formatCurrency, toNumber } from '../../../../../../lib/format';
-import { TABLE_SORT_DIRECTIONS } from '../../../../../../lib/tableSorting';
+import { TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../../../lib/tableSorting';
 import type { Customer } from '../../../../types/customer.types';
 import styles from './CustomersTableCard.module.css';
 
 interface CustomersTableCardProps {
   canManageCustomers: boolean;
   canChangeCustomerStatus: boolean;
-  activeFilter: 'ALL' | 'ACTIVE' | 'INACTIVE';
-  creditFilter: 'ALL' | 'NEAR_LIMIT' | 'OVER_LIMIT';
-  debtFilter: 'ALL' | 'WITH_DEBT' | 'CLEAR';
+  activeFilters: Array<'ACTIVE' | 'INACTIVE'>;
+  creditFilters: Array<'NEAR_LIMIT' | 'OVER_LIMIT'>;
+  debtFilters: Array<'WITH_DEBT' | 'CLEAR'>;
   changingStatusCustomerId?: number;
   filteredCustomers: Customer[];
   hasFilters: boolean;
   isError: boolean;
   isLoading: boolean;
   keyword: string;
-  onActiveFilterChange: (value: 'ALL' | 'ACTIVE' | 'INACTIVE') => void;
+  onActiveFiltersChange: (values: Array<'ACTIVE' | 'INACTIVE'>) => void;
   onClearFilters: () => void;
-  onCreditFilterChange: (value: 'ALL' | 'NEAR_LIMIT' | 'OVER_LIMIT') => void;
+  onCreditFiltersChange: (values: Array<'NEAR_LIMIT' | 'OVER_LIMIT'>) => void;
   onDeactivateCustomer: (customerId: number) => void;
   onReactivateCustomer: (customerId: number) => void;
-  onDebtFilterChange: (value: 'ALL' | 'WITH_DEBT' | 'CLEAR') => void;
+  onDebtFiltersChange: (values: Array<'WITH_DEBT' | 'CLEAR'>) => void;
   onEditCustomer: (customer: Customer) => void;
   onKeywordChange: (value: string) => void;
   onRetry: () => void;
@@ -56,22 +56,22 @@ interface CustomersTableCardProps {
 }
 
 export function CustomersTableCard({
-  activeFilter,
+  activeFilters,
   canManageCustomers,
   canChangeCustomerStatus,
-  creditFilter,
-  debtFilter,
+  creditFilters,
+  debtFilters,
   changingStatusCustomerId,
   filteredCustomers,
   hasFilters,
   isError,
   isLoading,
   keyword,
-  onActiveFilterChange,
+  onActiveFiltersChange,
   onClearFilters,
-  onCreditFilterChange,
+  onCreditFiltersChange,
   onDeactivateCustomer,
-  onDebtFilterChange,
+  onDebtFiltersChange,
   onReactivateCustomer,
   onEditCustomer,
   onKeywordChange,
@@ -94,34 +94,37 @@ export function CustomersTableCard({
             value={keyword}
             onChange={(event) => onKeywordChange(event.target.value)}
           />
-          <Select
+          <TableMultiSelectFilter
+            ariaLabel={t('customers.filters.allStatuses')}
             className={styles.filter}
-            value={activeFilter}
-            onChange={onActiveFilterChange}
+            value={activeFilters}
+            onChange={onActiveFiltersChange}
+            placeholder={t('customers.filters.allStatuses')}
             options={[
-              { value: 'ALL', label: t('customers.filters.allStatuses') },
               { value: 'ACTIVE', label: t('common.active') },
               { value: 'INACTIVE', label: t('common.inactive') },
             ]}
           />
           {showFinancials ? (
             <>
-              <Select
+              <TableMultiSelectFilter
+                ariaLabel={t('customers.filters.allDebtStates')}
                 className={styles.filter}
-                value={debtFilter}
-                onChange={onDebtFilterChange}
+                value={debtFilters}
+                onChange={onDebtFiltersChange}
+                placeholder={t('customers.filters.allDebtStates')}
                 options={[
-                  { value: 'ALL', label: t('customers.filters.allDebtStates') },
                   { value: 'WITH_DEBT', label: t('customers.filters.withDebt') },
                   { value: 'CLEAR', label: t('customers.filters.clearBalance') },
                 ]}
               />
-              <Select
+              <TableMultiSelectFilter
+                ariaLabel={t('customers.filters.allCreditUsage')}
                 className={styles.filter}
-                value={creditFilter}
-                onChange={onCreditFilterChange}
+                value={creditFilters}
+                onChange={onCreditFiltersChange}
+                placeholder={t('customers.filters.allCreditUsage')}
                 options={[
-                  { value: 'ALL', label: t('customers.filters.allCreditUsage') },
                   { value: 'NEAR_LIMIT', label: t('customers.filters.nearLimit') },
                   { value: 'OVER_LIMIT', label: t('customers.filters.overLimit') },
                 ]}
@@ -160,7 +163,7 @@ export function CustomersTableCard({
           rowKey="id"
           scroll={{ x: 1240 }}
           sortDirections={TABLE_SORT_DIRECTIONS}
-          showSorterTooltip={false}
+          showSorterTooltip={TABLE_SORTER_TOOLTIP}
           dataSource={filteredCustomers}
           rowClassName={(record) => {
             if (!showFinancials) {

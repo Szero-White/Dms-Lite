@@ -1,87 +1,86 @@
-import {
-  DeleteOutlined,
-  EditOutlined,
-  SearchOutlined,
-} from '@ant-design/icons';
-import {
-  Avatar,
-  Button,
-  Card,
-  Input,
-  Popconfirm,
-  Progress,
-  Select,
-  Space,
-  Table,
-  Tooltip,
-  Typography,
-} from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
+import { Button, Card, Input, Table } from 'antd';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../../components/common/QueryState';
-import { ProductStatusTag } from '../../../../../../components/common/StatusTag';
-import { formatCurrency, toNumber } from '../../../../../../lib/format';
-import { TABLE_SORT_DIRECTIONS } from '../../../../../../lib/tableSorting';
+import { TableMultiSelectFilter } from '../../../../../../components/common/TableMultiSelectFilter';
+import {
+  TABLE_SORT_DIRECTIONS,
+  TABLE_SORTER_TOOLTIP,
+} from '../../../../../../lib/tableSorting';
 import type { ProductRow } from '../../../../types/product.types';
 import styles from './ProductsTableCard.module.css';
+import { useProductTableColumns } from './useProductTableColumns';
 
 interface ProductsTableCardProps {
   canManageProducts: boolean;
-  deletingProductId?: number;
+  changingStatusProductId?: number;
   filteredProducts: ProductRow[];
   hasFilters: boolean;
   isError: boolean;
   isLoading: boolean;
   keyword: string;
   onClearFilters: () => void;
-  onDeleteProduct: (productId: number) => void;
+  onDeactivateProduct: (productId: number) => void;
   onKeywordChange: (value: string) => void;
+  onReactivateProduct: (productId: number) => void;
   onRetry: () => void;
   onSelectProduct: (product: ProductRow | null) => void;
   onSetDrawerOpen: (open: boolean) => void;
-  onStatusFilterChange: (value: 'ALL' | 'ACTIVE' | 'INACTIVE') => void;
-  onStockFilterChange: (value: 'ALL' | 'HEALTHY' | 'LOW_STOCK') => void;
+  onStatusFiltersChange: (values: Array<'ACTIVE' | 'INACTIVE'>) => void;
+  onStockFiltersChange: (values: Array<'HEALTHY' | 'LOW_STOCK'>) => void;
   productsError: unknown;
   showFinancials: boolean;
   showInventory: boolean;
-  statusFilter: 'ALL' | 'ACTIVE' | 'INACTIVE';
-  stockFilter: 'ALL' | 'HEALTHY' | 'LOW_STOCK';
+  statusFilters: Array<'ACTIVE' | 'INACTIVE'>;
+  stockFilters: Array<'HEALTHY' | 'LOW_STOCK'>;
 }
 
 export function ProductsTableCard({
   canManageProducts,
-  deletingProductId,
+  changingStatusProductId,
   filteredProducts,
   hasFilters,
   isError,
   isLoading,
   keyword,
   onClearFilters,
-  onDeleteProduct,
+  onDeactivateProduct,
   onKeywordChange,
+  onReactivateProduct,
   onRetry,
   onSelectProduct,
   onSetDrawerOpen,
-  onStatusFilterChange,
-  onStockFilterChange,
+  onStatusFiltersChange,
+  onStockFiltersChange,
   productsError,
   showFinancials,
   showInventory,
-  statusFilter,
-  stockFilter,
+  statusFilters,
+  stockFilters,
 }: ProductsTableCardProps) {
   const { t } = useTranslation();
 
-  function openEditor(product: ProductRow) {
+  const openEditor = useCallback((product: ProductRow) => {
     if (!canManageProducts) {
       return;
     }
-
     onSelectProduct(product);
     onSetDrawerOpen(true);
-  }
+  }, [canManageProducts, onSelectProduct, onSetDrawerOpen]);
+
+  const columns = useProductTableColumns({
+    canManageProducts,
+    changingStatusProductId,
+    onDeactivateProduct,
+    onEditProduct: openEditor,
+    onReactivateProduct,
+    showFinancials,
+    showInventory,
+  });
 
   return (
-    <Card className={`panel-card ${styles.tableCard}`}>
+    <Card className={`panel-card table-panel-card ${styles.tableCard}`}>
       <div className={styles.toolbar}>
         <div className={styles.filterControls}>
           <Input
@@ -92,23 +91,25 @@ export function ProductsTableCard({
             value={keyword}
             onChange={(event) => onKeywordChange(event.target.value)}
           />
-          <Select
+          <TableMultiSelectFilter
+            ariaLabel={t('products.filters.allStatuses')}
             className={styles.filter}
-            value={statusFilter}
-            onChange={onStatusFilterChange}
+            value={statusFilters}
+            onChange={onStatusFiltersChange}
+            placeholder={t('products.filters.allStatuses')}
             options={[
-              { value: 'ALL', label: t('products.filters.allStatuses') },
               { value: 'ACTIVE', label: t('common.active') },
               { value: 'INACTIVE', label: t('common.inactive') },
             ]}
           />
           {showInventory ? (
-            <Select
+            <TableMultiSelectFilter
+              ariaLabel={t('products.filters.allStockHealth')}
               className={styles.filter}
-              value={stockFilter}
-              onChange={onStockFilterChange}
+              value={stockFilters}
+              onChange={onStockFiltersChange}
+              placeholder={t('products.filters.allStockHealth')}
               options={[
-                { value: 'ALL', label: t('products.filters.allStockHealth') },
                 { value: 'HEALTHY', label: t('products.filters.healthyStock') },
                 { value: 'LOW_STOCK', label: t('status.product.lowStock') },
               ]}
@@ -125,11 +126,7 @@ export function ProductsTableCard({
         isError={isError}
         error={productsError}
         hasData={filteredProducts.length > 0}
-        emptyTitle={
-          hasFilters
-            ? t('products.empty.filteredTitle')
-            : t('products.empty.title')
-        }
+        emptyTitle={hasFilters ? t('products.empty.filteredTitle') : t('products.empty.title')}
         emptyDescription={
           hasFilters
             ? t('products.empty.filteredDescription')
@@ -154,156 +151,14 @@ export function ProductsTableCard({
       >
         <Table
           rowKey="id"
-          scroll={{ x: 1260 }}
-          sortDirections={TABLE_SORT_DIRECTIONS}
-          showSorterTooltip={false}
+          columns={columns}
           dataSource={filteredProducts}
-          rowClassName={(record) => (showInventory && record.isLowStock ? styles.lowStockRow : '')}
+          scroll={{ x: 1180 }}
+          sortDirections={TABLE_SORT_DIRECTIONS}
+          showSorterTooltip={TABLE_SORTER_TOOLTIP}
           onRow={(record) => ({
             onDoubleClick: canManageProducts ? () => openEditor(record) : undefined,
           })}
-          columns={[
-            {
-              title: t('products.column.product'),
-              fixed: 'left',
-              width: 320,
-              ellipsis: true,
-              sorter: (first, second) => first.name.localeCompare(second.name),
-              render: (_, record) => (
-                <div className={styles.productCell}>
-                  <Avatar shape="square">{record.name.slice(0, 2).toUpperCase()}</Avatar>
-                  <div>
-                    <Typography.Text strong>{record.name}</Typography.Text>
-                    <Typography.Text type="secondary">
-                      {record.barcode || t('products.noBarcode')}
-                    </Typography.Text>
-                  </div>
-                </div>
-              ),
-            },
-            {
-              title: t('products.column.sku'),
-              dataIndex: 'sku',
-              width: 170,
-              sorter: (first, second) => first.sku.localeCompare(second.sku),
-              render: (value) => <span className={styles.sku}>{value}</span>,
-            },
-            ...(showFinancials ? [{
-              title: t('products.column.costPrice'),
-              dataIndex: 'costPrice',
-              align: 'right' as const,
-              width: 160,
-              sorter: (first: ProductRow, second: ProductRow) =>
-                toNumber(first.costPrice) - toNumber(second.costPrice),
-              render: (value: string | number | null) => (
-                <span className={styles.money}>{formatCurrency(value)}</span>
-              ),
-            }] : []),
-            {
-              title: t('products.column.sellingPrice'),
-              dataIndex: 'sellingPrice',
-              align: 'right',
-              width: 170,
-              sorter: (first, second) =>
-                toNumber(first.sellingPrice) - toNumber(second.sellingPrice),
-              render: (value) => (
-                <span className={styles.money}>{formatCurrency(value)}</span>
-              ),
-            },
-            ...(showFinancials ? [{
-              title: t('products.column.margin'),
-              width: 110,
-              align: 'right' as const,
-              sorter: (first: ProductRow, second: ProductRow) => {
-                const firstSellingPrice = toNumber(first.sellingPrice);
-                const secondSellingPrice = toNumber(second.sellingPrice);
-                const firstMargin = firstSellingPrice > 0
-                  ? (firstSellingPrice - toNumber(first.costPrice)) / firstSellingPrice
-                  : 0;
-                const secondMargin = secondSellingPrice > 0
-                  ? (secondSellingPrice - toNumber(second.costPrice)) / secondSellingPrice
-                  : 0;
-                return firstMargin - secondMargin;
-              },
-              render: (_: unknown, record: ProductRow) => {
-                const sellingPrice = toNumber(record.sellingPrice);
-                const margin =
-                  sellingPrice > 0
-                    ? ((sellingPrice - toNumber(record.costPrice)) / sellingPrice) * 100
-                    : 0;
-
-                return <span className={styles.money}>{margin.toFixed(1)}%</span>;
-              },
-            }] : []),
-            ...(showInventory ? [{
-              title: t('products.column.stockHealth'),
-              width: 210,
-              sorter: (first: ProductRow, second: ProductRow) => first.stock - second.stock,
-              render: (_: unknown, record: ProductRow) => {
-                const stockPercent =
-                  record.minStock > 0
-                    ? Math.min(Math.round((record.stock / record.minStock) * 100), 100)
-                    : 100;
-
-                return (
-                  <div className={styles.stockCell}>
-                    <div>
-                      <strong>{record.stock}</strong>
-                      <span> / {t('products.minStockShort', { count: record.minStock })}</span>
-                    </div>
-                    <Progress
-                      percent={stockPercent}
-                      showInfo={false}
-                      size="small"
-                      status={record.isLowStock ? 'exception' : 'success'}
-                    />
-                  </div>
-                );
-              },
-            }] : []),
-            {
-              title: t('common.status'),
-              width: 150,
-              sorter: (first, second) => Number(first.active) - Number(second.active),
-              render: (_, record) => (
-                <ProductStatusTag isLowStock={showInventory && record.isLowStock} active={record.active} />
-              ),
-            },
-            {
-              title: t('common.actions'),
-              fixed: 'right',
-              width: 96,
-              render: (_, record) => (canManageProducts ? (
-                <Space size={4} className={styles.rowActions}>
-                  <Tooltip title={t('products.action.edit')}>
-                    <Button
-                      type="text"
-                      icon={<EditOutlined />}
-                      aria-label={t('products.action.editAria', { name: record.name })}
-                      onClick={() => openEditor(record)}
-                    />
-                  </Tooltip>
-                  <Popconfirm
-                    title={t('products.delete.title')}
-                    description={t('products.delete.description')}
-                    okText={t('common.delete')}
-                    okButtonProps={{ danger: true }}
-                    onConfirm={() => onDeleteProduct(record.id)}
-                  >
-                    <Tooltip title={t('products.action.delete')}>
-                      <Button
-                        danger
-                        type="text"
-                        icon={<DeleteOutlined />}
-                        loading={deletingProductId === record.id}
-                        aria-label={t('products.action.deleteAria', { name: record.name })}
-                      />
-                    </Tooltip>
-                  </Popconfirm>
-                </Space>
-              ) : null),
-            },
-          ]}
         />
       </QueryState>
     </Card>

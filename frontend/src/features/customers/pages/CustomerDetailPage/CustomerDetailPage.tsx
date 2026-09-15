@@ -35,6 +35,7 @@ import {
   formatCurrency,
   toNumber,
 } from '../../../../lib/format';
+import { newestFirst } from '../../../../lib/tableSorting';
 import {
   useCustomer,
   useCustomerDebtStatement,
@@ -69,7 +70,7 @@ export function CustomerDetailPage() {
   });
 
   const customer = customerQuery.data;
-  const orderHistory = salesOrdersQuery.data ?? [];
+  const orderHistory = newestFirst(salesOrdersQuery.data ?? []);
   const debt = toNumber(customer?.debtBalance);
   const creditLimit = toNumber(customer?.creditLimit);
   const availableCredit = Math.max(creditLimit - debt, 0);
@@ -225,7 +226,7 @@ export function CustomerDetailPage() {
             </div>
 
             {canViewDebt ? (
-              <CustomerDebtStatementCard transactions={debtStatementQuery.data ?? []} />
+              <CustomerDebtStatementCard transactions={newestFirst(debtStatementQuery.data ?? [])} />
             ) : null}
 
             {canViewOrders ? (

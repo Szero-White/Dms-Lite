@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { toNumber } from '../../../../lib/format';
+import { newestFirst } from '../../../../lib/tableSorting';
 import {
   PERMISSIONS,
   canViewCustomerBalance,
@@ -34,9 +35,9 @@ export function CustomersPage() {
   const deactivateCustomer = useDeactivateCustomer();
   const reactivateCustomer = useReactivateCustomer();
   const [keyword, setKeyword] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
-  const [debtFilter, setDebtFilter] = useState<'ALL' | 'WITH_DEBT' | 'CLEAR'>('ALL');
-  const [creditFilter, setCreditFilter] = useState<'ALL' | 'NEAR_LIMIT' | 'OVER_LIMIT'>('ALL');
+  const [activeFilters, setActiveFilters] = useState<Array<'ACTIVE' | 'INACTIVE'>>([]);
+  const [debtFilters, setDebtFilters] = useState<Array<'WITH_DEBT' | 'CLEAR'>>([]);
+  const [creditFilters, setCreditFilters] = useState<Array<'NEAR_LIMIT' | 'OVER_LIMIT'>>([]);
   const [open, setOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [form] = Form.useForm<CustomerFormValues>();
@@ -49,26 +50,24 @@ export function CustomersPage() {
       const debt = showCustomerFinancials ? toNumber(customer.debtBalance) : 0;
       const creditLimit = toNumber(customer.creditLimit);
       const creditUsage = showCustomerFinancials && creditLimit > 0 ? debt / creditLimit : 0;
-      const matchesActive =
-        activeFilter === 'ALL' ||
-        (activeFilter === 'ACTIVE' && customer.active) ||
-        (activeFilter === 'INACTIVE' && !customer.active);
+      const customerStatus = customer.active ? 'ACTIVE' : 'INACTIVE';
+      const debtState = debt > 0 ? 'WITH_DEBT' : 'CLEAR';
+      const matchesActive = activeFilters.length === 0 || activeFilters.includes(customerStatus);
       const matchesDebt =
         !showCustomerFinancials ||
-        debtFilter === 'ALL' ||
-        (debtFilter === 'WITH_DEBT' && debt > 0) ||
-        (debtFilter === 'CLEAR' && debt <= 0);
+        debtFilters.length === 0 ||
+        debtFilters.includes(debtState);
       const matchesCredit =
         !showCustomerFinancials ||
-        creditFilter === 'ALL' ||
-        (creditFilter === 'NEAR_LIMIT' && creditLimit > 0 && creditUsage >= 0.8) ||
-        (creditFilter === 'OVER_LIMIT' && creditLimit > 0 && creditUsage > 1);
+        creditFilters.length === 0 ||
+        (creditFilters.includes('NEAR_LIMIT') && creditLimit > 0 && creditUsage >= 0.8 && creditUsage < 1) ||
+        (creditFilters.includes('OVER_LIMIT') && creditLimit > 0 && creditUsage >= 1);
 
       return matchesKeyword && matchesActive && matchesDebt && matchesCredit;
     });
 
-    return [...filtered].sort((first, second) => second.id - first.id);
-  }, [activeFilter, creditFilter, customersQuery.data, debtFilter, keyword, showCustomerFinancials]);
+    return newestFirst(filtered);
+  }, [activeFilters, creditFilters, customersQuery.data, debtFilters, keyword, showCustomerFinancials]);
 
   const customers = customersQuery.data ?? [];
   const totalReceivables = showCustomerFinancials
@@ -103,16 +102,16 @@ export function CustomersPage() {
 
   const hasFilters = Boolean(
     keyword ||
-    activeFilter !== 'ALL' ||
-    (showCustomerFinancials && debtFilter !== 'ALL') ||
-    (showCustomerFinancials && creditFilter !== 'ALL'),
+    activeFilters.length > 0 ||
+    (showCustomerFinancials && debtFilters.length > 0) ||
+    (showCustomerFinancials && creditFilters.length > 0),
   );
 
   function clearFilters() {
     setKeyword('');
-    setActiveFilter('ALL');
-    setDebtFilter('ALL');
-    setCreditFilter('ALL');
+    setActiveFilters([]);
+    setDebtFilters([]);
+    setCreditFilters([]);
   }
 
   function openCreateCustomer() {
@@ -189,11 +188,11 @@ export function CustomersPage() {
       />
 
       <CustomersTableCard
-        activeFilter={activeFilter}
+        activeFilters={activeFilters}
         canManageCustomers={canManageCustomers}
         canChangeCustomerStatus={canChangeCustomerStatus}
-        creditFilter={creditFilter}
-        debtFilter={debtFilter}
+        creditFilters={creditFilters}
+        debtFilters={debtFilters}
         changingStatusCustomerId={deactivateCustomer.isPending
           ? deactivateCustomer.variables
           : reactivateCustomer.isPending
@@ -204,11 +203,11 @@ export function CustomersPage() {
         isError={customersQuery.isError}
         isLoading={customersQuery.isLoading}
         keyword={keyword}
-        onActiveFilterChange={setActiveFilter}
+        onActiveFiltersChange={setActiveFilters}
         onClearFilters={clearFilters}
-        onCreditFilterChange={setCreditFilter}
+        onCreditFiltersChange={setCreditFilters}
         onDeactivateCustomer={(customerId) => deactivateCustomer.mutate(customerId)}
-        onDebtFilterChange={setDebtFilter}
+        onDebtFiltersChange={setDebtFilters}
         onReactivateCustomer={(customerId) => reactivateCustomer.mutate(customerId)}
         onEditCustomer={openEditCustomer}
         onKeywordChange={setKeyword}

@@ -166,6 +166,7 @@
 .debtBarFill {
   height: 100%;
   border-radius: 999px;
+  background: var(--color-primary);
   transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
 }
 

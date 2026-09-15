@@ -3,7 +3,7 @@ import { Card, Table, Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { ReceivableDueTag } from '../../../../../components/common/ReceivableDueTag';
 import { formatCurrency, formatDate, formatDateTime, toNumber } from '../../../../../lib/format';
-import { compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../../lib/tableSorting';
+import { compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../../lib/tableSorting';
 import type { DebtTransaction } from '../../../types/customer.types';
 import styles from '../CustomerDetailPage.module.css';
 
@@ -21,7 +21,7 @@ export function CustomerDebtStatementCard({ transactions }: CustomerDebtStatemen
         rowKey="id"
         scroll={{ x: 940 }}
         sortDirections={TABLE_SORT_DIRECTIONS}
-        showSorterTooltip={false}
+        showSorterTooltip={TABLE_SORTER_TOOLTIP}
         locale={{ emptyText: t('customers.detail.noDebtTransactions') }}
         dataSource={transactions}
         columns={[
@@ -29,7 +29,6 @@ export function CustomerDebtStatementCard({ transactions }: CustomerDebtStatemen
             title: t('customers.detail.date'),
             dataIndex: 'createdAt',
             width: 170,
-            defaultSortOrder: 'descend',
             sorter: (first, second) => compareDate(first.createdAt, second.createdAt),
             render: (value) => formatDateTime(value),
           },

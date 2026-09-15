@@ -28,7 +28,7 @@ export function InventoryPage() {
   const showInventoryFinancials = canViewProductFinancials(user);
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
-  const [stockFilter, setStockFilter] = useState<StockFilter>('ALL');
+  const [stockFilters, setStockFilters] = useState<StockFilter[]>([]);
   const [form] = Form.useForm<ReceiveStockPayload>();
   const selectedProductId = Form.useWatch('productId', form);
   const receivedQuantity = Form.useWatch('quantity', form);
@@ -55,12 +55,12 @@ export function InventoryPage() {
     products,
     receivedQuantity,
     selectedProductId,
-    stockFilter,
+    stockFilters,
   });
 
   function clearFilters() {
     setKeyword('');
-    setStockFilter('ALL');
+    setStockFilters([]);
   }
 
   function handleOpenReceiveModal() {
@@ -145,8 +145,8 @@ export function InventoryPage() {
                 keyword={keyword}
                 latestMovementByProduct={latestMovementByProduct}
                 onKeywordChange={setKeyword}
-                onStockFilterChange={setStockFilter}
-                stockFilter={stockFilter}
+                onStockFiltersChange={setStockFilters}
+                stockFilters={stockFilters}
               />
             </Col>
 

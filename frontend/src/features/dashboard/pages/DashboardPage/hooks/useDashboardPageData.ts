@@ -4,6 +4,7 @@ import type { ProductRow } from '../../../../products';
 import type { SalesReportOrder } from '../../../../reports/types/salesReport.types';
 import type { SalesOrder } from '../../../../sales';
 import type { DashboardRange } from '../dashboardPage.types';
+import { newestFirst } from '../../../../../lib/tableSorting';
 
 interface UseDashboardPageDataParams {
   analyticsOrders: SalesReportOrder[];
@@ -50,25 +51,9 @@ export function useDashboardPageData({
     [customers],
   );
 
-  const latestOrder = useMemo(
-    () =>
-      [...orders].sort(
-        (left, right) =>
-          new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
-      )[0],
-    [orders],
-  );
+  const latestOrder = useMemo(() => newestFirst(orders)[0], [orders]);
 
-  const recentOrders = useMemo(
-    () =>
-      [...orders]
-        .sort(
-          (left, right) =>
-            new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
-        )
-        .slice(0, 4),
-    [orders],
-  );
+  const recentOrders = useMemo(() => newestFirst(orders).slice(0, 4), [orders]);
 
   const rangeDays =
     range === 'TODAY'
