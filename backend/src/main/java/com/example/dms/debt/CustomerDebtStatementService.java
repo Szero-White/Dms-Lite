@@ -39,7 +39,7 @@ public class CustomerDebtStatementService {
             .orElseThrow(() -> new BusinessException("Customer not found"));
 
         List<CustomerDebtTransaction> transactions =
-            customerDebtRepository.findByTenantIdAndCustomerIdOrderByCreatedAtDesc(
+            customerDebtRepository.findByTenantIdAndCustomerIdOrderByCreatedAtDescIdDesc(
                 tenantId,
                 customerId
             );

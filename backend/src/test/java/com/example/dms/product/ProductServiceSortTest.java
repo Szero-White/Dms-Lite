@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.TenantContext;
+import com.example.dms.common.code.BusinessCodeService;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,12 +26,13 @@ class ProductServiceSortTest {
 
     @Mock private ProductRepository productRepository;
     @Mock private AuditService auditService;
+    @Mock private BusinessCodeService businessCodeService;
 
     private ProductService productService;
 
     @BeforeEach
     void setUp() {
-        productService = new ProductService(productRepository, auditService);
+        productService = new ProductService(productRepository, auditService, businessCodeService);
         TenantContext.set(1L, 10L);
     }
 

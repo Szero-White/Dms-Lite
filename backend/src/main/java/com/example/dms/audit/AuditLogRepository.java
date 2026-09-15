@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
 
-    Page<AuditLog> findByTenantIdOrderByCreatedAtDesc(Long tenantId, Pageable pageable);
+    Page<AuditLog> findByTenantIdOrderByCreatedAtDescIdDesc(Long tenantId, Pageable pageable);
 }

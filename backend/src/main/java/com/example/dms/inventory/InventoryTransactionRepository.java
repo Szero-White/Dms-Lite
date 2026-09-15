@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface InventoryTransactionRepository extends JpaRepository<InventoryTransaction, Long> {
 
-    Page<InventoryTransaction> findByTenantIdOrderByCreatedAtDesc(Long tenantId, Pageable pageable);
+    Page<InventoryTransaction> findByTenantIdOrderByCreatedAtDescIdDesc(Long tenantId, Pageable pageable);
 
     java.util.List<InventoryTransaction> findByTenantIdAndSourceTypeOrderByCreatedAtDesc(
         Long tenantId,

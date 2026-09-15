@@ -10,7 +10,7 @@ final class OperationsWorkflowKnowledge {
     public HelpAnswerResponse inventoryAnswer(HelpPermissionScope scope, HelpLocale locale) {
         if (locale == HelpLocale.VI) {
             List<String> steps = new ArrayList<>();
-            steps.add("Mở Kho hàng để xem tồn kho theo SKU và trạng thái sắp hết hàng.");
+            steps.add("Mở Kho hàng để xem tồn kho theo mã sản phẩm và trạng thái sắp hết hàng.");
             if (scope.has(PermissionNames.INVENTORY_MANAGE)) {
                 steps.add("Chỉ nhập hoặc điều chỉnh kho khi có phát sinh thật hoặc đã xác minh sai lệch.");
                 steps.add("Ghi chú rõ lý do để lần sau có thể kiểm tra lại.");
@@ -24,14 +24,14 @@ final class OperationsWorkflowKnowledge {
                 scope.relatedModules(locale, "Inventory", "Products", "Sales Orders"),
                 List.of(
                     "Không điều chỉnh kho khi không có lý do nghiệp vụ.",
-                    "Kiểm tra SKU và đơn vị trước khi nhập số lượng lớn."
+                    "Kiểm tra mã sản phẩm và đơn vị trước khi nhập số lượng lớn."
                 ),
                 locale
             );
         }
 
         List<String> steps = new ArrayList<>();
-        steps.add("Open Inventory to review stock by SKU and low-stock status.");
+        steps.add("Open Inventory to review stock by product code and low-stock status.");
         if (scope.has(PermissionNames.INVENTORY_MANAGE)) {
             steps.add("Use receive or adjust stock only when there is a real stock movement or verified correction.");
             steps.add("Add a clear note so the movement can be reviewed later.");
@@ -45,7 +45,7 @@ final class OperationsWorkflowKnowledge {
             scope.relatedModules(locale, "Inventory", "Products", "Sales Orders"),
             List.of(
                 "Do not adjust stock without a business reason.",
-                "Check SKU and unit before entering large quantities."
+                "Check the product code and unit before entering large quantities."
             ),
             locale
         );
@@ -54,11 +54,12 @@ final class OperationsWorkflowKnowledge {
     public HelpAnswerResponse productAnswer(HelpPermissionScope scope, HelpLocale locale) {
         if (locale == HelpLocale.VI) {
             List<String> steps = new ArrayList<>();
-            steps.add("Dùng quy tắc đặt SKU nhất quán để bộ phận bán hàng và kho nhận diện sản phẩm chính xác.");
+            steps.add("Mã sản phẩm được hệ thống cấp tự động theo chuẩn PRD-000001 để bán hàng và kho nhận diện nhất quán.");
             if (scope.has(PermissionNames.PRODUCT_MANAGE)) {
-                steps.add("Mở Sản phẩm để tạo hoặc cập nhật tên, SKU, giá vốn, giá bán và tồn kho tối thiểu.");
+                steps.add("Mở Sản phẩm để tạo hoặc cập nhật tên, giá vốn, giá bán và tồn kho tối thiểu; mã sản phẩm do hệ thống tự cấp.");
+                steps.add("Ngừng hoạt động sản phẩm không còn bán thay vì xóa lịch sử; kích hoạt lại khi doanh nghiệp bán trở lại.");
             } else {
-                steps.add("Nếu tên, giá hoặc SKU sai, hãy yêu cầu người có quyền Quản lý sản phẩm cập nhật.");
+                steps.add("Nếu tên hoặc giá sai, hãy yêu cầu người có quyền Quản lý sản phẩm cập nhật. Mã sản phẩm là mã hệ thống và không chỉnh thủ công.");
             }
 
             return response(
@@ -66,7 +67,7 @@ final class OperationsWorkflowKnowledge {
                 steps,
                 scope.relatedModules(locale, "Products", "Inventory", "Sales Orders"),
                 List.of(
-                    "Tránh dùng trùng SKU cho nhiều ý nghĩa khác nhau.",
+                    "Không chỉnh sửa hoặc tái sử dụng mã sản phẩm hệ thống.",
                     "Giá vốn và giá bán có thể nhạy cảm, chỉ nên mở cho vai trò liên quan."
                 ),
                 locale
@@ -74,11 +75,12 @@ final class OperationsWorkflowKnowledge {
         }
 
         List<String> steps = new ArrayList<>();
-        steps.add("Use consistent SKU naming so sales and warehouse teams identify products correctly.");
+        steps.add("Product codes are assigned automatically in PRD-000001 format so sales and warehouse teams use a consistent identifier.");
         if (scope.has(PermissionNames.PRODUCT_MANAGE)) {
-            steps.add("Open Products to create or update name, SKU, cost, sale price and minimum stock.");
+            steps.add("Open Products to create or update name, cost, sale price and minimum stock; the product code is assigned automatically.");
+            steps.add("Deactivate products that are no longer sold instead of deleting history; reactivate them when trading resumes.");
         } else {
-            steps.add("If name, price or SKU is wrong, ask someone with PRODUCT_MANAGE to update it.");
+            steps.add("If the name or price is wrong, ask someone with PRODUCT_MANAGE to update it. Product codes are system-managed and not manually editable.");
         }
 
         return response(
@@ -86,7 +88,7 @@ final class OperationsWorkflowKnowledge {
             steps,
             scope.relatedModules(locale, "Products", "Inventory", "Sales Orders"),
             List.of(
-                "Avoid duplicate SKU meanings.",
+                "Do not manually edit or reuse system product codes.",
                 "Cost and sale price can be sensitive and should only be available to relevant roles."
             ),
             locale

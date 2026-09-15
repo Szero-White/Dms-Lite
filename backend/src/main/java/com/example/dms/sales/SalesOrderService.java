@@ -60,8 +60,8 @@ public class SalesOrderService {
         Long tenantId = TenantContext.tenantRequired();
         PageRequest pageRequest = PageRequest.of(PageRequestPolicy.page(page), PageRequestPolicy.size(size));
         Page<SalesOrder> orders = customerId == null
-            ? salesOrderRepository.findByTenantIdOrderByCreatedAtDesc(tenantId, pageRequest)
-            : salesOrderRepository.findByTenantIdAndCustomerIdOrderByCreatedAtDesc(
+            ? salesOrderRepository.findByTenantIdOrderByCreatedAtDescIdDesc(tenantId, pageRequest)
+            : salesOrderRepository.findByTenantIdAndCustomerIdOrderByCreatedAtDescIdDesc(
                 tenantId,
                 customerId,
                 pageRequest
@@ -392,12 +392,12 @@ public class SalesOrderService {
             .collect(Collectors.toSet());
 
         Map<Long, Product> productsById = productRepository
-            .findByTenantIdAndIdInAndDeletedAtIsNull(tenantId, productIds)
+            .findByTenantIdAndIdInAndDeletedAtIsNullAndActiveTrue(tenantId, productIds)
             .stream()
             .collect(Collectors.toMap(Product::getId, Function.identity()));
 
         if (productsById.size() != productIds.size()) {
-            throw new BusinessException("One or more products were not found");
+            throw new BusinessException("One or more products are unavailable or inactive");
         }
         return productsById;
     }

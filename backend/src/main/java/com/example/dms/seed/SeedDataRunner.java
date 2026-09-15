@@ -1,5 +1,7 @@
 package com.example.dms.seed;
 
+import com.example.dms.common.code.BusinessCodeService;
+import com.example.dms.common.code.BusinessCodeType;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.inventory.InventoryService;
@@ -50,6 +52,8 @@ public class SeedDataRunner implements CommandLineRunner {
     private final PasswordEncoder encoder;
 
     private final ProductRepository products;
+
+    private final BusinessCodeService businessCodeService;
 
     private final CustomerRepository customers;
 
@@ -183,7 +187,7 @@ public class SeedDataRunner implements CommandLineRunner {
             Product.builder()
                 .tenantId(tenantId)
                 .name("Nước suối thùng 24 chai")
-                .sku("WATER-24")
+                .sku(businessCodeService.next(BusinessCodeType.PRODUCT, tenantId))
                 .costPrice(new BigDecimal("65000"))
                 .sellingPrice(new BigDecimal("80000"))
                 .minStock(10)
@@ -195,7 +199,7 @@ public class SeedDataRunner implements CommandLineRunner {
             Product.builder()
                 .tenantId(tenantId)
                 .name("Trà xanh thùng 24 chai")
-                .sku("TEA-24")
+                .sku(businessCodeService.next(BusinessCodeType.PRODUCT, tenantId))
                 .costPrice(new BigDecimal("120000"))
                 .sellingPrice(new BigDecimal("150000"))
                 .minStock(8)

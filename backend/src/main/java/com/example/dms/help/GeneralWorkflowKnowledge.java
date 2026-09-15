@@ -194,8 +194,8 @@ final class GeneralWorkflowKnowledge {
 
         if (scope.has(PermissionNames.PRODUCT_MANAGE)) {
             steps.add(locale == HelpLocale.VI
-                ? "Kiểm tra và cập nhật danh mục sản phẩm, SKU, giá và mức tồn tối thiểu từ thông tin đã xác minh."
-                : "Review and update product catalog data, SKU, prices and minimum stock from verified information.");
+                ? "Kiểm tra và cập nhật danh mục sản phẩm, mã sản phẩm hệ thống, giá và mức tồn tối thiểu từ thông tin đã xác minh."
+                : "Review and update product catalog data, system product codes, prices and minimum stock from verified information.");
         } else if (scope.has(PermissionNames.PRODUCT_VIEW)) {
             steps.add(locale == HelpLocale.VI
                 ? "Kiểm tra danh mục sản phẩm được phép xem; báo người có quyền quản lý nếu dữ liệu cần sửa."

@@ -2,14 +2,13 @@ package com.example.dms.product;
 
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
+import com.example.dms.common.code.BusinessCodeService;
+import com.example.dms.common.code.BusinessCodeType;
 import com.example.dms.common.PageRequestPolicy;
 import com.example.dms.common.TenantContext;
-import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -20,20 +19,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService {
 
     private final ProductRepository productRepository;
-
     private final AuditService auditService;
+    private final BusinessCodeService businessCodeService;
 
+    @Transactional(readOnly = true)
     public Page<ProductResponse> list(String keyword, int page, int size) {
         boolean includeCost = canViewCost();
 
         return productRepository.findByTenantIdAndDeletedAtIsNullAndNameContainingIgnoreCase(
             TenantContext.tenantRequired(),
             keyword,
-            PageRequest.of(
-                PageRequestPolicy.page(page),
-                PageRequestPolicy.size(size),
-                Sort.by(Sort.Order.desc("id"))
-            )
+            PageRequestPolicy.newestById(page, size)
         ).map(product -> toResponse(product, includeCost));
     }
 
@@ -41,15 +37,14 @@ public class ProductService {
     @CacheEvict(value = "dashboard", key = "T(com.example.dms.common.TenantContext).tenantRequired()")
     public ProductResponse create(ProductRequest request) {
         Long tenantId = TenantContext.tenantRequired();
-        String sku = request.sku().trim();
-        ensureSkuAvailable(tenantId, sku, null);
+        String sku = businessCodeService.next(BusinessCodeType.PRODUCT, tenantId);
 
         Product savedProduct = productRepository.save(
             Product.builder()
                 .tenantId(tenantId)
-                .name(request.name())
+                .name(request.name().trim())
                 .sku(sku)
-                .barcode(request.barcode())
+                .barcode(normalizeOptional(request.barcode()))
                 .costPrice(request.costPrice())
                 .sellingPrice(request.sellingPrice())
                 .minStock(request.minStock())
@@ -65,12 +60,8 @@ public class ProductService {
     @CacheEvict(value = "dashboard", key = "T(com.example.dms.common.TenantContext).tenantRequired()")
     public ProductResponse update(Long id, ProductRequest request) {
         Product product = find(id);
-        String sku = request.sku().trim();
-        ensureSkuAvailable(product.getTenantId(), sku, id);
-
-        product.setName(request.name());
-        product.setSku(sku);
-        product.setBarcode(request.barcode());
+        product.setName(request.name().trim());
+        product.setBarcode(normalizeOptional(request.barcode()));
         product.setCostPrice(request.costPrice());
         product.setSellingPrice(request.sellingPrice());
         product.setMinStock(request.minStock());
@@ -82,19 +73,41 @@ public class ProductService {
 
     @Transactional
     @CacheEvict(value = "dashboard", key = "T(com.example.dms.common.TenantContext).tenantRequired()")
-    public void delete(Long id) {
-        Product product = find(id);
-        product.setDeletedAt(Instant.now());
-        productRepository.save(product);
-        auditService.log("PRODUCT_DELETED", "Product", id, product.getName());
+    public ProductResponse deactivate(Long id) {
+        Product product = lock(id);
+        if (product.isActive()) {
+            product.setActive(false);
+            auditService.log("PRODUCT_DEACTIVATED", "Product", product.getId(), product.getName());
+        }
+        return toResponse(product, true);
     }
 
+    @Transactional
+    @CacheEvict(value = "dashboard", key = "T(com.example.dms.common.TenantContext).tenantRequired()")
+    public ProductResponse reactivate(Long id) {
+        Product product = lock(id);
+        if (!product.isActive()) {
+            product.setActive(true);
+            auditService.log("PRODUCT_REACTIVATED", "Product", product.getId(), product.getName());
+        }
+        return toResponse(product, true);
+    }
+
+    @Transactional(readOnly = true)
     public Product find(Long id) {
         return productRepository.findByIdAndTenantIdAndDeletedAtIsNull(
             id,
             TenantContext.tenantRequired()
         ).orElseThrow(() -> new BusinessException("Product not found"));
     }
+
+    private Product lock(Long id) {
+        return productRepository.lockByIdAndTenantIdAndDeletedAtIsNull(
+            id,
+            TenantContext.tenantRequired()
+        ).orElseThrow(() -> new BusinessException("Product not found"));
+    }
+
     private boolean canViewCost() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -116,12 +129,10 @@ public class ProductService {
         );
     }
 
-    private void ensureSkuAvailable(Long tenantId, String sku, Long currentProductId) {
-        productRepository.findFirstByTenantIdAndDeletedAtIsNullAndSkuIgnoreCase(tenantId, sku)
-            .filter(existing -> currentProductId == null || !existing.getId().equals(currentProductId))
-            .ifPresent(existing -> {
-                throw new BusinessException("SKU already exists");
-            });
+    private String normalizeOptional(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
-
 }

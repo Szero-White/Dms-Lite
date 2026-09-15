@@ -78,8 +78,8 @@ public class InventoryHelpDataService {
 
             return responses.notFound(
                 locale == HelpLocale.VI
-                    ? "Mình chưa tìm thấy mã hàng trong câu hỏi. Hãy hỏi kèm mã như WATER-24."
-                    : "I could not find a product code in the question. Try asking with a code like WATER-24.",
+                    ? "Mình chưa tìm thấy mã hàng trong câu hỏi. Hãy hỏi kèm mã như PRD-000001."
+                    : "I could not find a product code in the question. Try asking with a code like PRD-000001.",
                 scope.relatedModules(locale, "Inventory", "Products"),
                 locale
             );

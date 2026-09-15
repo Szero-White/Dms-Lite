@@ -47,10 +47,25 @@ public class ProductController {
         return ApiResponse.ok(productService.update(id, request));
     }
 
+    @PostMapping("/{id}/deactivate")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE')")
+    public ApiResponse<ProductResponse> deactivate(@PathVariable Long id) {
+        return ApiResponse.ok(productService.deactivate(id));
+    }
+
+    @PostMapping("/{id}/reactivate")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE')")
+    public ApiResponse<ProductResponse> reactivate(@PathVariable Long id) {
+        return ApiResponse.ok(productService.reactivate(id));
+    }
+
+    /**
+     * Backward-compatible alias for older clients. Product master data is deactivated,
+     * not removed from operational history.
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('PRODUCT_MANAGE')")
-    public ApiResponse<Void> delete(@PathVariable Long id) {
-        productService.delete(id);
-        return ApiResponse.ok("deleted", null);
+    public ApiResponse<ProductResponse> deleteCompatibilityAlias(@PathVariable Long id) {
+        return ApiResponse.ok("deactivated", productService.deactivate(id));
     }
 }

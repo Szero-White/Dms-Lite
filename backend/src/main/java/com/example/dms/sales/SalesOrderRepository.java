@@ -26,11 +26,11 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
         @Param("tenantId") Long tenantId
     );
 
-    Page<SalesOrder> findByTenantIdOrderByCreatedAtDesc(Long tenantId, Pageable pageable);
+    Page<SalesOrder> findByTenantIdOrderByCreatedAtDescIdDesc(Long tenantId, Pageable pageable);
 
     List<SalesOrder> findByTenantIdAndIdIn(Long tenantId, Collection<Long> ids);
 
-    Page<SalesOrder> findByTenantIdAndCustomerIdOrderByCreatedAtDesc(
+    Page<SalesOrder> findByTenantIdAndCustomerIdOrderByCreatedAtDescIdDesc(
         Long tenantId,
         Long customerId,
         Pageable pageable
