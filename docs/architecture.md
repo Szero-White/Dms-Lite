@@ -26,6 +26,7 @@ Quy ước:
 - Business rule quan trọng phải có một source of truth ở backend.
 - Query reporting phức tạp nằm trong read repository (`ReportReadRepository`), không nằm trong controller.
 - Receivable balance và order-specific receivable query nằm trong `CustomerDebtRepository`; report/customer/payment không tự viết lại công thức công nợ.
+- Notification feed orchestration nằm ở `NotificationQueryService`; các alert suy ra từ tồn kho/công nợ/thanh toán được cô lập trong `DerivedNotificationService`, tránh biến query service thành nơi truy cập mọi business repository.
 - DTO summary và detail được tách khi payload khác nhau, ví dụ Sales Order.
 
 ## Sales Order lifecycle hiện tại

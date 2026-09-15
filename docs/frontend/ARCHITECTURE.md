@@ -123,6 +123,15 @@ The naming may differ slightly where frontend routes use plural form, but owners
 - Query hook files use `use*Queries.ts`.
 - Page folders use PascalCase.
 
+## Data Table And Filter Rules
+
+- Data lists open in deterministic newest-first order from their API/data source; no sorter arrow is active until the user explicitly sorts a column.
+- Sortable tables use the shared three-state cycle `neutral -> ascending -> descending -> neutral` and the Ant Design full-header sorter tooltip.
+- Table filters that can legitimately match multiple values use the shared checkbox multi-select control; empty selection means all values.
+- Single-entity business inputs such as customer, warehouse, or product on a transaction remain single-select. A checkbox multi-select must not be used where the domain only allows one value.
+- Colors communicate semantic state (success, warning, danger) rather than decorate ordinary rows or metrics.
+- Product codes are system-managed and read-only in the UI; users edit business attributes, not internal identifiers.
+
 ## Migration Rules
 
 - Migrate one feature at a time.

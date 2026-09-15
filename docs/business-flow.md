@@ -75,7 +75,28 @@ Customer là master data có lịch sử nghiệp vụ, nên hệ thống không
 
 Migration V6 chuyển các customer từng bị legacy soft-delete thành lifecycle mới. Nếu customer legacy còn `DRAFT`, migration kích hoạt lại để workflow đang mở không bị kẹt; các customer legacy còn lại trở thành inactive và vẫn xem được lịch sử.
 
-## 5. Customer payment
+## 5. Product lifecycle
+
+Product cũng là master data có thể đã được tham chiếu bởi sales order, invoice, inventory transaction và audit history. Vì vậy UI nghiệp vụ không hard-delete hoặc soft-delete product khi doanh nghiệp chỉ ngừng bán.
+
+- `POST /api/products/{id}/deactivate` yêu cầu `PRODUCT_MANAGE` và chỉ set `active = false`;
+- `POST /api/products/{id}/reactivate` kích hoạt lại product khi doanh nghiệp bán trở lại;
+- `DELETE /api/products/{id}` chỉ còn là compatibility alias cho deactivate để client cũ không phá lịch sử; UI mới không dùng action Delete;
+- product inactive vẫn xuất hiện trong danh mục để tra cứu và có thể kích hoạt lại; các sales/invoice/inventory history trước đó vẫn giữ nguyên;
+- product inactive không được chọn cho **sales order mới** và không được **nhập kho mới**; backend kiểm tra lại điều kiện này thay vì chỉ dựa vào filter frontend;
+- sales order `DRAFT` đã tồn tại trước thời điểm deactivate vẫn được phép đi tiếp theo workflow hiện tại để không khóa một cam kết nghiệp vụ đang mở;
+- low-stock dashboard/notification bỏ qua product inactive để không tạo cảnh báo vận hành cho mã hàng đã ngừng bán.
+
+`deleted_at` được giữ để tương thích dữ liệu legacy và historical resolution; lifecycle nghiệp vụ mới dùng `active` làm trạng thái vận hành.
+
+Chính sách mã sản phẩm:
+
+- mã sản phẩm được backend tự sinh theo định dạng `PRD-000001`; UI create/update không cho nhập mã tự do;
+- `business_code_sequences` tăng số thứ tự theo tenant bằng câu lệnh atomic, tránh cấp trùng mã khi tạo đồng thời;
+- migration `V13__system_managed_product_codes.sql` chuẩn hóa mã sản phẩm hiện có theo từng tenant và tạo unique index `(tenant_id, lower(sku))`;
+- `invoice_items.product_code` lịch sử vẫn giữ snapshot bất biến đã ghi nhận khi chứng từ được tạo.
+
+## 6. Customer payment
 
 Payment workspace dùng:
 
@@ -119,7 +140,7 @@ Payment trước migration V11 có thể là legacy FIFO payment. Vì một paym
 - payment `520.001` cho `SO-A` phải bị backend reject và không mutate dữ liệu;
 - payment `20.000` tiếp theo cho `SO-A` tất toán order và order biến khỏi outstanding worklist nhưng vẫn còn trong history/report/audit.
 
-## 6. Invoice document
+## 7. Invoice document
 
 Invoice trong DMS Lite là **chứng từ bán hàng gắn với một order `COMPLETED` đã thu đủ**, không phải một luồng kế toán thứ hai.
 
@@ -134,7 +155,7 @@ Invoice trong DMS Lite là **chứng từ bán hàng gắn với một order `CO
 
 Luồng mới: `COMPLETED order -> partial payments -> final payment -> automatic DRAFT invoice -> ISSUED -> PAID`.
 
-## 7. Revenue
+## 8. Revenue
 
 Revenue chỉ ghi nhận order `COMPLETED`.
 
@@ -142,7 +163,7 @@ Dashboard dùng `confirmed_at`, không dùng `created_at`, để đơn tạo hô
 
 Dashboard còn có read endpoint riêng `GET /api/reports/dashboard/receivable-attention` (yêu cầu `REPORT_VIEW + DEBT_VIEW`) để tính theo **business date hiện tại** các khoản `Quá hạn`, `Đến hạn hôm nay`, `Sắp đến hạn trong 3 ngày` và preview khoản quá hạn lâu nhất. Endpoint này không dùng cache dashboard tổng hợp để trạng thái hạn không bị stale khi bước sang ngày mới.
 
-## 8. Sales report semantics
+## 9. Sales report semantics
 
 `GET /api/reports/sales`
 
@@ -156,7 +177,7 @@ Sales report là read model riêng, không lấy page đầu của `GET /api/sal
 - payment làm thay đổi report thông qua receivable ledger, không tạo phép tính công nợ riêng ở frontend;
 - customer ngừng hoạt động sau khi tất toán vẫn không làm mất sales history khỏi report.
 
-## 9. Read APIs
+## 10. Read APIs
 
 - `GET /api/auth/me` -> session snapshot hiện tại (user, tenant, roles, permissions) cho authenticated frontend; dùng để refresh authorization state sau reload, không thay thế backend authorization.
 - `GET /api/customers` -> customer page summary.

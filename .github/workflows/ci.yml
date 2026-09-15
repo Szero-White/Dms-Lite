@@ -38,6 +38,14 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Frontend consistency audit
+        run: npm run quality:ui
+        working-directory: frontend
+
       - name: Frontend build
-        run: npm ci && npm run build
+        run: npm run build
         working-directory: frontend

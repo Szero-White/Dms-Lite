@@ -130,10 +130,10 @@ DMS Lite brings these flows into one system and keeps the financial and operatio
 ### Product management
 
 - Product catalog
-- SKU and barcode data
+- System-managed product codes (`PRD-000001`) plus optional barcode data
 - Cost and selling prices with permission-aware exposure
 - Minimum-stock configuration
-- Soft-delete lifecycle
+- Deactivate/reactivate lifecycle that preserves historical references
 
 ### Customer management
 
