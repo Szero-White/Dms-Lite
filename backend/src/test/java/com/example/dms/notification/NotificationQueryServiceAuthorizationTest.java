@@ -51,9 +51,7 @@ class NotificationQueryServiceAuthorizationTest {
     private final CustomerRepository customers = mock(CustomerRepository.class);
     private final PaymentRepository payments = mock(PaymentRepository.class);
     private final BusinessTimeProvider businessTimeProvider = mock(BusinessTimeProvider.class);
-    private final NotificationQueryService service = new NotificationQueryService(
-        notifications,
-        notificationReads,
+    private final DerivedNotificationService derivedNotifications = new DerivedNotificationService(
         stockItems,
         inventoryTransactions,
         products,
@@ -61,6 +59,11 @@ class NotificationQueryServiceAuthorizationTest {
         customers,
         payments,
         businessTimeProvider
+    );
+    private final NotificationQueryService service = new NotificationQueryService(
+        notifications,
+        notificationReads,
+        derivedNotifications
     );
 
     @BeforeEach
@@ -323,7 +326,7 @@ class NotificationQueryServiceAuthorizationTest {
             eq(1L), any(), any(Pageable.class)
         )).thenReturn(List.of());
         when(stockItems.lowStock(eq(1L), any(Pageable.class))).thenReturn(List.of(stockItem));
-        when(products.findByTenantIdAndIdInAndDeletedAtIsNull(eq(1L), anyCollection()))
+        when(products.findByTenantIdAndIdInAndDeletedAtIsNullAndActiveTrue(eq(1L), anyCollection()))
             .thenReturn(List.of(product));
         Instant stockChangedAt = Instant.parse("2026-09-07T03:15:00Z");
         when(inventoryTransactions.findFirstByTenantIdAndWarehouseIdAndProductIdOrderByCreatedAtDesc(
@@ -378,7 +381,7 @@ class NotificationQueryServiceAuthorizationTest {
             any(Pageable.class)
         )).thenReturn(List.of());
         when(stockItems.lowStock(eq(1L), any(Pageable.class))).thenReturn(List.of(stockItem));
-        when(products.findByTenantIdAndIdInAndDeletedAtIsNull(eq(1L), anyCollection()))
+        when(products.findByTenantIdAndIdInAndDeletedAtIsNullAndActiveTrue(eq(1L), anyCollection()))
             .thenReturn(List.of(product));
         when(inventoryTransactions.findFirstByTenantIdAndWarehouseIdAndProductIdOrderByCreatedAtDesc(
             1L,
