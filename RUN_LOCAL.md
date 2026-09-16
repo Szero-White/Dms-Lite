@@ -115,7 +115,6 @@ When demo mode is enabled:
 | --- | --- | --- |
 | Owner | `owner` | `Demo@2026` |
 | Sales | `sale` | `Demo@2026` |
-| Warehouse | `warehouse` | `Demo@2026` |
 | Accountant | `accountant` | `Demo@2026` |
 
 ## Common issues

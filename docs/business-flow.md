@@ -50,7 +50,7 @@ DRAFT -> CANCELLED
 
 ### COMPLETED
 
-Warehouse fulfillment performs the real business mutation:
+Order completion performs the real business mutation:
 
 - validates customer credit exposure;
 - validates stock;
@@ -136,15 +136,11 @@ Full business and administration workflow.
 
 ### Sales
 
-Customer/product visibility required for selling, Draft order creation, and allowed Draft cancellation.
-
-### Warehouse
-
-Inventory workflow and order fulfillment.
+Customer/product visibility, Draft order creation, order confirmation/completion, and allowed Draft cancellation. Sales can inspect stock but does not manually adjust inventory.
 
 ### Accountant
 
-Receivables, payments, invoices, and reporting according to assigned permissions.
+Inventory receiving/adjustments plus receivables, payments, invoices, and reporting according to assigned permissions. This keeps the small-business demo to three operating personas without weakening permission boundaries.
 
 Custom roles are supported. Composite workflows validate required dependent permissions so the UI does not expose an action whose supporting data cannot be read.
 

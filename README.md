@@ -19,22 +19,21 @@ A full-stack distribution management system covering sales, inventory, receivabl
 
 **Shared demo password:** `Demo@2026`
 
-| Role | Username | Main workflow |
-| --- | --- | --- |
-| Owner | `owner` | Dashboard, access control, reports, full business flow |
-| Sales | `sale` | Customers, products, draft sales orders |
-| Warehouse | `warehouse` | Inventory, stock receiving, order fulfillment |
-| Accountant | `accountant` | Receivables, payments, invoices, reports |
+| Role | Username | Password | Main workflow |
+| --- | --- | --- | --- |
+| Owner | `owner` | `Demo@2026` | Dashboard, access control, reports, full business flow |
+| Sales | `sale` | `Demo@2026` | Customers, products, sales orders, order completion |
+| Accountant | `accountant` | `Demo@2026` | Inventory receiving/adjustments, receivables, payments, invoices, reports |
 
-> Demo accounts are also shown on the login page.
+> Demo accounts are also shown on the login page. The demo intentionally uses three personas for a small distributor; custom roles remain available when a business needs finer separation of duties.
 
 ### Suggested demo flow
 
-1. Sign in as **Sales** and create a customer and Draft sales order.
-2. Sign in as **Warehouse** and fulfill the order.
-3. Sign in as **Accountant** and record a partial or final payment.
+1. Sign in as **Accountant** to review inventory and, if needed, receive stock.
+2. Sign in as **Sales** to create a customer and Draft sales order, then confirm and complete the order.
+3. Sign in as **Accountant** to reconcile the receivable and record a partial or final payment.
 4. Issue/download the invoice after the order is fully paid.
-5. Sign in as **Owner** to review reports, notifications, and audit logs.
+5. Sign in as **Owner** to review reports, notifications, audit logs, and access control.
 
 ---
 
@@ -51,7 +50,7 @@ The application keeps sales, stock, receivables, payments, invoices, authorizati
 - Product catalog with system-managed product codes such as `PRD-000001`
 - Product deactivate/reactivate lifecycle that preserves historical references
 - Customer profiles, payment terms, credit limits, and receivable statements
-- Warehouse stock, stock receiving, adjustments, and transaction history
+- Inventory stock, stock receiving, adjustments, and transaction history
 - Draft sales orders with transactional fulfillment
 - Credit-limit validation before stock/debt mutation
 - Order-specific partial and final payments
@@ -74,7 +73,7 @@ Customer + Product
        ↓
 Draft Sales Order
        ↓
-Warehouse Fulfillment
+Order Completion
        ├─ validates credit exposure
        ├─ validates and deducts stock
        └─ creates receivable when money is still owed

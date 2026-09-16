@@ -29,24 +29,25 @@ Do not deploy when either gate fails.
 - Never edit an applied migration.
 - Verify the application reaches the expected migration version after deployment.
 
-Current repository migration range: **V1-V13**.
+Current repository migration range: **V1-V14**.
 
 ## 3. Golden Business Flow
 
 Use one customer and products with sufficient stock:
 
-1. Sales creates a `DRAFT` order.
-2. Confirm Draft creation does not change stock or receivables.
-3. Warehouse fulfills the order.
-4. Confirm stock decreases exactly once and an `OUT` transaction is recorded.
-5. Confirm an unpaid amount creates one open receivable.
-6. Accountant records a partial payment against that exact order.
-7. Confirm only that order's receivable decreases.
-8. Record the final payment.
-9. Confirm the receivable closes and exactly one Draft invoice exists.
-10. Issue/download the invoice and payment receipt.
-11. Confirm dashboard/report/customer statement totals match the same canonical balance.
-12. Confirm audit and notification entries are visible only to permitted roles.
+1. Accountant reviews Inventory and receives stock when a real inbound movement exists.
+2. Sales creates a `DRAFT` order.
+3. Confirm Draft creation does not change stock or receivables.
+4. Sales confirms/completes the order using `SALES_ORDER_CONFIRM`.
+5. Confirm stock decreases exactly once and an `OUT` transaction is recorded.
+6. Confirm an unpaid amount creates one open receivable.
+7. Accountant records a partial payment against that exact order.
+8. Confirm only that order's receivable decreases.
+9. Record the final payment.
+10. Confirm the receivable closes and exactly one Draft invoice exists.
+11. Issue/download the invoice and payment receipt.
+12. Confirm dashboard/report/customer statement totals match the same canonical balance.
+13. Confirm audit and notification entries are visible only to permitted roles.
 
 ## 4. Credit Limit
 
@@ -87,9 +88,8 @@ Use one customer and products with sufficient stock:
 Verify at least the built-in demo roles:
 
 - **Owner**: full business/admin flow.
-- **Sales**: customer/product visibility and Draft order workflow only within permission scope.
-- **Warehouse**: inventory and fulfillment without finance/admin actions.
-- **Accountant**: receivables, payments, invoices, and reports within permission scope.
+- **Sales**: customer/product visibility, stock visibility, Draft order creation, and order completion within permission scope.
+- **Accountant**: inventory receiving/adjustments, receivables, payments, invoices, and reports within permission scope.
 
 Also verify one custom role with dependent permissions.
 
