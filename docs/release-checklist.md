@@ -41,7 +41,7 @@ Use one customer and products with sufficient stock:
 4. Sales confirms/completes the order using `SALES_ORDER_CONFIRM`.
 5. Confirm stock decreases exactly once and an `OUT` transaction is recorded.
 6. Confirm an unpaid amount creates one open receivable.
-7. Accountant records a partial payment against that exact order.
+7. Accountant opens Record Payment, verifies customer + order lines + unit prices + outstanding balance, then records a partial payment against that exact order.
 8. Confirm only that order's receivable decreases.
 9. Record the final payment.
 10. Confirm the receivable closes and exactly one Draft invoice exists.
@@ -59,6 +59,7 @@ Use one customer and products with sufficient stock:
 ## 5. Payments
 
 - Outstanding list contains completed unpaid orders only.
+- Record Payment loads the selected order breakdown before enabling submission.
 - Partial payment remains traceable to PAY + SO + customer.
 - Overpayment is rejected.
 - Reusing the same request key does not create a duplicate payment.

@@ -3,15 +3,27 @@ package com.example.dms.payment;
 import com.example.dms.common.BusinessException;
 import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
+import com.example.dms.customer.Customer;
+import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
+import com.example.dms.debt.CustomerDebtTransaction;
 import com.example.dms.debt.ReceivableDueStatus;
+import com.example.dms.product.Product;
+import com.example.dms.product.ProductRepository;
+import com.example.dms.sales.SalesOrder;
+import com.example.dms.sales.SalesOrderItem;
+import com.example.dms.sales.SalesOrderRepository;
 import com.example.dms.sales.SalesOrderStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +40,9 @@ public class PaymentQueryService {
     private final PaymentRepository paymentRepository;
     private final BusinessTimeProvider businessTimeProvider;
     private final CustomerDebtRepository customerDebtRepository;
+    private final SalesOrderRepository salesOrderRepository;
+    private final CustomerRepository customerRepository;
+    private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
     public Page<PaymentOutstandingOrderResponse> listOutstandingOrders(int page, String search) {
@@ -95,6 +110,81 @@ public class PaymentQueryService {
             (sortDirection == null ? Sort.Direction.DESC : sortDirection).name(),
             PageRequest.of(Math.max(page, 0), DEFAULT_PAGE_SIZE)
         ).map(view -> toOutstandingOrder(view, today));
+    }
+
+    @Transactional(readOnly = true)
+    public PaymentOutstandingOrderDetailResponse getOutstandingOrderDetail(Long salesOrderId) {
+        Long tenantId = TenantContext.tenantRequired();
+        SalesOrder salesOrder = salesOrderRepository
+            .findDetailByIdAndTenantId(salesOrderId, tenantId)
+            .filter(order -> order.getStatus() == SalesOrderStatus.COMPLETED)
+            .orElseThrow(() -> new BusinessException("Completed sales order not found"));
+
+        CustomerDebtTransaction receivable = customerDebtRepository
+            .findFirstByTenantIdAndSourceTypeAndSourceIdAndDirectionOrderByCreatedAtDesc(
+                tenantId,
+                "SALES_ORDER",
+                salesOrderId,
+                "INCREASE"
+            )
+            .filter(debt -> zeroIfNull(debt.getRemainingAmount()).signum() > 0)
+            .orElseThrow(() -> new BusinessException("Sales order has no outstanding receivable"));
+
+        Customer customer = customerRepository
+            .findByIdAndTenantId(salesOrder.getCustomerId(), tenantId)
+            .orElseThrow(() -> new BusinessException("Customer not found"));
+
+        Set<Long> productIds = salesOrder.getItems()
+            .stream()
+            .map(SalesOrderItem::getProductId)
+            .collect(Collectors.toSet());
+        Map<Long, Product> productsById = productIds.isEmpty()
+            ? Map.of()
+            : productRepository
+                .findByTenantIdAndIdIn(tenantId, productIds)
+                .stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+
+        BigDecimal total = zeroIfNull(salesOrder.getTotalAmount());
+        BigDecimal remaining = zeroIfNull(receivable.getRemainingAmount());
+        BigDecimal paid = total.subtract(remaining).max(BigDecimal.ZERO);
+        LocalDate today = businessTimeProvider.today();
+
+        List<PaymentOutstandingOrderLineResponse> items = salesOrder.getItems()
+            .stream()
+            .map(item -> toOutstandingOrderLine(item, productsById.get(item.getProductId())))
+            .toList();
+
+        return new PaymentOutstandingOrderDetailResponse(
+            salesOrder.getId(),
+            salesOrder.getCode(),
+            salesOrder.getCustomerId(),
+            customer.getName(),
+            total,
+            paid,
+            remaining,
+            receivable.getDueDate(),
+            salesOrder.getConfirmedAt(),
+            ReceivableDueStatus.from(receivable.getDueDate(), today),
+            ReceivableDueStatus.daysUntilDue(receivable.getDueDate(), today),
+            items
+        );
+    }
+
+    private PaymentOutstandingOrderLineResponse toOutstandingOrderLine(
+        SalesOrderItem item,
+        Product product
+    ) {
+        return new PaymentOutstandingOrderLineResponse(
+            item.getId(),
+            item.getProductId(),
+            product == null ? null : product.getName(),
+            product == null ? null : product.getSku(),
+            item.getQuantity(),
+            item.getUnitPrice(),
+            item.getDiscountAmount(),
+            item.getLineTotal()
+        );
     }
 
     @Transactional(readOnly = true)

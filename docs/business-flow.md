@@ -105,9 +105,10 @@ Supported behavior:
 - pessimistic locking for financial mutation;
 - idempotent retry through a request key;
 - payment history with PAY/SO/customer traceability;
-- immutable receipt snapshot fields.
+- immutable receipt snapshot fields;
+- payment review shows the linked order lines, quantities, unit prices, discounts, and line totals before money is recorded.
 
-A payment must not reduce another order's receivable.
+A payment must not reduce another order's receivable. The payment drawer loads detail lazily for the selected order so the outstanding worklist stays lightweight while the accountant still receives enough source-document context to verify the collection.
 
 ## 7. Invoice
 

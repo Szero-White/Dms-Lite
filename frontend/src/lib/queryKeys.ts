@@ -14,6 +14,7 @@ export const queryKeys = {
   invoice: (invoiceId: number | string) => ['invoices', invoiceId] as const,
   paymentOutstandingRoot: ['payments', 'outstanding'] as const,
   paymentOutstanding: (page: number, filters: object = {}) => ['payments', 'outstanding', { page, ...filters }] as const,
+  paymentOutstandingDetail: (salesOrderId: number | string) => ['payments', 'outstanding', 'detail', salesOrderId] as const,
   paymentHistoryRoot: ['payments', 'history'] as const,
   paymentHistory: (page: number, search: string, from?: string, to?: string, sortBy = 'NEWEST', sortDirection = 'DESC') => ['payments', 'history', { page, search, from, to, sortBy, sortDirection }] as const,
   inventoryDefaultWarehouse: ['inventory', 'default-warehouse'] as const,

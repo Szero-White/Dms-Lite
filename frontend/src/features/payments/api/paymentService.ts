@@ -3,6 +3,7 @@ import type { PageResponse } from '../../../types';
 import type {
   OutstandingPaymentFilters,
   OutstandingPaymentOrder,
+  OutstandingPaymentOrderDetail,
   PaymentHistoryFilters,
   PaymentRecord,
   RecordPaymentPayload,
@@ -37,6 +38,12 @@ export function fetchOutstandingPaymentOrders(
         sortDirection,
       },
     }),
+  );
+}
+
+export function fetchOutstandingPaymentOrderDetail(salesOrderId: number) {
+  return unwrapResponse<OutstandingPaymentOrderDetail>(
+    apiClient.get(`/payments/outstanding-orders/${salesOrderId}`),
   );
 }
 

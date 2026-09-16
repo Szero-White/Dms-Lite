@@ -12,7 +12,8 @@ final class FinanceWorkflowKnowledge {
             List<String> steps = new ArrayList<>();
             steps.add("Kiểm tra công nợ khách hàng trước khi ghi nhận thanh toán.");
             if (scope.canUsePayments()) {
-                steps.add("Mở Thanh toán, chọn đúng đơn bán hàng còn phải thu và ghi đúng số tiền thực nhận cho đơn đó.");
+                steps.add("Mở Thanh toán và chọn đúng đơn bán hàng còn phải thu.");
+                steps.add("Đối chiếu khách hàng, chi tiết hàng hóa, đơn giá và số còn phải thu trước khi ghi nhận đúng số tiền thực nhận.");
                 steps.add("Kiểm tra lại báo cáo công nợ sau khi ghi nhận thanh toán.");
             } else {
                 steps.add("Bạn có thể xem thông tin tài chính được cấp, nhưng ghi nhận thanh toán cần quyền Ghi nhận thanh toán.");
@@ -33,7 +34,8 @@ final class FinanceWorkflowKnowledge {
         List<String> steps = new ArrayList<>();
         steps.add("Review customer debt before recording a payment.");
         if (scope.canUsePayments()) {
-            steps.add("Open Payments, select the exact sales order with an outstanding balance, and record the amount actually received for that order.");
+            steps.add("Open Payments and select the exact sales order with an outstanding balance.");
+            steps.add("Verify the customer, line items, unit prices, and outstanding balance before recording the amount actually received.");
             steps.add("Recheck debt reports after posting the payment.");
         } else {
             steps.add("You may view permitted finance information, but recording payments requires PAYMENT_CREATE.");
