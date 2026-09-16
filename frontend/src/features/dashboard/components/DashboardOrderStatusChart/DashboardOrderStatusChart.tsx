@@ -4,6 +4,7 @@ import {
   Empty,
 } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { uiPalette } from '../../../../styles/palette';
 import type { SalesReportOrder } from '../../../reports/types/salesReport.types';
 import styles from './DashboardOrderStatusChart.module.css';
 
@@ -47,7 +48,7 @@ export function DashboardOrderStatusChart({
           height={280}
           innerRadius={0.65}
           radius={0.85}
-          color={['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']}
+          color={[uiPalette.semantic.warning, uiPalette.semantic.success, uiPalette.semantic.danger]}
           legend={{
             color: {
               position: 'bottom',
@@ -66,7 +67,7 @@ export function DashboardOrderStatusChart({
             title: {
               style: {
                 fontSize: 14,
-                color: '#64748b',
+                color: uiPalette.text.secondary,
               },
               content: t('dashboard.chart.totalOrders'),
             },
@@ -74,7 +75,7 @@ export function DashboardOrderStatusChart({
               style: {
                 fontSize: 24,
                 fontWeight: 700,
-                color: '#0f172a',
+                color: uiPalette.text.primary,
               },
               content: orders.length.toString(),
             },
