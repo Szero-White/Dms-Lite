@@ -1,203 +1,169 @@
 # Architecture
 
-DMS Lite sử dụng **Modular Monolith**. Backend chia theo domain rõ ràng: `auth`, `product`, `customer`, `inventory`, `sales`, `debt`, `payment`, `invoice`, `document`, `report`, `audit`, `notification`, `help`, `team`.
+DMS Lite is a **modular monolith**. The design keeps domain boundaries clear while preserving simple deployment and reliable database transactions.
 
-## Vì sao dùng Modular Monolith
+## Request Flow
 
-Dự án hướng tới doanh nghiệp phân phối SME nên ưu tiên:
+```text
+HTTP Request
+  -> Controller
+  -> Application/Domain Service
+  -> Repository / Read Repository
+  -> PostgreSQL
+```
 
-- deploy đơn giản;
-- transaction xuyên các module nghiệp vụ vẫn rõ ràng;
-- ít operational overhead hơn microservices;
-- dễ test và maintain ở giai đoạn sản phẩm nhỏ;
-- vẫn giữ boundary theo domain để có thể tách module khi hệ thống lớn hơn.
+Responsibilities are intentionally separated:
 
-Không tách microservice chỉ để tăng số lượng công nghệ trong portfolio.
+- **Controller**: request/response mapping and authorization boundary.
+- **Service**: business rules, transaction orchestration, locking, audit/notification coordination.
+- **Repository**: persistence access and database-specific queries.
+- **Read repository**: report/dashboard queries that do not belong in write-domain services.
 
-## Layering chính
+Controllers do not own persistence logic, and business calculations should not be duplicated across controllers, repositories, and the frontend.
 
-Luồng HTTP thông thường:
+## Domain Modules
 
-`Controller -> Application/Domain Service -> Repository -> PostgreSQL`
+The backend is grouped by domain:
 
-Quy ước:
+```text
+auth        authentication and session state
+audit       audit trail
+customer    customer lifecycle and credit configuration
+debt        receivable ledger and statements
+document    business document numbering
+help        workflow assistant and optional Gemini integration
+inventory   stock, warehouse, inventory transactions
+invoice     invoice lifecycle and PDF
+notification notification feed and read state
+payment     order-specific payment workflow and receipt PDF
+product     product catalog and lifecycle
+report      dashboard/report read models
+sales       sales-order lifecycle and fulfillment
+team        roles, permissions, member administration
+tenant      tenant context
+user        user persistence
+```
 
-- Controller chỉ nhận request, permission và trả response; không chứa SQL/report calculation.
-- Business rule quan trọng phải có một source of truth ở backend.
-- Query reporting phức tạp nằm trong read repository (`ReportReadRepository`), không nằm trong controller.
-- Receivable balance và order-specific receivable query nằm trong `CustomerDebtRepository`; report/customer/payment không tự viết lại công thức công nợ.
-- Notification feed orchestration nằm ở `NotificationQueryService`; các alert suy ra từ tồn kho/công nợ/thanh toán được cô lập trong `DerivedNotificationService`, tránh biến query service thành nơi truy cập mọi business repository.
-- DTO summary và detail được tách khi payload khác nhau, ví dụ Sales Order.
+## Transaction Boundaries
 
-## Sales Order lifecycle hiện tại
+### Sales order fulfillment
 
-Current MVP lưu ba trạng thái:
+Fulfillment is a single transaction:
 
-- `DRAFT`: đơn vừa tạo, chưa tác động tồn kho/công nợ.
-- `COMPLETED`: thao tác confirm đã thành công; trong MVP hiện tại confirm đồng thời là bước warehouse fulfillment.
-- `CANCELLED`: chỉ áp dụng cho `DRAFT`.
+1. Load and lock the Draft sales order.
+2. Lock the customer when credit exposure may change.
+3. Validate credit limit before stock mutation.
+4. Lock required stock rows.
+5. Validate available stock.
+6. Deduct stock and write inventory transactions.
+7. Mark the order `COMPLETED` and store `confirmed_at`.
+8. Create an open receivable when the order still has an unpaid amount.
+9. Write audit/notification data as part of the business operation.
 
-**Không có trạng thái persisted `CONFIRMED` trong current MVP.** Nếu sau này cần quy trình Sales confirm riêng và Warehouse dispatch riêng, lifecycle có thể mở rộng thành `DRAFT -> CONFIRMED -> COMPLETED`, nhưng đó là roadmap chứ không phải hành vi hiện tại.
+Any core database failure rolls the transaction back.
 
-## Confirm Sales Order transaction
+### Payment
 
-1. Lock order của đúng tenant và chỉ cho phép order `DRAFT`.
-2. Lock customer bằng `PESSIMISTIC_WRITE` để serialize các lần fulfill cùng làm tăng credit exposure.
-3. Nếu `creditLimit > 0`, tính current receivable + projected order exposure và reject trước khi mutate stock nếu vượt hạn mức.
-4. Lock từng stock row bằng `PESSIMISTIC_WRITE`.
-5. Kiểm tra tồn kho và trừ kho.
-6. Ghi `inventory_transactions` direction `OUT`.
-7. Chuyển order sang `COMPLETED`, ghi `confirmed_at`.
-8. Nếu còn khoản chưa thanh toán, tạo receivable transaction `INCREASE` với `remaining_amount` ban đầu bằng số tiền phải thu.
-9. Ghi audit log.
-10. Publish notification theo runtime profile.
-11. Nếu core database operation thất bại, transaction rollback toàn bộ.
+A new payment applies to one completed sales order:
 
-## Receivable model
+1. Lock the sales order.
+2. Lock its open receivable.
+3. Reject amounts greater than the remaining order balance.
+4. Apply partial or final settlement.
+5. Persist the payment and receivable decrease history.
+6. Store immutable receipt snapshot fields.
+7. On final settlement, create the order's Draft invoice if it does not already exist.
 
-DMS Lite hiện dùng **open-item receivable model có ledger history**:
+A client request key protects retry/idempotency behavior.
 
-- Order phát sinh nợ tạo transaction `INCREASE`.
-- `INCREASE.amount` là giá trị phát sinh ban đầu.
-- `INCREASE.remaining_amount` là số tiền còn mở của khoản phải thu đó.
-- Mỗi payment mới bắt buộc chọn đúng **một** sales order `COMPLETED` còn phải thu; payment chỉ giảm `remaining_amount` của receivable thuộc order đó.
-- Partial payment và exact settlement đều hợp lệ; payment lớn hơn số còn phải thu của order bị backend từ chối.
-- Đồng thời payment tạo transaction `DECREASE` để giữ lịch sử thanh toán/audit statement.
-- **Current receivable balance = SUM(remaining_amount) của các `INCREASE` còn mở.**
-- Transaction `DECREASE` không được trừ thêm lần nữa khi tính balance, tránh double-count.
-- Payment trước migration V11 có thể là legacy FIFO payment; lịch sử cũ được giữ nguyên và không đoán ngược một sales order nếu trước đây tiền đã trải qua nhiều receivable.
+## Receivable Model
 
-Khi record payment mới, sales order được lock bằng `PESSIMISTIC_WRITE`, sau đó receivable `SALES_ORDER/INCREASE` tương ứng cũng được lock trước khi kiểm tra và mutate. Sales-order `paidAmount`/`debtAmount` được đồng bộ trong cùng transaction; receivable `remainingAmount` vẫn là nguồn balance chuẩn. Client-generated `request_key` giúp retry cùng thao tác không tạo payment thứ hai.
+DMS Lite uses an open-item receivable model:
 
-## Invoice document
+- Sales-order debt creates an `INCREASE` transaction.
+- `INCREASE.amount` is the original amount.
+- `INCREASE.remaining_amount` is the current open amount.
+- Payments create `DECREASE` history entries and reduce the matching open increase.
+- Current receivable balance is the sum of remaining amounts on open receivable increases.
 
-Invoice là chứng từ bán hàng của một sales order `COMPLETED`, không phải nguồn công nợ thứ hai:
+This avoids subtracting payment history twice.
 
-- mỗi sales order có tối đa một invoice;
-- invoice `DRAFT` được tạo **tự động trong cùng transaction với lần thanh toán cuối** khi remaining receivable của order về `0`; không còn API/nút tạo invoice thủ công;
-- invoice list chỉ hiển thị invoice của order đã thu đủ và hỗ trợ search `INV/SO/customer` + `from/to` business date;
-- issue invoice không tạo hoặc thay đổi receivable;
-- `paidAmount`/`remainingAmount` của invoice được suy ra từ receivable/payment hiện tại;
-- `PAID`/`OVERDUE` là trạng thái đọc suy ra, không tạo lifecycle tài chính riêng;
-- invoice chỉ `OVERDUE` sau khi đã qua ngày đến hạn theo business timezone, không phải ngay trong chính ngày đến hạn;
-- PDF phát hành hỗ trợ VI/EN theo `Accept-Language` và dùng font Unicode.
+## Invoice Model
 
-## Business document identity and time
+Invoice is a sales document, not a second receivable source.
 
-Database primary key chỉ dùng nội bộ. Chứng từ mới dùng mã nghiệp vụ tenant-scoped theo business date:
+- One sales order has at most one invoice.
+- Final payment creates the Draft invoice automatically.
+- Issuing an invoice does not create debt.
+- Paid/remaining financial values are derived from the sales/payment flow.
+- PDF generation supports Unicode and VI/EN content.
 
-- Sales Order: `SO-YYYYMMDD-NNNN`;
-- Invoice: `INV-YYYYMMDD-NNNN`;
-- Payment: `PAY-YYYYMMDD-NNNN`.
+## Product Lifecycle and Codes
 
-Sequence được cấp phát atomically trong PostgreSQL theo `tenant + document type + business date`. Business date lấy từ `APP_BUSINESS_ZONE` (mặc định `Asia/Ho_Chi_Minh`) để hành vi không phụ thuộc timezone của máy chạy backend.
+Products use a soft lifecycle:
 
-## Reporting
+```text
+ACTIVE <-> INACTIVE
+```
 
-`ReportController` chỉ gọi `ReportService`.
+Inactive products remain queryable for historical sales, invoice, inventory, and audit references but cannot be used for new operational mutations.
 
-`ReportService` phối hợp:
+New products receive system-managed tenant-scoped codes:
 
-- `CustomerDebtRepository` cho receivable metrics;
-- `ReportReadRepository` cho revenue/product/stock read models.
+```text
+PRD-000001
+PRD-000002
+...
+```
 
-Revenue hiện chỉ ghi nhận order `COMPLETED` và dùng `confirmed_at` cho mốc thời gian báo cáo.
+The backend allocates these codes atomically; the frontend treats product code as read-only.
 
-## Security
+## Business Document Numbering
 
-Security được tách theo responsibility:
+User-facing document references are separate from database IDs:
 
-- `SecurityConfig.java`: security chain/provider/password encoder.
-- `JwtAuthenticationFilter.java`: parse token và thiết lập authentication + tenant context.
-- `DmsUserDetailsService.java`: load user/role/permission.
+```text
+SO-YYYYMMDD-NNNN
+INV-YYYYMMDD-NNNN
+PAY-YYYYMMDD-NNNN
+```
 
-Disabled account không được tiếp tục authenticate bằng access token còn hạn.
+Sequences are allocated atomically by tenant, document type, and business date. Business time uses `APP_BUSINESS_ZONE` (default `Asia/Ho_Chi_Minh`).
 
-Public endpoint được giới hạn ở auth, Swagger và actuator health/info. CORS lấy từ `APP_CORS_ALLOWED_ORIGINS` thay vì wildcard production.
+## Authorization
 
-## Warehouse scope hiện tại
+Permission checks are the source of truth. Frontend visibility improves UX but never replaces backend enforcement.
 
-Current MVP vận hành theo **một warehouse chính cho mỗi tenant**. Database vẫn giữ `warehouse_id` để có đường mở rộng, nhưng UI hiện chưa tuyên bố hỗ trợ multi-warehouse đầy đủ.
+Security responsibilities include:
 
-- Frontend lấy warehouse hiện tại qua `GET /api/inventory/default-warehouse`; không hardcode database ID `1`.
-- Receive Stock và Create Sales Order dùng ID do backend trả về.
-- Backend validate warehouse thuộc tenant trước khi tạo order hoặc nhận tồn kho.
-- Seed data lấy warehouse ID thật sau khi ensure warehouse, không giả định sequence bắt đầu từ `1`.
+- JWT authentication
+- tenant context
+- method-level authorization
+- route/action guards on the frontend
+- role/permission dependency validation for composite workflows
+- permission-aware notifications and workflow assistance
 
-## Scalability rules đang áp dụng
+Disabled accounts must not continue operating with a previously issued access token.
 
-- Customer list aggregate receivable theo cả page, tránh N+1 balance query.
-- List API trả summary; Sales Order detail fetch riêng khi cần items.
-- Các query lớn phải có pagination/read model thay vì load toàn bộ dữ liệu chỉ để aggregate trong JVM/browser.
-- Redis cache là optimization sau query correctness; cache dashboard được key theo tenant.
-- Business calculations không được copy giữa controller/service/frontend.
+## Inventory Scope
 
-## Role workflow
+The current product operates with one primary warehouse per tenant. The schema retains `warehouse_id` so the model can grow later, but the current UI does not claim full multi-warehouse support.
 
-### Owner
+The frontend resolves the current warehouse through the backend instead of assuming a database ID.
 
-- business overview/report;
-- team, role và permission;
-- audit;
-- các chức năng vận hành khác theo permission system.
+## Reporting and Notifications
 
-### Sales Staff
+Reporting queries live in dedicated read repositories where needed. Revenue is based on completed orders and the confirmed business timestamp.
 
-- quản lý/xem customer phù hợp;
-- xem product/stock cần thiết để bán hàng;
-- tạo sales order `DRAFT`;
-- cancel draft nếu có permission.
+Notification orchestration is split between persisted events and derived operational alerts. Permission policy is applied before returning notification data.
 
-### Warehouse Staff
+## Database Migration Policy
 
-- xem sales orders cần xử lý;
-- nhận hàng vào kho;
-- confirm/fulfill draft order, làm phát sinh stock OUT và chuyển order sang `COMPLETED`.
+Flyway is the only schema migration mechanism. Migrations V1 through V13 are currently present.
 
-### Accountant
+Rules:
 
-- xem customer/order financial data theo permission;
-- xem receivable statement;
-- ghi nhận customer payment;
-- xem báo cáo tài chính/vận hành được cấp quyền.
-
-Các màn hình composite chỉ gọi API mà role hiện tại có permission; thiếu một permission phụ không được làm cả page bị 403 nếu section đó có thể ẩn độc lập.
-
-Các custom role cũng được validate dependency cho các workflow UI bắt buộc (ví dụ `PAYMENT_CREATE` cần `CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`, `INVENTORY_MANAGE` cần quyền xem inventory/product, `SALES_ORDER_CREATE` cần dữ liệu customer/product/inventory). Mục tiêu là không tạo ra role "có nút thao tác nhưng mở màn hình lại 403".
-
-### Permission coherence cho custom role
-
-Permission là nguồn sự thật chung cho cả frontend và backend, không suy quyền từ tên role custom:
-
-- Role mới bắt đầu với tập quyền rỗng (least privilege); frontend tự thêm dependency do backend công bố khi Owner chọn một quyền phụ thuộc.
-- Sidebar, page search, route guard và action button chỉ hiển thị/chạy khi permission tương ứng tồn tại. Protected route chưa khai báo permission bị **deny by default** thay vì tự mở.
-- User đã đăng nhập nhưng không có business page nào được đưa tới `/no-access`; gateway như AI vẫn có thể hoạt động nếu chính permission của gateway được cấp.
-- `PRODUCT_VIEW` cho xem catalog/giá bán; tồn kho cần `INVENTORY_VIEW`; giá vốn/margin chỉ dành cho `PRODUCT_MANAGE` hoặc `REPORT_VIEW`.
-- `CUSTOMER_VIEW` cho xem hồ sơ/hạn mức. Balance công nợ chỉ được trả cho workflow cần số dư (`DEBT_VIEW`, `REPORT_VIEW`, `SALES_ORDER_CREATE`); Payment workspace có `DEBT_VIEW` như dependency bắt buộc. Debt statement chi tiết vẫn chỉ có `DEBT_VIEW`.
-- `PAYMENT_CREATE` không đứng một mình: custom role phải có `CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW` để mở Payment workspace; `REPORT_VIEW` vẫn là quyền riêng cho dashboard/top-debtor analytics.
-- `REPORT_VIEW` cho aggregate dashboard/report; các tab/bảng chi tiết chỉ fetch module data khi user có thêm permission đọc module tương ứng, tránh bảng trống hoặc dữ liệu vượt scope.
-- Payment workspace yêu cầu đồng thời `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`; Notification/AI dùng cùng boundary để không lộ payment/receivable ngoài scope.
-- DTO API redact dữ liệu nhạy cảm theo permission; frontend ẩn field chỉ là UX layer, backend vẫn là authorization boundary cuối cùng.
-- Khi app khởi động lại từ một JWT đã lưu, frontend gọi `GET /api/auth/me` để lấy lại role/permission hiện tại từ backend. Nếu authorization snapshot thay đổi, server-state cache cũ bị clear trước khi render workspace; backend vẫn kiểm tra permission ở từng request nên localStorage không phải nguồn quyền tin cậy.
-
-### AI và Notification theo permission
-
-`AI_HELP_VIEW` và `NOTIFICATION_VIEW` chỉ là **gateway permission** để mở trợ lý hoặc feed thông báo; chúng không tự cấp quyền đọc dữ liệu nghiệp vụ.
-
-- AI workflow guidance có thể dựa trên action permission, nhưng hướng dẫn Payment chỉ mở khi đủ Payment workspace scope; dữ liệu thật vẫn phải có view permission tương ứng (`DEBT_VIEW`, `SALES_ORDER_VIEW`, `INVENTORY_VIEW`, `PRODUCT_VIEW`, `CUSTOMER_VIEW`).
-- Mỗi câu trả lời trợ lý mang provenance do backend quyết định: `LIVE_DATA`, `WORKFLOW_KNOWLEDGE`, `SYSTEM_FALLBACK` hoặc `LEGACY_UNKNOWN`; provider diễn đạt được lưu riêng (`GEMINI`, `NONE`, `LEGACY_UNKNOWN`). Gemini không được tự quyết định hai metadata này.
-- Frontend nhân viên chỉ hiển thị provenance ở mức nghiệp vụ (`Dữ liệu DMS`, `Quy trình DMS`, `AI hỗ trợ`); chi tiết fallback/provider chỉ dành cho AI History của Owner để hỗ trợ audit và vận hành.
-- Notification được lọc tiếp theo loại sự kiện và permission nghiệp vụ. Payment event cần đủ `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`; overdue debt cần `DEBT_VIEW + CUSTOMER_VIEW`; sales-order event cần `SALES_ORDER_VIEW`; invoice-issued event cần `INVOICE_VIEW + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`.
-- Notification type chưa được khai báo policy bị **deny by default** để event mới không vô tình vượt RBAC.
-- Trạng thái đọc được lưu theo **tenant + user + notification key** trong `notification_reads`; một nhân viên đọc thông báo không làm thay đổi trạng thái của nhân viên khác.
-- `PUT /api/notifications/{id}/read-state` với body `{ "read": true|false }` là API chuẩn để đặt trạng thái đọc theo user một cách idempotent. Hai endpoint `/read` cũ vẫn được giữ tương thích ngược. Mọi thao tác áp dụng cùng permission policy; notification ngoài scope được xử lý như không tồn tại để không làm lộ event bị giới hạn.
-- Persisted notification dùng key ổn định theo ID; derived alert dùng fingerprint nội dung hiện tại để một điều kiện nghiệp vụ thay đổi đáng kể có thể trở thành chưa đọc lại.
-
-### Notification signal-to-noise
-
-Notification feed ưu tiên **actionable signal**, không biến mọi row nghiệp vụ thành một thông báo riêng:
-
-- Sales-order confirm/cancel dùng persisted business event; không tạo thêm một notification cho từng inventory movement của cùng đơn.
-- Overdue receivables được gộp theo customer để một khách có nhiều hóa đơn quá hạn chỉ tạo một cảnh báo tổng hợp trong feed.
-- Derived alert được giới hạn theo nhóm và toàn feed vẫn có hard limit.
-- Persisted event có cửa sổ chống duplicate 5 phút theo `tenant + type + message` để retry/double-delivery không tạo notification trùng. Đây là retry suppression, không phải throttle nghiệp vụ dài hạn.
+- never edit an already-applied migration;
+- never reset or repair production history simply to make validation pass;
+- create a new migration for new schema/data behavior;
+- create a database checkpoint before production migrations.

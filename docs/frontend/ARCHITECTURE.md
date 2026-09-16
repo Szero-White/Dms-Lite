@@ -1,50 +1,25 @@
 # Frontend Architecture
 
-## Goal
+The frontend uses a **feature-first** structure aligned with backend business domains.
 
-DMS Lite frontend follows a feature-first architecture.
-
-The goal is to keep each business domain owned in one place, reduce cross-domain coupling, and align frontend structure with the backend package-by-feature structure.
-
-## Target Structure
+## Structure
 
 ```text
 frontend/src/
-├── app/
-│   ├── layouts/
-│   ├── providers/
-│   └── router/
-├── components/
-│   └── common/
-├── features/
-│   ├── auth/
-│   ├── products/
-│   ├── customers/
-│   ├── inventory/
-│   ├── sales/
-│   ├── payments/
-│   ├── invoice/
-│   ├── dashboard/
-│   ├── reports/
-│   ├── notifications/
-│   ├── audit/
-│   ├── help/
-│   └── team/
-├── i18n/
-├── lib/
-├── services/
-│   └── apiClient.ts
-├── styles/
-├── types/
-│   └── index.ts
-├── main.tsx
-└── vite-env.d.ts
+├── app/                 application shell, providers, router, theme
+├── components/common/   genuinely shared UI components
+├── features/            business features
+├── i18n/                locale resources
+├── lib/                 shared pure helpers
+├── services/            shared transport client
+├── styles/              design tokens, global styles, Ant Design overrides
+└── types/               cross-feature transport contracts only
 ```
 
-Each feature only creates the subfolders it actually needs:
+A feature creates only the folders it needs:
 
 ```text
-features/feature-name/
+features/<feature>/
 ├── api/
 ├── components/
 ├── hooks/
@@ -54,130 +29,93 @@ features/feature-name/
 └── index.ts
 ```
 
-Do not create empty folders just to match a template.
-
-## Architecture Principles
-
-### 1. Frontend uses feature-first architecture
-
-- Business code is grouped by domain first, not by technical layer across the whole app.
-- Each feature owns its pages, domain hooks, API calls, local components, types, and helper logic.
-- Shared code stays outside features only when it is truly shared.
-
-### 2. Backend keeps package-by-feature
-
-- Backend stays organized by feature/domain.
-- Frontend must mirror that organization at the domain level.
-- The frontend structure should make it obvious which backend module a screen belongs to.
-
-### 3. Frontend and backend align by domain
-
-```text
-backend/product      -> frontend/features/products
-backend/customer     -> frontend/features/customers
-backend/inventory    -> frontend/features/inventory
-backend/sales        -> frontend/features/sales
-backend/payment      -> frontend/features/payments
-backend/invoice      -> frontend/features/invoice
-backend/report       -> frontend/features/reports
-backend/auth         -> frontend/features/auth
-backend/notification -> frontend/features/notifications
-backend/audit        -> frontend/features/audit
-backend/help         -> frontend/features/help
-backend/team         -> frontend/features/team
-```
-
-The naming may differ slightly where frontend routes use plural form, but ownership must stay aligned by domain.
-
 ## Ownership Rules
 
-- Code that belongs to only one feature must live inside that feature.
-- Truly shared UI components belong in `src/components/common`.
-- Application shell, navigation, route guards, and provider composition belong in `src/app`.
-- App-level layouts belong in `src/app/layouts`.
-- Shared formatters/query-key helpers belong in `src/lib`; the singleton HTTP transport client lives in `src/services/apiClient.ts`.
-- `src/types/index.ts` is reserved for genuinely cross-feature transport wrappers such as `ApiResponse<T>` and `PageResponse<T>`; domain models stay inside their owning feature.
-- CSS Modules must sit next to the component that owns them.
-- Global CSS must stay inside `src/styles`.
-- A component used by only one page must not be moved into shared.
-- A page-specific helper component should stay close to that page or feature, not in global shared folders.
+- Feature-specific code stays inside the owning feature.
+- Cross-feature imports use the target feature's public `index.ts` when practical.
+- Shared UI belongs in `components/common` only when more than one domain uses it.
+- App shell, theme, navigation, and routing belong in `app`.
+- Shared formatters and deterministic helpers belong in `lib`.
+- CSS Modules live next to their component.
+- Global design decisions live in `styles/foundations` and `appTheme.ts`.
 
-## Import Rules
+## Data Access
 
-- Do not import deeply into another feature's internals.
-- Each feature should expose only its public API through `index.ts`.
-- Inside a feature, prefer direct imports over local barrel indirection when that avoids circular dependency.
-- Do not create deeply nested barrel chains.
-- After a feature is migrated, do not import from old page/service locations for that feature.
-- Feature A must not import from an internal path inside feature B.
-- Cross-feature usage must go through the public entry of the target feature.
+Pages/components do not call arbitrary URLs directly. Feature API modules and React Query hooks own remote data access.
 
-## Naming Rules
+The UI must not duplicate backend business calculations when a canonical backend value/query exists.
 
-- Feature folder names use lowercase.
-- Frontend feature names may use plural form to match routes.
-- Component names and component folders use PascalCase.
-- CSS Module files use `ComponentName.module.css`.
-- Type files use `*.types.ts`.
-- Service files use `*Service.ts`.
-- Query hook files use `use*Queries.ts`.
-- Page folders use PascalCase.
+## Tables
 
-## Data Table And Filter Rules
+All operational data tables follow the same rules:
 
-- Data lists open in deterministic newest-first order from their API/data source; no sorter arrow is active until the user explicitly sorts a column.
-- Sortable tables use the shared three-state cycle `neutral -> ascending -> descending -> neutral` and the Ant Design full-header sorter tooltip.
-- Table filters that can legitimately match multiple values use the shared checkbox multi-select control; empty selection means all values.
-- Single-entity business inputs such as customer, warehouse, or product on a transaction remain single-select. A checkbox multi-select must not be used where the domain only allows one value.
-- Colors communicate semantic state (success, warning, danger) rather than decorate ordinary rows or metrics.
-- Product codes are system-managed and read-only in the UI; users edit business attributes, not internal identifiers.
+- API/data source uses deterministic newest-first default ordering where appropriate.
+- No sort arrow is active on initial render.
+- User sorting cycles `neutral -> ascending -> descending -> neutral`.
+- Shared sorter tooltip behavior is enabled.
+- Multi-value filters use the shared checkbox multi-select control.
+- Single-entity fields remain single-select when the domain allows only one value.
+- Empty values use a clear placeholder such as `-`.
 
-## Migration Rules
+The consistency script in `frontend/scripts/ui-consistency.mjs` protects these conventions.
 
-- Migrate one feature at a time.
-- Use one commit per feature migration.
-- Keep API, endpoints, query keys, request/response shapes, props, logic, routes, and UI unchanged during migration.
-- Delete old files only after all imports are removed.
-- Run build and runtime checks after each feature migration.
-- Do not modify another feature unless there is a direct dependency that must be updated safely.
+## Visual System
 
-## Anti-Patterns
+Authenticated business screens use a restrained B2B visual language:
 
-- `useAppQueries.ts` containing queries for the entire system.
-- `types/index.ts` acting as a global dumping ground for domain models instead of containing only small shared transport contracts.
-- One feature split across `pages`, `hooks`, `services`, and `types` at app root with no clear ownership.
-- Shared folders containing components used by only one page.
-- Keeping legacy app shell code in `src/components/layout` after it has moved to `src/app/layouts`.
-- Creating empty folders for appearance only.
-- Creating abstractions only to make structure look more advanced.
-- Over-engineering architecture before the code needs it.
-- Deep cross-feature imports.
-- One commit mixing multiple unrelated feature migrations.
+- one brand accent for actions and focus;
+- neutral page/card/table surfaces;
+- semantic success/warning/danger colors only when they communicate state;
+- minimal elevation and no decorative card motion;
+- shared spacing, radius, typography, and border tokens;
+- data density takes priority over promotional decoration.
 
-## Definition Of Done For Each Feature Migration
+Feature CSS should consume tokens from `styles/foundations/tokens.css` instead of introducing unrelated color systems.
 
-- `npm run build` passes.
-- The route renders normally.
-- No resource 404 occurs.
-- No runtime error occurs.
-- Business logic does not change.
-- Old imports for the migrated feature are removed.
-- No old file remains that can confuse module resolution.
-- The working tree contains only the intended changes for that feature.
-- API, query keys, props, and UI remain unchanged.
+## Forms
 
-## Practical Guidance
+- Labels and validation remain close to the field.
+- Business identifiers managed by the server are read-only in the UI.
+- Searchable selects are used for large entity lists.
+- Drawer/modal actions use consistent primary/cancel placement.
 
-- Start from the current working feature and move only the files that clearly belong to that domain.
-- Keep shared dependencies stable while migrating.
-- Prefer small, reversible moves over large repo-wide rewrites.
-- If a helper is reused by multiple domains, keep it in `lib` or shared only after confirming that it is truly generic.
-- If a component looks shared but is only used by one route, keep it inside that feature until reuse is real.
+## i18n
 
-## Migration Boundary
+Application copy uses translation keys. Vietnamese and English locale files must keep key parity.
 
-This document defines the target architecture and migration rules.
+Run:
 
-It does not require all features to be migrated immediately.
+```bash
+npm run quality:ui
+```
 
-The migration should proceed incrementally, safely, and feature by feature.
+before committing frontend changes.
+
+## Naming
+
+- Feature directories: lowercase.
+- React components and component directories: PascalCase.
+- CSS Modules: `ComponentName.module.css`.
+- Types: `*.types.ts`.
+- API/service modules: `*Service.ts` where a service naming pattern is used.
+- Query hooks: `use*Queries.ts`.
+
+## Avoid
+
+- repository-wide helper dumping grounds;
+- deep imports into another feature's private folders;
+- one component owning API calls, business rules, table columns, modal state, and unrelated page sections;
+- abstractions created only to reduce line count;
+- decorative colors/gradients with no semantic meaning;
+- frontend permission checks used as a replacement for backend authorization.
+
+## Definition of Done
+
+For a frontend change:
+
+```bash
+npm run quality:ui
+npm run build
+```
+
+Then verify the affected route, loading/empty/error states, permissions, mutations, and VI/EN behavior in the browser.
