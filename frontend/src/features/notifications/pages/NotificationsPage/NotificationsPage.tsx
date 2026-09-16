@@ -216,6 +216,7 @@ export function NotificationsPage() {
   return (
     <div className={styles.page}>
       <PageHeader
+        variant="activity"
         title={t('notifications.title')}
         subtitle={t('notifications.subtitle')}
       />

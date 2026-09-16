@@ -18,6 +18,7 @@ import {
 } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../components/common/QueryState';
+import { ActiveStatusTag } from '../../../../../components/common/StatusTag';
 import { roleLabel } from '../../../../../lib/roleDisplay';
 import { compareBoolean, compareNumber, compareText, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../../lib/tableSorting';
 import type { TeamMember } from '../../../types/team.types';
@@ -107,7 +108,7 @@ export function MembersTable({
               render: (_, record) => (
                 <Space size={[6, 6]} wrap>
                   {record.roles.map((role) => (
-                    <Tag key={role} color={role === 'OWNER' ? 'purple' : 'blue'}>
+                    <Tag key={role}>
                       {roleLabel(role, t)}
                     </Tag>
                   ))}
@@ -128,11 +129,7 @@ export function MembersTable({
               title: t('common.status'),
               width: 130,
               sorter: (first, second) => compareBoolean(first.active, second.active),
-              render: (_, record) => (
-                <Tag color={record.active ? 'green' : 'default'}>
-                  {record.active ? t('common.active') : t('common.inactive')}
-                </Tag>
-              ),
+              render: (_, record) => <ActiveStatusTag active={record.active} />,
             },
             {
               title: t('common.actions'),

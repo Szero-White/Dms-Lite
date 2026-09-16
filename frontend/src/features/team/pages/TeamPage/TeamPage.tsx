@@ -178,6 +178,7 @@ export function TeamPage() {
   return (
     <div className={styles.page}>
       <PageHeader
+        variant="governance"
         title={t('team.title')}
         subtitle={t('team.subtitle')}
       />

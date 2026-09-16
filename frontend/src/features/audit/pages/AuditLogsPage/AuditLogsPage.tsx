@@ -23,16 +23,16 @@ import { formatDateTime, formatNumber } from '../../../../lib/format';
 import { compareDate, compareNumber, compareText, newestFirst, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../lib/tableSorting';
 import { useAuditLogs } from '../../hooks/useAuditQueries';
 import { AuditLogRow } from '../../types/audit.types';
+import { uiPalette } from '../../../../styles/palette';
 import styles from './AuditLogsPage.module.css';
 
-// colour pool for actor avatars
 const ACTOR_COLORS = [
-  'linear-gradient(135deg,#6366f1,#818cf8)',
-  'linear-gradient(135deg,#10b981,#34d399)',
-  'linear-gradient(135deg,#f59e0b,#fbbf24)',
-  'linear-gradient(135deg,#ef4444,#f87171)',
-  'linear-gradient(135deg,#8b5cf6,#a78bfa)',
-  'linear-gradient(135deg,#06b6d4,#22d3ee)',
+  uiPalette.brand.primary,
+  '#7f79df',
+  '#918be2',
+  '#a29de5',
+  uiPalette.text.secondary,
+  uiPalette.text.tertiary,
 ];
 
 export function AuditLogsPage() {
@@ -121,7 +121,7 @@ export function AuditLogsPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader title={t('audit.title')} subtitle={t('audit.subtitle')} />
+      <PageHeader variant="governance" title={t('audit.title')} subtitle={t('audit.subtitle')} />
       <div className={styles.overviewStrip}>
         <div className={styles.stripHero}>
           <div className={styles.stripHeroIcon}><AuditOutlined /></div>

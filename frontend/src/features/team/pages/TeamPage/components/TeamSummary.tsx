@@ -2,10 +2,6 @@ import {
   SafetyCertificateOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import {
-  Card,
-  Typography,
-} from 'antd';
 import { useTranslation } from 'react-i18next';
 import styles from '../TeamPage.module.css';
 
@@ -18,21 +14,24 @@ export function TeamSummary({ activeMembers, customRoles }: TeamSummaryProps) {
   const { t } = useTranslation();
 
   return (
-    <div className={styles.summaryGrid}>
-      <Card className={`panel-card ${styles.summaryCard}`}>
-        <div className={styles.summaryIcon}><UserOutlined /></div>
-        <div>
-          <Typography.Text type="secondary">{t('team.summary.activeUsers')}</Typography.Text>
-          <Typography.Title level={3}>{activeMembers}</Typography.Title>
-        </div>
-      </Card>
-      <Card className={`panel-card ${styles.summaryCard}`}>
-        <div className={styles.summaryIcon}><SafetyCertificateOutlined /></div>
-        <div>
-          <Typography.Text type="secondary">{t('team.summary.customRoles')}</Typography.Text>
-          <Typography.Title level={3}>{customRoles}</Typography.Title>
-        </div>
-      </Card>
-    </div>
+    <section className={styles.accessRail} aria-label={t('team.title')}>
+      <div className={styles.accessLead}>
+        <span className={styles.accessKicker}>{t('team.tabs.members')}</span>
+        <strong className={styles.accessPrimaryValue}>{activeMembers}</strong>
+        <span className={styles.accessPrimaryLabel}>{t('team.summary.activeUsers')}</span>
+      </div>
+
+      <div className={styles.accessFlow} aria-hidden="true">
+        <span className={styles.flowNode}><UserOutlined /></span>
+        <span className={styles.flowLine} />
+        <span className={styles.flowNode}><SafetyCertificateOutlined /></span>
+      </div>
+
+      <div className={styles.accessMetric}>
+        <span className={styles.accessMetricLabel}>{t('team.summary.customRoles')}</span>
+        <strong className={styles.accessMetricValue}>{customRoles}</strong>
+        <span className={styles.accessMetricHint}>{t('team.tabs.roles')}</span>
+      </div>
+    </section>
   );
 }

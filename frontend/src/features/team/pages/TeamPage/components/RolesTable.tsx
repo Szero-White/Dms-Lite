@@ -95,7 +95,7 @@ export function RolesTable({
                       {record.systemRole ? t('team.roles.systemRole') : t('team.roles.customRole')}
                     </Typography.Text>
                   </div>
-                  {record.editable ? <Tag color="purple">{t('common.editable')}</Tag> : <Tag>{t('common.protected')}</Tag>}
+                  {record.editable ? <Tag>{t('common.editable')}</Tag> : <Tag>{t('common.protected')}</Tag>}
                 </div>
               ),
             },
