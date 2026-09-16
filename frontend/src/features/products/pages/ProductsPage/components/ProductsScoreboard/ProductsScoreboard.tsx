@@ -12,20 +12,12 @@ interface ProductsScoreboardProps {
   totalProducts: number;
 }
 
-interface MetricProps {
+interface MetricItem {
+  key: string;
   label: string;
   value: string | number;
   secondary?: string;
-}
-
-function Metric({ label, value, secondary }: MetricProps) {
-  return (
-    <div className={styles.metric}>
-      <div className={styles.metricLabel}>{label}</div>
-      <div className={styles.metricValue}>{value}</div>
-      {secondary ? <div className={styles.metricSecondary}>{secondary}</div> : null}
-    </div>
-  );
+  emphasis?: 'default' | 'warning';
 }
 
 export function ProductsScoreboard({
@@ -40,38 +32,59 @@ export function ProductsScoreboard({
   const { t } = useTranslation();
   const inactiveCount = totalProducts - activeCount;
 
+  const metrics: MetricItem[] = [
+    ...(showInventory ? [{
+      key: 'low-stock',
+      label: t('products.scoreboard.lowStockSkus'),
+      value: lowStockCount,
+      secondary: t('products.scoreboard.lowStockHint'),
+      emphasis: 'warning' as const,
+    }] : []),
+    ...(showFinancials && showInventory ? [{
+      key: 'inventory-value',
+      label: t('products.scoreboard.inventoryValue'),
+      value: formatCurrency(inventoryValue),
+    }] : []),
+    ...(showFinancials ? [{
+      key: 'avg-margin',
+      label: t('products.scoreboard.avgMargin'),
+      value: `${avgMargin.toFixed(1)}%`,
+    }] : []),
+  ];
+
   return (
     <section className={styles.scoreboard} aria-label={t('products.scoreboard.summaryAria')}>
-      <Metric
-        label={t('products.scoreboard.totalSkus')}
-        value={totalProducts}
-        secondary={t('products.scoreboard.activeInactive', {
-          active: activeCount,
-          inactive: inactiveCount,
-        })}
-      />
+      <div className={styles.catalogPulse}>
+        <div className={styles.featureMetric}>
+          <span className={styles.featureKicker}>{t('products.scoreboard.totalSkus')}</span>
+          <strong className={styles.featureValue}>{totalProducts}</strong>
+          <span className={styles.featureSecondary}>
+            {t('products.scoreboard.activeInactive', {
+              active: activeCount,
+              inactive: inactiveCount,
+            })}
+          </span>
+          <div className={styles.catalogScale} aria-hidden="true">
+            <span className={styles.scaleActive} style={{ flex: Math.max(activeCount, 1) }} />
+            <span className={styles.scaleInactive} style={{ flex: Math.max(inactiveCount, 0.35) }} />
+          </div>
+        </div>
 
-      {showInventory ? (
-        <Metric
-          label={t('products.scoreboard.lowStockSkus')}
-          value={lowStockCount}
-          secondary={t('products.scoreboard.lowStockHint')}
-        />
-      ) : null}
-
-      {showFinancials && showInventory ? (
-        <Metric
-          label={t('products.scoreboard.inventoryValue')}
-          value={formatCurrency(inventoryValue)}
-        />
-      ) : null}
-
-      {showFinancials ? (
-        <Metric
-          label={t('products.scoreboard.avgMargin')}
-          value={`${avgMargin.toFixed(1)}%`}
-        />
-      ) : null}
+        <div className={styles.metricRail}>
+          {metrics.map((metric, index) => (
+            <div key={metric.key} className={styles.metricLane}>
+              <span className={styles.metricIndex}>{String(index + 1).padStart(2, '0')}</span>
+              <div className={styles.metricCopy}>
+                <span className={styles.metricLabel}>{metric.label}</span>
+                <strong className={`${styles.metricValue} ${metric.emphasis === 'warning' ? styles.metricWarning : ''}`}>
+                  {metric.value}
+                </strong>
+                {metric.secondary ? <span className={styles.metricSecondary}>{metric.secondary}</span> : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

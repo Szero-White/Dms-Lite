@@ -3,266 +3,287 @@
   gap: 20px;
 }
 
-.metricsGrid {
+.inventoryRail {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: minmax(240px, 0.86fr) minmax(0, 2.14fr);
+  min-height: 132px;
+  border-top: 1px solid rgba(79, 138, 105, 0.20);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: linear-gradient(90deg, rgba(79, 138, 105, 0.07) 0%, rgba(79, 138, 105, 0.025) 28%, #ffffff 58%);
 }
 
-.metricCard {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  overflow: hidden;
-  padding: 20px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 12px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.metricCard::before {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--card-color, #6366f1), var(--card-color, #8b5cf6));
-  content: '';
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.metricCard:hover {
-  border-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
-  transform: translateY(-4px) scale(1.02);
-}
-
-.metricCard:hover::before {
-  opacity: 1;
-}
-
-.metricIcon {
-  flex-shrink: 0;
+.railLead {
   display: grid;
-  width: 48px;
-  height: 48px;
-  place-items: center;
-  border-radius: 12px;
-  font-size: 20px;
+  align-content: center;
+  gap: 7px;
+  padding: 18px 26px;
 }
 
-.metricContent {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.metricLabel {
-  color: var(--color-text-muted);
-  font-size: 12px;
-  font-weight: 600;
+.railEyebrow {
+  color: #51715f;
+  font-size: 11.5px;
+  font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
+.healthHeadline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.healthHeadline strong {
+  color: #356f54;
+  font-size: 31px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.healthHeadline span {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 560;
+}
+
+.healthTrack {
+  width: min(190px, 100%);
+  height: 5px;
+  overflow: hidden;
+  background: #e8f0eb;
+}
+
+.healthTrack span {
+  display: block;
+  height: 100%;
+  background: #4f8a69;
+}
+
+.healthCaption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+}
+
+.metricRail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-width: 0;
+  border-left: 1px solid var(--color-border-subtle);
+}
+
+.metricSegment {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 18px 20px;
+}
+
+.metricSegment + .metricSegment {
+  border-left: 1px solid var(--color-border-subtle);
+}
+
+.metricIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-right: 2px solid currentColor;
+  font-size: 17px;
+}
+
+.metricCopy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.metricLabel {
+  color: var(--color-text-secondary);
+  font-size: 11.8px;
+  font-weight: 560;
+}
+
 .metricValue {
-  color: var(--color-text-primary);
-  font-size: 20px;
-  font-weight: 800;
+  overflow: hidden;
+  color: #35415a;
+  font-size: 22px;
+  font-weight: 680;
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
+  line-height: 1.18;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .healthAlertsRow {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  grid-template-columns: minmax(260px, 0.78fr) minmax(0, 1.22fr);
+  gap: 18px;
+  border-top: 1px solid var(--color-border-subtle);
 }
 
-.healthCard,
-.alertsCard {
-  padding: 20px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 12px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.healthSection {
+  display: grid;
+  grid-template-columns: 4px minmax(0, 1fr);
+  grid-template-areas:
+    'marker copy'
+    'marker stats';
+  gap: 14px 18px;
+  padding: 20px 0 4px;
 }
 
-.healthCard:hover,
-.alertsCard:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
+.sectionMarker {
+  grid-area: marker;
+  width: 4px;
+  min-height: 100%;
+  background: linear-gradient(180deg, #4f8a69 0%, #8ab29a 100%);
+}
+
+.sectionCopy {
+  grid-area: copy;
+}
+
+.sectionHint {
+  margin: 4px 0 0;
+  color: var(--color-text-tertiary);
+  font-size: 11.8px;
+}
+
+.healthStatsInline {
+  grid-area: stats;
+  display: flex;
+  gap: 26px;
+  align-items: flex-end;
+}
+
+.healthStatsInline > div {
+  display: grid;
+  gap: 5px;
+  min-width: 86px;
+}
+
+.healthStatLabel {
+  color: var(--color-text-tertiary);
+  font-size: 11.4px;
+}
+
+.healthStatValue {
+  font-size: 23px;
+  font-weight: 680;
+  line-height: 1;
+}
+
+.alertsSection {
+  padding: 20px 0 4px 20px;
+  border-left: 1px solid var(--color-border-subtle);
 }
 
 .cardHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .cardTitle {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   margin: 0;
-  color: var(--color-text-primary);
+  color: var(--color-text-heading);
   font-size: 14px;
-  font-weight: 700;
-}
-
-.healthBadge {
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
+  font-weight: 640;
+  line-height: 21px;
 }
 
 .alertCountBadge {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
   min-width: 24px;
   height: 24px;
-  padding: 0 8px;
-  border-radius: 999px;
-  color: #fff;
-  background: linear-gradient(135deg, #ef4444, #f97316);
-  font-size: 12px;
-  font-weight: 700;
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.healthContent {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.healthStats {
-  display: flex;
   align-items: center;
-  justify-content: space-around;
-  padding: 16px;
+  justify-content: center;
+  padding: 0 7px;
+  border: 1px solid rgba(217, 90, 90, 0.14);
   border-radius: 8px;
-  background: var(--color-surface-muted);
-}
-
-.healthStat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.healthStatValue {
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.healthStatLabel {
-  color: var(--color-text-muted);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.healthStatDivider {
-  width: 1px;
-  height: 40px;
-  background: var(--color-border-subtle);
-}
-
-.healthProgress {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.healthBar {
-  height: 8px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--color-surface-muted);
-}
-
-.healthBarFill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.6s ease;
+  color: var(--color-danger);
+  background: rgba(217, 90, 90, 0.06);
+  font-size: 11px;
+  font-weight: 650;
 }
 
 .alertEmpty {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 32px 0;
+  gap: 10px;
+  padding: 16px 0;
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: 12.5px;
 }
 
 .alertEmptyIcon {
-  color: #10b981;
-  font-size: 32px;
+  color: var(--color-success);
+  font-size: 19px;
 }
 
 .alertList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
 .alertItem {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 8px;
-  background: var(--color-surface-muted);
-  transition: all 0.2s ease;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'info stock' 'bar bar';
+  gap: 7px 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
-.alertItem:hover {
-  border-color: rgba(239, 68, 68, 0.3);
-  background: #fef2f2;
+.alertItem:last-child {
+  border-bottom: 0;
 }
 
 .alertItemInfo {
+  grid-area: info;
   display: flex;
+  min-width: 0;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .alertItemName {
-  color: var(--color-text-primary);
-  font-size: 13px;
-  font-weight: 600;
+  overflow: hidden;
+  color: var(--color-text-strong);
+  font-size: 12.3px;
+  font-weight: 560;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .alertItemSku {
   color: var(--color-text-muted);
-  font-size: 11px;
+  font-size: 10.8px;
 }
 
 .alertItemStock {
+  grid-area: stock;
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  font-weight: 700;
+  gap: 3px;
+  font-size: 11.8px;
+  font-weight: 620;
   font-variant-numeric: tabular-nums;
 }
 
 .alertStockValue {
-  color: #dc2626;
+  color: var(--color-danger);
 }
 
 .alertStockDivider,
@@ -271,53 +292,48 @@
 }
 
 .alertBar {
-  height: 4px;
+  grid-area: bar;
+  height: 3px;
   overflow: hidden;
-  border-radius: 999px;
-  background: var(--color-surface-muted);
+  background: #edf2fb;
 }
 
 .alertBarFill {
   height: 100%;
-  border-radius: 999px;
-  transition: width 0.6s ease;
 }
 
 .alertMore {
-  padding: 8px;
-  border-radius: 6px;
+  padding: 8px 0 2px;
   color: var(--color-text-muted);
-  background: var(--color-surface-muted);
-  font-size: 12px;
-  font-weight: 600;
-  text-align: center;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
+  font-size: 11px;
+  font-weight: 540;
 }
 
 @media (max-width: 1200px) {
-  .metricsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .inventoryRail {
+    grid-template-columns: 1fr;
   }
 
-  .healthAlertsRow {
-    grid-template-columns: 1fr;
+  .metricRail {
+    border-top: 1px solid var(--color-border-subtle);
+    border-left: 0;
   }
 }
 
-@media (max-width: 768px) {
-  .metricsGrid,
+@media (max-width: 860px) {
+  .metricRail,
   .healthAlertsRow {
     grid-template-columns: 1fr;
+  }
+
+  .metricSegment + .metricSegment {
+    border-top: 1px solid var(--color-border-subtle);
+    border-left: 0;
+  }
+
+  .alertsSection {
+    padding-left: 0;
+    border-top: 1px solid var(--color-border-subtle);
+    border-left: 0;
   }
 }

@@ -16,13 +16,13 @@ import {
   Progress,
   Space,
   Table,
-  Tag,
   Tooltip,
   Typography,
 } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { QueryState } from '../../../../../../components/common/QueryState';
+import { ActiveStatusTag } from '../../../../../../components/common/StatusTag';
 import { TableMultiSelectFilter } from '../../../../../../components/common/TableMultiSelectFilter';
 import { CustomerDebtTag } from '../../../../../../components/common/StatusTag';
 import { formatCurrency, toNumber } from '../../../../../../lib/format';
@@ -187,13 +187,7 @@ export function CustomersTableCard({
                   <Avatar>{record.name.slice(0, 2).toUpperCase()}</Avatar>
                   <div>
                     <Typography.Text strong>{record.name}</Typography.Text>
-                    <Tag
-                      className={`${styles.statusTag} ${
-                        record.active ? styles.active : styles.inactive
-                      }`}
-                    >
-                      {record.active ? t('common.active') : t('common.inactive')}
-                    </Tag>
+                    <ActiveStatusTag active={record.active} />
                   </div>
                 </div>
               ),

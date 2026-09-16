@@ -24,7 +24,7 @@
 .stockTable :global(.ant-table-body) {
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: rgba(100, 116, 139, 0.45) transparent;
+  scrollbar-color: rgba(95, 104, 99, 0.38) transparent;
 }
 
 .stockTable :global(.ant-table-body::-webkit-scrollbar) {
@@ -34,11 +34,11 @@
 
 .stockTable :global(.ant-table-body::-webkit-scrollbar-thumb) {
   border-radius: 999px;
-  background: rgba(100, 116, 139, 0.36);
+  background: rgba(95, 104, 99, 0.26);
 }
 
 .stockTable :global(.ant-table-body::-webkit-scrollbar-thumb:hover) {
-  background: rgba(100, 116, 139, 0.56);
+  background: rgba(95, 104, 99, 0.44);
 }
 
 .stockTable :global(.ant-table-body::-webkit-scrollbar-track) {
@@ -55,11 +55,11 @@
 }
 
 .lowStockRow > :global(.ant-table-cell) {
-  background: linear-gradient(to right, #fffbf2, #fff8e8) !important;
+  background: rgba(173, 124, 66, 0.045) !important;
 }
 
 .lowStockRow:hover > :global(.ant-table-cell) {
-  background: #fff3cd !important;
+  background: rgba(173, 124, 66, 0.07) !important;
 }
 
 @media (max-width: 768px) {

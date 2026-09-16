@@ -4,6 +4,7 @@ import type { TableColumnsType } from 'antd';
 import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { TableMultiSelectFilter } from '../../../../../components/common/TableMultiSelectFilter';
+import { ActiveStatusTag } from '../../../../../components/common/StatusTag';
 import { formatDateTime, toNumber } from '../../../../../lib/format';
 import { compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../../lib/tableSorting';
 import type { ProductRow } from '../../../../products';
@@ -74,7 +75,7 @@ const stockColumns = (
     },
     render: (_, record) => {
       if (!record.active) {
-        return <Tag>{t('common.inactive')}</Tag>;
+        return <ActiveStatusTag active={false} />;
       }
 
       return (

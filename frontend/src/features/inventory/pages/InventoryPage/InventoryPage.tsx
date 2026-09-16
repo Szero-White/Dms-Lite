@@ -99,6 +99,7 @@ export function InventoryPage() {
   return (
     <div className={styles.page}>
       <PageHeader
+        variant="inventory"
         title={t('inventory.title')}
         subtitle={t('inventory.subtitle')}
         extra={canManageInventory ? (

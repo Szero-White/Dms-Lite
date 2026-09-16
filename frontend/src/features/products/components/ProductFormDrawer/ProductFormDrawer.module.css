@@ -26,7 +26,7 @@
 
 .sectionHeading :global(.ant-typography:first-child) {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 650;
   color: var(--color-text-primary);
 }
 

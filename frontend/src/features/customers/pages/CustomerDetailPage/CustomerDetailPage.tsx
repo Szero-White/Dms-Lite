@@ -16,7 +16,6 @@ import {
   Popconfirm,
   Progress,
   Space,
-  Tag,
   Typography,
 } from 'antd';
 import { useTranslation } from 'react-i18next';
@@ -31,6 +30,7 @@ import {
   useAuth,
 } from '../../../auth';
 import { SummaryCard } from '../../../../components/common/SummaryCard';
+import { ActiveStatusTag } from '../../../../components/common/StatusTag';
 import {
   formatCurrency,
   toNumber,
@@ -79,6 +79,7 @@ export function CustomerDetailPage() {
   return (
     <div className={styles.page}>
       <PageHeader
+        variant="people"
         title={customer?.name || t('customers.detail.titleFallback')}
         subtitle={t('customers.detail.subtitle')}
         breadcrumb={[t('app.navigation.customers'), customer?.name || t('customers.detail.breadcrumbDetail')]}
@@ -156,9 +157,7 @@ export function CustomerDetailPage() {
                 <div className={styles.profileCopy}>
                   <div className={styles.profileTitleRow}>
                     <Typography.Title level={2}>{customer.name}</Typography.Title>
-                    <Tag color={customer.active ? 'success' : 'default'}>
-                      {customer.active ? t('common.active') : t('common.inactive')}
-                    </Tag>
+                    <ActiveStatusTag active={customer.active} />
                   </div>
                   <Space wrap size={[20, 6]} className={styles.profileMeta}>
                     <span><PhoneOutlined /> {customer.phone || '--'}</span>

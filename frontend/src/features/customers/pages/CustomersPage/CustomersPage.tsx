@@ -167,6 +167,7 @@ export function CustomersPage() {
   return (
     <div className={styles.page}>
       <PageHeader
+        variant="people"
         title={t('customers.title')}
         subtitle={t('customers.subtitle')}
         extra={canManageCustomers ? (

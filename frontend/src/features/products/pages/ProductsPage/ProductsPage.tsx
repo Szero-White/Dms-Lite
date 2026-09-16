@@ -140,6 +140,7 @@ export function ProductsPage() {
   return (
     <div className={styles.page}>
       <PageHeader
+        variant="catalog"
         title={t('products.title')}
         subtitle={t('products.subtitle')}
         extra={canManageProducts ? (
