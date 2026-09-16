@@ -72,7 +72,7 @@ export function InventoryHistoryTable({
   const { t } = useTranslation();
 
   return (
-    <Card className={`panel-card ${styles.historyCard}`} title={t('inventory.history.title')}>
+    <Card className={`panel-card workspace-surface ${styles.historyCard}`} title={t('inventory.history.title')}>
       <Table
         rowKey="id"
         scroll={{ x: 1000 }}

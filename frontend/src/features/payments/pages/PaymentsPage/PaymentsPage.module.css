@@ -170,10 +170,9 @@
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: var(--spacing-lg);
-  padding: 12px 14px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 10px;
-  background: var(--color-surface-muted);
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: transparent;
 }
 
 .filterPanel .search {
@@ -281,5 +280,5 @@
   background: var(--color-primary) !important;
 }
 .contentStack { gap: 18px; }
-.filterPanel { border-color: var(--color-border-subtle); background: var(--color-surface-muted); }
+.filterPanel { background: transparent; }
 .watchlistCard { border-top: 1px solid var(--color-border-subtle) !important; }

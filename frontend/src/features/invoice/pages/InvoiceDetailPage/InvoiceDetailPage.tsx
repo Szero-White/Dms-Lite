@@ -99,7 +99,7 @@ export function InvoiceDetailPage() {
           />
 
           <div className={styles.summaryGrid}>
-            <Card className="panel-card">
+            <Card className="panel-card analysis-surface">
               <Descriptions column={1} size="small" bordered>
                 <Descriptions.Item label={t('common.status')}><InvoiceStatusTag status={invoice.status} /></Descriptions.Item>
                 <Descriptions.Item label={t('invoice.column.issueDate')}>{invoice.issueDate ? formatDate(invoice.issueDate, i18n.language) : '-'}</Descriptions.Item>
@@ -107,7 +107,7 @@ export function InvoiceDetailPage() {
                 <Descriptions.Item label={t('invoice.column.order')}>{invoice.salesOrderCode ?? '-'}</Descriptions.Item>
               </Descriptions>
             </Card>
-            <Card className="panel-card">
+            <Card className="panel-card analysis-surface">
               <div className={styles.financeBlock}>
                 <div><span>{t('invoice.column.total')}</span><strong>{formatCurrency(invoice.totalAmount, i18n.language)}</strong></div>
                 {canViewReceivableState ? (
@@ -122,7 +122,7 @@ export function InvoiceDetailPage() {
             </Card>
           </div>
 
-          <Card className="panel-card" title={t('invoice.itemsTitle')}>
+          <Card className="panel-card analysis-surface" title={t('invoice.itemsTitle')}>
             <Table
               rowKey="id"
               columns={columns}

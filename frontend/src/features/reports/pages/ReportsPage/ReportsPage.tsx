@@ -271,7 +271,7 @@ export function ReportsPage() {
               ]}
               />
             ) : (
-              <Card className="panel-card" title={t('reports.title')}>
+              <Card className="panel-card analysis-surface" title={t('reports.title')}>
                 <ReportStatStrip items={[
                   { icon: <DollarOutlined />, label: t('reports.metric.revenue'), value: formatCurrency(dashboardQuery.data.summary.revenueThisMonth), color: uiPalette.brand.primary },
                   { icon: <DollarOutlined />, label: t('reports.metric.receivables'), value: formatCurrency(dashboardQuery.data.summary.totalReceivable), color: uiPalette.semantic.warning },

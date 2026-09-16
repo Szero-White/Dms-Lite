@@ -5,53 +5,187 @@
   align-items: stretch;
   margin-bottom: 20px;
   overflow: hidden;
-  border: 1px solid #dde5f1;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 10px 30px rgba(57, 72, 110, 0.06);
+  border-top: 1px solid rgba(112, 105, 232, 0.18);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: linear-gradient(90deg, rgba(112, 105, 232, 0.035) 0%, #ffffff 30%, #ffffff 100%);
 }
+
 .pulseBar::before {
   position: absolute;
   top: 0;
+  bottom: 0;
   left: 0;
-  width: 210px;
-  height: 3px;
-  background: linear-gradient(90deg, #5570c7, #9eb0e6);
+  width: 4px;
+  background: linear-gradient(180deg, #6f68e8 0%, #8a84ee 100%);
   content: '';
 }
+
 .summaryBlock,
 .healthBlock,
-.receivableBlock { min-width: 0; padding: 19px 21px; }
-.summaryBlock { display: flex; align-items: center; gap: 14px; background: linear-gradient(135deg, #f8faff 0%, #ffffff 88%); }
-.summaryIcon { width: 42px; height: 42px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid #d6dff4; border-radius: 12px; background: #ffffff; color: #5570c7; font-size: 17px; box-shadow: 0 5px 16px rgba(62, 80, 130, 0.06); }
+.receivableBlock {
+  min-width: 0;
+  padding: 18px 22px;
+}
+
+.summaryBlock {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.summaryIcon {
+  width: 30px;
+  height: 38px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-right: 2px solid rgba(85, 112, 199, 0.42);
+  color: #5570c7;
+  font-size: 18px;
+}
+
 .summaryContent,
-.receivableBlock { display: flex; flex-direction: column; gap: 2px; }
-.eyebrow { color: var(--color-text-secondary); font-size: 11.8px; font-weight: 540; line-height: 17px; }
+.receivableBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.eyebrow {
+  color: var(--color-text-secondary);
+  font-size: 11.8px;
+  font-weight: 560;
+  line-height: 17px;
+}
+
 .summaryValue,
-.receivableValue { color: var(--color-text-strong); font-size: 21px; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 29px; }
-.summaryValue { color: #4e66b4; font-size: 27px; font-weight: 680; }
-.summaryMeta { color: var(--color-text-tertiary); font-size: 11.2px; line-height: 17px; }
-.divider { width: 1px; background: var(--color-border-subtle); }
-.healthBlock { display: flex; flex-direction: column; justify-content: center; gap: 9px; }
-.healthRows { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.healthItem { min-width: 0; display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 10px 11px; border: 1px solid var(--color-border-subtle); border-radius: 10px; background: #fbfcfe; }
-.statusDot { width: 7px; height: 7px; border-radius: 2px; background: var(--color-primary); }
+.receivableValue {
+  color: var(--color-text-strong);
+  font-size: 21px;
+  font-weight: 660;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 29px;
+}
+
+.summaryValue {
+  color: #4e66b4;
+  font-size: 27px;
+  font-weight: 690;
+}
+
+.summaryMeta {
+  color: var(--color-text-tertiary);
+  font-size: 11.2px;
+  line-height: 17px;
+}
+
+.divider {
+  width: 1px;
+  background: var(--color-border-subtle);
+}
+
+.healthBlock {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.healthRows {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+}
+
+.healthItem {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px 8px 0;
+}
+
+.healthItem + .healthItem {
+  padding-left: 14px;
+  border-left: 1px solid var(--color-border-subtle);
+}
+
+.healthItem::after {
+  position: absolute;
+  right: 14px;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--color-border-subtle);
+  content: '';
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--color-primary);
+}
 .statusDot.success { background: var(--color-success); }
 .statusDot.warning { background: var(--color-warning); }
 .statusDot.danger { background: var(--color-danger); }
-.healthLabel { overflow: hidden; color: var(--color-text-secondary); font-size: 11.7px; font-weight: 540; line-height: 17px; text-overflow: ellipsis; white-space: nowrap; }
-.healthCount { color: var(--color-text-strong); font-size: 12.5px; font-weight: 620; font-variant-numeric: tabular-nums; line-height: 18px; text-align: right; }
-.receivableBlock { justify-content: center; background: linear-gradient(145deg, #ffffff 0%, #fbfcff 100%); }
-.warningPill { width: fit-content; margin-top: 4px; padding: 3px 8px; border: 1px solid var(--color-warning-border); border-radius: 8px; background: var(--color-warning-light); color: var(--color-warning); font-size: 11px; font-weight: 600; }
+
+.healthLabel {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 11.7px;
+  font-weight: 540;
+  line-height: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.healthCount {
+  color: var(--color-text-strong);
+  font-size: 13px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 18px;
+  text-align: right;
+}
+
+.receivableBlock {
+  justify-content: center;
+}
+
+.warningPill {
+  width: fit-content;
+  margin-top: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--color-warning-border);
+  border-radius: 7px;
+  background: var(--color-warning-light);
+  color: var(--color-warning);
+  font-size: 11px;
+  font-weight: 600;
+}
+
 @media (max-width: 1180px) {
   .pulseBar { grid-template-columns: minmax(210px, 0.75fr) 1px minmax(360px, 1.4fr); }
   .pulseBar > .divider:last-of-type { display: none; }
   .receivableBlock { grid-column: 1 / -1; border-top: 1px solid var(--color-border-subtle); }
 }
+
 @media (max-width: 800px) {
   .pulseBar { display: block; }
   .divider { display: none; }
-  .summaryBlock, .healthBlock, .receivableBlock { padding: 16px 18px; }
-  .healthBlock, .receivableBlock { border-top: 1px solid var(--color-border-subtle); }
+  .summaryBlock,
+  .healthBlock,
+  .receivableBlock { padding: 16px 18px; }
+  .healthBlock,
+  .receivableBlock { border-top: 1px solid var(--color-border-subtle); }
 }
-@media (max-width: 520px) { .healthRows { grid-template-columns: 1fr; } }
+
+@media (max-width: 520px) {
+  .healthRows { grid-template-columns: 1fr; }
+  .healthItem + .healthItem { padding-left: 0; border-left: 0; }
+  .healthItem::after { right: 0; }
+}

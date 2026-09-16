@@ -80,7 +80,7 @@ export function OutstandingReceivablesCard({
   };
 
   return (
-    <Card className={`panel-card ${styles.watchlistCard}`} title={t('payments.outstanding.title')}>
+    <Card className={`panel-card workspace-surface ${styles.watchlistCard}`} title={t('payments.outstanding.title')}>
       <div className={styles.toolbar}>
         <Typography.Text type="secondary">
           {t('payments.outstanding.count', { count: query.data?.totalElements ?? 0 })}

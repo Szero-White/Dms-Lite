@@ -221,7 +221,7 @@ export function NotificationsPage() {
         subtitle={t('notifications.subtitle')}
       />
 
-      <Card className={`panel-card ${styles.activityCard}`}>
+      <Card className={`panel-card workspace-surface ${styles.activityCard}`}>
         <div className={styles.toolbar}>
           <Segmented
             className={styles.segmented}

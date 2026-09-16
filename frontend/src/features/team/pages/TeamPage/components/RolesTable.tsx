@@ -52,7 +52,7 @@ export function RolesTable({
   const { t } = useTranslation();
 
   return (
-    <Card className={`panel-card ${styles.tableCard}`}>
+    <Card className={`panel-card workspace-surface ${styles.tableCard}`}>
       <div className={styles.cardToolbar}>
         <div>
           <Typography.Text strong>{t('team.roles.title')}</Typography.Text>

@@ -104,7 +104,7 @@ export function InventoryStockTable({
   const { t } = useTranslation();
 
   return (
-    <Card className={`panel-card ${styles.stockCard}`} title={t('inventory.stock.title')}>
+    <Card className={`panel-card workspace-surface ${styles.stockCard}`} title={t('inventory.stock.title')}>
       <div className={styles.toolbar}>
         <Input
           allowClear

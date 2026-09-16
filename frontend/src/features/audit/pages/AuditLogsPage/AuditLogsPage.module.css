@@ -6,12 +6,11 @@
 .overviewStrip {
   display: flex;
   align-items: stretch;
-  border-radius: var(--radius-section);
-  border: 1px solid var(--color-border);
-  background: var(--color-card-background);
+  border-top: 1px solid rgba(112, 105, 232, 0.16);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: linear-gradient(90deg, rgba(112, 105, 232, 0.035), #ffffff 32%, #ffffff 100%);
   overflow: hidden;
   margin-bottom: 20px;
-  box-shadow: var(--shadow-card);
 }
 
 .stripDivider {
@@ -37,8 +36,7 @@
   height: 42px;
   display: grid;
   place-items: center;
-  border-radius: 12px;
-  background: var(--color-primary-light);
+  border-right: 2px solid rgba(112, 105, 232, 0.38);
   color: var(--color-primary);
   font-size: 18px;
   flex-shrink: 0;
@@ -158,9 +156,9 @@
   align-items: center;
   gap: 6px;
   padding: 5px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-muted);
+  border: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: transparent;
   color: var(--color-text-secondary);
   font-size: 12.5px;
   font-weight: 600;
@@ -187,7 +185,7 @@
   justify-content: center;
   min-width: 18px;
   height: 18px;
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--color-primary-light);
   color: var(--color-primary);
   font-size: 10px;
@@ -253,7 +251,7 @@
 .actionTag {
   display: inline-block;
   padding: 2px 10px;
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--color-primary-light);
   color: var(--color-primary);
   border: 1px solid rgba(63,111,104,0.18);

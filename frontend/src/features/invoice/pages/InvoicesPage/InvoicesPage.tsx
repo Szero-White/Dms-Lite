@@ -186,7 +186,7 @@ export function InvoicesPage() {
     <div className={styles.page}>
       <PageHeader variant="records" title={t('invoice.title')} subtitle={t('invoice.subtitle')} />
 
-      <Card className={`panel-card ${styles.tableCard}`}>
+      <Card className={`panel-card workspace-surface ${styles.tableCard}`}>
         <div className={styles.toolbar}>
           <div className={styles.filters}>
             <Input

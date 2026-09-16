@@ -80,7 +80,7 @@ export function ProductsTableCard({
   });
 
   return (
-    <Card className={`panel-card table-panel-card ${styles.tableCard}`}>
+    <Card className={`panel-card workspace-surface table-panel-card ${styles.tableCard}`}>
       <div className={styles.toolbar}>
         <div className={styles.filterControls}>
           <Input

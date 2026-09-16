@@ -40,11 +40,10 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0;
-  border-radius: var(--radius-section);
-  border: 1px solid var(--color-border);
-  background: #ffffff;
+  border-top: 1px solid rgba(112, 105, 232, 0.16);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: linear-gradient(90deg, rgba(112, 105, 232, 0.025), #ffffff 28%, #ffffff 100%);
   overflow: hidden;
-  box-shadow: var(--shadow-card);
 }
 
 .statStripItem {
@@ -66,9 +65,7 @@
   height: 40px;
   display: grid;
   place-items: center;
-  border-radius: 12px;
-  font-size: 18px;
-  background: var(--color-primary-light);
+  font-size: 19px;
   color: var(--color-primary);
   flex-shrink: 0;
 }
@@ -159,14 +156,12 @@
 
 .debtBarTrack {
   height: 7px;
-  border-radius: 999px;
   background: var(--color-surface-muted);
   overflow: hidden;
 }
 
 .debtBarFill {
   height: 100%;
-  border-radius: 999px;
   background: var(--color-primary);
   transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
 }

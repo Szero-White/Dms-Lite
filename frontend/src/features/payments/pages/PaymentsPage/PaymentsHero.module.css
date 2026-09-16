@@ -1,24 +1,24 @@
 .heroRow {
   display: grid;
   grid-template-columns: minmax(380px, 0.92fr) minmax(0, 1.08fr);
-  gap: 18px;
+  gap: 0;
   margin-bottom: 22px;
+  overflow: hidden;
+  border-top: 1px solid rgba(112, 105, 232, 0.16);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: linear-gradient(90deg, rgba(112, 105, 232, 0.035), #ffffff 38%, #ffffff 100%);
 }
 
 .heroCard,
 .topDebtorsCard {
   min-width: 0;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 17px;
-  background: var(--color-card-background);
-  box-shadow: var(--shadow-card);
+  background: transparent;
 }
 
 .heroCard {
   position: relative;
-  overflow: hidden;
-  padding: 22px;
-  background: linear-gradient(135deg, #ffffff 0%, #fbfbfe 100%);
+  padding: 20px 22px;
+  border-right: 1px solid var(--color-border-subtle);
 }
 
 .heroHeading {
@@ -27,18 +27,16 @@
   display: flex;
   align-items: center;
   gap: 13px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .heroIcon {
-  width: 43px;
-  height: 43px;
+  width: 30px;
+  height: 38px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border: 1px solid var(--color-primary-mid);
-  border-radius: 13px;
-  background: var(--color-primary-light);
+  border-right: 2px solid rgba(112, 105, 232, 0.42);
   color: var(--color-primary-dark);
   font-size: 18px;
 }
@@ -60,8 +58,8 @@
 .heroAmount {
   overflow: hidden;
   color: var(--color-text-value);
-  font-size: 25px;
-  font-weight: 650;
+  font-size: 27px;
+  font-weight: 670;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.032em;
   line-height: 32px;
@@ -74,7 +72,9 @@
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .miniStat {
@@ -82,76 +82,121 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 12px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.9);
+  padding: 7px 14px 7px 0;
+}
+
+.miniStat + .miniStat {
+  padding-left: 14px;
+  border-left: 1px solid var(--color-border-subtle);
 }
 
 .miniIcon {
-  width: 29px;
-  height: 29px;
+  width: 22px;
+  height: 22px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border-radius: 8px;
-  font-size: 12px;
+  font-size: 13px;
 }
 
-/* Semantic tones stay inside icons; the layout remains brand/neutral. */
-.miniIcon.danger { background: var(--color-danger-light); color: var(--color-danger); }
-.miniIcon.success { background: var(--color-success-light); color: var(--color-success); }
-.miniIcon.brand { background: var(--color-primary-light); color: var(--color-primary-dark); }
+.miniIcon.danger { color: var(--color-danger); }
+.miniIcon.success { color: var(--color-success); }
+.miniIcon.brand { color: var(--color-primary-dark); }
 
-.miniStat > div { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.miniStat > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
 .miniStat strong {
   overflow: hidden;
   color: var(--color-text-strong);
-  font-size: 12.5px;
-  font-weight: 610;
+  font-size: 12.8px;
+  font-weight: 620;
   line-height: 18px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.miniStat span:not(.miniIcon) { color: var(--color-text-tertiary); font-size: 10.4px; line-height: 15px; }
 
-.topDebtorsCard { padding: 21px 22px; }
-.topDebtorsHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
-.topDebtorsHeader span:first-child { color: var(--color-text-heading); font-size: 14px; font-weight: 610; }
-.topDebtorsCount {
-  padding: 4px 9px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 8px;
+.miniStat span:not(.miniIcon) {
   color: var(--color-text-tertiary);
-  background: var(--color-surface-muted);
-  font-size: 11px;
-  font-weight: 540;
+  font-size: 10.4px;
+  line-height: 15px;
 }
-.barList { display: flex; flex-direction: column; gap: 12px; }
-.barRow { display: flex; flex-direction: column; gap: 5px; }
-.barMeta { display: flex; align-items: center; gap: 8px; }
-.barRank {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 8px;
-  color: var(--color-text-secondary);
-  background: var(--color-surface-muted);
-  font-size: 10.5px;
+
+.topDebtorsCard {
+  padding: 20px 22px;
+}
+
+.topDebtorsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.topDebtorsHeader span:first-child {
+  color: var(--color-text-heading);
+  font-size: 14px;
   font-weight: 610;
 }
-.barName { overflow: hidden; flex: 1; color: var(--color-text-primary); font-size: 12.5px; font-weight: 540; text-overflow: ellipsis; white-space: nowrap; }
-.barAmt { color: var(--color-danger); font-size: 12px; font-weight: 610; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.barTrack { overflow: hidden; height: 3px; border-radius: 3px; background: var(--color-surface-soft); }
-.barFill { height: 100%; border-radius: inherit; opacity: .66; }
+
+.topDebtorsCount {
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+  font-weight: 560;
+}
+
+.barList { display: flex; flex-direction: column; gap: 11px; }
+.barRow { display: flex; flex-direction: column; gap: 5px; }
+.barMeta { display: flex; align-items: center; gap: 8px; }
+
+.barRank {
+  width: 20px;
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  font-size: 10.5px;
+  font-weight: 650;
+  text-align: center;
+}
+
+.barName {
+  overflow: hidden;
+  flex: 1;
+  color: var(--color-text-primary);
+  font-size: 12.5px;
+  font-weight: 540;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barAmt {
+  color: var(--color-danger);
+  font-size: 12px;
+  font-weight: 610;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.barTrack {
+  overflow: hidden;
+  height: 3px;
+  background: var(--color-surface-soft);
+}
+.barFill { height: 100%; opacity: .66; }
 .barEmpty { padding: 26px 0; color: var(--color-text-muted); font-size: 12.5px; text-align: center; }
 
-@media (max-width: 1000px) { .heroRow { grid-template-columns: 1fr; } }
+@media (max-width: 1000px) {
+  .heroRow { grid-template-columns: 1fr; }
+  .heroCard { border-right: 0; border-bottom: 1px solid var(--color-border-subtle); }
+}
+
 @media (max-width: 640px) {
   .heroCard,
   .topDebtorsCard { padding: 18px; }
   .heroMiniStats { grid-template-columns: 1fr; }
+  .miniStat + .miniStat { padding-left: 0; border-top: 1px solid var(--color-border-subtle); border-left: 0; }
 }

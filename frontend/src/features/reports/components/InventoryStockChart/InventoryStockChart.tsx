@@ -28,7 +28,7 @@ export function InventoryStockChart({
   return (
     <Card
       title={t('charts.inventoryStock.title')}
-      className={`panel-card ${styles.card}`}
+      className={`panel-card analysis-surface ${styles.card}`}
     >
       {chartData.length ? (
         <Bar

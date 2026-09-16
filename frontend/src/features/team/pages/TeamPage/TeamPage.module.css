@@ -74,11 +74,8 @@
   width: 40px;
   height: 40px;
   place-items: center;
-  border: 1px solid rgba(112, 105, 232, 0.18);
-  border-radius: 12px;
   color: #625dd9;
-  background: #ffffff;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .flowLine {
@@ -172,10 +169,8 @@
 .permissionSection {
   display: grid;
   gap: 10px;
-  padding: 14px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 10px;
-  background: #fbfcff;
+  padding: 14px 0 2px;
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .permissionGrid {
@@ -186,12 +181,11 @@
 
 .permissionGrid :global(.ant-checkbox-wrapper) {
   align-items: flex-start;
-  min-height: 68px;
+  min-height: 58px;
   margin-inline-start: 0;
-  padding: 10px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 8px;
-  background: var(--color-card-background);
+  padding: 9px 0 10px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: transparent;
 }
 
 .permissionOption {

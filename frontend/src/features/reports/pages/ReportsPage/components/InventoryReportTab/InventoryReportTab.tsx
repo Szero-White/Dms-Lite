@@ -42,7 +42,7 @@ export function InventoryReportTab({
 
       <InventoryStockChart products={products} />
 
-      <Card title={t('reports.title')} className="panel-card">
+      <Card title={t('reports.title')} className="panel-card analysis-surface">
         <Table
           rowKey="id"
           size="small"

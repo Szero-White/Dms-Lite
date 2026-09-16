@@ -48,7 +48,7 @@ export function ReceivablesReportTab({
       ]} />
 
       {debtorCount > 0 ? (
-        <Card title={t('reports.title')} className="panel-card">
+        <Card title={t('reports.title')} className="panel-card analysis-surface">
           <div className={styles.debtBarList}>
             {debtors.slice(0, 8).map((customer, index) => {
               const debtPercent = maxDebt > 0
@@ -87,7 +87,7 @@ export function ReceivablesReportTab({
         </Card>
       ) : null}
 
-      <Card title={t('reports.title')} className="panel-card">
+      <Card title={t('reports.title')} className="panel-card analysis-surface">
         <Table
           rowKey="id"
           size="small"

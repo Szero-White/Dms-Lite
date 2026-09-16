@@ -176,7 +176,7 @@ export function PaymentHistoryCard({ enabled, onViewPayment }: PaymentHistoryCar
   };
 
   return (
-    <Card className={`panel-card ${styles.watchlistCard}`} title={t('payments.history.title')}>
+    <Card className={`panel-card workspace-surface ${styles.watchlistCard}`} title={t('payments.history.title')}>
       <div className={styles.toolbar}>
         <div className={styles.historyFilters}>
           <Input

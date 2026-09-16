@@ -8,12 +8,21 @@
 .headerActions { justify-content: flex-end; }
 
 /* ===== Profile Card ===== */
+.profileCard {
+  border: 0 !important;
+  border-top: 1px solid rgba(112, 105, 232, 0.16) !important;
+  border-bottom: 1px solid var(--color-border-subtle) !important;
+  border-radius: 0 !important;
+  background: linear-gradient(90deg, rgba(112, 105, 232, 0.025), #ffffff 34%, #ffffff 100%) !important;
+  box-shadow: none !important;
+}
+.profileCard:hover { box-shadow: none !important; }
 .profileCard :global(.ant-card-body) {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 24px !important;
+  padding: 22px 0 !important;
 }
 
 .profileMain {
@@ -74,10 +83,8 @@
 .creditPanel {
   width: min(340px, 100%);
   flex: 0 0 auto;
-  padding: 16px 18px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 14px;
-  background: var(--color-surface-muted);
+  padding: 4px 0 4px 22px;
+  border-left: 1px solid var(--color-border-subtle);
 }
 
 .creditPanel > div:first-child {
@@ -110,7 +117,27 @@
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  gap: 0;
+  overflow: hidden;
+  border-top: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.metricsGrid > :last-child { border-right: 0; }
+.metricsGrid > div {
+  min-height: 104px !important;
+  padding: 14px 18px 14px 16px !important;
+  border: 0 !important;
+  border-right: 1px solid var(--color-border-subtle) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.metricsGrid > div:hover {
+  border-color: var(--color-border-subtle) !important;
+  background: rgba(112, 105, 232, 0.018) !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 /* ===== Debt tags ===== */

@@ -54,3 +54,47 @@
 .alert-row:hover { background: #f9fbff; }
 .alert-row:last-child { padding-bottom: 0; border-bottom: none; }
 .panel-empty { min-height: 140px; display: grid; place-items: center; color: var(--color-text-muted); }
+
+/* Commercial workspace surfaces.
+ * Apply explicitly on non-dashboard operational pages to avoid card-heavy layouts.
+ * The dashboard keeps its dedicated visual hierarchy unchanged. */
+.workspace-surface.panel-card {
+  border: 0 !important;
+  border-top: 1px solid var(--color-border-subtle) !important;
+  border-bottom: 1px solid var(--color-border-subtle) !important;
+  border-radius: 0 !important;
+  background: var(--color-card-background);
+  box-shadow: none !important;
+}
+.workspace-surface.panel-card:hover {
+  border-color: var(--color-border-subtle) !important;
+  box-shadow: none !important;
+}
+.workspace-surface.panel-card .ant-card-head {
+  padding-inline: 0;
+  border-bottom-color: var(--color-border-subtle);
+  background: transparent;
+}
+.workspace-surface.panel-card .ant-card-body {
+  padding-inline: 0;
+}
+
+.analysis-surface.panel-card {
+  border: 0 !important;
+  border-top: 1px solid var(--color-border-subtle) !important;
+  border-bottom: 1px solid var(--color-border-subtle) !important;
+  border-radius: 0 !important;
+  background: transparent;
+  box-shadow: none !important;
+}
+.analysis-surface.panel-card:hover {
+  border-color: var(--color-border-subtle) !important;
+  box-shadow: none !important;
+}
+.analysis-surface.panel-card .ant-card-head {
+  padding-inline: 0;
+  background: transparent;
+}
+.analysis-surface.panel-card .ant-card-body {
+  padding-inline: 0;
+}

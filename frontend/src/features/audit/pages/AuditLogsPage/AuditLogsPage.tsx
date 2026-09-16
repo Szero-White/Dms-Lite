@@ -189,7 +189,7 @@ export function AuditLogsPage() {
           </div>
         </div>
       </div>
-      <Card className={`panel-card table-panel-card ${styles.auditCard}`}>
+      <Card className={`panel-card workspace-surface table-panel-card ${styles.auditCard}`}>
         <div className={styles.toolbar}>
           <div className={styles.filters}>
             <TableMultiSelectFilter

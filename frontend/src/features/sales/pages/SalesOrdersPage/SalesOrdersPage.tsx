@@ -196,7 +196,7 @@ export function SalesOrdersPage() {
         totalOrders={totalOrders}
       />
       {/* Table card */}
-      <Card className={`panel-card ${styles.tableCard}`}>
+      <Card className={`panel-card workspace-surface ${styles.tableCard}`}>
         <div className={styles.toolbar}>
           <div className={styles.filterControls}>
             <Input

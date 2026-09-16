@@ -30,7 +30,7 @@ export function RevenueByOrderChart({
   return (
     <Card
       title={t('charts.revenueByOrder.title')}
-      className={`panel-card ${styles.card}`}
+      className={`panel-card analysis-surface ${styles.card}`}
     >
       {chartData.length ? (
         <Column

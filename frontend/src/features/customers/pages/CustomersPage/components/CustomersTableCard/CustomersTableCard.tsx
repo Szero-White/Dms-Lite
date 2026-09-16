@@ -83,7 +83,7 @@ export function CustomersTableCard({
   const { t } = useTranslation();
 
   return (
-    <Card className={`panel-card ${styles.tableCard}`}>
+    <Card className={`panel-card workspace-surface ${styles.tableCard}`}>
       <div className={styles.toolbar}>
         <div className={styles.filterControls}>
           <Input

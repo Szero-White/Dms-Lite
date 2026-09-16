@@ -17,7 +17,7 @@ export function CustomerSalesOrderHistoryCard({
   const { t } = useTranslation();
 
   return (
-    <Card className="panel-card" title={t('customers.detail.salesOrderHistory')}>
+    <Card className="panel-card workspace-surface" title={t('customers.detail.salesOrderHistory')}>
       <Table
         size="small"
         rowKey="id"

@@ -15,7 +15,7 @@ export function CustomerDebtStatementCard({ transactions }: CustomerDebtStatemen
   const { t } = useTranslation();
 
   return (
-    <Card className="panel-card" title={t('customers.detail.debtStatement')}>
+    <Card className="panel-card workspace-surface" title={t('customers.detail.debtStatement')}>
       <Table
         size="small"
         rowKey="id"

@@ -185,7 +185,7 @@ export function AIHistoryPage() {
         </div>
       </section>
 
-      <Card className={`panel-card table-panel-card ${styles.historyCard}`}>
+      <Card className={`panel-card workspace-surface table-panel-card ${styles.historyCard}`}>
         <div className={styles.toolbar}>
           <div className={styles.filters}>
             <Segmented

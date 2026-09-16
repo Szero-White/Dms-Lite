@@ -35,7 +35,7 @@ export function OrderStatusChart({
   return (
     <Card
       title={t('charts.salesOrderStatus.title')}
-      className={`panel-card ${styles.card}`}
+      className={`panel-card analysis-surface ${styles.card}`}
     >
       {chartData.length ? (
         <Pie

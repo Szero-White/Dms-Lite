@@ -88,7 +88,7 @@ export function SalesReportTab({
         <OrderStatusChart orders={reportOrders} />
       </div>
 
-      <Card title={t('reports.title')} className="panel-card">
+      <Card title={t('reports.title')} className="panel-card analysis-surface">
         <div className={styles.salesTableFilters}>
           <Input
             allowClear
