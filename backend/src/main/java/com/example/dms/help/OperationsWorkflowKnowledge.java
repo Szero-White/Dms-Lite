@@ -12,10 +12,10 @@ final class OperationsWorkflowKnowledge {
             List<String> steps = new ArrayList<>();
             steps.add("Mở Kho hàng để xem tồn kho theo mã sản phẩm và trạng thái sắp hết hàng.");
             if (scope.has(PermissionNames.INVENTORY_MANAGE)) {
-                steps.add("Chỉ nhập hoặc điều chỉnh kho khi có phát sinh thật hoặc đã xác minh sai lệch.");
-                steps.add("Ghi chú rõ lý do để lần sau có thể kiểm tra lại.");
+                steps.add("Chỉ dùng Nhập kho khi có hàng thực tế được nhận.");
+                steps.add("Ghi chú rõ chứng từ hoặc lý do để lần sau có thể kiểm tra lại.");
             } else {
-                steps.add("Nếu tồn kho sai, báo cho Kế toán hoặc Chủ doanh nghiệp vì vai trò của bạn không được điều chỉnh kho.");
+                steps.add("Nếu tồn kho có dấu hiệu sai, báo cho Kế toán hoặc Chủ doanh nghiệp để kiểm tra lịch sử giao dịch.");
             }
 
             return response(
@@ -23,7 +23,7 @@ final class OperationsWorkflowKnowledge {
                 steps,
                 scope.relatedModules(locale, "Inventory", "Products", "Sales Orders"),
                 List.of(
-                    "Không điều chỉnh kho khi không có lý do nghiệp vụ.",
+                    "Không dùng Nhập kho để bù một sai lệch tồn chưa được xác minh.",
                     "Kiểm tra mã sản phẩm và đơn vị trước khi nhập số lượng lớn."
                 ),
                 locale
@@ -33,10 +33,10 @@ final class OperationsWorkflowKnowledge {
         List<String> steps = new ArrayList<>();
         steps.add("Open Inventory to review stock by product code and low-stock status.");
         if (scope.has(PermissionNames.INVENTORY_MANAGE)) {
-            steps.add("Use receive or adjust stock only when there is a real stock movement or verified correction.");
-            steps.add("Add a clear note so the movement can be reviewed later.");
+            steps.add("Use Receive Stock only when inventory is physically received.");
+            steps.add("Add a clear document reference or note so the inbound movement can be reviewed later.");
         } else {
-            steps.add("Report incorrect stock to Accounting or Owner because your role cannot adjust inventory.");
+            steps.add("If stock appears incorrect, ask Accounting or Owner to review the movement history.");
         }
 
         return response(
@@ -44,7 +44,7 @@ final class OperationsWorkflowKnowledge {
             steps,
             scope.relatedModules(locale, "Inventory", "Products", "Sales Orders"),
             List.of(
-                "Do not adjust stock without a business reason.",
+                "Do not use Receive Stock to mask an unverified stock discrepancy.",
                 "Check the product code and unit before entering large quantities."
             ),
             locale

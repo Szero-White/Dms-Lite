@@ -174,12 +174,12 @@ final class GeneralWorkflowKnowledge {
 
         if (scope.has(PermissionNames.INVENTORY_MANAGE)) {
             steps.add(locale == HelpLocale.VI
-                ? "Kiểm tra Kho hàng, cảnh báo sắp hết và lịch sử nhập/xuất; chỉ nhập hoặc điều chỉnh khi có phát sinh thật."
-                : "Review Inventory, low-stock alerts and movement history; receive or adjust stock only for real movements.");
+                ? "Kiểm tra Kho hàng, cảnh báo sắp hết và lịch sử nhập/xuất; chỉ dùng Nhập kho khi có hàng thực tế được nhận."
+                : "Review Inventory, low-stock alerts and movement history; use Receive Stock only for actual inbound stock.");
         } else if (scope.has(PermissionNames.INVENTORY_VIEW)) {
             steps.add(locale == HelpLocale.VI
-                ? "Theo dõi tồn kho và cảnh báo sắp hết; chuyển việc điều chỉnh cho tài khoản có quyền Quản lý kho."
-                : "Monitor stock and low-stock alerts, and hand adjustments to a role with inventory management permission.");
+                ? "Theo dõi tồn kho và cảnh báo sắp hết; nếu số tồn có dấu hiệu sai, báo Kế toán hoặc Chủ doanh nghiệp để kiểm tra lịch sử giao dịch."
+                : "Monitor stock and low-stock alerts; if stock appears incorrect, ask Accounting or Owner to review the movement history.");
         }
 
         if (scope.canUsePayments()) {

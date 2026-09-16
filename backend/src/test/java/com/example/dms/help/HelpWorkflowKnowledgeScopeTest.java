@@ -86,6 +86,25 @@ class HelpWorkflowKnowledgeScopeTest {
     }
 
     @Test
+    void inventoryManagementGuidanceMatchesSupportedReceivingWorkflow() {
+        HelpPermissionScope scope = scope(
+            "INVENTORY_VIEW",
+            "INVENTORY_MANAGE",
+            "AI_HELP_VIEW"
+        );
+
+        HelpAnswerResponse vietnamese = knowledge.inventoryAnswer(scope, HelpLocale.VI);
+        HelpAnswerResponse english = knowledge.inventoryAnswer(scope, HelpLocale.EN);
+
+        assertThat(String.join(" ", vietnamese.steps()))
+            .contains("Nhập kho")
+            .doesNotContain("điều chỉnh");
+        assertThat(String.join(" ", english.steps()))
+            .contains("Receive Stock")
+            .doesNotContain("adjust stock");
+    }
+
+    @Test
     void createOnlySalesGuidanceDoesNotTellUserToOpenHiddenOrderList() {
         HelpPermissionScope scope = scope(
             "CUSTOMER_VIEW",

@@ -84,7 +84,7 @@ public class RoleManagementService {
         entry(PermissionNames.INVOICE_VIEW, "View invoices", "Finance", "See invoices generated automatically when completed sales orders are fully paid."),
         entry(PermissionNames.INVOICE_ISSUE, "Issue invoices", "Finance", "Issue prepared sales invoices."),
         entry(PermissionNames.INVENTORY_VIEW, "View inventory", "Inventory", "See stock by warehouse and product."),
-        entry(PermissionNames.INVENTORY_MANAGE, "Manage inventory", "Inventory", "Receive or adjust stock levels."),
+        entry(PermissionNames.INVENTORY_MANAGE, "Manage inventory", "Inventory", "Receive stock into inventory."),
         entry(PermissionNames.PAYMENT_CREATE, "Record payments", "Finance", "Record payments against outstanding completed sales orders."),
         entry(PermissionNames.DEBT_VIEW, "View debt", "Finance", "See customer receivables."),
         entry(PermissionNames.REPORT_VIEW, "View reports", "Insights", "See dashboard and business reports."),

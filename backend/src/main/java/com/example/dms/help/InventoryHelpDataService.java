@@ -68,7 +68,7 @@ public class InventoryHelpDataService {
                     List.of(
                         locale == HelpLocale.VI ? "Mở Kho hàng để xem tồn kho theo từng mã hàng." : "Open Inventory to review stock by product code.",
                         locale == HelpLocale.VI ? "Dùng ô tìm kiếm nếu bạn cần tra một mã hàng cụ thể." : "Use search when you need a specific product code.",
-                        locale == HelpLocale.VI ? "Chỉ điều chỉnh tồn kho khi có quyền và có lý do nghiệp vụ rõ ràng." : "Only adjust stock with permission and a clear business reason."
+                        locale == HelpLocale.VI ? "Chỉ dùng Nhập kho khi có hàng thực tế được nhận; nếu số tồn sai, hãy kiểm tra lịch sử giao dịch." : "Use Receive Stock only for actual inbound stock; review movement history when a balance looks incorrect."
                     ),
                     scope.relatedModules(locale, "Inventory", "Products"),
                     List.of(locale == HelpLocale.VI ? "Dữ liệu tồn kho chỉ trả về khi tài khoản có quyền kho." : "Stock data is only returned to accounts with inventory access."),
