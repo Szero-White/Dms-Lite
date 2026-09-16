@@ -5,53 +5,47 @@
   min-width: 0;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
+  padding: 44px 24px;
   background: var(--color-card-background);
 }
 
 .loginPane::before {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image: radial-gradient(var(--color-border-subtle) 1px, transparent 1px);
-  background-size: 28px 28px;
+  display: none;
   content: '';
-  pointer-events: none;
 }
 
 .loginContent {
   position: relative;
   z-index: 1;
   width: min(420px, calc(100% - 48px));
-  animation: formFadeIn 220ms ease-out both;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 52px;
+  margin-bottom: 44px;
 }
 
 .brandMark {
   flex: 0 0 auto;
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   place-items: center;
-  border-radius: 14px;
-  color: #ffffff;
-  background: var(--gradient-primary);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+  border-radius: 12px;
+  color: var(--color-card-background);
+  background: var(--color-primary);
+  box-shadow: none;
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
 }
 
 .brandName {
   color: var(--color-text-primary);
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 24px;
   letter-spacing: -0.3px;
 }
@@ -64,14 +58,14 @@
 }
 
 .formHeader {
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .formHeader h1 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 32px;
-  font-weight: 800;
+  font-size: 30px;
+  font-weight: 650;
   line-height: 1.15;
   letter-spacing: -0.5px;
 }
@@ -79,8 +73,8 @@
 .formHeader p {
   margin: 8px 0 0;
   color: var(--color-text-secondary);
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 14px;
+  line-height: 22px;
 }
 
 .loginContent :global(.ant-form-item) {
@@ -100,14 +94,14 @@
 }
 
 .loginContent :global(.ant-input-affix-wrapper) {
-  min-height: 48px;
+  min-height: 46px;
   padding-inline: 14px;
-  border: 1.5px solid var(--color-border);
-  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
   background: var(--color-card-background);
   box-shadow: none;
   font-size: 14px;
-  transition: all 0.25s ease;
+  transition: border-color var(--transition-default), background var(--transition-default), color var(--transition-default);
 }
 
 .loginContent :global(.ant-input-affix-wrapper:hover),
@@ -116,7 +110,7 @@
 }
 
 .loginContent :global(.ant-input-affix-wrapper-focused) {
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
+  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.10) !important;
 }
 
 .loginContent :global(.ant-input) {
@@ -145,28 +139,24 @@
 }
 
 .submitButton:global(.ant-btn) {
-  height: 50px;
+  height: 46px;
   border: none;
-  border-radius: 12px;
-  background: var(--gradient-primary) !important;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  border-radius: 10px;
+  background: var(--color-primary) !important;
+  box-shadow: none;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.01em;
-  transition: all 0.25s ease;
+  transition: border-color var(--transition-default), background var(--transition-default), color var(--transition-default);
 }
 
 .submitButton:global(.ant-btn:hover) {
-  box-shadow: 0 8px 22px rgba(99, 102, 241, 0.45) !important;
-  transform: translateY(-2px);
-}
-
-.submitButton:global(.ant-btn:active) {
-  transform: translateY(0);
+  background: var(--color-primary-hover) !important;
+  box-shadow: none !important;
 }
 
 .demoAccounts {
-  margin-top: 22px;
+  margin-top: 24px;
 }
 
 .demoHeader {
@@ -200,34 +190,33 @@
   min-width: 0;
   flex-direction: column;
   gap: 10px;
-  padding: 12px;
+  padding: 12px 13px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: 12px;
+  border-radius: 10px;
   color: inherit;
   background: var(--color-card-background);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: none;
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background 160ms ease;
+  transition: border-color var(--transition-default), background var(--transition-default);
 }
 
 .demoAccountCard:hover {
-  border-color: rgba(99, 102, 241, 0.38);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
-  transform: translateY(-1px);
+  border-color: var(--color-primary-mid);
+  background: var(--color-primary-light);
 }
 
 .demoAccountCard:focus-visible {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.10);
 }
 
 .demoAccountCard[aria-pressed='true'] {
-  border-color: rgba(99, 102, 241, 0.55);
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.07), rgba(139, 92, 246, 0.04));
-  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.08);
+  border-color: var(--color-primary-mid);
+  background: var(--color-primary-light);
+  box-shadow: none;
 }
 
 .demoAccountHeader {
@@ -252,11 +241,11 @@
   width: 34px;
   height: 34px;
   place-items: center;
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--color-primary);
-  background: rgba(99, 102, 241, 0.1);
+  background: var(--color-primary-light);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
 }
 
@@ -294,11 +283,6 @@
   line-height: 16px;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-@keyframes formFadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 1023px) {
@@ -340,11 +324,5 @@
 
   .demoGrid {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .loginContent {
-    animation: none;
   }
 }
