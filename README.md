@@ -23,7 +23,7 @@ A full-stack distribution management system covering sales, inventory, receivabl
 | --- | --- | --- | --- |
 | Owner | `owner` | `Demo@2026` | Dashboard, access control, reports, full business flow |
 | Sales | `sale` | `Demo@2026` | Customers, products, sales orders, order completion |
-| Accountant | `accountant` | `Demo@2026` | Inventory receiving/adjustments, receivables, payments, invoices, reports |
+| Accountant | `accountant` | `Demo@2026` | Inventory receiving, receivables, payments, invoices, reports |
 
 > Demo accounts are also shown on the login page. The demo intentionally uses three personas for a small distributor; custom roles remain available when a business needs finer separation of duties.
 
@@ -50,7 +50,7 @@ The application keeps sales, stock, receivables, payments, invoices, authorizati
 - Product catalog with system-managed product codes such as `PRD-000001`
 - Product deactivate/reactivate lifecycle that preserves historical references
 - Customer profiles, payment terms, credit limits, and receivable statements
-- Inventory stock, stock receiving, adjustments, and transaction history
+- Inventory stock, stock receiving, and transaction history
 - Draft sales orders with transactional fulfillment
 - Credit-limit validation before stock/debt mutation
 - Order-specific partial and final payments
@@ -292,7 +292,7 @@ CI runs backend verification, frontend consistency checks, and the production fr
 
 ## Database and Flyway
 
-The repository currently contains Flyway migrations **V1 through V13**.
+The repository currently contains Flyway migrations **V1 through V14**.
 
 Recent migrations cover:
 
@@ -303,6 +303,7 @@ Recent migrations cover:
 - order-specific payments
 - automatic invoices after final payment
 - system-managed product codes
+- sales-order cancellation reason and lifecycle audit data
 
 Do not edit an already-applied migration. Add a new migration for schema or data changes.
 
@@ -337,6 +338,7 @@ APP_DEMO_ENABLED
 APP_DEMO_PASSWORD
 VITE_API_BASE_URL
 VITE_DEMO_MODE
+VITE_DEMO_PASSWORD
 GEMINI_ENABLED
 GEMINI_API_KEY
 ```

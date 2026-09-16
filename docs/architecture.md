@@ -21,6 +21,8 @@ Responsibilities are intentionally separated:
 
 Controllers do not own persistence logic, and business calculations should not be duplicated across controllers, repositories, and the frontend.
 
+Paginated HTTP endpoints expose the DMS-owned `PageResponse` contract (`content`, `totalElements`, `totalPages`, `size`, `number`) instead of serializing Spring Data `Page` implementations directly. This keeps the public JSON shape stable when framework internals change.
+
 ## Domain Modules
 
 The backend is grouped by domain:
@@ -159,7 +161,7 @@ Notification orchestration is split between persisted events and derived operati
 
 ## Database Migration Policy
 
-Flyway is the only schema migration mechanism. Migrations V1 through V13 are currently present.
+Flyway is the only schema migration mechanism. Migrations V1 through V14 are currently present.
 
 Rules:
 

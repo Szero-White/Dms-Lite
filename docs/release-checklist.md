@@ -89,17 +89,23 @@ Verify at least the built-in demo roles:
 
 - **Owner**: full business/admin flow.
 - **Sales**: customer/product visibility, stock visibility, Draft order creation, and order completion within permission scope.
-- **Accountant**: inventory receiving/adjustments, receivables, payments, invoices, and reports within permission scope.
+- **Accountant**: inventory receiving, receivables, payments, invoices, and reports within permission scope.
 
 Also verify one custom role with dependent permissions.
 
-## 9. Language
+## 9. Authentication and API Contracts
+
+- Invalid credentials return `401`, never a generic `500`.
+- The retired `warehouse` demo account cannot authenticate when demo mode is enabled.
+- Paginated endpoints return only the stable page fields `content`, `totalElements`, `totalPages`, `size`, and `number`.
+
+## 10. Language
 
 - Switch VI -> EN and EN -> VI on each primary module.
 - No mixed-language application copy.
 - Invoice/payment PDFs use the requested language and render Unicode correctly.
 
-## 10. Production Smoke Test
+## 11. Production Smoke Test
 
 After deployment:
 

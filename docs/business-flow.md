@@ -70,7 +70,6 @@ Inventory is warehouse-backed. Stock mutations are handled by backend business s
 Main operations:
 
 - receive stock;
-- adjust stock;
 - sales-order stock-out;
 - transaction history;
 - low-stock monitoring.
@@ -140,7 +139,7 @@ Customer/product visibility, Draft order creation, order confirmation/completion
 
 ### Accountant
 
-Inventory receiving/adjustments plus receivables, payments, invoices, and reporting according to assigned permissions. This keeps the small-business demo to three operating personas without weakening permission boundaries.
+Inventory receiving plus receivables, payments, invoices, and reporting according to assigned permissions. This keeps the small-business demo to three operating personas without weakening permission boundaries.
 
 Custom roles are supported. Composite workflows validate required dependent permissions so the UI does not expose an action whose supporting data cannot be read.
 

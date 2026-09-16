@@ -6,11 +6,11 @@ on:
       source_ref:
         description: Git branch or tag to build
         required: true
-        default: 'v1.1.0-rc1'
+        default: 'main'
       image_tag:
         description: Docker image tag to publish
         required: true
-        default: 'v1.1.0-rc1'
+        default: 'latest'
 
   push:
     tags:
