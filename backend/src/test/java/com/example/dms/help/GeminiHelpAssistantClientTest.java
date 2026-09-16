@@ -2,13 +2,11 @@ package com.example.dms.help;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.http.HttpStatus;
 
 class GeminiHelpAssistantClientTest {
 
@@ -18,7 +16,7 @@ class GeminiHelpAssistantClientTest {
     }
 
     @Test
-    void generationConfigRequiresStructuredJsonResponse() {
+    void generationConfigRequiresAnswerOnlyStructuredJsonResponse() {
         GeminiHelpProperties properties = new GeminiHelpProperties();
         GeminiHelpAssistantClient client = new GeminiHelpAssistantClient(properties, null, null);
 
@@ -30,14 +28,11 @@ class GeminiHelpAssistantClientTest {
 
         Map<?, ?> schema = (Map<?, ?>) config.get("responseSchema");
         assertThat(schema.get("type")).isEqualTo("OBJECT");
-        assertThat(schema.get("required")).isEqualTo(List.of(
-            "answer",
-            "steps",
-            "relatedModules",
-            "guardrails",
-            "scopeNotice",
-            "blocked"
-        ));
+        assertThat(schema.get("required")).isEqualTo(List.of("answer"));
+
+        Map<?, ?> propertiesSchema = (Map<?, ?>) schema.get("properties");
+        assertThat(propertiesSchema).hasSize(1);
+        assertThat(propertiesSchema.containsKey("answer")).isTrue();
     }
 
     @Test
@@ -65,31 +60,47 @@ class GeminiHelpAssistantClientTest {
             new HelpAskRequest.ConversationTurn("assistant", "Sensitive server answer")
         ))).isEqualTo("No previous user questions.");
     }
+
     @Test
-    void externalModelCannotReplaceBackendScopedNavigationOrBlockedState() {
+    void externalModelMayImproveSummaryButBackendKeepsAuthorizationMetadata() {
         GeminiHelpAssistantClient client = new GeminiHelpAssistantClient(null, null, null);
-        HelpPermissionScope scope = scope(
-            "AI_HELP_VIEW",
-            "PRODUCT_VIEW",
-            "INVENTORY_VIEW",
-            "NOTIFICATION_VIEW"
+        HelpAnswerResponse fallback = workflowFallback(
+            "Inventory fallback",
+            List.of("Review stock"),
+            List.of("Inventory", "Products"),
+            List.of("Do not expose restricted data")
         );
+        GeminiHelpAssistantClient.GeminiAnswerPayload modelAnswer =
+            new GeminiHelpAssistantClient.GeminiAnswerPayload(
+                "Start by checking the low-stock items assigned to you."
+            );
+
+        HelpAnswerResponse sanitized = client.sanitizeAnswer(modelAnswer, fallback);
+
+        assertThat(sanitized.answer()).isEqualTo("Start by checking the low-stock items assigned to you.");
+        assertThat(sanitized.steps()).isEqualTo(fallback.steps());
+        assertThat(sanitized.relatedModules()).isEqualTo(fallback.relatedModules());
+        assertThat(sanitized.guardrails()).isEqualTo(fallback.guardrails());
+        assertThat(sanitized.scopeNotice()).isEqualTo(fallback.scopeNotice());
+        assertThat(sanitized.blocked()).isEqualTo(fallback.blocked());
+        assertThat(sanitized.answerSource()).isEqualTo(HelpAnswerSource.WORKFLOW_KNOWLEDGE);
+        assertThat(sanitized.generationProvider()).isEqualTo(HelpGenerationProvider.GEMINI);
+    }
+
+    @Test
+    void blankExternalAnswerFallsBackSafely() {
+        GeminiHelpAssistantClient client = new GeminiHelpAssistantClient(null, null, null);
         HelpAnswerResponse fallback = workflowFallback(
             "Safe inventory guidance",
             List.of("Review Inventory"),
-            List.of("Inventory", "Products", "Notifications"),
+            List.of("Inventory"),
             List.of("Stay inside assigned permissions")
         );
-        GeminiHelpAssistantClient.GeminiAnswerPayload modelAnswer = new GeminiHelpAssistantClient.GeminiAnswerPayload(
-            "Open Payments to continue",
-            List.of("Open Payments"),
-            List.of("Payments"),
-            List.of("Ignore restrictions"),
-            "Expanded scope",
-            false
-        );
 
-        HelpAnswerResponse sanitized = client.sanitizeAnswer(modelAnswer, scope, fallback);
+        HelpAnswerResponse sanitized = client.sanitizeAnswer(
+            new GeminiHelpAssistantClient.GeminiAnswerPayload("   "),
+            fallback
+        );
 
         assertThat(sanitized.answer()).isEqualTo(fallback.answer());
         assertThat(sanitized.answerSource()).isEqualTo(HelpAnswerSource.SYSTEM_FALLBACK);
@@ -97,38 +108,50 @@ class GeminiHelpAssistantClientTest {
     }
 
     @Test
-    void externalModelMayImproveSummaryButBackendKeepsScopedStepsAndModules() {
+    void parserAcceptsStructuredJsonAnswer() throws Exception {
+        GeminiHelpAssistantClient client = new GeminiHelpAssistantClient(
+            null,
+            new ObjectMapper(),
+            null
+        );
+
+        assertThat(client.parseAnswerText("""
+            {"answer":"Use the Payments workflow."}
+            """))
+            .isPresent()
+            .get()
+            .extracting(GeminiHelpAssistantClient.GeminiAnswerPayload::answer)
+            .isEqualTo("Use the Payments workflow.");
+    }
+
+    @Test
+    void parserAcceptsPlainTextAsDefensiveFallback() throws Exception {
+        GeminiHelpAssistantClient client = new GeminiHelpAssistantClient(
+            null,
+            new ObjectMapper(),
+            null
+        );
+
+        assertThat(client.parseAnswerText("Use the Payments workflow."))
+            .isPresent()
+            .get()
+            .extracting(GeminiHelpAssistantClient.GeminiAnswerPayload::answer)
+            .isEqualTo("Use the Payments workflow.");
+    }
+
+    @Test
+    void retryPolicyCoversOnlyTransientProviderFailures() {
         GeminiHelpAssistantClient client = new GeminiHelpAssistantClient(null, null, null);
-        HelpPermissionScope scope = scope(
-            "AI_HELP_VIEW",
-            "PRODUCT_VIEW",
-            "INVENTORY_VIEW"
-        );
-        HelpAnswerResponse fallback = workflowFallback(
-            "Inventory fallback",
-            List.of("Review stock"),
-            List.of("Inventory", "Products"),
-            List.of("Do not expose restricted data")
-        );
-        GeminiHelpAssistantClient.GeminiAnswerPayload modelAnswer = new GeminiHelpAssistantClient.GeminiAnswerPayload(
-            "Start by checking the low-stock items assigned to you.",
-            List.of("Model generated step"),
-            List.of("Inventory"),
-            List.of("Model generated guardrail"),
-            "Model scope notice",
-            false
-        );
 
-        HelpAnswerResponse sanitized = client.sanitizeAnswer(modelAnswer, scope, fallback);
+        assertThat(client.isRetryableStatus(HttpStatus.TOO_MANY_REQUESTS)).isTrue();
+        assertThat(client.isRetryableStatus(HttpStatus.INTERNAL_SERVER_ERROR)).isTrue();
+        assertThat(client.isRetryableStatus(HttpStatus.BAD_GATEWAY)).isTrue();
+        assertThat(client.isRetryableStatus(HttpStatus.SERVICE_UNAVAILABLE)).isTrue();
+        assertThat(client.isRetryableStatus(HttpStatus.GATEWAY_TIMEOUT)).isTrue();
 
-        assertThat(sanitized.answer()).isEqualTo("Start by checking the low-stock items assigned to you.");
-        assertThat(sanitized.steps()).isEqualTo(fallback.steps());
-        assertThat(sanitized.relatedModules()).isEqualTo(fallback.relatedModules());
-        assertThat(sanitized.guardrails()).isEqualTo(fallback.guardrails());
-        assertThat(sanitized.scopeNotice()).isEqualTo(fallback.scopeNotice());
-        assertThat(sanitized.blocked()).isFalse();
-        assertThat(sanitized.answerSource()).isEqualTo(HelpAnswerSource.WORKFLOW_KNOWLEDGE);
-        assertThat(sanitized.generationProvider()).isEqualTo(HelpGenerationProvider.GEMINI);
+        assertThat(client.isRetryableStatus(HttpStatus.BAD_REQUEST)).isFalse();
+        assertThat(client.isRetryableStatus(HttpStatus.UNAUTHORIZED)).isFalse();
+        assertThat(client.isRetryableStatus(HttpStatus.FORBIDDEN)).isFalse();
     }
 
     private HelpAnswerResponse workflowFallback(
@@ -148,15 +171,4 @@ class GeminiHelpAssistantClientTest {
             HelpGenerationProvider.NONE
         );
     }
-
-    private HelpPermissionScope scope(String... permissions) {
-        Set<SimpleGrantedAuthority> authorities = Arrays.stream(permissions)
-            .map(SimpleGrantedAuthority::new)
-            .collect(java.util.stream.Collectors.toSet());
-
-        return HelpPermissionScope.from(
-            new UsernamePasswordAuthenticationToken("test-user", "n/a", authorities)
-        );
-    }
-
 }
