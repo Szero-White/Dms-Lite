@@ -42,6 +42,30 @@ class AuthorizationRbacTest {
     }
 
     @Test
+    void invalidCredentialsReturnUnauthorizedInsteadOfServerError() throws Exception {
+        mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(Map.of(
+                    "username", "owner",
+                    "password", "wrong-password"
+                ))))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value("Bad credentials"));
+    }
+
+    @Test
+    void retiredWarehouseDemoAccountCannotLogin() throws Exception {
+        mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(Map.of(
+                    "username", "warehouse",
+                    "password", DEMO_PASSWORD
+                ))))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value("Bad credentials"));
+    }
+
+    @Test
     void salesSessionReflectsSmallBusinessFulfillmentPermissions() throws Exception {
         mvc.perform(get("/api/auth/me")
                 .header("Authorization", bearer("sale")))

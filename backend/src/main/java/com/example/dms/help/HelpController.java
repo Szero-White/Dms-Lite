@@ -2,9 +2,9 @@ package com.example.dms.help;
 
 import com.example.dms.common.ApiResponse;
 import com.example.dms.common.PageRequestPolicy;
+import com.example.dms.common.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -45,7 +45,7 @@ public class HelpController {
 
     @GetMapping("/history")
     @PreAuthorize("hasAuthority('TEAM_MANAGE')")
-    public ApiResponse<Page<HelpInteractionResponse>> history(
+    public ApiResponse<PageResponse<HelpInteractionResponse>> history(
         @RequestParam(defaultValue = "false") boolean mineOnly,
         @RequestParam(defaultValue = "") String keyword,
         @RequestParam(required = false) Boolean blocked,
@@ -62,7 +62,9 @@ public class HelpController {
             Sort.by(new Sort.Order(resolvedDirection, resolvedSort.property()).nullsLast())
                 .and(Sort.by(Sort.Order.desc("id")))
         );
-        return ApiResponse.ok(helpInteractionService.history(mineOnly, keyword, blocked, pageable));
+        return ApiResponse.ok(PageResponse.from(
+            helpInteractionService.history(mineOnly, keyword, blocked, pageable)
+        ));
     }
 
     @DeleteMapping("/history/{interactionId}")

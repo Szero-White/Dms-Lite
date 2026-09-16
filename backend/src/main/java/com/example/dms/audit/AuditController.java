@@ -1,8 +1,8 @@
 package com.example.dms.audit;
 
 import com.example.dms.common.ApiResponse;
+import com.example.dms.common.PageResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,7 +17,7 @@ public class AuditController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('AUDIT_VIEW')")
-    public ApiResponse<Page<AuditLogResponse>> list() {
-        return ApiResponse.ok(auditQueryService.listRecent());
+    public ApiResponse<PageResponse<AuditLogResponse>> list() {
+        return ApiResponse.ok(PageResponse.from(auditQueryService.listRecent()));
     }
 }

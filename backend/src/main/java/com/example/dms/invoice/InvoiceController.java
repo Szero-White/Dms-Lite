@@ -1,10 +1,10 @@
 package com.example.dms.invoice;
 
 import com.example.dms.common.ApiResponse;
+import com.example.dms.common.PageResponse;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,7 +23,7 @@ public class InvoiceController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('INVOICE_VIEW')")
-    public ApiResponse<Page<InvoiceResponse>> list(
+    public ApiResponse<PageResponse<InvoiceResponse>> list(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "") String search,
         @RequestParam(required = false)
@@ -33,7 +33,9 @@ public class InvoiceController {
         @RequestParam(defaultValue = "NEWEST") InvoiceSort sortBy,
         @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection
     ) {
-        return ApiResponse.ok(invoiceService.listInvoices(page, search, from, to, sortBy, sortDirection));
+        return ApiResponse.ok(PageResponse.from(
+            invoiceService.listInvoices(page, search, from, to, sortBy, sortDirection)
+        ));
     }
 
     @GetMapping("/{id}")

@@ -2,11 +2,11 @@ package com.example.dms.inventory;
 
 import com.example.dms.common.ApiResponse;
 import com.example.dms.common.PageRequestPolicy;
+import com.example.dms.common.PageResponse;
 import com.example.dms.common.TenantContext;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,13 +36,13 @@ public class InventoryController {
 
     @GetMapping("/transactions")
     @PreAuthorize("hasAuthority('INVENTORY_VIEW')")
-    public ApiResponse<Page<InventoryTransactionResponse>> history(
+    public ApiResponse<PageResponse<InventoryTransactionResponse>> history(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "50") int size
     ) {
-        return ApiResponse.ok(
+        return ApiResponse.ok(PageResponse.from(
             inventoryService.history(PageRequestPolicy.newestByCreatedAt(page, size))
-        );
+        ));
     }
 
     @PostMapping("/receive")

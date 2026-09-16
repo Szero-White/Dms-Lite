@@ -1,12 +1,12 @@
 package com.example.dms.payment;
 
 import com.example.dms.common.ApiResponse;
+import com.example.dms.common.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
@@ -38,7 +38,7 @@ public class PaymentController {
 
     @GetMapping("/outstanding-orders")
     @PreAuthorize(PAYMENT_WORKSPACE)
-    public ApiResponse<Page<PaymentOutstandingOrderResponse>> outstandingOrders(
+    public ApiResponse<PageResponse<PaymentOutstandingOrderResponse>> outstandingOrders(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "") String search,
         @RequestParam(defaultValue = "") String dueStatuses,
@@ -51,7 +51,7 @@ public class PaymentController {
         @RequestParam(defaultValue = "NEWEST") OutstandingOrderSort sortBy,
         @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection
     ) {
-        return ApiResponse.ok(paymentQueryService.listOutstandingOrders(
+        return ApiResponse.ok(PageResponse.from(paymentQueryService.listOutstandingOrders(
             page,
             search,
             dueStatuses,
@@ -61,12 +61,12 @@ public class PaymentController {
             maxRemaining,
             sortBy,
             sortDirection
-        ));
+        )));
     }
 
     @GetMapping("/history")
     @PreAuthorize(PAYMENT_WORKSPACE)
-    public ApiResponse<Page<PaymentResponse>> history(
+    public ApiResponse<PageResponse<PaymentResponse>> history(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "") String search,
         @RequestParam(required = false)
@@ -76,7 +76,9 @@ public class PaymentController {
         @RequestParam(defaultValue = "NEWEST") PaymentHistorySort sortBy,
         @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection
     ) {
-        return ApiResponse.ok(paymentQueryService.listHistory(page, search, from, to, sortBy, sortDirection));
+        return ApiResponse.ok(PageResponse.from(
+            paymentQueryService.listHistory(page, search, from, to, sortBy, sortDirection)
+        ));
     }
 
     @PostMapping
