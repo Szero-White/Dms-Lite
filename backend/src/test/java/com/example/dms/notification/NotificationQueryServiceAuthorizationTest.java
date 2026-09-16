@@ -307,7 +307,7 @@ class NotificationQueryServiceAuthorizationTest {
     }
 
     @Test
-    void warehouseCanMarkDerivedLowStockUnreadAgain() {
+    void inventoryViewerCanMarkDerivedLowStockUnreadAgain() {
         StockItem stockItem = StockItem.builder()
             .id(501L)
             .tenantId(1L)
@@ -341,20 +341,20 @@ class NotificationQueryServiceAuthorizationTest {
             .createdAt(stockChangedAt)
             .build()));
 
-        Authentication warehouse = authentication(
+        Authentication inventoryViewer = authentication(
             "NOTIFICATION_VIEW",
             "PRODUCT_VIEW",
             "INVENTORY_VIEW"
         );
 
-        service.setReadState("low-stock-501", true, warehouse);
+        service.setReadState("low-stock-501", true, inventoryViewer);
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<String> readKey = ArgumentCaptor.forClass(String.class);
         verify(notificationReads).insertIfAbsent(eq(1L), eq(10L), readKey.capture());
         assertThat(readKey.getValue()).startsWith("derived:low-stock-501:");
 
-        service.setReadState("low-stock-501", false, warehouse);
+        service.setReadState("low-stock-501", false, inventoryViewer);
         verify(notificationReads).deleteReceipt(1L, 10L, readKey.getValue());
     }
 
@@ -435,11 +435,11 @@ class NotificationQueryServiceAuthorizationTest {
         assertThat(ownerFeed).singleElement().satisfies(item -> assertThat(item.readFlag()).isTrue());
 
         TenantContext.set(1L, 20L);
-        List<NotificationFeedItem> warehouseFeed = service.listRecent(
+        List<NotificationFeedItem> secondUserFeed = service.listRecent(
             20,
             authentication("NOTIFICATION_VIEW", "SALES_ORDER_VIEW")
         );
-        assertThat(warehouseFeed).singleElement().satisfies(item -> assertThat(item.readFlag()).isFalse());
+        assertThat(secondUserFeed).singleElement().satisfies(item -> assertThat(item.readFlag()).isFalse());
     }
 
     private Notification salesNotification(Long id, String type) {

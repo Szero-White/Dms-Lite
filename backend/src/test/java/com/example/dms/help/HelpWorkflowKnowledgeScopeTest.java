@@ -13,7 +13,7 @@ class HelpWorkflowKnowledgeScopeTest {
     private final HelpWorkflowKnowledge knowledge = new HelpWorkflowKnowledge();
 
     @Test
-    void warehouseSalesGuidanceDoesNotAdvertiseCustomerOrPaymentScreens() {
+    void inventoryOperatorSalesGuidanceDoesNotAdvertiseCustomerOrPaymentScreens() {
         HelpPermissionScope scope = scope(
             "PRODUCT_VIEW",
             "SALES_ORDER_VIEW",
@@ -34,7 +34,7 @@ class HelpWorkflowKnowledgeScopeTest {
     }
 
     @Test
-    void accountantReportGuidanceDoesNotAdvertiseInventoryOrAuditScreens() {
+    void financeOnlyReportGuidanceDoesNotAdvertiseInventoryOrAuditScreens() {
         HelpPermissionScope scope = scope(
             "PRODUCT_VIEW",
             "CUSTOMER_VIEW",

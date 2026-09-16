@@ -159,7 +159,7 @@ public class SalesOrderService {
             );
         }
 
-        // Current MVP combines confirmation and warehouse fulfillment in one transaction.
+        // Current MVP combines order confirmation, stock fulfillment, and receivable recognition in one transaction.
         salesOrder.setStatus(SalesOrderStatus.COMPLETED);
         salesOrder.setConfirmedAt(Instant.now());
 

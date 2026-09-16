@@ -3,6 +3,8 @@ package com.example.dms.team;
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
 import com.example.dms.common.TenantContext;
+import com.example.dms.seed.DemoAccessPolicy;
+import com.example.dms.seed.DemoProperties;
 import com.example.dms.user.AppUserRepository;
 import com.example.dms.user.Permission;
 import com.example.dms.user.PermissionNames;
@@ -100,11 +102,14 @@ public class RoleManagementService {
 
     private final AuditService auditService;
 
+    private final DemoProperties demoProperties;
+
     @Transactional(readOnly = true)
     public List<RoleOptionResponse> listAssignableRoles() {
         return roles.findVisibleRoles(TenantContext.tenantRequired())
             .stream()
             .filter(role -> !OWNER_ROLE.equals(role.getName()))
+            .filter(this::isVisibleInCurrentMode)
             .map(this::toResponse)
             .toList();
     }
@@ -189,6 +194,12 @@ public class RoleManagementService {
         }
 
         return role;
+    }
+
+    private boolean isVisibleInCurrentMode(Role role) {
+        return !demoProperties.isEnabled()
+            || !role.isSystemRole()
+            || !DemoAccessPolicy.isHiddenDemoSystemRole(role.getName());
     }
 
     private Set<Permission> resolvePermissions(Set<String> requestedPermissions) {

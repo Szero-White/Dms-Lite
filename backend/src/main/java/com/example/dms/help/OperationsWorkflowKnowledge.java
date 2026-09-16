@@ -15,7 +15,7 @@ final class OperationsWorkflowKnowledge {
                 steps.add("Chỉ nhập hoặc điều chỉnh kho khi có phát sinh thật hoặc đã xác minh sai lệch.");
                 steps.add("Ghi chú rõ lý do để lần sau có thể kiểm tra lại.");
             } else {
-                steps.add("Nếu tồn kho sai, báo cho Nhân viên kho hoặc Chủ doanh nghiệp vì vai trò của bạn không được điều chỉnh kho.");
+                steps.add("Nếu tồn kho sai, báo cho Kế toán hoặc Chủ doanh nghiệp vì vai trò của bạn không được điều chỉnh kho.");
             }
 
             return response(
@@ -36,7 +36,7 @@ final class OperationsWorkflowKnowledge {
             steps.add("Use receive or adjust stock only when there is a real stock movement or verified correction.");
             steps.add("Add a clear note so the movement can be reviewed later.");
         } else {
-            steps.add("Report incorrect stock to Warehouse or Owner because your role cannot adjust inventory.");
+            steps.add("Report incorrect stock to Accounting or Owner because your role cannot adjust inventory.");
         }
 
         return response(
@@ -54,7 +54,7 @@ final class OperationsWorkflowKnowledge {
     public HelpAnswerResponse productAnswer(HelpPermissionScope scope, HelpLocale locale) {
         if (locale == HelpLocale.VI) {
             List<String> steps = new ArrayList<>();
-            steps.add("Mã sản phẩm được hệ thống cấp tự động theo chuẩn PRD-000001 để bán hàng và kho nhận diện nhất quán.");
+            steps.add("Mã sản phẩm được hệ thống cấp tự động theo chuẩn PRD-000001 để bán hàng và quản lý tồn kho nhận diện nhất quán.");
             if (scope.has(PermissionNames.PRODUCT_MANAGE)) {
                 steps.add("Mở Sản phẩm để tạo hoặc cập nhật tên, giá vốn, giá bán và tồn kho tối thiểu; mã sản phẩm do hệ thống tự cấp.");
                 steps.add("Ngừng hoạt động sản phẩm không còn bán thay vì xóa lịch sử; kích hoạt lại khi doanh nghiệp bán trở lại.");
@@ -63,7 +63,7 @@ final class OperationsWorkflowKnowledge {
             }
 
             return response(
-                "Danh mục sản phẩm là dữ liệu gốc cho bộ phận bán hàng và kho, nên mọi thay đổi phải được kiểm soát.",
+                "Danh mục sản phẩm là dữ liệu gốc cho bán hàng và quản lý tồn kho, nên mọi thay đổi phải được kiểm soát.",
                 steps,
                 scope.relatedModules(locale, "Products", "Inventory", "Sales Orders"),
                 List.of(
@@ -75,7 +75,7 @@ final class OperationsWorkflowKnowledge {
         }
 
         List<String> steps = new ArrayList<>();
-        steps.add("Product codes are assigned automatically in PRD-000001 format so sales and warehouse teams use a consistent identifier.");
+        steps.add("Product codes are assigned automatically in PRD-000001 format so sales and inventory workflows use a consistent identifier.");
         if (scope.has(PermissionNames.PRODUCT_MANAGE)) {
             steps.add("Open Products to create or update name, cost, sale price and minimum stock; the product code is assigned automatically.");
             steps.add("Deactivate products that are no longer sold instead of deleting history; reactivate them when trading resumes.");

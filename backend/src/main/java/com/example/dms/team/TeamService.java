@@ -3,6 +3,7 @@ package com.example.dms.team;
 import com.example.dms.audit.AuditService;
 import com.example.dms.common.BusinessException;
 import com.example.dms.common.TenantContext;
+import com.example.dms.seed.DemoAccessPolicy;
 import com.example.dms.seed.DemoProperties;
 import com.example.dms.user.AppUser;
 import com.example.dms.user.AppUserRepository;
@@ -28,13 +29,6 @@ public class TeamService {
 
     private static final String OWNER_ROLE = "OWNER";
 
-    private static final Set<String> DEMO_USERNAMES = Set.of(
-        "owner",
-        "sale",
-        "warehouse",
-        "accountant"
-    );
-
     private final AppUserRepository users;
 
     private final RoleRepository roles;
@@ -50,6 +44,7 @@ public class TeamService {
         Long tenantId = TenantContext.tenantRequired();
         return users.findByTenantIdOrderByIdDesc(tenantId)
             .stream()
+            .filter(user -> !isRetiredDemoAccount(user))
             .map(this::toResponse)
             .toList();
     }
@@ -135,7 +130,12 @@ public class TeamService {
 
     private boolean isProtectedDemoAccount(AppUser user) {
         return demoProperties.isEnabled()
-            && DEMO_USERNAMES.contains(user.getUsername().toLowerCase(Locale.ROOT));
+            && DemoAccessPolicy.isProtectedUsername(user.getUsername());
+    }
+
+    private boolean isRetiredDemoAccount(AppUser user) {
+        return demoProperties.isEnabled()
+            && DemoAccessPolicy.isRetiredDemoUsername(user.getUsername());
     }
 
     private boolean isOwner(AppUser user) {
@@ -159,6 +159,9 @@ public class TeamService {
         Map<String, Role> visibleRoles = roles.findVisibleRoles(tenantId)
             .stream()
             .filter(role -> !OWNER_ROLE.equals(role.getName()))
+            .filter(role -> !demoProperties.isEnabled()
+                || !role.isSystemRole()
+                || !DemoAccessPolicy.isHiddenDemoSystemRole(role.getName()))
             .collect(Collectors.toMap(
                 role -> role.getName().toLowerCase(Locale.ROOT),
                 Function.identity()
