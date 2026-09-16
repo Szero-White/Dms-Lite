@@ -53,7 +53,7 @@ The application keeps sales, stock, receivables, payments, invoices, authorizati
 - Inventory stock, stock receiving, and transaction history
 - Draft sales orders with transactional fulfillment
 - Credit-limit validation before stock/debt mutation
-- Order-specific partial and final payments
+- Order-specific partial and final payments with line-item review before posting
 - Immutable payment receipt snapshots
 - Automatic Draft invoice creation after final settlement
 - PDF invoice and payment receipt generation

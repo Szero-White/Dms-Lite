@@ -89,6 +89,9 @@ class HelpDataAnswerServiceNaturalLanguageTest {
 
         assertThat(answer.blocked()).isFalse();
         assertThat(answer.answer()).contains("TEA-24", "8 đơn vị");
+        assertThat(String.join(" ", answer.steps()))
+            .contains("không có thao tác điều chỉnh tồn thủ công")
+            .doesNotContain("chỉ điều chỉnh");
     }
 
     @Test

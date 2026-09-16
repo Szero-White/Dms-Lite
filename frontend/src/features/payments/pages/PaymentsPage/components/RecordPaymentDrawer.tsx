@@ -1,13 +1,17 @@
-import { App, Button, Descriptions, Drawer, Form, Input, InputNumber, Space, Typography } from 'antd';
+import { App, Button, Drawer, Form, Input, InputNumber, Space, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency, toNumber } from '../../../../../lib/format';
-import { useRecordSalesOrderPayment } from '../../../hooks/usePaymentQueries';
+import {
+  useOutstandingPaymentOrderDetail,
+  useRecordSalesOrderPayment,
+} from '../../../hooks/usePaymentQueries';
 import type {
   OutstandingPaymentOrder,
   RecordPaymentPayload,
 } from '../../../types/payment.types';
 import styles from '../PaymentsPage.module.css';
+import { PaymentOrderReview } from './PaymentOrderReview';
 
 interface RecordPaymentDrawerProps {
   order: OutstandingPaymentOrder | null;
@@ -20,7 +24,10 @@ export function RecordPaymentDrawer({ order, onClose }: RecordPaymentDrawerProps
   const [requestKey, setRequestKey] = useState('');
   const [form] = Form.useForm<Pick<RecordPaymentPayload, 'amount' | 'note'>>();
   const mutation = useRecordSalesOrderPayment();
-  const remainingAmount = toNumber(order?.remainingAmount);
+  const detailQuery = useOutstandingPaymentOrderDetail(order?.salesOrderId, {
+    enabled: Boolean(order),
+  });
+  const remainingAmount = toNumber(detailQuery.data?.remainingAmount ?? order?.remainingAmount);
 
   useEffect(() => {
     if (!order) {
@@ -33,7 +40,7 @@ export function RecordPaymentDrawer({ order, onClose }: RecordPaymentDrawerProps
   }, [form, order]);
 
   async function submit(values: Pick<RecordPaymentPayload, 'amount' | 'note'>) {
-    if (!order || !requestKey) {
+    if (!order || !requestKey || !detailQuery.data) {
       return;
     }
 
@@ -49,7 +56,7 @@ export function RecordPaymentDrawer({ order, onClose }: RecordPaymentDrawerProps
   return (
     <Drawer
       className={styles.paymentDrawer}
-      width={480}
+      width={760}
       title={order ? t('payments.drawer.title', { code: order.salesOrderCode }) : t('payments.recordPayment')}
       open={Boolean(order)}
       onClose={onClose}
@@ -57,50 +64,63 @@ export function RecordPaymentDrawer({ order, onClose }: RecordPaymentDrawerProps
       footer={(
         <Space className={styles.drawerFooter}>
           <Button onClick={onClose}>{t('common.cancel')}</Button>
-          <Button type="primary" loading={mutation.isPending} onClick={() => form.submit()}>
+          <Button
+            type="primary"
+            loading={mutation.isPending}
+            disabled={!detailQuery.data || detailQuery.isError}
+            onClick={() => form.submit()}
+          >
             {t('payments.savePayment')}
           </Button>
         </Space>
       )}
     >
       {order ? (
-        <>
-          <Descriptions bordered size="small" column={1} className={styles.paymentSummary}>
-            <Descriptions.Item label={t('payments.column.salesOrder')}>{order.salesOrderCode}</Descriptions.Item>
-            <Descriptions.Item label={t('customers.column.customer')}>{order.customerName}</Descriptions.Item>
-            <Descriptions.Item label={t('payments.column.orderTotal')}>{formatCurrency(order.totalAmount, i18n.language)}</Descriptions.Item>
-            <Descriptions.Item label={t('payments.column.collected')}>{formatCurrency(order.paidAmount, i18n.language)}</Descriptions.Item>
-            <Descriptions.Item label={t('payments.column.remaining')}>
-              <Typography.Text type="danger" strong>{formatCurrency(order.remainingAmount, i18n.language)}</Typography.Text>
-            </Descriptions.Item>
-          </Descriptions>
+        <div className={styles.paymentReviewFlow}>
+          <PaymentOrderReview
+            summary={order}
+            detail={detailQuery.data}
+            isLoading={detailQuery.isLoading}
+            isError={detailQuery.isError}
+            onRetry={() => detailQuery.refetch()}
+          />
 
-          <Form form={form} layout="vertical" preserve={false} onFinish={submit}>
-            <Form.Item
-              label={t('payments.amount')}
-              name="amount"
-              rules={[{ required: true, message: t('payments.amountRequired') }]}
-            >
-              <InputNumber
-                className={styles.fullWidth}
-                min={1}
-                max={remainingAmount}
-                onChange={(value) => {
-                  const numericValue = typeof value === 'number' ? value : Number(value ?? 0);
-                  if (remainingAmount > 0 && numericValue > remainingAmount) {
-                    form.setFieldValue('amount', remainingAmount);
-                    message.info(t('payments.amountCapped', {
-                      amount: formatCurrency(remainingAmount, i18n.language),
-                    }));
-                  }
-                }}
-              />
-            </Form.Item>
-            <Form.Item label={t('payments.note')} name="note">
-              <Input.TextArea maxLength={500} rows={4} placeholder={t('payments.notePlaceholder')} />
-            </Form.Item>
-          </Form>
-        </>
+          <section className={styles.paymentEntrySection}>
+            <div className={styles.paymentSectionHeading}>
+              <div>
+                <Typography.Title level={5}>{t('payments.drawer.paymentEntry')}</Typography.Title>
+                <Typography.Text type="secondary">{t('payments.drawer.paymentEntryHint')}</Typography.Text>
+              </div>
+            </div>
+
+            <Form form={form} layout="vertical" preserve={false} onFinish={submit}>
+              <Form.Item
+                label={t('payments.amount')}
+                name="amount"
+                rules={[{ required: true, message: t('payments.amountRequired') }]}
+              >
+                <InputNumber
+                  className={styles.fullWidth}
+                  min={1}
+                  max={remainingAmount}
+                  disabled={!detailQuery.data}
+                  onChange={(value) => {
+                    const numericValue = typeof value === 'number' ? value : Number(value ?? 0);
+                    if (remainingAmount > 0 && numericValue > remainingAmount) {
+                      form.setFieldValue('amount', remainingAmount);
+                      message.info(t('payments.amountCapped', {
+                        amount: formatCurrency(remainingAmount, i18n.language),
+                      }));
+                    }
+                  }}
+                />
+              </Form.Item>
+              <Form.Item label={t('payments.note')} name="note">
+                <Input.TextArea maxLength={500} rows={3} placeholder={t('payments.notePlaceholder')} />
+              </Form.Item>
+            </Form>
+          </section>
+        </div>
       ) : null}
     </Drawer>
   );

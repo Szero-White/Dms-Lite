@@ -3,6 +3,7 @@ import { queryKeys } from '../../../lib/queryKeys';
 import { useMutationFeedback } from '../../../lib/useMutationFeedback';
 import type { OutstandingPaymentFilters, PaymentHistoryFilters } from '../types/payment.types';
 import {
+  fetchOutstandingPaymentOrderDetail,
   fetchOutstandingPaymentOrders,
   fetchPaymentHistory,
   recordSalesOrderPayment,
@@ -17,6 +18,17 @@ export function useOutstandingPaymentOrders(
     queryKey: queryKeys.paymentOutstanding(page, filters),
     queryFn: () => fetchOutstandingPaymentOrders(page, filters),
     enabled: options.enabled ?? true,
+  });
+}
+
+export function useOutstandingPaymentOrderDetail(
+  salesOrderId?: number,
+  options: { enabled?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: queryKeys.paymentOutstandingDetail(salesOrderId ?? 'missing'),
+    queryFn: () => fetchOutstandingPaymentOrderDetail(salesOrderId!),
+    enabled: Boolean(salesOrderId) && (options.enabled ?? true),
   });
 }
 

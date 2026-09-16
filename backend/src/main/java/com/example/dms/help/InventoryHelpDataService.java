@@ -97,7 +97,7 @@ public class InventoryHelpDataService {
             List.of(
                 locale == HelpLocale.VI ? "Mở Kho hàng để xem chi tiết theo kho." : "Open Inventory to review details by warehouse.",
                 locale == HelpLocale.VI ? "So sánh số tồn với mức tối thiểu: " + nullToZero(foundProduct.getMinStock()) + "." : "Compare on-hand stock with minimum stock: " + nullToZero(foundProduct.getMinStock()) + ".",
-                locale == HelpLocale.VI ? "Nếu số tồn sai, chỉ điều chỉnh khi đã kiểm tra chứng từ hoặc kiểm kho." : "If stock is wrong, adjust only after checking documents or physical count."
+                locale == HelpLocale.VI ? "Nếu số tồn không khớp, hãy đối chiếu lịch sử giao dịch, chứng từ và kiểm kho; hệ thống hiện không có thao tác điều chỉnh tồn thủ công." : "If stock does not match, reconcile movement history, documents and physical count; the current system does not provide manual stock adjustment."
             ),
             scope.relatedModules(locale, "Inventory", "Products"),
             List.of(locale == HelpLocale.VI ? "Không gửi dữ liệu tồn kho này sang dịch vụ AI bên ngoài; máy chủ đã tự tra theo quyền của bạn." : "This stock data was answered by the backend without sending database data to Gemini."),

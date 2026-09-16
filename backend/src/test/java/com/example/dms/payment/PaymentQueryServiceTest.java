@@ -13,12 +13,23 @@ import static org.mockito.Mockito.when;
 import com.example.dms.common.BusinessException;
 import com.example.dms.common.BusinessTimeProvider;
 import com.example.dms.common.TenantContext;
+import com.example.dms.customer.Customer;
+import com.example.dms.customer.CustomerRepository;
 import com.example.dms.debt.CustomerDebtRepository;
+import com.example.dms.debt.CustomerDebtTransaction;
 import com.example.dms.debt.ReceivableDueStatus;
+import com.example.dms.product.Product;
+import com.example.dms.product.ProductRepository;
+import com.example.dms.sales.SalesOrder;
+import com.example.dms.sales.SalesOrderItem;
+import com.example.dms.sales.SalesOrderRepository;
+import com.example.dms.sales.SalesOrderStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +47,9 @@ class PaymentQueryServiceTest {
     @Mock private PaymentRepository paymentRepository;
     @Mock private BusinessTimeProvider businessTimeProvider;
     @Mock private CustomerDebtRepository customerDebtRepository;
+    @Mock private SalesOrderRepository salesOrderRepository;
+    @Mock private CustomerRepository customerRepository;
+    @Mock private ProductRepository productRepository;
 
     private PaymentQueryService paymentQueryService;
 
@@ -44,7 +58,10 @@ class PaymentQueryServiceTest {
         paymentQueryService = new PaymentQueryService(
             paymentRepository,
             businessTimeProvider,
-            customerDebtRepository
+            customerDebtRepository,
+            salesOrderRepository,
+            customerRepository,
+            productRepository
         );
         TenantContext.set(1L, 10L);
         org.mockito.Mockito.lenient()
@@ -89,6 +106,77 @@ class PaymentQueryServiceTest {
         assertThat(result.daysUntilDue()).isEqualTo(13);
     }
 
+
+    @Test
+    void loadsOutstandingOrderDetailWithLineItemsForPaymentReview() {
+        SalesOrderItem item = SalesOrderItem.builder()
+            .id(31L)
+            .productId(5L)
+            .quantity(3)
+            .unitPrice(new BigDecimal("200000"))
+            .discountAmount(new BigDecimal("15000"))
+            .lineTotal(new BigDecimal("585000"))
+            .build();
+        SalesOrder salesOrder = SalesOrder.builder()
+            .id(201L)
+            .tenantId(1L)
+            .customerId(2L)
+            .code("SO-20260916-0002")
+            .status(SalesOrderStatus.COMPLETED)
+            .totalAmount(new BigDecimal("585000"))
+            .confirmedAt(Instant.parse("2026-09-16T06:00:00Z"))
+            .items(new java.util.ArrayList<>(List.of(item)))
+            .build();
+        item.setOrder(salesOrder);
+
+        CustomerDebtTransaction receivable = CustomerDebtTransaction.builder()
+            .tenantId(1L)
+            .customerId(2L)
+            .sourceType("SALES_ORDER")
+            .sourceId(201L)
+            .direction("INCREASE")
+            .remainingAmount(new BigDecimal("85000"))
+            .dueDate(LocalDate.of(2026, 9, 26))
+            .build();
+        Customer customer = Customer.builder()
+            .id(2L)
+            .tenantId(1L)
+            .name("Tap hoa Minh Phat")
+            .build();
+        Product product = Product.builder()
+            .id(5L)
+            .tenantId(1L)
+            .name("Nuoc ngot thung 24 lon")
+            .sku("NG-24")
+            .build();
+
+        when(salesOrderRepository.findDetailByIdAndTenantId(201L, 1L))
+            .thenReturn(Optional.of(salesOrder));
+        when(customerDebtRepository
+            .findFirstByTenantIdAndSourceTypeAndSourceIdAndDirectionOrderByCreatedAtDesc(
+                1L, "SALES_ORDER", 201L, "INCREASE"
+            ))
+            .thenReturn(Optional.of(receivable));
+        when(customerRepository.findByIdAndTenantId(2L, 1L)).thenReturn(Optional.of(customer));
+        when(productRepository.findByTenantIdAndIdIn(1L, Set.of(5L))).thenReturn(List.of(product));
+
+        PaymentOutstandingOrderDetailResponse result =
+            paymentQueryService.getOutstandingOrderDetail(201L);
+
+        assertThat(result.salesOrderCode()).isEqualTo("SO-20260916-0002");
+        assertThat(result.customerName()).isEqualTo("Tap hoa Minh Phat");
+        assertThat(result.totalAmount()).isEqualByComparingTo("585000");
+        assertThat(result.paidAmount()).isEqualByComparingTo("500000");
+        assertThat(result.remainingAmount()).isEqualByComparingTo("85000");
+        assertThat(result.items()).singleElement().satisfies(line -> {
+            assertThat(line.productName()).isEqualTo("Nuoc ngot thung 24 lon");
+            assertThat(line.productSku()).isEqualTo("NG-24");
+            assertThat(line.quantity()).isEqualTo(3);
+            assertThat(line.unitPrice()).isEqualByComparingTo("200000");
+            assertThat(line.discountAmount()).isEqualByComparingTo("15000");
+            assertThat(line.lineTotal()).isEqualByComparingTo("585000");
+        });
+    }
 
     @Test
     void appliesRequestedOutstandingOrderSort() {

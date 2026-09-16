@@ -61,6 +61,21 @@ export interface OutstandingPaymentOrder {
   daysUntilDue?: number;
 }
 
+export interface OutstandingPaymentOrderLine {
+  id: number;
+  productId: number;
+  productName?: string | null;
+  productSku?: string | null;
+  quantity: number;
+  unitPrice: string | number;
+  discountAmount: string | number;
+  lineTotal: string | number;
+}
+
+export interface OutstandingPaymentOrderDetail extends OutstandingPaymentOrder {
+  items: OutstandingPaymentOrderLine[];
+}
+
 export interface PaymentRecord {
   id: number;
   code: string;

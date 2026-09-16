@@ -164,6 +164,48 @@
   gap: var(--spacing-lg);
 }
 
+.paymentReviewFlow {
+  display: grid;
+  gap: 24px;
+}
+
+.paymentSectionHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: 12px;
+}
+
+.paymentSectionHeading :global(.ant-typography) {
+  margin: 0 !important;
+}
+
+.paymentItemsSection {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.paymentProductCell {
+  display: grid;
+  gap: 2px;
+  min-width: 180px;
+}
+
+.paymentDetailLoading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 72px;
+  padding: 14px 0;
+}
+
+.paymentEntrySection {
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
 .filterPanel {
   display: flex;
   align-items: center;

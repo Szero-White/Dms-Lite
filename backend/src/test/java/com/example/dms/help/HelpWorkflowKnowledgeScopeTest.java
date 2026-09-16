@@ -58,6 +58,25 @@ class HelpWorkflowKnowledgeScopeTest {
 
 
     @Test
+    void financeGuidanceRequiresOrderReviewBeforeRecordingPayment() {
+        HelpPermissionScope scope = scope(
+            "CUSTOMER_VIEW",
+            "SALES_ORDER_VIEW",
+            "PAYMENT_CREATE",
+            "DEBT_VIEW",
+            "AI_HELP_VIEW"
+        );
+
+        HelpAnswerResponse vietnamese = knowledge.financeAnswer(scope, HelpLocale.VI);
+        HelpAnswerResponse english = knowledge.financeAnswer(scope, HelpLocale.EN);
+
+        assertThat(String.join(" ", vietnamese.steps()))
+            .contains("chi tiết hàng hóa", "đơn giá", "số còn phải thu");
+        assertThat(String.join(" ", english.steps()))
+            .contains("line items", "unit prices", "outstanding balance");
+    }
+
+    @Test
     void customOperationsMonitorGuidanceStaysInsideAssignedScreens() {
         HelpPermissionScope scope = scope(
             "CUSTOMER_VIEW",

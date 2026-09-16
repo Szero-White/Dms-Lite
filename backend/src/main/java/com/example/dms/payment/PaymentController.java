@@ -64,6 +64,14 @@ public class PaymentController {
         )));
     }
 
+    @GetMapping("/outstanding-orders/{salesOrderId}")
+    @PreAuthorize(PAYMENT_WORKSPACE)
+    public ApiResponse<PaymentOutstandingOrderDetailResponse> outstandingOrderDetail(
+        @PathVariable Long salesOrderId
+    ) {
+        return ApiResponse.ok(paymentQueryService.getOutstandingOrderDetail(salesOrderId));
+    }
+
     @GetMapping("/history")
     @PreAuthorize(PAYMENT_WORKSPACE)
     public ApiResponse<PageResponse<PaymentResponse>> history(

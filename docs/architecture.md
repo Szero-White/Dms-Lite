@@ -66,6 +66,8 @@ Any core database failure rolls the transaction back.
 
 ### Payment
 
+The payment workspace keeps the outstanding-order list lightweight and lazily loads the selected order's line-item breakdown before enabling payment submission. The review response is tenant-scoped and protected by the same complete payment-workspace permission policy as the mutation.
+
 A new payment applies to one completed sales order:
 
 1. Lock the sales order.
