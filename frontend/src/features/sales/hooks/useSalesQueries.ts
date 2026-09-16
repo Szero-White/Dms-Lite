@@ -76,8 +76,9 @@ export function useCancelSalesOrder() {
   const { queryClient, message, t, onError } = useMutationFeedback();
 
   return useMutation({
-    mutationFn: (orderId: number) => cancelSalesOrder(orderId),
-    onSuccess: async (_, orderId) => {
+    mutationFn: ({ orderId, reason }: { orderId: number; reason: string }) =>
+      cancelSalesOrder(orderId, reason),
+    onSuccess: async (_, { orderId }) => {
       message.success(t('toast.sales.cancelled'));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders }),

@@ -17,6 +17,8 @@ public record SalesOrderDetailResponse(
     BigDecimal debtAmount,
     Instant createdAt,
     Instant confirmedAt,
+    Instant cancelledAt,
+    String cancellationReason,
     List<SalesOrderItemResponse> items
 ) {
 }

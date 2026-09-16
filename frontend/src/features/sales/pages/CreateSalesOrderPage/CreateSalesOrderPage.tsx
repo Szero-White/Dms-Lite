@@ -136,6 +136,7 @@ export function CreateSalesOrderPage() {
   return (
     <div className={styles.page}>
       <PageHeader
+        variant="operations"
         title={t('sales.create.title')}
         subtitle={t('sales.create.subtitle')}
         breadcrumb={[t('sales.create.breadcrumbSalesOrders'), t('sales.create.breadcrumbCreate')]}

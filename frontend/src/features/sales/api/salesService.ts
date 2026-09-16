@@ -29,6 +29,8 @@ export async function confirmSalesOrder(orderId: number) {
   return unwrapResponse<SalesOrder>(apiClient.post(`/sales-orders/${orderId}/confirm`));
 }
 
-export async function cancelSalesOrder(orderId: number) {
-  return unwrapResponse<SalesOrder>(apiClient.post(`/sales-orders/${orderId}/cancel`));
+export async function cancelSalesOrder(orderId: number, reason: string) {
+  return unwrapResponse<SalesOrder>(
+    apiClient.post(`/sales-orders/${orderId}/cancel`, { reason }),
+  );
 }

@@ -26,6 +26,9 @@ final class SalesWorkflowKnowledge {
             if (scope.has(PermissionNames.SALES_ORDER_CONFIRM)) {
                 steps.add("Chỉ xác nhận và hoàn tất đơn nháp khi khách hàng, tồn kho và giá đã đúng; thao tác này chuyển đơn sang trạng thái Hoàn tất.");
             }
+            if (scope.has(PermissionNames.SALES_ORDER_CANCEL)) {
+                steps.add("Nếu đơn không thể xử lý, dùng Hủy đơn và bắt buộc ghi rõ lý do để bảo đảm truy vết vận hành.");
+            }
             steps.add("Theo dõi vòng đời hiện tại: Nháp, Hoàn tất hoặc Đã hủy; hệ thống không lưu trạng thái Xác nhận riêng.");
 
             return response(
@@ -56,6 +59,9 @@ final class SalesWorkflowKnowledge {
         }
         if (scope.has(PermissionNames.SALES_ORDER_CONFIRM)) {
             steps.add("Confirm/fulfill a draft only after customer, stock and price are correct; this moves it to Completed.");
+        }
+        if (scope.has(PermissionNames.SALES_ORDER_CANCEL)) {
+            steps.add("If the order cannot be fulfilled, use Cancel order and record a clear reason for operational traceability.");
         }
         steps.add("Track the current lifecycle: Draft, Completed or Cancelled; Confirmed is not stored as a separate status.");
 

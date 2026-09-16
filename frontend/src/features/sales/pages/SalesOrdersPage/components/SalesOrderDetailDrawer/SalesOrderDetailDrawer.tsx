@@ -77,6 +77,11 @@ export function SalesOrderDetailDrawer({
             <Descriptions.Item label={t('sales.drawer.warehouse')}>
               {order.warehouseName ?? '--'}
             </Descriptions.Item>
+            {order.status === 'CANCELLED' && order.cancellationReason ? (
+              <Descriptions.Item label={t('sales.drawer.cancellationReason')} span={2}>
+                {order.cancellationReason}
+              </Descriptions.Item>
+            ) : null}
           </Descriptions>
 
           <div>
@@ -145,6 +150,12 @@ export function SalesOrderDetailDrawer({
                   color: 'green',
                   children: t('sales.timeline.confirmed', {
                     time: formatDateTime(order.confirmedAt, i18n.language),
+                  }),
+                }] : []),
+                ...(order.cancelledAt ? [{
+                  color: 'red',
+                  children: t('sales.timeline.cancelled', {
+                    time: formatDateTime(order.cancelledAt, i18n.language),
                   }),
                 }] : []),
                 {

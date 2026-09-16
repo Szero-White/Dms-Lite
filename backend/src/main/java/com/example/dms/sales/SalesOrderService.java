@@ -192,7 +192,7 @@ public class SalesOrderService {
         value = "dashboard",
         key = "T(com.example.dms.common.TenantContext).tenantRequired()"
     )
-    public SalesOrderDetailResponse cancelOrder(Long salesOrderId) {
+    public SalesOrderDetailResponse cancelOrder(Long salesOrderId, String reason) {
         Long tenantId = TenantContext.tenantRequired();
         SalesOrder salesOrder = findSalesOrderForUpdate(salesOrderId, tenantId);
 
@@ -200,13 +200,16 @@ public class SalesOrderService {
             throw new BusinessException("Only DRAFT can be cancelled");
         }
 
+        String normalizedReason = normalizeCancellationReason(reason);
         salesOrder.setStatus(SalesOrderStatus.CANCELLED);
+        salesOrder.setCancelledAt(Instant.now());
+        salesOrder.setCancellationReason(normalizedReason);
 
         auditService.log(
             "SALES_ORDER_CANCELLED",
             SALES_ORDER_ENTITY,
             salesOrder.getId(),
-            salesOrder.getCode()
+            salesOrder.getCode() + " | Reason: " + normalizedReason
         );
         notificationProducer.publish(
             tenantId,
@@ -219,6 +222,19 @@ public class SalesOrderService {
             tenantId,
             canViewOrderFinancials()
         );
+    }
+
+
+    private String normalizeCancellationReason(String reason) {
+        if (reason == null || reason.isBlank()) {
+            throw new BusinessException("Cancellation reason is required");
+        }
+
+        String normalizedReason = reason.trim();
+        if (normalizedReason.length() > 500) {
+            throw new BusinessException("Cancellation reason must not exceed 500 characters");
+        }
+        return normalizedReason;
     }
 
     private boolean canViewOrderFinancials() {

@@ -1,9 +1,6 @@
 import {
-  CheckCircleOutlined,
-  MoreOutlined,
   PlusOutlined,
   SearchOutlined,
-  StopOutlined,
 } from '@ant-design/icons';
 import {
   App,
@@ -11,7 +8,6 @@ import {
   Button,
   Card,
   DatePicker,
-  Dropdown,
   Input,
   Table,
   Tag,
@@ -39,7 +35,9 @@ import {
 } from '../../../../lib/format';
 import { newestFirst, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../lib/tableSorting';
 import type { SalesOrder, SalesOrderStatus } from '../../types/sales.types';
+import { SalesOrderCancellationModal } from './components/SalesOrderCancellationModal';
 import { SalesOrderDetailDrawer } from './components/SalesOrderDetailDrawer';
+import { SalesOrderRowActions } from './components/SalesOrderRowActions';
 import { SalesOrdersPulseBar } from './components/SalesOrdersPulseBar';
 import styles from './SalesOrdersPage.module.css';
 
@@ -80,6 +78,7 @@ export function SalesOrdersPage() {
   const [dateRange, setDateRange] = useState<[string, string] | null>(null);
   const [datePickerKey, setDatePickerKey] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<SalesOrder | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<SalesOrder | null>(null);
   const selectedOrderDetailQuery = useSalesOrderDetail(selectedOrder?.id);
   const selectedOrderDetail = selectedOrderDetailQuery.data ?? selectedOrder;
 
@@ -155,24 +154,28 @@ export function SalesOrdersPage() {
     });
   }
 
-  function cancelOrder(order: SalesOrder) {
-    if (!canCancelSalesOrder) {
+  function requestCancelOrder(order: SalesOrder) {
+    if (!canCancelSalesOrder || order.status !== 'DRAFT') {
       return;
     }
 
-    modal.confirm({
-      title: t('sales.cancel.title', { code: order.code }),
-      content: t('sales.cancel.content'),
-      okText: t('sales.cancel.ok'),
-      okButtonProps: { danger: true },
-      onOk: () => cancelMutation.mutateAsync(order.id),
-    });
+    setCancelTarget(order);
+  }
+
+  async function submitCancellation(reason: string) {
+    if (!cancelTarget) {
+      return;
+    }
+
+    await cancelMutation.mutateAsync({ orderId: cancelTarget.id, reason });
+    setCancelTarget(null);
   }
 
 
   return (
     <div className={styles.page}>
       <PageHeader
+        variant="operations"
         title={t('sales.title')}
         subtitle={t('sales.subtitle')}
         extra={canCreateSalesOrder ? (
@@ -318,7 +321,7 @@ export function SalesOrdersPage() {
         >
           <Table
             rowKey="id"
-            scroll={{ x: 1120 }}
+            scroll={{ x: 1320 }}
             sortDirections={TABLE_SORT_DIRECTIONS}
             showSorterTooltip={TABLE_SORTER_TOOLTIP}
             dataSource={filteredOrders}
@@ -421,26 +424,22 @@ export function SalesOrdersPage() {
                 },
               ] : []),
               {
-                title: '', fixed: 'right', width: 56,
+                title: t('common.actions'),
+                key: 'actions',
+                fixed: 'right',
+                width: 142,
+                align: 'right',
                 render: (_, record) => (
-                  <Dropdown trigger={['click']} menu={{
-                    items: [
-                      { key: 'view', label: t('sales.action.viewDetails') },
-                      ...(record.status === 'DRAFT' && canConfirmSalesOrder ? [
-                        { key: 'confirm', label: t('sales.action.confirmOrder'), icon: <CheckCircleOutlined /> },
-                      ] : []),
-                      ...(record.status === 'DRAFT' && canCancelSalesOrder ? [
-                        { key: 'cancel', label: t('sales.action.cancelOrder'), icon: <StopOutlined />, danger: true },
-                      ] : []),
-                    ],
-                    onClick: ({ key }) => {
-                      if (key === 'view') setSelectedOrder(record);
-                      if (key === 'confirm') confirmOrder(record);
-                      if (key === 'cancel') cancelOrder(record);
-                    },
-                  }}>
-                    <Button type="text" icon={<MoreOutlined />} aria-label={t('sales.action.actionsFor', { code: record.code })} />
-                  </Dropdown>
+                  <SalesOrderRowActions
+                    order={record}
+                    canConfirm={canConfirmSalesOrder}
+                    canCancel={canCancelSalesOrder}
+                    confirming={confirmMutation.isPending && confirmMutation.variables === record.id}
+                    cancelling={cancelMutation.isPending && cancelMutation.variables?.orderId === record.id}
+                    onView={setSelectedOrder}
+                    onConfirm={confirmOrder}
+                    onCancel={requestCancelOrder}
+                  />
                 ),
               },
             ]}
@@ -460,11 +459,22 @@ export function SalesOrdersPage() {
             : undefined
         }
         getProductName={(productId) => productsMap.get(productId)?.name}
-        onCancel={cancelOrder}
+        onCancel={requestCancelOrder}
         onClose={() => setSelectedOrder(null)}
         onConfirm={confirmOrder}
         open={Boolean(selectedOrder)}
         order={selectedOrderDetail ?? null}
+      />
+      <SalesOrderCancellationModal
+        order={cancelTarget}
+        open={Boolean(cancelTarget)}
+        submitting={cancelMutation.isPending}
+        onClose={() => {
+          if (!cancelMutation.isPending) {
+            setCancelTarget(null);
+          }
+        }}
+        onSubmit={submitCancellation}
       />
     </div>
   );

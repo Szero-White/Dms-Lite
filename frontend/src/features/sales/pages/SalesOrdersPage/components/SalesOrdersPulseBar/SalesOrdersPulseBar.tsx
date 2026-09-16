@@ -1,8 +1,4 @@
-import {
-  ClockCircleOutlined,
-  StopOutlined,
-  TrophyOutlined,
-} from '@ant-design/icons';
+import { ClockCircleOutlined, FileTextOutlined, StopOutlined, TrophyOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { SalesOrderStatus } from '../../../../types/sales.types';
 import styles from './SalesOrdersPulseBar.module.css';
@@ -27,126 +23,67 @@ export function SalesOrdersPulseBar({
   onStatusFiltersChange,
 }: SalesOrdersPulseBarProps) {
   const { t } = useTranslation();
-  const activeArc = totalOrders > 0 ? (activeOrders / totalOrders) * 201 : 0;
 
   const isStatusSelected = (status: SalesOrderStatus) => statusFilters.includes(status);
-
   const toggleStatus = (status: SalesOrderStatus) => {
-    const next = statusFilters.includes(status)
-      ? statusFilters.filter((value) => value !== status)
-      : [...statusFilters, status];
-    onStatusFiltersChange(next);
+    onStatusFiltersChange(
+      statusFilters.includes(status)
+        ? statusFilters.filter((value) => value !== status)
+        : [...statusFilters, status],
+    );
   };
 
+  const statuses = [
+    { status: 'DRAFT' as const, count: draftCount, icon: <ClockCircleOutlined />, tone: 'warning' },
+    { status: 'COMPLETED' as const, count: completedCount, icon: <TrophyOutlined />, tone: 'success' },
+    { status: 'CANCELLED' as const, count: cancelledCount, icon: <StopOutlined />, tone: 'danger' },
+  ];
+
   return (
-    <div className={styles.pulseBar}>
-      <div className={styles.pulseHero}>
-        <div className={styles.pulseRingWrap}>
-          <svg viewBox="0 0 80 80" className={styles.pulseRing}>
-            <circle cx="40" cy="40" r="32" fill="none" stroke="#f1f5f9" strokeWidth="8" />
-            <circle
-              cx="40"
-              cy="40"
-              r="32"
-              fill="none"
-              stroke="url(#salesPulseGradient)"
-              strokeWidth="8"
-              strokeDasharray={`${activeArc} 201`}
-              strokeDashoffset="50"
-              strokeLinecap="round"
-            />
-            <defs>
-              <linearGradient id="salesPulseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#6366f1" />
-                <stop offset="100%" stopColor="#8b5cf6" />
-              </linearGradient>
-            </defs>
-          </svg>
-          <div className={styles.pulseRingCenter}>
-            <span className={styles.pulseRingNum}>{totalOrders}</span>
-            <span className={styles.pulseRingLbl}>{t('sales.pulse.total')}</span>
-          </div>
-        </div>
-        <div className={styles.pulseHeroText}>
-          <div className={styles.pulseHeroTitle}>{t('sales.pulse.pipeline')}</div>
-          <div className={styles.pulseHeroSub}>
-            {t('sales.pulse.activeInactive', {
-              active: activeOrders,
-              inactive: totalOrders - activeOrders,
-            })}
-          </div>
+    <section className={styles.pulseBar} aria-label={t('sales.pulse.pipeline')}>
+      <div className={styles.summaryBlock}>
+        <div className={styles.summaryIcon}><FileTextOutlined /></div>
+        <div className={styles.summaryContent}>
+          <span className={styles.eyebrow}>{t('sales.pulse.pipeline')}</span>
+          <strong className={styles.summaryValue}>{totalOrders}</strong>
+          <span className={styles.summaryMeta}>
+            {t('sales.pulse.activeInactive', { active: activeOrders, inactive: totalOrders - activeOrders })}
+          </span>
         </div>
       </div>
 
-      <div className={styles.pulseDivider} />
+      <div className={styles.divider} />
 
-      <div className={styles.pulseTiers}>
-        <div className={styles.tierTitle}>{t('sales.pulse.orderStatus')}</div>
-
-        <button
-          type="button"
-          className={`${styles.tierRow} ${isStatusSelected('DRAFT') ? styles.tierActive : ''}`}
-          onClick={() => toggleStatus('DRAFT')}
-        >
-          <div className={styles.tierDot} style={{ background: '#f59e0b' }}>
-            <ClockCircleOutlined />
-          </div>
-          <span className={styles.tierLbl}>{t('status.sales.DRAFT')}</span>
-          <div className={styles.tierBar}>
-            <div
-              className={styles.tierFill}
-              style={{
-                width: `${totalOrders ? (draftCount / totalOrders) * 100 : 0}%`,
-                background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
-              }}
-            />
-          </div>
-          <span className={styles.tierCount}>{draftCount}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.tierRow} ${isStatusSelected('COMPLETED') ? styles.tierActive : ''}`}
-          onClick={() => toggleStatus('COMPLETED')}
-        >
-          <div className={styles.tierDot} style={{ background: '#10b981' }}>
-            <TrophyOutlined />
-          </div>
-          <span className={styles.tierLbl}>{t('status.sales.COMPLETED')}</span>
-          <div className={styles.tierBar}>
-            <div
-              className={styles.tierFill}
-              style={{
-                width: `${totalOrders ? (completedCount / totalOrders) * 100 : 0}%`,
-                background: 'linear-gradient(90deg, #10b981, #34d399)',
-              }}
-            />
-          </div>
-          <span className={styles.tierCount}>{completedCount}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.tierRow} ${isStatusSelected('CANCELLED') ? styles.tierActive : ''}`}
-          onClick={() => toggleStatus('CANCELLED')}
-        >
-          <div className={styles.tierDot} style={{ background: '#ef4444' }}>
-            <StopOutlined />
-          </div>
-          <span className={styles.tierLbl}>{t('status.sales.CANCELLED')}</span>
-          <div className={styles.tierBar}>
-            <div
-              className={styles.tierFill}
-              style={{
-                width: `${totalOrders ? (cancelledCount / totalOrders) * 100 : 0}%`,
-                background: 'linear-gradient(90deg, #ef4444, #f87171)',
-              }}
-            />
-          </div>
-          <span className={styles.tierCount}>{cancelledCount}</span>
-        </button>
+      <div className={styles.statusBlock}>
+        <span className={styles.eyebrow}>{t('sales.pulse.orderStatus')}</span>
+        <div className={styles.statusGrid}>
+          {statuses.map((item) => {
+            const selected = isStatusSelected(item.status);
+            const percentage = totalOrders > 0 ? (item.count / totalOrders) * 100 : 0;
+            return (
+              <button
+                key={item.status}
+                type="button"
+                className={`${styles.statusButton} ${selected ? styles.selected : ''}`}
+                onClick={() => toggleStatus(item.status)}
+                aria-pressed={selected}
+              >
+                <span className={`${styles.statusIcon} ${styles[item.tone]}`}>{item.icon}</span>
+                <span className={styles.statusText}>
+                  <span>{t(`status.sales.${item.status}`)}</span>
+                  <strong>{item.count}</strong>
+                </span>
+                <span className={styles.statusTrack} aria-hidden="true">
+                  <span
+                    className={`${styles.statusFill} ${styles[item.tone]}`}
+                    style={{ width: `${percentage}%` }}
+                  />
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
-
-    </div>
+    </section>
   );
 }

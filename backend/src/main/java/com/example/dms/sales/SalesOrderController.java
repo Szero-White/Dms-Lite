@@ -52,7 +52,10 @@ public class SalesOrderController {
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('SALES_ORDER_CANCEL')")
-    public ApiResponse<SalesOrderDetailResponse> cancel(@PathVariable Long id) {
-        return ApiResponse.ok(salesOrderService.cancelOrder(id));
+    public ApiResponse<SalesOrderDetailResponse> cancel(
+        @PathVariable Long id,
+        @Valid @RequestBody CancelSalesOrderRequest request
+    ) {
+        return ApiResponse.ok(salesOrderService.cancelOrder(id, request.reason()));
     }
 }
