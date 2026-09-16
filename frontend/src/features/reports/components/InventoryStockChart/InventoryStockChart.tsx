@@ -4,6 +4,7 @@ import {
   Empty,
 } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { uiPalette } from '../../../../styles/palette';
 import type { ProductRow } from '../../../products';
 import styles from './InventoryStockChart.module.css';
 
@@ -36,6 +37,7 @@ export function InventoryStockChart({
           yField="stock"
           height={300}
           padding="auto"
+          color={uiPalette.chart.secondary}
           axis={{
             x: {
               title: false,

@@ -1,6 +1,7 @@
 import { BarChartOutlined, DollarOutlined, InboxOutlined, WarningOutlined } from '@ant-design/icons';
 import { Card, Table } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { uiPalette } from '../../../../../../styles/palette';
 import { ProductStatusTag } from '../../../../../../components/common/StatusTag';
 import { formatCurrency, formatNumber, toNumber } from '../../../../../../lib/format';
 import {
@@ -33,10 +34,10 @@ export function InventoryReportTab({
   return (
     <div className={styles.tabContent}>
       <ReportStatStrip items={[
-        { icon: <InboxOutlined />, label: t('reports.metric.trackedSkus'), value: products.length, color: '#6366f1' },
-        { icon: <BarChartOutlined />, label: t('reports.metric.totalUnits'), value: formatNumber(totalUnits), color: '#3b82f6' },
-        { icon: <DollarOutlined />, label: t('reports.metric.inventoryValue'), value: formatCurrency(inventoryValue), color: '#8b5cf6' },
-        { icon: <WarningOutlined />, label: t('reports.metric.lowStock'), value: lowStockCount, color: lowStockCount > 0 ? '#f59e0b' : '#10b981' },
+        { icon: <InboxOutlined />, label: t('reports.metric.trackedSkus'), value: products.length, color: uiPalette.brand.primary },
+        { icon: <BarChartOutlined />, label: t('reports.metric.totalUnits'), value: formatNumber(totalUnits), color: uiPalette.brand.primary },
+        { icon: <DollarOutlined />, label: t('reports.metric.inventoryValue'), value: formatCurrency(inventoryValue), color: uiPalette.brand.primary },
+        { icon: <WarningOutlined />, label: t('reports.metric.lowStock'), value: lowStockCount, color: lowStockCount > 0 ? uiPalette.semantic.warning : uiPalette.semantic.success },
       ]} />
 
       <InventoryStockChart products={products} />

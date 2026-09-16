@@ -20,7 +20,7 @@ export function PaymentsPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader title={t('payments.title')} subtitle={t('payments.subtitle')} />
+      <PageHeader variant="finance" title={t('payments.title')} subtitle={t('payments.subtitle')} />
 
       <Tabs
         className={styles.tabs}

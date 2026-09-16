@@ -2,6 +2,7 @@ import { BarChartOutlined, DollarOutlined, TeamOutlined, WarningOutlined } from 
 import { Card, Progress, Table, Tag } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { uiPalette } from '../../../../../../styles/palette';
 import { formatCurrency, toNumber } from '../../../../../../lib/format';
 import {
   compareNumber,
@@ -40,10 +41,10 @@ export function ReceivablesReportTab({
   return (
     <div className={styles.tabContent}>
       <ReportStatStrip items={[
-        { icon: <DollarOutlined />, label: t('reports.metric.receivables'), value: formatCurrency(totalReceivables), color: '#ef4444' },
-        { icon: <TeamOutlined />, label: t('reports.metric.debtorAccounts'), value: debtorCount, color: '#f97316' },
-        { icon: <BarChartOutlined />, label: t('reports.metric.creditExposure'), value: formatCurrency(creditExposure), color: '#6366f1' },
-        { icon: <WarningOutlined />, label: t('reports.metric.highRisk'), value: highRiskCount, color: highRiskCount > 0 ? '#ef4444' : '#10b981' },
+        { icon: <DollarOutlined />, label: t('reports.metric.receivables'), value: formatCurrency(totalReceivables), color: uiPalette.semantic.danger },
+        { icon: <TeamOutlined />, label: t('reports.metric.debtorAccounts'), value: debtorCount, color: uiPalette.semantic.warning },
+        { icon: <BarChartOutlined />, label: t('reports.metric.creditExposure'), value: formatCurrency(creditExposure), color: uiPalette.brand.primary },
+        { icon: <WarningOutlined />, label: t('reports.metric.highRisk'), value: highRiskCount, color: highRiskCount > 0 ? uiPalette.semantic.danger : uiPalette.semantic.success },
       ]} />
 
       {debtorCount > 0 ? (

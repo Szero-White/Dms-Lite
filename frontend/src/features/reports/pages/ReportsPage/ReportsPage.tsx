@@ -22,6 +22,7 @@ import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatCurrency, toNumber } from '../../../../lib/format';
 import { newestFirst } from '../../../../lib/tableSorting';
+import { uiPalette } from '../../../../styles/palette';
 import { PERMISSIONS, canViewCustomerBalance, hasPermission, useAuth } from '../../../auth';
 import { useCustomers, type Customer } from '../../../customers';
 import { useDashboardData } from '../../../dashboard';
@@ -154,6 +155,7 @@ export function ReportsPage() {
   return (
     <div className={styles.page}>
       <PageHeader
+        variant="executive"
         title={t('reports.title')}
         subtitle={t('reports.subtitle')}
         extra={(
@@ -271,10 +273,10 @@ export function ReportsPage() {
             ) : (
               <Card className="panel-card" title={t('reports.title')}>
                 <ReportStatStrip items={[
-                  { icon: <DollarOutlined />, label: t('reports.metric.revenue'), value: formatCurrency(dashboardQuery.data.summary.revenueThisMonth), color: '#6366f1' },
-                  { icon: <DollarOutlined />, label: t('reports.metric.receivables'), value: formatCurrency(dashboardQuery.data.summary.totalReceivable), color: '#f97316' },
-                  { icon: <InboxOutlined />, label: t('reports.metric.trackedSkus'), value: dashboardQuery.data.summary.productCount, color: '#3b82f6' },
-                  { icon: <WarningOutlined />, label: t('reports.metric.lowStock'), value: dashboardQuery.data.summary.lowStockItems, color: '#ef4444' },
+                  { icon: <DollarOutlined />, label: t('reports.metric.revenue'), value: formatCurrency(dashboardQuery.data.summary.revenueThisMonth), color: uiPalette.brand.primary },
+                  { icon: <DollarOutlined />, label: t('reports.metric.receivables'), value: formatCurrency(dashboardQuery.data.summary.totalReceivable), color: uiPalette.semantic.warning },
+                  { icon: <InboxOutlined />, label: t('reports.metric.trackedSkus'), value: dashboardQuery.data.summary.productCount, color: uiPalette.brand.primary },
+                  { icon: <WarningOutlined />, label: t('reports.metric.lowStock'), value: dashboardQuery.data.summary.lowStockItems, color: uiPalette.semantic.danger },
                 ]} />
               </Card>
             )}

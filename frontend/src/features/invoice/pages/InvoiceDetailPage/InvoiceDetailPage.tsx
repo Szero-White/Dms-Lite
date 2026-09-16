@@ -79,6 +79,7 @@ export function InvoiceDetailPage() {
       {invoice ? (
         <div className={styles.page}>
           <PageHeader
+            variant="records"
             title={invoice.invoiceNumber}
             subtitle={`${invoice.customerName ?? t('invoice.customerFallback', { id: invoice.customerId })} · ${invoice.salesOrderCode ?? '-'}`}
             breadcrumb={[t('invoice.title'), invoice.invoiceNumber]}

@@ -9,6 +9,7 @@ import {
 import { Button, Card, Input, Progress, Table, Tag, Tooltip } from 'antd';
 import type { Dispatch, SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
+import { uiPalette } from '../../../../../../styles/palette';
 import { TableMultiSelectFilter } from '../../../../../../components/common/TableMultiSelectFilter';
 import { SalesOrderStatusTag } from '../../../../../../components/common/StatusTag';
 import { formatCurrency, formatDateTime } from '../../../../../../lib/format';
@@ -76,10 +77,10 @@ export function SalesReportTab({
   return (
     <div className={styles.tabContent}>
       <ReportStatStrip items={[
-        { icon: <DollarOutlined />, label: t('reports.metric.revenue'), value: formatCurrency(salesRevenue), color: '#6366f1' },
-        { icon: <ShoppingCartOutlined />, label: t('reports.metric.orders'), value: salesOrderCount, color: '#3b82f6' },
-        { icon: <BarChartOutlined />, label: t('reports.metric.avgOrder'), value: formatCurrency(averageOrderValue), color: '#8b5cf6' },
-        { icon: <CheckCircleOutlined />, label: t('reports.metric.completed'), value: completedCount, color: '#10b981' },
+        { icon: <DollarOutlined />, label: t('reports.metric.revenue'), value: formatCurrency(salesRevenue), color: uiPalette.brand.primary },
+        { icon: <ShoppingCartOutlined />, label: t('reports.metric.orders'), value: salesOrderCount, color: uiPalette.brand.primary },
+        { icon: <BarChartOutlined />, label: t('reports.metric.avgOrder'), value: formatCurrency(averageOrderValue), color: uiPalette.brand.primary },
+        { icon: <CheckCircleOutlined />, label: t('reports.metric.completed'), value: completedCount, color: uiPalette.semantic.success },
       ]} />
 
       <div className={styles.chartGrid}>

@@ -5,6 +5,7 @@ import {
 } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { getIntlLocale, toNumber } from '../../../../lib/format';
+import { uiPalette } from '../../../../styles/palette';
 import type { SalesReportOrder } from '../../types/salesReport.types';
 import styles from './RevenueByOrderChart.module.css';
 
@@ -38,6 +39,7 @@ export function RevenueByOrderChart({
           yField="revenue"
           height={280}
           padding="auto"
+          color={uiPalette.chart.primary}
           axis={{
             x: {
               title: false,

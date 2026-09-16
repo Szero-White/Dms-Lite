@@ -184,7 +184,7 @@ export function InvoicesPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader title={t('invoice.title')} subtitle={t('invoice.subtitle')} />
+      <PageHeader variant="records" title={t('invoice.title')} subtitle={t('invoice.subtitle')} />
 
       <Card className={`panel-card ${styles.tableCard}`}>
         <div className={styles.toolbar}>
