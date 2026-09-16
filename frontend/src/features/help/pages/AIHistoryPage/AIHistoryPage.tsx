@@ -22,8 +22,8 @@ import {
 } from 'antd';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PageHeader } from '../../../../components/common/PageHeader';
 import { TableMultiSelectFilter } from '../../../../components/common/TableMultiSelectFilter';
+import { SemanticStatusTag } from '../../../../components/common/StatusTag';
 import { QueryState } from '../../../../components/common/QueryState';
 import { getTableSortOrder, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../lib/tableSorting';
 import { formatDateTime } from '../../../../lib/format';
@@ -38,24 +38,12 @@ import {
   generationProviderTranslationKey,
 } from '../../utils/answerProvenance';
 import type { HelpAnswerSource, HelpHistorySortDirection, HelpHistorySortField, HelpInteraction } from '../../types/help.types';
+import { AssistantArtwork } from '../../components/FloatingHelpAssistant/AssistantArtwork';
 import styles from './AIHistoryPage.module.css';
 
 type HistoryStatusFilter = 'answered' | 'blocked';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
-
-function sourceTagColor(source: HelpAnswerSource) {
-  switch (source) {
-    case 'LIVE_DATA':
-      return 'blue';
-    case 'WORKFLOW_KNOWLEDGE':
-      return 'purple';
-    case 'SYSTEM_FALLBACK':
-      return 'orange';
-    default:
-      return 'default';
-  }
-}
 
 function statusToBlocked(statusFilters: HistoryStatusFilter[]) {
   if (statusFilters.length !== 1) {
@@ -155,34 +143,47 @@ export function AIHistoryPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader
-        title={t('aiHistory.title')}
-        subtitle={t('aiHistory.subtitle')}
-      />
+      <section className={styles.activityHero}>
+        <div className={styles.heroContent}>
+          <div className={styles.heroEyebrow}>
+            <span className={styles.heroEyebrowIcon}><HistoryOutlined /></span>
+            <span>{t('aiHistory.scope.team')}</span>
+          </div>
+          <Typography.Title level={1} className={styles.heroTitle}>{t('aiHistory.title')}</Typography.Title>
+          <Typography.Paragraph className={styles.heroSubtitle}>{t('aiHistory.subtitle')}</Typography.Paragraph>
 
-      <div className={styles.metricsGrid}>
-        <Card className={`panel-card ${styles.metricCard}`}>
-          <div className={styles.metricIcon}><HistoryOutlined /></div>
-          <div>
-            <Typography.Text type="secondary">{t('aiHistory.metric.matching')}</Typography.Text>
-            <Typography.Title level={3}>{historyPage?.totalElements ?? 0}</Typography.Title>
+          <div className={styles.metricRail}>
+            <div className={`${styles.metricItem} ${styles.metricItemPrimary}`}>
+              <div className={styles.metricIcon}><HistoryOutlined /></div>
+              <div className={styles.metricCopy}>
+                <Typography.Text>{t('aiHistory.metric.matching')}</Typography.Text>
+                <strong>{historyPage?.totalElements ?? 0}</strong>
+              </div>
+            </div>
+            <div className={styles.metricDivider} aria-hidden="true" />
+            <div className={styles.metricItem}>
+              <div className={styles.metricIcon}><UserOutlined /></div>
+              <div className={styles.metricCopy}>
+                <Typography.Text>{t('aiHistory.metric.actors')}</Typography.Text>
+                <strong>{actorCount}</strong>
+              </div>
+            </div>
+            <div className={styles.metricDivider} aria-hidden="true" />
+            <div className={`${styles.metricItem} ${blockedCount > 0 ? styles.metricItemAttention : ''}`}>
+              <div className={styles.metricIcon}><LockOutlined /></div>
+              <div className={styles.metricCopy}>
+                <Typography.Text>{t('aiHistory.metric.blocked')}</Typography.Text>
+                <strong>{blockedCount}</strong>
+              </div>
+            </div>
           </div>
-        </Card>
-        <Card className={`panel-card ${styles.metricCard}`}>
-          <div className={styles.metricIcon}><UserOutlined /></div>
-          <div>
-            <Typography.Text type="secondary">{t('aiHistory.metric.actors')}</Typography.Text>
-            <Typography.Title level={3}>{actorCount}</Typography.Title>
-          </div>
-        </Card>
-        <Card className={`panel-card ${styles.metricCard}`}>
-          <div className={styles.metricIcon}><LockOutlined /></div>
-          <div>
-            <Typography.Text type="secondary">{t('aiHistory.metric.blocked')}</Typography.Text>
-            <Typography.Title level={3}>{blockedCount}</Typography.Title>
-          </div>
-        </Card>
-      </div>
+        </div>
+
+        <div className={styles.heroVisual} aria-hidden="true">
+          <div className={styles.heroVisualHalo} />
+          <AssistantArtwork variant="hero" />
+        </div>
+      </section>
 
       <Card className={`panel-card table-panel-card ${styles.historyCard}`}>
         <div className={styles.toolbar}>
@@ -240,8 +241,9 @@ export function AIHistoryPage() {
         >
           <Table<HelpInteraction>
             rowKey="id"
+            className={styles.historyTable}
             size="small"
-            scroll={{ x: 1240 }}
+            scroll={{ x: 1266 }}
             sortDirections={TABLE_SORT_DIRECTIONS}
             showSorterTooltip={TABLE_SORTER_TOOLTIP}
             dataSource={history}
@@ -256,7 +258,11 @@ export function AIHistoryPage() {
                 setPageSize(nextPageSize);
               },
             }}
-            onChange={(_pagination, _filters, sorter) => {
+            onChange={(_pagination, _filters, sorter, extra) => {
+              if (extra.action !== 'sort') {
+                return;
+              }
+
               const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
               const key = activeSorter?.columnKey;
               if (!activeSorter?.order) {
@@ -274,7 +280,7 @@ export function AIHistoryPage() {
                 key: 'ACTOR',
                 sorter: true,
                 sortOrder: sortOrder('ACTOR'),
-                width: 210,
+                width: 190,
                 render: (_, record) => (
                   <div className={styles.actorCell}>
                     <div className={styles.actorAvatar}><UserOutlined /></div>
@@ -293,7 +299,7 @@ export function AIHistoryPage() {
                 key: 'QUESTION',
                 sorter: true,
                 sortOrder: sortOrder('QUESTION'),
-                width: 300,
+                width: 260,
                 render: (value: string) => <Typography.Text ellipsis={{ tooltip: value }}>{value}</Typography.Text>,
               },
               {
@@ -302,7 +308,7 @@ export function AIHistoryPage() {
                 key: 'ANSWER',
                 sorter: true,
                 sortOrder: sortOrder('ANSWER'),
-                width: 340,
+                width: 300,
                 render: (value: string) => <Typography.Text ellipsis={{ tooltip: value }}>{value}</Typography.Text>,
               },
               {
@@ -311,9 +317,9 @@ export function AIHistoryPage() {
                 key: 'SOURCE',
                 sorter: true,
                 sortOrder: sortOrder('SOURCE'),
-                width: 160,
+                width: 140,
                 render: (source: HelpAnswerSource) => (
-                  <Tag color={sourceTagColor(source)}>
+                  <Tag>
                     {t(answerSourceTranslationKey(source))}
                   </Tag>
                 ),
@@ -324,10 +330,11 @@ export function AIHistoryPage() {
                 key: 'STATUS',
                 sorter: true,
                 sortOrder: sortOrder('STATUS'),
+                fixed: 'right',
                 width: 120,
                 render: (blocked: boolean) => blocked
-                  ? <Tag color="red">{t('aiHistory.status.blocked')}</Tag>
-                  : <Tag color="purple">{t('aiHistory.status.answered')}</Tag>,
+                  ? <SemanticStatusTag tone="danger">{t('aiHistory.status.blocked')}</SemanticStatusTag>
+                  : <SemanticStatusTag tone="success">{t('aiHistory.status.answered')}</SemanticStatusTag>,
               },
               {
                 title: t('common.time'),
@@ -335,13 +342,14 @@ export function AIHistoryPage() {
                 key: 'NEWEST',
                 sorter: true,
                 sortOrder: sortOrder('NEWEST'),
-                width: 170,
+                fixed: 'right',
+                width: 160,
                 render: (value: string) => formatDateTime(value),
               },
               {
                 title: t('common.actions'),
                 fixed: 'right',
-                width: 104,
+                width: 96,
                 render: (_, record) => (
                   <Space size={4}>
                     <Button
@@ -422,7 +430,7 @@ export function AIHistoryPage() {
               <Typography.Title level={5}>{t('aiHistory.detail.relatedModules')}</Typography.Title>
               <div className={styles.tagList}>
                 {selectedItem.relatedModules.length > 0
-                  ? selectedItem.relatedModules.map((module) => <Tag color="purple" key={module}>{module}</Tag>)
+                  ? selectedItem.relatedModules.map((module) => <Tag key={module}>{module}</Tag>)
                   : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('aiHistory.noModuleContext')} />}
               </div>
             </section>

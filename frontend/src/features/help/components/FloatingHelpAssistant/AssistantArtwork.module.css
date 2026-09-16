@@ -1,0 +1,186 @@
+.artwork {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  line-height: 0;
+}
+
+.artwork svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.launcherArtwork {
+  width: 35px;
+  height: 35px;
+  color: #5b53d6;
+  filter: drop-shadow(0 2px 4px rgba(74, 67, 184, 0.14));
+}
+
+.avatarArtwork {
+  width: 38px;
+  height: 38px;
+}
+
+.heroArtwork {
+  width: 142px;
+  height: 142px;
+  margin-bottom: 2px;
+}
+
+.robot {
+  transform-origin: 90px 96px;
+  animation: assistantFloat 3.8s ease-in-out infinite;
+}
+
+.aura {
+  transform-origin: 90px 90px;
+  animation: assistantAura 3.2s ease-in-out infinite;
+}
+
+.orbit {
+  transform-origin: 90px 91px;
+  animation: assistantOrbitTilt 9s linear infinite;
+}
+
+.orbitDots {
+  transform-origin: 90px 91px;
+  animation: assistantOrbit 9s linear infinite;
+}
+
+.shadow {
+  transform-origin: 90px 149px;
+  animation: assistantShadow 3.8s ease-in-out infinite;
+}
+
+.eyes {
+  transform-origin: center;
+  animation: assistantBlink 5.4s ease-in-out infinite;
+}
+
+.rightArm {
+  transform-box: fill-box;
+  transform-origin: 12% 90%;
+  animation: assistantWave 4.8s ease-in-out infinite;
+}
+
+.waveMarks {
+  transform-origin: 146px 84px;
+  animation: assistantWaveMarks 4.8s ease-in-out infinite;
+}
+
+.launcherMark {
+  transform-origin: 24px 24px;
+  animation: launcherMarkFloat 3.8s ease-in-out infinite;
+}
+
+.launcherGlyph {
+  transform-origin: 24px 24px;
+}
+
+.launcherOrbit {
+  transform-origin: 24px 24px;
+  animation: launcherOrbitBreath 4.2s ease-in-out infinite;
+}
+
+.launcherSpark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: launcherSparkPulse 2.6s ease-in-out infinite;
+}
+
+@keyframes assistantFloat {
+  0%, 100% { transform: translateY(1px); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes assistantAura {
+  0%, 100% { opacity: .75; transform: scale(.98); }
+  50% { opacity: 1; transform: scale(1.035); }
+}
+
+@keyframes assistantOrbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes assistantOrbitTilt {
+  from { transform: rotate(-5deg); }
+  to { transform: rotate(355deg); }
+}
+
+@keyframes assistantShadow {
+  0%, 100% { opacity: .9; transform: scaleX(1); }
+  50% { opacity: .55; transform: scaleX(.84); }
+}
+
+@keyframes assistantBlink {
+  0%, 88%, 92%, 100% { transform: scaleY(1); }
+  90% { transform: scaleY(.14); }
+}
+
+@keyframes assistantWave {
+  0%, 74%, 100% { transform: rotate(0deg); }
+  81% { transform: rotate(-13deg); }
+  88% { transform: rotate(9deg); }
+  94% { transform: rotate(-5deg); }
+}
+
+@keyframes assistantWaveMarks {
+  0%, 72%, 100% { opacity: 0; transform: scale(.88); }
+  82%, 92% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes launcherMarkFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-0.8px); }
+}
+
+@keyframes launcherOrbitBreath {
+  0%, 100% { opacity: .82; transform: scale(.985); }
+  50% { opacity: 1; transform: scale(1.015); }
+}
+
+@keyframes launcherSparkPulse {
+  0%, 100% { opacity: .78; transform: scale(.94) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.08) rotate(4deg); }
+}
+
+.avatarArtwork .aura,
+.avatarArtwork .orbit,
+.avatarArtwork .orbitDots,
+.avatarArtwork .shadow,
+.avatarArtwork .leftArm,
+.avatarArtwork .rightArm,
+.avatarArtwork .waveMarks {
+  display: none;
+}
+
+.avatarArtwork .robot {
+  transform-origin: 90px 90px;
+  animation: assistantAvatarFloat 4s ease-in-out infinite;
+}
+
+@keyframes assistantAvatarFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robot,
+  .aura,
+  .orbit,
+  .orbitDots,
+  .shadow,
+  .eyes,
+  .rightArm,
+  .waveMarks,
+  .launcherMark,
+  .launcherOrbit,
+  .launcherSpark,
+  .avatarArtwork .robot {
+    animation: none !important;
+  }
+}

@@ -1,7 +1,6 @@
 import {
   CloseOutlined,
   LockOutlined,
-  MessageOutlined,
   ReloadOutlined,
   SendOutlined,
 } from '@ant-design/icons';
@@ -32,7 +31,7 @@ import type {
   HelpConversationTurn,
 } from '../../types/help.types';
 import { AnswerView } from './AnswerView';
-import { AssistantMascot } from './AssistantMascot';
+import { AssistantArtwork } from './AssistantArtwork';
 import styles from './FloatingHelpAssistant.module.css';
 import {
   GENERAL_PROMPT_KEYS,
@@ -272,7 +271,7 @@ export function FloatingHelpAssistant() {
         <section className={styles.assistantPanel} style={{ left: panelPosition.x, top: panelPosition.y }} aria-label={t('assistant.title')}>
           <div className={styles.panelHeader}>
             <div className={styles.headerIdentity}>
-              <AssistantMascot compact />
+              <AssistantArtwork variant="avatar" />
               <div>
                 <Typography.Text strong>{t('assistant.title')}</Typography.Text>
                 <Typography.Paragraph type="secondary">
@@ -333,7 +332,7 @@ export function FloatingHelpAssistant() {
                 ))}
                 {askAssistant.isPending ? (
                   <div className={`${styles.chatMessage} ${styles.assistantMessage} ${styles.thinkingMessage}`}>
-                    <AssistantMascot compact />
+                    <AssistantArtwork variant="avatar" />
                     <Typography.Text>{t('assistant.thinking')}</Typography.Text>
                   </div>
                 ) : null}
@@ -341,7 +340,7 @@ export function FloatingHelpAssistant() {
               </div>
             ) : (
               <div className={styles.emptyState}>
-                <AssistantMascot />
+                <AssistantArtwork variant="hero" />
                 <Typography.Text strong>{t('assistant.emptyTitle')}</Typography.Text>
                 <Typography.Text type="secondary">
                   {t('assistant.emptyDescription')}
@@ -387,16 +386,16 @@ export function FloatingHelpAssistant() {
         <button
           ref={launcherRef}
           type="button"
-          className={`${styles.launcher} ${open ? styles.launcherOpen : ''} ${isDragging ? styles.launcherDragging : ''}`}
+          className={`${styles.launcher} ${open ? styles.launcherOpen : ''} ${askAssistant.isPending ? styles.launcherBusy : ''} ${isDragging ? styles.launcherDragging : ''}`}
           aria-label={t('assistant.launcherLabel')}
+          aria-busy={askAssistant.isPending}
           onClick={toggleAssistant}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
         >
-          <AssistantMascot compact />
-          <MessageOutlined className={styles.launcherIcon} />
+          <AssistantArtwork variant="launcher" />
         </button>
       </Tooltip>
     </div>

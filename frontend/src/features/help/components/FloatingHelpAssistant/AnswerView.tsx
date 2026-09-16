@@ -37,14 +37,13 @@ export function AnswerView({ answer }: AnswerViewProps) {
           {visibleSource ? (
             <Tag
               icon={visibleSource === 'LIVE_DATA' ? <DatabaseOutlined /> : undefined}
-              color={visibleSource === 'LIVE_DATA' ? 'blue' : 'default'}
             >
               {t(answerSourceTranslationKey(visibleSource))}
             </Tag>
           ) : null}
           {answer.generationProvider === 'GEMINI' ? (
             <Tooltip title={t('assistant.answer.aiAssistedTooltip')}>
-              <Tag icon={<RobotOutlined />} color="purple">
+              <Tag icon={<RobotOutlined />}>
                 {t('assistant.answer.aiAssisted')}
               </Tag>
             </Tooltip>
@@ -63,7 +62,7 @@ export function AnswerView({ answer }: AnswerViewProps) {
         <Typography.Text strong>{t('assistant.answer.allowedContext')}</Typography.Text>
         <div className={styles.tagList}>
           {answer.relatedModules.length > 0 ? answer.relatedModules.map((module) => (
-            <Tag color="purple" key={module}>{module}</Tag>
+            <Tag key={module}>{module}</Tag>
           )) : <Tag>{t('assistant.answer.limitedAccess')}</Tag>}
         </div>
       </div>
