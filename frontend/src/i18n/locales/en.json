@@ -72,7 +72,7 @@
   "assistant.newChat": "Start new chat",
   "assistant.placeholder": "Ask a workflow question...",
   "assistant.prompt.customer": "How should customer information be maintained?",
-  "assistant.prompt.inventory": "How should warehouse staff check and correct stock?",
+  "assistant.prompt.inventory": "How should I check and correct inventory?",
   "assistant.prompt.missingScreen": "Why is a screen missing from my sidebar?",
   "assistant.prompt.nextWork": "What should I do next in my assigned work?",
   "assistant.prompt.payment": "How should accounting record a customer payment?",

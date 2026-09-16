@@ -202,6 +202,10 @@
   transition: border-color var(--transition-default), background var(--transition-default);
 }
 
+.demoAccountCard:first-child {
+  grid-column: 1 / -1;
+}
+
 .demoAccountCard:hover {
   border-color: var(--color-primary-mid);
   background: var(--color-primary-light);

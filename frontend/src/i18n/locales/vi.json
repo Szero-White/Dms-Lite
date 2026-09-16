@@ -72,7 +72,7 @@
   "assistant.newChat": "Bắt đầu cuộc trò chuyện mới",
   "assistant.placeholder": "Nhập câu hỏi về quy trình...",
   "assistant.prompt.customer": "Thông tin khách hàng nên được duy trì như thế nào?",
-  "assistant.prompt.inventory": "Nhân viên kho nên kiểm tra và chỉnh tồn kho như thế nào?",
+  "assistant.prompt.inventory": "Tôi nên kiểm tra và điều chỉnh tồn kho như thế nào?",
   "assistant.prompt.missingScreen": "Vì sao một màn hình không xuất hiện trên thanh điều hướng?",
   "assistant.prompt.nextWork": "Tôi nên làm gì tiếp theo trong công việc được giao?",
   "assistant.prompt.payment": "Kế toán nên ghi nhận thanh toán khách hàng như thế nào?",
