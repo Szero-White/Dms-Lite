@@ -1,9 +1,9 @@
 package com.example.dms.sales;
 
 import com.example.dms.common.ApiResponse;
+import com.example.dms.common.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,12 +22,12 @@ public class SalesOrderController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('SALES_ORDER_VIEW')")
-    public ApiResponse<Page<SalesOrderResponse>> list(
+    public ApiResponse<PageResponse<SalesOrderResponse>> list(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size,
         @RequestParam(required = false) Long customerId
     ) {
-        return ApiResponse.ok(salesOrderService.listOrders(page, size, customerId));
+        return ApiResponse.ok(PageResponse.from(salesOrderService.listOrders(page, size, customerId)));
     }
 
     @GetMapping("/{id}")
@@ -52,7 +52,10 @@ public class SalesOrderController {
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('SALES_ORDER_CANCEL')")
-    public ApiResponse<SalesOrderDetailResponse> cancel(@PathVariable Long id) {
-        return ApiResponse.ok(salesOrderService.cancelOrder(id));
+    public ApiResponse<SalesOrderDetailResponse> cancel(
+        @PathVariable Long id,
+        @Valid @RequestBody CancelSalesOrderRequest request
+    ) {
+        return ApiResponse.ok(salesOrderService.cancelOrder(id, request.reason()));
     }
 }

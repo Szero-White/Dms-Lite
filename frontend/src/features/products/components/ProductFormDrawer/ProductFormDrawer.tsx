@@ -34,7 +34,6 @@ export function ProductFormDrawer({
             product
               ? {
                   name: product.name,
-                  sku: product.sku,
                   barcode: product.barcode,
                   costPrice: Number(product.costPrice),
                   sellingPrice: Number(product.sellingPrice),
@@ -70,13 +69,15 @@ export function ProductFormDrawer({
             {t('products.form.identitySubtitle')}
           </Typography.Text>
         </div>
-        <Form.Item
-          label={t('products.form.sku')}
-          name="sku"
-          rules={[{ required: true, message: t('products.form.skuRequired') }]}
-        >
-          <Input placeholder={t('products.form.skuPlaceholder')} />
-        </Form.Item>
+        {product ? (
+          <Form.Item label={t('products.form.productCode')}>
+            <Input value={product.sku} disabled />
+          </Form.Item>
+        ) : (
+          <Typography.Paragraph type="secondary" className={styles.codeHint}>
+            {t('products.form.productCodeAutoHint')}
+          </Typography.Paragraph>
+        )}
         <Form.Item
           label={t('products.form.name')}
           name="name"

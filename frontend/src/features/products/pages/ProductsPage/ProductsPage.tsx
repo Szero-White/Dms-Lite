@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { useInventoryStock } from '../../../../features/inventory';
 import { toNumber } from '../../../../lib/format';
+import { newestFirst } from '../../../../lib/tableSorting';
 import {
   PERMISSIONS,
   canViewProductFinancials,
@@ -14,8 +15,9 @@ import {
 import { ProductFormDrawer } from '../../components/ProductFormDrawer';
 import {
   useCreateProduct,
-  useDeleteProduct,
+  useDeactivateProduct,
   useProductList,
+  useReactivateProduct,
   useUpdateProduct,
 } from '../../hooks/useProductQueries';
 import type { ProductFormValues, ProductRow } from '../../types/product.types';
@@ -33,10 +35,11 @@ export function ProductsPage() {
   const stockQuery = useInventoryStock({ enabled: canViewInventory });
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
-  const deleteProduct = useDeleteProduct();
+  const deactivateProduct = useDeactivateProduct();
+  const reactivateProduct = useReactivateProduct();
   const [keyword, setKeyword] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
-  const [stockFilter, setStockFilter] = useState<'ALL' | 'HEALTHY' | 'LOW_STOCK'>('ALL');
+  const [statusFilters, setStatusFilters] = useState<Array<'ACTIVE' | 'INACTIVE'>>([]);
+  const [stockFilters, setStockFilters] = useState<Array<'HEALTHY' | 'LOW_STOCK'>>([]);
   const [selectedProduct, setSelectedProduct] = useState<ProductRow | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -53,7 +56,7 @@ export function ProductsPage() {
         ...product,
         stock,
         status: product.active ? 'ACTIVE' : 'INACTIVE',
-        isLowStock: canViewInventory && stock <= product.minStock,
+        isLowStock: canViewInventory && product.active && stock <= product.minStock,
       };
     });
   }, [canViewInventory, productsQuery.data, stockQuery.data]);
@@ -65,21 +68,19 @@ export function ProductsPage() {
         [product.name, product.sku, product.barcode].some((value) =>
           value?.toLowerCase().includes(keyword.toLowerCase()),
         );
-      const matchesStatus =
-        statusFilter === 'ALL' ||
-        (statusFilter === 'ACTIVE' && product.active) ||
-        (statusFilter === 'INACTIVE' && !product.active);
+      const productStatus = product.active ? 'ACTIVE' : 'INACTIVE';
+      const stockStatus = product.active && product.isLowStock ? 'LOW_STOCK' : 'HEALTHY';
+      const matchesStatus = statusFilters.length === 0 || statusFilters.includes(productStatus);
       const matchesStock =
         !canViewInventory ||
-        stockFilter === 'ALL' ||
-        (stockFilter === 'HEALTHY' && !product.isLowStock) ||
-        (stockFilter === 'LOW_STOCK' && product.isLowStock);
+        stockFilters.length === 0 ||
+        (product.active && stockFilters.includes(stockStatus));
 
       return matchesKeyword && matchesStatus && matchesStock;
     });
 
-    return [...filtered].sort((first, second) => second.id - first.id);
-  }, [canViewInventory, keyword, products, statusFilter, stockFilter]);
+    return newestFirst(filtered);
+  }, [canViewInventory, keyword, products, statusFilters, stockFilters]);
 
   const inventoryValue = canViewInventory && showProductFinancials
     ? products.reduce(
@@ -87,30 +88,31 @@ export function ProductsPage() {
         0,
       )
     : 0;
-  const activeCount = products.filter((product) => product.active).length;
+  const activeProducts = products.filter((product) => product.active);
+  const activeCount = activeProducts.length;
   const lowStockCount = canViewInventory
-    ? products.filter((product) => product.isLowStock).length
+    ? activeProducts.filter((product) => product.isLowStock).length
     : 0;
-  const avgMargin = showProductFinancials && products.length
-    ? products.reduce((sum, product) => {
+  const avgMargin = showProductFinancials && activeProducts.length
+    ? activeProducts.reduce((sum, product) => {
         const sellingPrice = toNumber(product.sellingPrice);
 
         return sum + (sellingPrice > 0
           ? ((sellingPrice - toNumber(product.costPrice)) / sellingPrice) * 100
           : 0);
-      }, 0) / products.length
+      }, 0) / activeProducts.length
     : 0;
 
   const hasFilters = Boolean(
     keyword ||
-    statusFilter !== 'ALL' ||
-    (canViewInventory && stockFilter !== 'ALL')
+    statusFilters.length > 0 ||
+    (canViewInventory && stockFilters.length > 0)
   );
 
   function clearFilters() {
     setKeyword('');
-    setStatusFilter('ALL');
-    setStockFilter('ALL');
+    setStatusFilters([]);
+    setStockFilters([]);
   }
 
   async function handleSubmit(values: ProductFormValues) {
@@ -138,6 +140,7 @@ export function ProductsPage() {
   return (
     <div className={styles.page}>
       <PageHeader
+        variant="catalog"
         title={t('products.title')}
         subtitle={t('products.subtitle')}
         extra={canManageProducts ? (
@@ -181,15 +184,22 @@ export function ProductsPage() {
         }}
         onSelectProduct={setSelectedProduct}
         onSetDrawerOpen={setDrawerOpen}
-        onDeleteProduct={(productId) => deleteProduct.mutate(productId)}
-        deletingProductId={deleteProduct.isPending ? deleteProduct.variables : undefined}
-        onStatusFilterChange={setStatusFilter}
-        onStockFilterChange={setStockFilter}
+        onDeactivateProduct={(productId) => deactivateProduct.mutate(productId)}
+        onReactivateProduct={(productId) => reactivateProduct.mutate(productId)}
+        changingStatusProductId={
+          deactivateProduct.isPending
+            ? deactivateProduct.variables
+            : reactivateProduct.isPending
+              ? reactivateProduct.variables
+              : undefined
+        }
+        onStatusFiltersChange={setStatusFilters}
+        onStockFiltersChange={setStockFilters}
         productsError={queryError}
         showFinancials={showProductFinancials}
         showInventory={canViewInventory}
-        statusFilter={statusFilter}
-        stockFilter={stockFilter}
+        statusFilters={statusFilters}
+        stockFilters={stockFilters}
       />
 
       {canManageProducts ? (

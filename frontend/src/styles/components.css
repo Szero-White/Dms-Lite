@@ -1,200 +1,100 @@
-/* =========================================================
-   PANEL CARD  – dùng chung cho toàn bộ card nội dung
-   ========================================================= */
-
+/* Shared business surfaces. Keep feature pages visually consistent by composing these primitives. */
 .panel-card {
   overflow: hidden;
   border: 1px solid var(--color-border-subtle) !important;
-  border-radius: 16px !important;
+  border-radius: var(--radius-section) !important;
   background: var(--color-card-background);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
-  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  box-shadow: var(--shadow-card);
 }
-
-.panel-card:hover {
-  border-color: rgba(99, 102, 241, 0.25) !important;
-  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.1);
-}
-
+.panel-card:hover { border-color: var(--color-border) !important; box-shadow: var(--shadow-card-hover); }
 .panel-card .ant-card-head {
-  min-height: 54px;
-  padding: 0 22px;
+  min-height: 52px;
+  padding: 0 20px;
   border-bottom: 1px solid var(--color-border-subtle);
-  background: linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%);
+  background: var(--color-card-background);
 }
-
 .panel-card .ant-card-head-title {
-  padding: 16px 0;
-  color: var(--color-text-primary);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.1px;
-  line-height: var(--line-height-body);
-}
-
-.panel-card .ant-card-body {
-  padding: 20px 22px;
-}
-
-/* =========================================================
-   TABLE PANEL  – card chứa table
-   ========================================================= */
-
-.table-panel-card .ant-table-wrapper {
-  width: 100%;
-}
-
-.compact-panel-card {
-  min-height: 300px;
-}
-
-.compact-panel-card .ant-list-item {
-  padding: var(--spacing-md) 0;
-}
-
-.compact-panel-card .ant-empty {
-  margin-block: 0;
-}
-
-.line-item-card {
-  border-color: var(--color-border);
-  border-radius: var(--radius-medium);
-  background: #f8f9fc;
-}
-
-/* =========================================================
-   TOOLBAR  – search + filters row
-   ========================================================= */
-
-.toolbar-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-}
-
-.filter-group {
-  min-width: 0;
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-}
-
-/* =========================================================
-   MODERN TABLE  – hover, sort, pagination
-   ========================================================= */
-
-.modern-table :global(.ant-table) {
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.modern-table :global(.ant-table-thead > tr > th) {
-  background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
-  border-bottom: 1px solid var(--color-border-subtle);
-  color: var(--color-text-secondary);
-  font-weight: 600;
-  font-size: 11.5px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 12px 16px;
-}
-
-.modern-table :global(.ant-table-tbody > tr > td) {
-  padding: 13px 16px;
-  border-bottom: 1px solid var(--color-border-subtle);
-  transition: background 0.15s ease;
-}
-
-.modern-table :global(.ant-table-tbody > tr:hover > td) {
-  background: #f5f7ff !important;
-}
-
-.modern-table :global(.ant-table-tbody > tr:last-child > td) {
-  border-bottom: none;
-}
-
-.modern-table :global(.ant-pagination) {
-  margin-top: 18px;
-}
-
-/* =========================================================
-   MODERN FORM
-   ========================================================= */
-
-.modern-form :global(.ant-form-item-label > label) {
-  font-weight: 500;
-  color: var(--color-text-secondary);
+  padding: 14px 0;
+  color: var(--color-text-heading);
   font-size: 13.5px;
-}
-
-.modern-form :global(.ant-input),
-.modern-form :global(.ant-input-number),
-.modern-form :global(.ant-select-selector) {
-  border-radius: 10px;
-  border-color: var(--color-border);
-  transition: all 0.2s ease;
-}
-
-.modern-form :global(.ant-input:hover),
-.modern-form :global(.ant-input-number:hover),
-.modern-form :global(.ant-select-selector:hover) {
-  border-color: var(--color-primary);
-}
-
-.modern-form :global(.ant-input:focus),
-.modern-form :global(.ant-input-affix-wrapper-focused),
-.modern-form :global(.ant-select-focused .ant-select-selector) {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.modern-form :global(.ant-btn-primary) {
-  background: var(--gradient-primary);
-  border: none;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  line-height: 20px;
 }
-
-.modern-form :global(.ant-btn-primary:hover) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
-}
-
-/* =========================================================
-   ALERT ROW  – watchlist, low-stock
-   ========================================================= */
-
-.alert-row {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--spacing-sm);
-  padding: 12px 0;
+.panel-card .ant-card-body { padding: 20px; }
+.table-panel-card .ant-table-wrapper { width: 100%; }
+.compact-panel-card { min-height: 260px; }
+.compact-panel-card .ant-list-item { padding: var(--spacing-md) 0; }
+.compact-panel-card .ant-empty { margin-block: 0; }
+.line-item-card { border-color: var(--color-border-subtle); border-radius: var(--radius-medium); background: #fbfdff; }
+.toolbar-row { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-md); margin-bottom: var(--spacing-md); }
+.filter-group { min-width: 0; display: flex; flex: 1; flex-wrap: wrap; gap: var(--spacing-xs); }
+.modern-table :global(.ant-table) { overflow: hidden; border-radius: 13px; }
+.modern-table :global(.ant-table-thead > tr > th) {
+  padding: 11px 14px;
   border-bottom: 1px solid var(--color-border-subtle);
-  transition: background 0.15s ease;
+  background: #f5f8fd;
+  color: var(--color-text-strong);
+  font-size: 12.3px;
+  font-weight: 600;
+}
+.modern-table :global(.ant-table-tbody > tr > td) { padding: 13px 14px; border-bottom: 1px solid var(--color-border-subtle); }
+.modern-table :global(.ant-table-tbody > tr:hover > td) { background: #f7f9fd !important; }
+.modern-table :global(.ant-table-tbody > tr:last-child > td) { border-bottom: none; }
+.modern-table :global(.ant-pagination) { margin-top: 16px; }
+.modern-form :global(.ant-form-item-label > label) { color: var(--color-text-secondary); font-size: 12.5px; font-weight: 500; }
+.modern-form :global(.ant-input), .modern-form :global(.ant-input-number), .modern-form :global(.ant-select-selector) { border-color: var(--color-border); border-radius: 10px; }
+.modern-form :global(.ant-input:hover), .modern-form :global(.ant-input-number:hover), .modern-form :global(.ant-select-selector:hover) { border-color: var(--color-border-strong); }
+.modern-form :global(.ant-input:focus), .modern-form :global(.ant-input-affix-wrapper-focused), .modern-form :global(.ant-select-focused .ant-select-selector) {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.10);
+}
+.modern-form :global(.ant-btn-primary) { border-color: var(--color-primary); background: var(--color-primary); box-shadow: none; font-weight: 600; }
+.modern-form :global(.ant-btn-primary:hover) { border-color: var(--color-primary-hover); background: var(--color-primary-hover); }
+.alert-row { display: flex; justify-content: space-between; gap: var(--spacing-sm); padding: 12px 0; border-bottom: 1px solid var(--color-border-subtle); }
+.alert-row:hover { background: #f9fbff; }
+.alert-row:last-child { padding-bottom: 0; border-bottom: none; }
+.panel-empty { min-height: 140px; display: grid; place-items: center; color: var(--color-text-muted); }
+
+/* Commercial workspace surfaces.
+ * Apply explicitly on non-dashboard operational pages to avoid card-heavy layouts.
+ * The dashboard keeps its dedicated visual hierarchy unchanged. */
+.workspace-surface.panel-card {
+  border: 0 !important;
+  border-top: 1px solid var(--color-border-subtle) !important;
+  border-bottom: 1px solid var(--color-border-subtle) !important;
+  border-radius: 0 !important;
+  background: var(--color-card-background);
+  box-shadow: none !important;
+}
+.workspace-surface.panel-card:hover {
+  border-color: var(--color-border-subtle) !important;
+  box-shadow: none !important;
+}
+.workspace-surface.panel-card .ant-card-head {
+  padding-inline: 0;
+  border-bottom-color: var(--color-border-subtle);
+  background: transparent;
+}
+.workspace-surface.panel-card .ant-card-body {
+  padding-inline: 0;
 }
 
-.alert-row:hover {
-  background: var(--color-primary-light);
-  margin-inline: -4px;
-  padding-inline: 4px;
-  border-radius: 8px;
+.analysis-surface.panel-card {
+  border: 0 !important;
+  border-top: 1px solid var(--color-border-subtle) !important;
+  border-bottom: 1px solid var(--color-border-subtle) !important;
+  border-radius: 0 !important;
+  background: transparent;
+  box-shadow: none !important;
 }
-
-.alert-row:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+.analysis-surface.panel-card:hover {
+  border-color: var(--color-border-subtle) !important;
+  box-shadow: none !important;
 }
-
-/* =========================================================
-   EMPTY STATE
-   ========================================================= */
-
-.panel-empty {
-  min-height: 160px;
-  display: grid;
-  place-items: center;
-  color: var(--color-text-muted);
+.analysis-surface.panel-card .ant-card-head {
+  padding-inline: 0;
+  background: transparent;
+}
+.analysis-surface.panel-card .ant-card-body {
+  padding-inline: 0;
 }

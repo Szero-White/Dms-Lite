@@ -1,0 +1,8 @@
+.actions {
+  min-width: 72px;
+}
+
+.actions :global(.ant-btn) {
+  width: 32px;
+  height: 32px;
+}

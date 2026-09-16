@@ -1,0 +1,161 @@
+.mascot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  isolation: isolate;
+}
+
+.jumbo {
+  width: 310px;
+  height: 310px;
+}
+
+.hero {
+  width: 228px;
+  height: 228px;
+}
+
+.compact {
+  width: 84px;
+  height: 84px;
+}
+
+.jumbo svg {
+  filter: drop-shadow(0 26px 40px rgba(83, 75, 175, 0.18));
+}
+
+.mascot svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 18px 28px rgba(83, 75, 175, 0.16));
+}
+
+.robotBody {
+  transform-origin: 130px 140px;
+  animation: mascotFloat 3.4s ease-in-out infinite;
+}
+
+.floorShadow {
+  transform-origin: 130px 228px;
+  animation: shadowBreath 3.4s ease-in-out infinite;
+}
+
+.antenna {
+  transform-origin: 130px 48px;
+  animation: antennaBounce 3.4s ease-in-out infinite;
+}
+
+.leftEye,
+.rightEye {
+  transform-origin: center;
+  animation: blink 5.6s ease-in-out infinite;
+}
+
+.smile {
+  transform-origin: center;
+}
+
+.rightArm,
+.waveHand {
+  transform-box: fill-box;
+  transform-origin: 18% 82%;
+}
+
+.rightArm {
+  animation: waveArm 4.6s ease-in-out infinite;
+}
+
+.waveHand {
+  animation: waveHand 4.6s ease-in-out infinite;
+}
+
+.sparkles {
+  transform-origin: 130px 130px;
+  animation: sparklePulse 2.8s ease-in-out infinite;
+}
+
+.chatCard {
+  transform-origin: center;
+  animation: cardFloatA 4s ease-in-out infinite;
+}
+
+.dataCard {
+  transform-origin: center;
+  animation: cardFloatB 4.6s ease-in-out infinite;
+}
+
+@keyframes mascotFloat {
+  0%, 100% { transform: translateY(3px) rotate(-0.3deg); }
+  50% { transform: translateY(-7px) rotate(0.7deg); }
+}
+
+@keyframes shadowBreath {
+  0%, 100% { opacity: .9; transform: scaleX(1); }
+  50% { opacity: .55; transform: scaleX(.82); }
+}
+
+@keyframes antennaBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes blink {
+  0%, 87%, 91%, 100% { transform: scaleY(1); }
+  89% { transform: scaleY(.14); }
+}
+
+@keyframes waveArm {
+  0%, 72%, 100% { transform: rotate(0deg); }
+  80% { transform: rotate(-12deg); }
+  88% { transform: rotate(8deg); }
+  94% { transform: rotate(-4deg); }
+}
+
+@keyframes waveHand {
+  0%, 72%, 100% { transform: rotate(0deg); }
+  80% { transform: rotate(-16deg); }
+  88% { transform: rotate(10deg); }
+  94% { transform: rotate(-5deg); }
+}
+
+@keyframes sparklePulse {
+  0%, 100% { opacity: .56; transform: scale(.98); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes cardFloatA {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-5px) rotate(1deg); }
+}
+
+@keyframes cardFloatB {
+  0%, 100% { transform: translateY(2px) rotate(1deg); }
+  50% { transform: translateY(-4px) rotate(-1deg); }
+}
+
+.compact .chatCard,
+.compact .dataCard,
+.compact .sparkles {
+  display: none;
+}
+
+.compact .robotBody {
+  animation-duration: 3.8s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robotBody,
+  .floorShadow,
+  .antenna,
+  .leftEye,
+  .rightEye,
+  .rightArm,
+  .waveHand,
+  .sparkles,
+  .chatCard,
+  .dataCard {
+    animation: none !important;
+  }
+}

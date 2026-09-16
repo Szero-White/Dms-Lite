@@ -1,6 +1,7 @@
-import { InboxOutlined, AlertOutlined, CheckCircleOutlined, DollarOutlined } from '@ant-design/icons';
+import { AlertOutlined, CheckCircleOutlined, DollarOutlined, InboxOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../../../../lib/format';
+import { uiPalette } from '../../../../../styles/palette';
 import type { ProductRow } from '../../../../products';
 import styles from './InventoryOverview.module.css';
 
@@ -28,87 +29,90 @@ export function InventoryOverview({
 
   const metrics = [
     {
+      key: 'units',
       label: t('inventory.overview.totalUnits'),
       value: totalUnits.toLocaleString(numberLocale),
       icon: <InboxOutlined />,
-      color: '#6366f1',
-      bgColor: '#eef2ff',
+      color: uiPalette.brand.primary,
     },
     ...(showFinancials ? [{
+      key: 'value',
       label: t('inventory.overview.inventoryValue'),
       value: formatCurrency(inventoryValue),
       icon: <DollarOutlined />,
-      color: '#10b981',
-      bgColor: '#ecfdf5',
+      color: uiPalette.semantic.success,
     }] : []),
     {
+      key: 'skus',
       label: t('inventory.overview.totalSkus'),
       value: products.length.toString(),
       icon: <CheckCircleOutlined />,
-      color: '#f59e0b',
-      bgColor: '#fffbeb',
+      color: uiPalette.semantic.warning,
     },
   ];
 
   return (
     <div className={styles.overviewContainer}>
-      <div className={styles.metricsGrid}>
-        {metrics.map((metric) => (
-          <div key={metric.label} className={styles.metricCard}>
-            <div className={styles.metricIcon} style={{ background: metric.bgColor, color: metric.color }}>
-              {metric.icon}
-            </div>
-            <div className={styles.metricContent}>
-              <span className={styles.metricLabel}>{metric.label}</span>
-              <span className={styles.metricValue} style={{ color: metric.color }}>{metric.value}</span>
-            </div>
+      <section className={styles.inventoryRail} aria-label={t('inventory.overview.totalUnits')}>
+        <div className={styles.railLead}>
+          <span className={styles.railEyebrow}>{t('inventory.overview.stockHealth')}</span>
+          <div className={styles.healthHeadline}>
+            <strong>{healthyPercent}%</strong>
+            <span>{t('inventory.overview.healthy')}</span>
           </div>
-        ))}
-      </div>
-
-      <div className={styles.healthAlertsRow}>
-        <div className={styles.healthCard}>
-          <div className={styles.cardHeader}>
-            <h3 className={styles.cardTitle}>{t('inventory.overview.stockHealth')}</h3>
-            <div className={styles.healthBadge} style={{ background: healthyPct > 0.7 ? '#ecfdf5' : '#fef2f2', color: healthyPct > 0.7 ? '#059669' : '#dc2626' }}>
-              {t('inventory.overview.healthyPercent', { percent: healthyPercent })}
-            </div>
+          <div className={styles.healthTrack} aria-hidden="true">
+            <span style={{ width: `${healthyPct * 100}%` }} />
           </div>
-          <div className={styles.healthContent}>
-            <div className={styles.healthStats}>
-              <div className={styles.healthStat}>
-                <span className={styles.healthStatValue} style={{ color: '#10b981' }}>{healthy}</span>
-                <span className={styles.healthStatLabel}>{t('inventory.overview.healthy')}</span>
-              </div>
-              <div className={styles.healthStatDivider} />
-              <div className={styles.healthStat}>
-                <span className={styles.healthStatValue} style={{ color: '#f97316' }}>{lowStockItems.length}</span>
-                <span className={styles.healthStatLabel}>{t('inventory.overview.lowStock')}</span>
-              </div>
-            </div>
-            <div className={styles.healthProgress}>
-              <div className={styles.healthBar}>
-                <div
-                  className={styles.healthBarFill}
-                  style={{
-                    width: `${healthyPct * 100}%`,
-                    background: 'linear-gradient(90deg, #10b981, #34d399)',
-                  }}
-                />
-              </div>
-            </div>
+          <div className={styles.healthCaption}>
+            <span>{healthy} {t('inventory.overview.healthy')}</span>
+            <span>{lowStockItems.length} {t('inventory.overview.lowStock')}</span>
           </div>
         </div>
 
-        <div className={styles.alertsCard}>
+        <div className={styles.metricRail}>
+          {metrics.map((metric) => (
+            <div key={metric.key} className={styles.metricSegment}>
+              <span className={styles.metricIcon} style={{ color: metric.color }}>
+                {metric.icon}
+              </span>
+              <div className={styles.metricCopy}>
+                <span className={styles.metricLabel}>{metric.label}</span>
+                <strong className={styles.metricValue}>{metric.value}</strong>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className={styles.healthAlertsRow}>
+        <section className={styles.healthSection}>
+          <div className={styles.sectionMarker} aria-hidden="true" />
+          <div className={styles.sectionCopy}>
+            <h3 className={styles.cardTitle}>{t('inventory.overview.stockHealth')}</h3>
+            <p className={styles.sectionHint}>{t('inventory.overview.healthyPercent', { percent: healthyPercent })}</p>
+          </div>
+          <div className={styles.healthStatsInline}>
+            <div>
+              <span className={styles.healthStatLabel}>{t('inventory.overview.healthy')}</span>
+              <strong className={styles.healthStatValue} style={{ color: uiPalette.semantic.success }}>{healthy}</strong>
+            </div>
+            <div>
+              <span className={styles.healthStatLabel}>{t('inventory.overview.lowStock')}</span>
+              <strong className={styles.healthStatValue} style={{ color: uiPalette.semantic.warning }}>{lowStockItems.length}</strong>
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.alertsSection}>
           <div className={styles.cardHeader}>
             <h3 className={styles.cardTitle}>
               <AlertOutlined /> {t('inventory.overview.needsRestock')}
             </h3>
-            {lowStockItems.length > 0 && (
+            {lowStockItems.length > 0 ? (
               <span className={styles.alertCountBadge}>{lowStockItems.length}</span>
-            )}
+            ) : null}
           </div>
+
           {lowStockItems.length === 0 ? (
             <div className={styles.alertEmpty}>
               <CheckCircleOutlined className={styles.alertEmptyIcon} />
@@ -138,22 +142,22 @@ export function InventoryOverview({
                         style={{
                           width: `${pct}%`,
                           background: pct < 30
-                            ? 'linear-gradient(90deg, #ef4444, #f87171)'
-                            : 'linear-gradient(90deg, #f97316, #fbbf24)',
+                            ? uiPalette.semantic.danger
+                            : uiPalette.semantic.warning,
                         }}
                       />
                     </div>
                   </div>
                 );
               })}
-              {lowStockItems.length > 5 && (
+              {lowStockItems.length > 5 ? (
                 <div className={styles.alertMore}>
                   {t('inventory.overview.moreItems', { count: lowStockItems.length - 5 })}
                 </div>
-              )}
+              ) : null}
             </div>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );

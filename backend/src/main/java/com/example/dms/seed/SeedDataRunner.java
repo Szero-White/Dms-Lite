@@ -1,5 +1,7 @@
 package com.example.dms.seed;
 
+import com.example.dms.common.code.BusinessCodeService;
+import com.example.dms.common.code.BusinessCodeType;
 import com.example.dms.customer.Customer;
 import com.example.dms.customer.CustomerRepository;
 import com.example.dms.inventory.InventoryService;
@@ -51,6 +53,8 @@ public class SeedDataRunner implements CommandLineRunner {
 
     private final ProductRepository products;
 
+    private final BusinessCodeService businessCodeService;
+
     private final CustomerRepository customers;
 
     private final InventoryService inventory;
@@ -79,17 +83,19 @@ public class SeedDataRunner implements CommandLineRunner {
         Role salesRole = ensureRole(SALES, permissionMap, PermissionNames.PRODUCT_VIEW,
             PermissionNames.CUSTOMER_VIEW, PermissionNames.CUSTOMER_MANAGE,
             PermissionNames.SALES_ORDER_VIEW, PermissionNames.SALES_ORDER_CREATE,
-            PermissionNames.SALES_ORDER_CANCEL, PermissionNames.INVOICE_VIEW,
-            PermissionNames.INVENTORY_VIEW,
-            PermissionNames.NOTIFICATION_VIEW,
-            PermissionNames.AI_HELP_VIEW);
-        Role warehouseRole = ensureRole(WAREHOUSE, permissionMap, PermissionNames.PRODUCT_VIEW,
-            PermissionNames.SALES_ORDER_VIEW, PermissionNames.SALES_ORDER_CONFIRM,
-            PermissionNames.INVENTORY_VIEW, PermissionNames.INVENTORY_MANAGE,
+            PermissionNames.SALES_ORDER_CONFIRM, PermissionNames.SALES_ORDER_CANCEL,
+            PermissionNames.INVOICE_VIEW, PermissionNames.INVENTORY_VIEW,
             PermissionNames.NOTIFICATION_VIEW, PermissionNames.AI_HELP_VIEW);
+        // Keep the optional warehouse system role for non-demo deployments and backward compatibility.
+        ensureRole(WAREHOUSE, permissionMap, PermissionNames.PRODUCT_VIEW,
+            PermissionNames.SALES_ORDER_VIEW, PermissionNames.SALES_ORDER_CONFIRM,
+            PermissionNames.SALES_ORDER_CANCEL, PermissionNames.INVENTORY_VIEW,
+            PermissionNames.INVENTORY_MANAGE, PermissionNames.NOTIFICATION_VIEW,
+            PermissionNames.AI_HELP_VIEW);
         Role accountantRole = ensureRole(ACCOUNTANT, permissionMap, PermissionNames.PRODUCT_VIEW,
             PermissionNames.CUSTOMER_VIEW, PermissionNames.SALES_ORDER_VIEW,
             PermissionNames.INVOICE_VIEW, PermissionNames.INVOICE_ISSUE,
+            PermissionNames.INVENTORY_VIEW, PermissionNames.INVENTORY_MANAGE,
             PermissionNames.PAYMENT_CREATE, PermissionNames.DEBT_VIEW,
             PermissionNames.REPORT_VIEW, PermissionNames.NOTIFICATION_VIEW,
             PermissionNames.AI_HELP_VIEW);
@@ -103,10 +109,10 @@ public class SeedDataRunner implements CommandLineRunner {
             .findFirst()
             .orElseGet(() -> tenants.save(Tenant.builder().name("Demo Distributor").active(true).build()));
 
-        ensureDemoUser("owner", "Owner", tenant.getId(), ownerRole);
-        ensureDemoUser("sale", "Sale", tenant.getId(), salesRole);
-        ensureDemoUser("warehouse", "Warehouse", tenant.getId(), warehouseRole);
-        ensureDemoUser("accountant", "Accountant", tenant.getId(), accountantRole);
+        ensureDemoUser(DemoAccessPolicy.OWNER_USERNAME, "Owner", tenant.getId(), ownerRole);
+        ensureDemoUser(DemoAccessPolicy.SALES_USERNAME, "Sales", tenant.getId(), salesRole);
+        ensureDemoUser(DemoAccessPolicy.ACCOUNTANT_USERNAME, "Accountant", tenant.getId(), accountantRole);
+        retireLegacyWarehouseDemoUser(tenant.getId());
 
         Long warehouseId = warehouseSeeder.ensureWarehouse(tenant.getId());
         seedBusinessData(tenant.getId(), warehouseId);
@@ -159,6 +165,16 @@ public class SeedDataRunner implements CommandLineRunner {
         return roles.save(role);
     }
 
+    private void retireLegacyWarehouseDemoUser(Long tenantId) {
+        users.findByUsername(DemoAccessPolicy.RETIRED_WAREHOUSE_USERNAME)
+            .filter(user -> tenantId.equals(user.getTenantId()))
+            .filter(AppUser::isActive)
+            .ifPresent(user -> {
+                user.setActive(false);
+                users.save(user);
+            });
+    }
+
     private void ensureDemoUser(String username, String fullName, Long tenantId, Role role) {
         AppUser user = users.findByUsername(username)
             .orElseGet(() -> AppUser.builder()
@@ -183,7 +199,7 @@ public class SeedDataRunner implements CommandLineRunner {
             Product.builder()
                 .tenantId(tenantId)
                 .name("Nước suối thùng 24 chai")
-                .sku("WATER-24")
+                .sku(businessCodeService.next(BusinessCodeType.PRODUCT, tenantId))
                 .costPrice(new BigDecimal("65000"))
                 .sellingPrice(new BigDecimal("80000"))
                 .minStock(10)
@@ -195,7 +211,7 @@ public class SeedDataRunner implements CommandLineRunner {
             Product.builder()
                 .tenantId(tenantId)
                 .name("Trà xanh thùng 24 chai")
-                .sku("TEA-24")
+                .sku(businessCodeService.next(BusinessCodeType.PRODUCT, tenantId))
                 .costPrice(new BigDecimal("120000"))
                 .sellingPrice(new BigDecimal("150000"))
                 .minStock(8)

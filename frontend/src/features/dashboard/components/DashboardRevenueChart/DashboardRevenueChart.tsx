@@ -5,6 +5,7 @@ import {
 } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { getIntlLocale, toNumber } from '../../../../lib/format';
+import { uiPalette } from '../../../../styles/palette';
 import type { SalesReportOrder } from '../../../reports/types/salesReport.types';
 import styles from './DashboardRevenueChart.module.css';
 
@@ -94,28 +95,22 @@ export function DashboardRevenueChart({
           yField="revenue"
           height={280}
           smooth
-          color="#6366f1"
+          color={uiPalette.chart.primary}
           point={{
             size: 6,
             shape: 'circle',
             style: {
-              fill: '#6366f1',
-              stroke: '#fff',
+              fill: uiPalette.chart.primary,
+              stroke: uiPalette.surface.card,
               lineWidth: 2,
             },
           }}
           line={{
             style: {
-              stroke: '#6366f1',
+              stroke: uiPalette.chart.primary,
               lineWidth: 3,
-              shadowColor: 'rgba(99, 102, 241, 0.3)',
+              shadowColor: 'rgba(139, 124, 246, 0.22)',
               shadowBlur: 10,
-            },
-          }}
-          area={{
-            style: {
-              fill: 'l(270) 0:#ffffff 0.5:#eef2ff 1:#6366f1',
-              fillOpacity: 0.3,
             },
           }}
           axis={{
@@ -123,12 +118,12 @@ export function DashboardRevenueChart({
               title: false,
               line: {
                 style: {
-                  stroke: '#e2e8f0',
+                  stroke: uiPalette.chart.grid,
                 },
               },
               tickLine: {
                 style: {
-                  stroke: '#e2e8f0',
+                  stroke: uiPalette.chart.grid,
                 },
               },
             },
@@ -141,13 +136,13 @@ export function DashboardRevenueChart({
                 }).format(value),
               line: {
                 style: {
-                  stroke: '#e2e8f0',
+                  stroke: uiPalette.chart.grid,
                 },
               },
               grid: {
                 line: {
                   style: {
-                    stroke: '#f1f5f9',
+                    stroke: uiPalette.chart.grid,
                     lineDash: [4, 4],
                   },
                 },

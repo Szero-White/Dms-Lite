@@ -1,1 +1,1 @@
-export type StockFilter = 'ALL' | 'HEALTHY' | 'LOW';
+export type StockFilter = 'HEALTHY' | 'LOW';

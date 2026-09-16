@@ -1,8 +1,8 @@
-import { FilterOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Checkbox, DatePicker, Input, InputNumber, Popover, Typography } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
+import { Button, DatePicker, Input, InputNumber } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ReceivableDueStatus } from '../../../../../types';
+import { TableMultiSelectFilter } from '../../../../../components/common/TableMultiSelectFilter';
 import type { OutstandingPaymentFilters } from '../../../types/payment.types';
 import { ALL_DUE_STATUSES } from './receivableDueStatusOptions';
 import styles from '../PaymentsPage.module.css';
@@ -20,9 +20,8 @@ export function OutstandingReceivableFilters({
 }: OutstandingReceivableFiltersProps) {
   const { t } = useTranslation();
   const [datePickerResetKey, setDatePickerResetKey] = useState(0);
-  const dueStatuses = filters.dueStatuses ?? ALL_DUE_STATUSES;
-  const allDueStatusesSelected = dueStatuses.length === ALL_DUE_STATUSES.length;
-  const hasFilters = !allDueStatusesSelected || Boolean(
+  const dueStatuses = filters.dueStatuses ?? [];
+  const hasFilters = dueStatuses.length > 0 || Boolean(
     filters.search
     || filters.dueFrom
     || filters.dueTo
@@ -30,50 +29,12 @@ export function OutstandingReceivableFilters({
     || filters.maxRemaining !== undefined
   );
 
-  function setDueStatusChecked(status: ReceivableDueStatus, checked: boolean) {
-    const selectedStatuses = new Set(dueStatuses);
-    if (checked) {
-      selectedStatuses.add(status);
-    } else {
-      selectedStatuses.delete(status);
-    }
-
-    onChange({
-      dueStatuses: ALL_DUE_STATUSES.filter((value) => selectedStatuses.has(value)),
-    });
-  }
-
   function reset() {
     setDatePickerResetKey((current) => current + 1);
     onReset();
   }
 
-  const dueStatusMenu = (
-    <div className={styles.statusFilterMenu}>
-      <Typography.Text strong>{t('payments.filters.dueStatus')}</Typography.Text>
-      <Checkbox
-        className={styles.statusFilterAll}
-        checked={allDueStatusesSelected}
-        indeterminate={dueStatuses.length > 0 && !allDueStatusesSelected}
-        onChange={(event) => onChange({
-          dueStatuses: event.target.checked ? ALL_DUE_STATUSES : [],
-        })}
-      >
-        {t('payments.filters.all')}
-      </Checkbox>
-      <div className={styles.statusFilterOptions}>
-        {ALL_DUE_STATUSES.map((status) => (
-          <Checkbox
-            key={status}
-            checked={dueStatuses.includes(status)}
-            onChange={(event) => setDueStatusChecked(status, event.target.checked)}
-          >
-            {t(`payments.filters.status.${status}`)}
-          </Checkbox>
-        ))}
-      </div>
-    </div>
-  );
+
 
   return (
     <div className={styles.filterPanel}>
@@ -86,12 +47,17 @@ export function OutstandingReceivableFilters({
         onChange={(event) => onChange({ search: event.target.value })}
       />
 
-      <Popover content={dueStatusMenu} placement="bottomLeft" trigger="click">
-        <Button className={styles.statusFilterTrigger} icon={<FilterOutlined />}>
-          {t('payments.filters.dueStatus')}
-          {!allDueStatusesSelected ? ` (${dueStatuses.length})` : ''}
-        </Button>
-      </Popover>
+      <TableMultiSelectFilter
+        ariaLabel={t('payments.filters.dueStatus')}
+        className={styles.statusFilterTrigger}
+        value={dueStatuses}
+        onChange={(values) => onChange({ dueStatuses: values })}
+        placeholder={t('payments.filters.dueStatus')}
+        options={ALL_DUE_STATUSES.map((status) => ({
+          value: status,
+          label: t(`payments.filters.status.${status}`),
+        }))}
+      />
 
       <DatePicker.RangePicker
         key={`due-range-${datePickerResetKey}`}

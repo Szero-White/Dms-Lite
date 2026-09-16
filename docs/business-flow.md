@@ -1,188 +1,156 @@
 # Business Flow
 
-Tài liệu này mô tả **hành vi đang chạy trong code hiện tại**, không mô tả feature roadmap.
+This document describes the business behavior implemented by the current source.
 
-## 1. Sales tạo đơn
+## 1. Product
 
-`POST /api/sales-orders`
+A product contains business attributes such as name, barcode, prices, minimum stock, and lifecycle state.
 
-Kết quả:
+Product code is system-managed:
 
-- validate customer, product và warehouse thuộc tenant hiện tại;
-- quantity phải dương;
-- discount không được vượt line gross amount;
-- order mới luôn bắt đầu với `paidAmount = 0`; payment được ghi riêng qua module Accountant để không bypass `PAYMENT_CREATE`;
-- tạo order trạng thái `DRAFT`;
-- chưa trừ kho;
-- chưa phát sinh receivable;
-- nếu `creditLimit > 0`, frontend cảnh báo khi `current receivable + projected order exposure` vượt hạn mức nhưng vẫn cho phép lưu `DRAFT`.
+```text
+PRD-000001
+```
 
-Order code dùng business document numbering `SO-YYYYMMDD-NNNN`, được cấp phát atomically theo tenant + business date thay vì `count + 1`. Current MVP dùng một warehouse chính; frontend lấy warehouse này từ backend thay vì hardcode ID.
+Users do not edit product codes manually.
 
-## 2. Warehouse confirm / fulfill
+Products are **deactivated**, not physically deleted. Historical orders, invoices, stock transactions, reports, and audit references must remain valid.
 
-`POST /api/sales-orders/{id}/confirm`
+Inactive products cannot be selected for new sales or stock-receiving operations.
 
-Current MVP gộp **confirm + fulfillment** vào một transaction và chuyển:
+## 2. Customer
 
-`DRAFT -> COMPLETED`
+A customer can have:
 
-Không lưu trạng thái `CONFIRMED` riêng.
+- payment terms;
+- credit limit;
+- sales-order history;
+- open receivables;
+- debt statement history.
 
-Trong transaction:
+`creditLimit = 0` means no configured hard limit.
 
-1. lock order row đúng tenant để chỉ một transition `DRAFT -> ...` được xử lý tại một thời điểm;
-2. kiểm tra order phải là `DRAFT`;
-3. lock customer row để serialize các lần fulfill có thể cùng làm tăng exposure của một customer;
-4. nếu `creditLimit > 0`, tính `current receivable + projected order exposure` và reject trước khi xuất kho nếu kết quả vượt hạn mức;
-5. lock stock row;
-6. kiểm tra đủ stock;
-7. trừ stock;
-8. ghi inventory transaction `OUT`;
-9. set order `COMPLETED` và `confirmed_at`;
-10. nếu `debtAmount > 0`, tạo receivable `INCREASE`;
-11. ghi audit;
-12. publish notification.
+Creating a Draft order may warn about projected exposure. The hard credit check occurs during fulfillment before stock or receivable mutation.
 
-Nếu vượt hạn mức, stock không đủ hoặc core operation fail, confirm không được hoàn thành một nửa. `creditLimit = 0` tiếp tục có nghĩa là khách hàng chưa cấu hình hạn mức và không bị hard-block.
+## 3. Sales Order
 
-## 3. Receivable
+Current lifecycle:
 
-Order còn nợ tạo:
+```text
+DRAFT -> COMPLETED
+DRAFT -> CANCELLED
+```
 
-- `direction = INCREASE`
-- `amount = số nợ ban đầu`
-- `remainingAmount = số nợ ban đầu`
-- `dueDate = business date của ngày confirm + paymentTermDays`
+### DRAFT
 
-Balance hiện tại của customer được tính duy nhất bằng:
+- editable operational order state;
+- no stock deduction;
+- no recognized revenue;
+- no receivable creation.
 
-`SUM(INCREASE.remainingAmount WHERE remainingAmount > 0)`
+### COMPLETED
 
-Report, customer list/detail và payment validation phải dùng cùng semantics này.
+Order completion performs the real business mutation:
 
-## 4. Customer lifecycle
+- validates customer credit exposure;
+- validates stock;
+- deducts stock;
+- records inventory movement;
+- recognizes the completed sale;
+- creates an open receivable when money remains unpaid.
 
-Customer là master data có lịch sử nghiệp vụ, nên hệ thống không hard-delete customer chỉ vì ngừng giao dịch.
+### CANCELLED
 
-- `POST /api/customers/{id}/deactivate` yêu cầu `CUSTOMER_DEACTIVATE`;
-- chỉ cho ngừng hoạt động khi current receivable bằng `0` và không còn sales order `DRAFT`;
-- deactivate chỉ set `active = false`, không set `deleted_at`;
-- customer inactive vẫn còn trong danh sách, detail, order history, invoice/report/audit history;
-- customer inactive không được dùng để tạo hoặc fulfill sales order mới;
-- `POST /api/customers/{id}/reactivate` cho phép kích hoạt lại khi doanh nghiệp giao dịch trở lại;
-- create order và deactivate cùng lock customer row để tránh race giữa việc mở Draft mới và ngừng hoạt động customer.
+Only a Draft order can be cancelled. Cancellation does not create revenue, debt, or stock movement.
 
-Migration V6 chuyển các customer từng bị legacy soft-delete thành lifecycle mới. Nếu customer legacy còn `DRAFT`, migration kích hoạt lại để workflow đang mở không bị kẹt; các customer legacy còn lại trở thành inactive và vẫn xem được lịch sử.
+## 4. Inventory
 
-## 5. Customer payment
+Inventory is warehouse-backed. Stock mutations are handled by backend business services and validated against tenant/warehouse ownership.
 
-Payment workspace dùng:
+Main operations:
 
-- `GET /api/payments/outstanding-orders` -> từng sales order `COMPLETED` còn `remaining_amount > 0`; worklist hỗ trợ lọc trạng thái hạn (`CURRENT`, `DUE_SOON`, `DUE_TODAY`, `OVERDUE`), khoảng `dueDate` và khoảng số tiền còn phải thu trên toàn bộ paged result;
-- `POST /api/payments` -> ghi nhận tiền cho đúng một sales order;
-- `GET /api/payments/history` -> lịch sử từng `PAY`, hỗ trợ search PAY/SO/customer/note và `from` / `to` theo business date;
-- `GET /api/payments/{id}/receipt.pdf` -> biên nhận immutable của lần thu.
+- receive stock;
+- sales-order stock-out;
+- transaction history;
+- low-stock monitoring.
 
-Quy trình payment mới:
+Stock must never become negative because of sales-order fulfillment.
 
-1. user phải có `PAYMENT_CREATE + CUSTOMER_VIEW + SALES_ORDER_VIEW + DEBT_VIEW`;
-2. chọn đúng sales order đang còn phải thu;
-3. lock sales order bằng `PESSIMISTIC_WRITE`;
-4. lock đúng receivable `SALES_ORDER/INCREASE` của order đó;
-5. reject nếu order không `COMPLETED`, đã tất toán hoặc amount vượt `remaining_amount`;
-6. giảm `INCREASE.remaining_amount` đúng bằng số tiền thực nhận;
-7. đồng bộ `sales_orders.paid_amount` và `debt_amount` của **chính order được chọn**;
-8. lưu `payments` với snapshot `SO`, customer, debt before/after và client `request_key`;
-9. tạo `DECREASE` transaction để giữ payment history;
-10. audit action `PAYMENT_RECORDED`;
-11. evict backend dashboard cache; frontend invalidate/refetch các query liên quan (sales order, customer/debt, report, invoice, notification) sau khi payment thành công.
+## 5. Receivables
 
-Một payment mới **không tự chạy sang order khác**. Nếu khách có nhiều order, kế toán ghi nhận từng order theo nội dung khách thanh toán. Partial payment và exact payment đều hợp lệ. Frontend có thể giới hạn giá trị nhập về số còn phải thu để thân thiện, nhưng backend vẫn reject overpayment nếu API bị gọi trực tiếp hoặc client lỗi.
+An unpaid completed order creates an open receivable increase.
 
-Trạng thái hạn dùng business date của backend: `DUE_SOON` là còn từ 1 đến 3 ngày, `DUE_TODAY` là đúng ngày đến hạn, `OVERDUE` là `dueDate < today`. UI hiển thị cùng semantics này ở Payment worklist và Customer debt statement để người dùng không phải tự suy ra từ ngày.
+Due-date states are:
 
-`request_key` làm thao tác idempotent: retry cùng request hợp lệ trả lại payment đã tạo thay vì trừ công nợ lần hai.
+| State | Meaning |
+| --- | --- |
+| `CURRENT` | More than 3 days remain |
+| `DUE_SOON` | 1-3 days remain |
+| `DUE_TODAY` | Due on the current business date |
+| `OVERDUE` | Due date is before the current business date |
 
-`DECREASE.amount` dùng cho statement/history và **không bị trừ thêm lần nữa khỏi current balance**. Current customer balance vẫn là tổng `remaining_amount` của các receivable `INCREASE` còn mở.
+`DUE_TODAY` is not overdue.
 
-Payment trước migration V11 có thể là legacy FIFO payment. Vì một payment cũ có thể từng được phân bổ qua nhiều receivable, migration không đoán một `sales_order_id`; UI/PDF ghi rõ đây là lịch sử cũ.
+The canonical open balance is `remaining_amount` on open receivable increases.
 
-### Ví dụ regression bắt buộc
+## 6. Payments
 
-- `SO-A` total: `520.000`; remaining: `520.000`;
-- `SO-B` remaining: `300.000`;
-- chọn `SO-A`, payment: `500.000`;
-- `SO-A` remaining phải thành `20.000`;
-- `SO-B` vẫn `300.000`;
-- payment history phải ghi `PAY -> SO-A -> 500.000 -> remaining 20.000`;
-- payment `520.001` cho `SO-A` phải bị backend reject và không mutate dữ liệu;
-- payment `20.000` tiếp theo cho `SO-A` tất toán order và order biến khỏi outstanding worklist nhưng vẫn còn trong history/report/audit.
+Each new payment targets exactly one `COMPLETED` sales order with an outstanding balance.
 
-## 6. Invoice document
+Supported behavior:
 
-Invoice trong DMS Lite là **chứng từ bán hàng gắn với một order `COMPLETED` đã thu đủ**, không phải một luồng kế toán thứ hai.
+- partial payment;
+- exact final payment;
+- overpayment rejection;
+- pessimistic locking for financial mutation;
+- idempotent retry through a request key;
+- payment history with PAY/SO/customer traceability;
+- immutable receipt snapshot fields.
 
-- payment vẫn được ghi tại Payment workspace và gắn với đúng một sales order còn phải thu;
-- khi lần thanh toán cuối đưa remaining receivable của order về `0`, backend tạo đúng một invoice `DRAFT` **trong cùng transaction**; nếu tạo invoice lỗi thì final payment cũng rollback;
-- không còn nút/API `Tạo hóa đơn` thủ công và permission `INVOICE_CREATE`; mỗi sales order vẫn có tối đa một invoice nhờ unique invariant;
-- migration V12 backfill invoice cho các order `COMPLETED` đã thu đủ trước khi cơ chế tự động được bật, đồng thời loại permission manual-create cũ;
-- invoice list chỉ hiển thị các order đã thu đủ, hỗ trợ search `INV/SO/customer` và `from/to` theo business date;
-- phát hành invoice không tạo, tăng hoặc giảm receivable;
-- `paidAmount` và `remainingAmount` khi đọc invoice lấy theo trạng thái tài chính hiện tại của sales order;
-- PDF chỉ tải được khi invoice đã phát hành và còn hiệu lực; nội dung PDF theo ngôn ngữ `Accept-Language` của giao diện (`vi`/`en`), dùng font Unicode để giữ nguyên tiếng Việt và hiển thị số tiền theo locale.
+A payment must not reduce another order's receivable.
 
-Luồng mới: `COMPLETED order -> partial payments -> final payment -> automatic DRAFT invoice -> ISSUED -> PAID`.
+## 7. Invoice
 
-## 7. Revenue
+There is no manual invoice creation in the current flow.
 
-Revenue chỉ ghi nhận order `COMPLETED`.
+```text
+Final payment -> Draft invoice -> Issue -> PDF
+```
 
-Dashboard dùng `confirmed_at`, không dùng `created_at`, để đơn tạo hôm trước nhưng confirm hôm nay được ghi nhận vào ngày confirm.
+Rules:
 
-Dashboard còn có read endpoint riêng `GET /api/reports/dashboard/receivable-attention` (yêu cầu `REPORT_VIEW + DEBT_VIEW`) để tính theo **business date hiện tại** các khoản `Quá hạn`, `Đến hạn hôm nay`, `Sắp đến hạn trong 3 ngày` và preview khoản quá hạn lâu nhất. Endpoint này không dùng cache dashboard tổng hợp để trạng thái hạn không bị stale khi bước sang ngày mới.
+- partial payment does not create an invoice;
+- final payment creates exactly one Draft invoice;
+- issue does not create a second receivable;
+- historical fully paid orders are handled by migration/backfill logic;
+- invoice PDF supports Vietnamese and English.
 
-## 8. Sales report semantics
+## 8. Roles and Permissions
 
-`GET /api/reports/sales`
+System roles represent common workflows but permissions remain authoritative.
 
-Sales report là read model riêng, không lấy page đầu của `GET /api/sales-orders` để tự tổng hợp ở browser. Dashboard analytics/export cũng dùng read model này; `GET /api/sales-orders` chỉ còn phục vụ operational preview như đơn gần đây/cần xử lý.
+### Owner
 
-- `DRAFT` và `CANCELLED` vẫn xuất hiện để theo dõi pipeline đơn hàng nhưng chưa được coi là receivable thực tế;
-- với các trạng thái chưa ghi nhận receivable, `collectedAmount`, `remainingReceivable` và `collectionProgress` là `null`;
-- `COMPLETED` mới được tính vào recognized revenue;
-- `reportDate` dùng `confirmedAt` cho `COMPLETED`, còn `DRAFT`/`CANCELLED` dùng `createdAt`, nên filter theo kỳ phản ánh đúng thời điểm ghi nhận nghiệp vụ;
-- `COMPLETED` lấy số còn phải thu từ `customer_debt_transactions.INCREASE.remainingAmount`, cùng source-of-truth với customer debt và payment;
-- payment làm thay đổi report thông qua receivable ledger, không tạo phép tính công nợ riêng ở frontend;
-- customer ngừng hoạt động sau khi tất toán vẫn không làm mất sales history khỏi report.
+Full business and administration workflow.
 
-## 9. Read APIs
+### Sales
 
-- `GET /api/auth/me` -> session snapshot hiện tại (user, tenant, roles, permissions) cho authenticated frontend; dùng để refresh authorization state sau reload, không thay thế backend authorization.
-- `GET /api/customers` -> customer page summary.
-- `GET /api/customers/{id}` -> customer detail.
-- `GET /api/customers/{id}/debt-statement` -> statement, yêu cầu `DEBT_VIEW`.
-- `GET /api/sales-orders` -> paged order summary; hỗ trợ `customerId` filter.
-- `GET /api/sales-orders/{id}` -> order detail + items.
-- `GET /api/reports/sales` -> sales reporting read model; hỗ trợ `from` / `to` ISO-8601 và yêu cầu cả `REPORT_VIEW` + `SALES_ORDER_VIEW`.
-- `GET /api/inventory/stock` và `GET /api/inventory/transactions` -> response DTO tenant-safe; JPA entity/internal fields như `tenantId`, optimistic-lock `version` hoặc `createdBy` không phải public API contract.
+Customer/product visibility, Draft order creation, order confirmation/completion, and allowed Draft cancellation. Sales can inspect stock but does not manually adjust inventory.
 
-Frontend không được giả định list summary chứa order items. Với order chưa `COMPLETED`, API vẫn có thể trả `totalAmount` cho giá trị đơn nhưng `paidAmount`/`debtAmount` không được trình bày như khoản phải thu thực tế.
+### Accountant
 
-- `GET /api/invoices` -> paged invoice summary của các order đã thu đủ; hỗ trợ search `INV/SO/customer` và `from` / `to`, yêu cầu `INVOICE_VIEW`.
-- `GET /api/invoices/{id}` -> invoice detail + snapshot items.
-- `GET /api/payments/outstanding-orders` -> paged outstanding orders cho Payment workspace.
-- `GET /api/payments/history` -> paged payment history, tìm theo PAY/SO/customer/note và hỗ trợ `from` / `to` business date.
+Inventory receiving plus receivables, payments, invoices, and reporting according to assigned permissions. This keeps the small-business demo to three operating personas without weakening permission boundaries.
 
+Custom roles are supported. Composite workflows validate required dependent permissions so the UI does not expose an action whose supporting data cannot be read.
 
-## Business document numbering
+## 9. Notifications and Audit
 
-User-facing document references are separate from database primary keys. New documents use a tenant-scoped, business-date sequence:
+Important business mutations write audit information. Notifications combine persisted events and derived operational alerts such as overdue receivables and low stock.
 
-- Sales Order: `SO-YYYYMMDD-NNNN`
-- Invoice: `INV-YYYYMMDD-NNNN`
-- Payment: `PAY-YYYYMMDD-NNNN`
+Notification visibility follows the same permission boundaries as the underlying business data.
 
-The sequence is allocated atomically in PostgreSQL per tenant, document type, and business date. Existing Sales Order and Invoice numbers remain unchanged so historical/issued identifiers are never rewritten. Payments had no prior business code, so migration V7 backfills them. The default business timezone is `Asia/Ho_Chi_Minh` and can be overridden with `APP_BUSINESS_ZONE`.
+## 10. Reporting
 
-The customer debt statement resolves `sourceCode` for Sales Order and Payment entries, so business document numbers remain visible after the creation toast and in later reconciliation. Database IDs remain internal references.
+Revenue uses completed sales orders. Financial dashboards and customer debt views must read the same canonical receivable state used by payments and statements.
+
+A reporting screen must not recompute a different debt formula in the browser.

@@ -14,8 +14,6 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -36,11 +34,7 @@ public class CustomerService {
         Page<Customer> customers = customerRepository.findByTenantIdAndDeletedAtIsNullAndNameContainingIgnoreCase(
             tenantId,
             keyword,
-            PageRequest.of(
-                PageRequestPolicy.page(page),
-                PageRequestPolicy.size(size),
-                Sort.by(Sort.Order.desc("id"))
-            )
+            PageRequestPolicy.newestById(page, size)
         );
 
         boolean includeDebtBalance = canViewDebtBalance();

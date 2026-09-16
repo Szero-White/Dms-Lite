@@ -13,7 +13,7 @@ class HelpWorkflowKnowledgeScopeTest {
     private final HelpWorkflowKnowledge knowledge = new HelpWorkflowKnowledge();
 
     @Test
-    void warehouseSalesGuidanceDoesNotAdvertiseCustomerOrPaymentScreens() {
+    void inventoryOperatorSalesGuidanceDoesNotAdvertiseCustomerOrPaymentScreens() {
         HelpPermissionScope scope = scope(
             "PRODUCT_VIEW",
             "SALES_ORDER_VIEW",
@@ -34,7 +34,7 @@ class HelpWorkflowKnowledgeScopeTest {
     }
 
     @Test
-    void accountantReportGuidanceDoesNotAdvertiseInventoryOrAuditScreens() {
+    void financeOnlyReportGuidanceDoesNotAdvertiseInventoryOrAuditScreens() {
         HelpPermissionScope scope = scope(
             "PRODUCT_VIEW",
             "CUSTOMER_VIEW",
@@ -83,6 +83,25 @@ class HelpWorkflowKnowledgeScopeTest {
             .doesNotContain("Tạo hóa đơn")
             .doesNotContain("tạo đơn bán")
             .doesNotContain("Quản lý truy cập");
+    }
+
+    @Test
+    void inventoryManagementGuidanceMatchesSupportedReceivingWorkflow() {
+        HelpPermissionScope scope = scope(
+            "INVENTORY_VIEW",
+            "INVENTORY_MANAGE",
+            "AI_HELP_VIEW"
+        );
+
+        HelpAnswerResponse vietnamese = knowledge.inventoryAnswer(scope, HelpLocale.VI);
+        HelpAnswerResponse english = knowledge.inventoryAnswer(scope, HelpLocale.EN);
+
+        assertThat(String.join(" ", vietnamese.steps()))
+            .contains("Nhập kho")
+            .doesNotContain("điều chỉnh");
+        assertThat(String.join(" ", english.steps()))
+            .contains("Receive Stock")
+            .doesNotContain("adjust stock");
     }
 
     @Test

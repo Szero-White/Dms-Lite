@@ -22,6 +22,8 @@ export interface SalesOrder {
   debtAmount: string | number | null;
   createdAt: string;
   confirmedAt?: string;
+  cancelledAt?: string;
+  cancellationReason?: string;
   items?: SalesOrderItem[];
 }
 

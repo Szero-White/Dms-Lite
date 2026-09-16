@@ -1,10 +1,7 @@
-import * as React from 'react';
 import {
   AppstoreOutlined,
   CalendarOutlined,
   DollarOutlined,
-  ShoppingCartOutlined,
-  TeamOutlined,
   WarningOutlined,
   WalletOutlined,
 } from '@ant-design/icons';
@@ -12,120 +9,64 @@ import { Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { SummaryCard } from '../../../../../components/common/SummaryCard/SummaryCard';
 import { formatCurrency, formatNumber } from '../../../../../lib/format';
-import type { DashboardSnapshot, ReceivableAttention } from '../../../types/dashboard.types';
-import type { SalesReportOrder } from '../../../../reports/types/salesReport.types';
+import type { DashboardSnapshot } from '../../../types/dashboard.types';
 import type { DashboardRange } from '../dashboardPage.types';
 import styles from './DashboardPerformanceSection.module.css';
 
 interface DashboardPerformanceSectionProps {
-  activeCustomers: number;
-  canViewCustomers: boolean;
-  canViewOrders: boolean;
   dashboard: DashboardSnapshot;
-  analyticsOrders: SalesReportOrder[];
   range: DashboardRange;
-  receivableAttention?: ReceivableAttention;
 }
 
-function MiniGauge({ color, pct }: { color: string; pct: number }) {
-  const radius = 18;
-  const circumference = 2 * Math.PI * radius;
-  const gradientId = `grad-${color.replace('#', '')}`;
-
+function RevenueVisual() {
   return (
-    <svg width="48" height="48" viewBox="0 0 48 48" className={styles.miniGaugeSvg}>
-      <defs>
-        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.08" />
-        </linearGradient>
-      </defs>
-      <circle cx="24" cy="24" r={radius} fill={`url(#${gradientId})`} stroke="none" />
-      <circle cx="24" cy="24" r={radius} fill="none" stroke={`${color}22`} strokeWidth="4" />
-      <circle
-        cx="24"
-        cy="24"
-        r={radius}
-        fill="none"
-        stroke={color}
-        strokeWidth="4"
-        strokeDasharray={`${(pct / 100) * circumference} ${circumference}`}
-        strokeDashoffset={circumference * 0.25}
-        strokeLinecap="round"
-      />
-      <text x="24" y="28" textAnchor="middle" fontSize="10" fontWeight="800" fill={color}>
-        {pct}%
-      </text>
-    </svg>
+    <div className={`${styles.microVisual} ${styles.barVisual}`}>
+      <span style={{ height: '34%' }} />
+      <span style={{ height: '54%' }} />
+      <span style={{ height: '42%' }} />
+      <span className={styles.barAccent} style={{ height: '76%' }} />
+    </div>
+  );
+}
+
+function ReceivableVisual() {
+  return (
+    <div className={`${styles.microVisual} ${styles.ringVisual}`}>
+      <svg viewBox="0 0 36 36" aria-hidden="true">
+        <circle cx="18" cy="18" r="13" className={styles.ringTrack} />
+        <circle cx="18" cy="18" r="13" className={styles.ringProgress} pathLength="100" strokeDasharray="64 36" />
+      </svg>
+      <span className={styles.ringValue}>64%</span>
+    </div>
+  );
+}
+
+function ProductVisual() {
+  return (
+    <div className={`${styles.microVisual} ${styles.pillVisual}`}>
+      <span className={styles.pillShort} />
+      <span className={styles.pillMedium} />
+      <span className={styles.pillTall} />
+    </div>
+  );
+}
+
+function WarningVisual() {
+  return (
+    <div className={`${styles.microVisual} ${styles.warningVisual}`}>
+      <span className={styles.warningLine} />
+      <span className={styles.warningLineSoft} />
+      <span className={styles.warningDot} />
+    </div>
   );
 }
 
 export function DashboardPerformanceSection({
-  activeCustomers,
-  canViewCustomers,
-  canViewOrders,
   dashboard,
-  analyticsOrders,
   range,
-  receivableAttention,
 }: DashboardPerformanceSectionProps) {
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
   const rangeLabel = t(`dashboard.range.${range}`);
-  const completedOrders = analyticsOrders.filter((order) => order.status === 'COMPLETED');
-  const totalOrders = analyticsOrders.length || 1;
-  const completedPct = Math.round((completedOrders.length / totalOrders) * 100);
-  const totalReceivableAttentionCount = receivableAttention
-    ? receivableAttention.overdueCount
-      + receivableAttention.dueTodayCount
-      + receivableAttention.dueSoonCount
-    : 0;
-  const receivableColor = !receivableAttention || totalReceivableAttentionCount === 0
-    ? '#10b981'
-    : receivableAttention.overdueCount > 0
-      ? '#ef4444'
-      : '#f59e0b';
-
-  const kpis = [
-    {
-      color: '#6366f1',
-      icon: <DollarOutlined />,
-      label: t('dashboard.performance.revenueToday'),
-      showGauge: false,
-      subLabel: t('dashboard.performance.vsThisMonth'),
-      value: formatCurrency(dashboard.summary.revenueToday),
-    },
-    ...(canViewCustomers ? [{
-      color: '#10b981',
-      icon: <TeamOutlined />,
-      label: t('dashboard.performance.activeCustomers'),
-      showGauge: false,
-      subLabel: t('dashboard.performance.activeCustomers'),
-      value: String(formatNumber(activeCustomers)),
-    }] : []),
-    ...(canViewOrders ? [{
-      color: '#f59e0b',
-      icon: <ShoppingCartOutlined />,
-      label: t('dashboard.performance.ordersNeedAction'),
-      pct: completedPct,
-      showGauge: true,
-      subLabel: t('dashboard.performance.completedPercent', { percent: completedPct }),
-      value: String(formatNumber(analyticsOrders.filter((order) => order.status === 'DRAFT').length)),
-    }] : []),
-    ...(receivableAttention ? [{
-      color: receivableColor,
-      icon: <WarningOutlined />,
-      label: t('dashboard.attention.receivables.title'),
-      showGauge: false,
-      subLabel: totalReceivableAttentionCount === 0
-        ? t('dashboard.performance.receivables.clearTitle')
-        : t('dashboard.performance.receivables.summary', {
-          overdue: receivableAttention.overdueCount,
-          dueToday: receivableAttention.dueTodayCount,
-          dueSoon: receivableAttention.dueSoonCount,
-        }),
-      value: formatCurrency(receivableAttention.overdueAmount, i18n.language),
-    }] : []),
-  ];
 
   return (
     <section className={styles.section}>
@@ -146,6 +87,9 @@ export function DashboardPerformanceSection({
           note={t('dashboard.performance.revenueThisMonthNote')}
           icon={<DollarOutlined />}
           variant="blue"
+          visual="dashboard"
+          microVisual={<RevenueVisual />}
+          indicatorLabel={t('dashboard.range.THIS_MONTH')}
         />
         <SummaryCard
           title={t('dashboard.performance.totalReceivables')}
@@ -153,6 +97,9 @@ export function DashboardPerformanceSection({
           note={t('dashboard.performance.totalReceivablesNote')}
           icon={<WalletOutlined />}
           variant="orange"
+          visual="dashboard"
+          microVisual={<ReceivableVisual />}
+          indicatorLabel={t('dashboard.range.7_DAYS')}
         />
         <SummaryCard
           title={t('dashboard.performance.activeSkus')}
@@ -160,6 +107,9 @@ export function DashboardPerformanceSection({
           note={t('dashboard.performance.lowStockCount', { count: dashboard.summary.lowStockItems })}
           icon={<AppstoreOutlined />}
           variant="green"
+          visual="dashboard"
+          microVisual={<ProductVisual />}
+          indicatorLabel={formatNumber(dashboard.summary.lowStockItems)}
         />
         <SummaryCard
           title={t('dashboard.performance.lowStockProducts')}
@@ -167,45 +117,10 @@ export function DashboardPerformanceSection({
           note={t('dashboard.performance.lowStockProductsNote')}
           icon={<WarningOutlined />}
           variant="red"
+          visual="dashboard"
+          microVisual={<WarningVisual />}
+          indicatorLabel={dashboard.summary.lowStockItems > 0 ? t('inventory.overview.needsRestock') : t('inventory.overview.allProductsHealthy')}
         />
-      </div>
-
-      <div className={styles.kpiMiniPanel}>
-        {kpis.map((kpi) => (
-          <div
-            key={kpi.label}
-            className={styles.kpiMiniCard}
-            style={{ '--kpi-color': kpi.color } as React.CSSProperties}
-          >
-            <div className={styles.kpiMiniTop}>
-              <div
-                className={styles.kpiMiniIconWrap}
-                style={{ background: `${kpi.color}18`, color: kpi.color }}
-              >
-                {kpi.icon}
-              </div>
-              {kpi.showGauge && kpi.pct !== undefined ? (
-                <MiniGauge pct={kpi.pct} color={kpi.color} />
-              ) : (
-                <div className={styles.kpiMiniSparkBar}>
-                  <div
-                    className={styles.kpiMiniSparkFill}
-                    style={{
-                      background: `linear-gradient(90deg, ${kpi.color}55, ${kpi.color}cc)`,
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-            <div className={styles.kpiMiniValue}>{kpi.value}</div>
-            <div className={styles.kpiMiniLabel}>{kpi.label}</div>
-            <div className={styles.kpiMiniSub}>{kpi.subLabel}</div>
-            <div
-              className={styles.kpiMiniAccent}
-              style={{ background: `linear-gradient(90deg, ${kpi.color}, ${kpi.color}00)` }}
-            />
-          </div>
-        ))}
       </div>
     </section>
   );

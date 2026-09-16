@@ -10,7 +10,6 @@ import {
   DatePicker,
   Descriptions,
   Drawer,
-  Select,
   Table,
   Tag,
   Typography,
@@ -18,29 +17,30 @@ import {
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../components/common/PageHeader';
+import { TableMultiSelectFilter } from '../../../../components/common/TableMultiSelectFilter';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatDateTime, formatNumber } from '../../../../lib/format';
-import { compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
+import { compareDate, compareNumber, compareText, newestFirst, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../lib/tableSorting';
 import { useAuditLogs } from '../../hooks/useAuditQueries';
 import { AuditLogRow } from '../../types/audit.types';
+import { uiPalette } from '../../../../styles/palette';
 import styles from './AuditLogsPage.module.css';
 
-// colour pool for actor avatars
 const ACTOR_COLORS = [
-  'linear-gradient(135deg,#6366f1,#818cf8)',
-  'linear-gradient(135deg,#10b981,#34d399)',
-  'linear-gradient(135deg,#f59e0b,#fbbf24)',
-  'linear-gradient(135deg,#ef4444,#f87171)',
-  'linear-gradient(135deg,#8b5cf6,#a78bfa)',
-  'linear-gradient(135deg,#06b6d4,#22d3ee)',
+  uiPalette.brand.primary,
+  '#7f79df',
+  '#918be2',
+  '#a29de5',
+  uiPalette.text.secondary,
+  uiPalette.text.tertiary,
 ];
 
 export function AuditLogsPage() {
   const { t } = useTranslation();
   const auditQuery = useAuditLogs();
-  const [actorFilter, setActorFilter]   = useState<string>('ALL');
-  const [actionFilter, setActionFilter] = useState<string>('ALL');
-  const [entityFilter, setEntityFilter] = useState<string>('ALL');
+  const [actorFilters, setActorFilters] = useState<string[]>([]);
+  const [actionFilters, setActionFilters] = useState<string[]>([]);
+  const [entityFilters, setEntityFilters] = useState<string[]>([]);
   const [dateRange, setDateRange]       = useState<[number, number] | null>(null);
   const [datePickerKey, setDatePickerKey] = useState(0);
   const [selectedLog, setSelectedLog]   = useState<AuditLogRow | null>(null);
@@ -68,17 +68,17 @@ export function AuditLogsPage() {
 
   const actorOptions = useMemo(() => {
     const vals = [...new Set(auditLogs.map((i) => i.actorName))];
-    return [{ value: 'ALL', label: t('audit.filters.allActors') }, ...vals.map((v) => ({ value: v, label: actorLabel(v) }))];
+    return vals.map((value) => ({ value, label: actorLabel(value) }));
   }, [auditLogs, t]);
 
   const actionOptions = useMemo(() => {
     const vals = [...new Set(auditLogs.map((i) => i.action))];
-    return [{ value: 'ALL', label: t('audit.filters.allActions') }, ...vals.map((v) => ({ value: v, label: actionLabel(v) }))];
+    return vals.map((value) => ({ value, label: actionLabel(value) }));
   }, [auditLogs, t]);
 
   const entityOptions = useMemo(() => {
     const vals = [...new Set(auditLogs.map((i) => i.entityType))];
-    return [{ value: 'ALL', label: t('audit.filters.allEntities') }, ...vals.map((v) => ({ value: v, label: entityLabel(v) }))];
+    return vals.map((value) => ({ value, label: entityLabel(value) }));
   }, [auditLogs, t]);
 
   // Actor activity breakdown
@@ -98,30 +98,30 @@ export function AuditLogsPage() {
   }, [auditLogs]);
 
   const dataSource = useMemo(
-    () => auditLogs.filter((item) => {
-      const actorMatch  = actorFilter  === 'ALL' || item.actorName  === actorFilter;
-      const actionMatch = actionFilter === 'ALL' || item.action     === actionFilter;
-      const entityMatch = entityFilter === 'ALL' || item.entityType === entityFilter;
+    () => newestFirst(auditLogs.filter((item) => {
+      const actorMatch = actorFilters.length === 0 || actorFilters.includes(item.actorName);
+      const actionMatch = actionFilters.length === 0 || actionFilters.includes(item.action);
+      const entityMatch = entityFilters.length === 0 || entityFilters.includes(item.entityType);
       const ts          = new Date(item.createdAt).getTime();
       const dateMatch   = !dateRange || (ts >= dateRange[0] && ts <= dateRange[1]);
       return actorMatch && actionMatch && entityMatch && dateMatch;
-    }),
-    [actionFilter, actorFilter, auditLogs, dateRange, entityFilter],
+    })),
+    [actionFilters, actorFilters, auditLogs, dateRange, entityFilters],
   );
 
-  const hasFilters = actorFilter !== 'ALL' || actionFilter !== 'ALL' || entityFilter !== 'ALL' || Boolean(dateRange);
+  const hasFilters = actorFilters.length > 0 || actionFilters.length > 0 || entityFilters.length > 0 || Boolean(dateRange);
 
   function clearFilters() {
-    setActorFilter('ALL');
-    setActionFilter('ALL');
-    setEntityFilter('ALL');
+    setActorFilters([]);
+    setActionFilters([]);
+    setEntityFilters([]);
     setDateRange(null);
     setDatePickerKey((k) => k + 1);
   }
 
   return (
     <div className={styles.page}>
-      <PageHeader title={t('audit.title')} subtitle={t('audit.subtitle')} />
+      <PageHeader variant="governance" title={t('audit.title')} subtitle={t('audit.subtitle')} />
       <div className={styles.overviewStrip}>
         <div className={styles.stripHero}>
           <div className={styles.stripHeroIcon}><AuditOutlined /></div>
@@ -174,8 +174,12 @@ export function AuditLogsPage() {
               <button
                 key={entity}
                 type="button"
-                className={`${styles.entityChip} ${entityFilter === entity ? styles.entityChipActive : ''}`}
-                onClick={() => setEntityFilter(entityFilter === entity ? 'ALL' : entity)}
+                className={`${styles.entityChip} ${entityFilters.includes(entity) ? styles.entityChipActive : ''}`}
+                onClick={() => setEntityFilters((current) =>
+                  current.includes(entity)
+                    ? current.filter((value) => value !== entity)
+                    : [...current, entity],
+                )}
               >
                 {entityLabel(entity)}
                 <span className={styles.entityChipCount}>{count}</span>
@@ -185,12 +189,36 @@ export function AuditLogsPage() {
           </div>
         </div>
       </div>
-      <Card className={`panel-card table-panel-card ${styles.auditCard}`}>
+      <Card className={`panel-card workspace-surface table-panel-card ${styles.auditCard}`}>
         <div className={styles.toolbar}>
           <div className={styles.filters}>
-            <Select className={styles.filter} value={actorFilter}  onChange={setActorFilter}  options={actorOptions} />
-            <Select className={styles.filter} value={actionFilter} onChange={setActionFilter} options={actionOptions} />
-            <Select className={styles.filter} value={entityFilter} onChange={setEntityFilter} options={entityOptions} />
+            <TableMultiSelectFilter
+              ariaLabel={t('audit.filters.allActors')}
+              className={styles.filter}
+              value={actorFilters}
+              onChange={setActorFilters}
+              placeholder={t('audit.filters.allActors')}
+              options={actorOptions}
+              showSearch
+            />
+            <TableMultiSelectFilter
+              ariaLabel={t('audit.filters.allActions')}
+              className={styles.filter}
+              value={actionFilters}
+              onChange={setActionFilters}
+              placeholder={t('audit.filters.allActions')}
+              options={actionOptions}
+              showSearch
+            />
+            <TableMultiSelectFilter
+              ariaLabel={t('audit.filters.allEntities')}
+              className={styles.filter}
+              value={entityFilters}
+              onChange={setEntityFilters}
+              placeholder={t('audit.filters.allEntities')}
+              options={entityOptions}
+              showSearch
+            />
             <DatePicker.RangePicker
               key={datePickerKey}
               className={styles.dateFilter}
@@ -219,7 +247,7 @@ export function AuditLogsPage() {
             size="small"
             scroll={{ x: 980 }}
             sortDirections={TABLE_SORT_DIRECTIONS}
-            showSorterTooltip={false}
+            showSorterTooltip={TABLE_SORTER_TOOLTIP}
             dataSource={dataSource}
             columns={[
               {
@@ -249,7 +277,7 @@ export function AuditLogsPage() {
                   ? <Typography.Text className={styles.changePreview} ellipsis={{ tooltip: false }}>{v}</Typography.Text>
                   : <span className={styles.noChange}>--</span>,
               },
-              { title: t('audit.column.time'), dataIndex: 'createdAt', width: 180, defaultSortOrder: 'descend', sorter: (first, second) => compareDate(first.createdAt, second.createdAt), render: (v) => formatDateTime(v) },
+              { title: t('audit.column.time'), dataIndex: 'createdAt', width: 180, sorter: (first, second) => compareDate(first.createdAt, second.createdAt), render: (v) => formatDateTime(v) },
               {
                 title: '', fixed: 'right', width: 48,
                 render: (_, record) => (

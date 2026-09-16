@@ -17,7 +17,7 @@ final class GeneralWorkflowKnowledge {
                     List.of(
                         "Dùng tài khoản Chủ doanh nghiệp để kiểm tra Tổng quan, Quản lý truy cập và các chức năng nghiệp vụ được cấp.",
                         "Kiểm tra dữ liệu gốc như sản phẩm, khách hàng, hạn mức, điều khoản công nợ và tồn kho.",
-                        "Chạy luồng bán hàng từ đơn Nháp đến kho hoàn tất, rồi kiểm tra tồn kho và khoản phải thu phát sinh.",
+                        "Chạy luồng bán hàng từ đơn Nháp đến Hoàn tất, rồi kiểm tra tồn kho và khoản phải thu phát sinh.",
                         "Chạy luồng hóa đơn và thanh toán, sau đó đối chiếu số còn phải thu với báo cáo.",
                         "Đăng nhập từng vai trò để kiểm tra menu, nút thao tác, dữ liệu nhạy cảm, thông báo và Trợ lý AI đều tuân theo quyền.",
                         "Kiểm tra Nhật ký hoạt động sau các thao tác quan trọng để chắc hệ thống có thể truy vết."
@@ -37,7 +37,7 @@ final class GeneralWorkflowKnowledge {
                 List.of(
                     "Use Owner to review Dashboard, Team Access and the operational modules assigned to that account.",
                     "Verify master data such as products, customers, credit terms and stock.",
-                    "Run sales from Draft through warehouse fulfillment, then verify stock and receivable recognition.",
+                    "Run sales from Draft through order completion, then verify stock and receivable recognition.",
                     "Run invoice and payment flows, then reconcile the remaining receivable with reports.",
                     "Sign in with each role to verify menus, actions, sensitive fields, notifications and AI all follow permissions.",
                     "Review Audit Logs after important actions to confirm traceability."
@@ -150,12 +150,12 @@ final class GeneralWorkflowKnowledge {
 
         if (scope.has(PermissionNames.SALES_ORDER_CONFIRM)) {
             steps.add(locale == HelpLocale.VI
-                ? "Kiểm tra các đơn Nháp cần kho xác nhận và hoàn tất sau khi tồn kho, khách hàng và hạn mức đều hợp lệ."
-                : "Review Draft orders awaiting warehouse fulfillment after stock, customer and credit checks pass.");
+                ? "Kiểm tra các đơn Nháp cần xác nhận và hoàn tất sau khi tồn kho, khách hàng và hạn mức đều hợp lệ."
+                : "Review Draft orders awaiting completion after stock, customer and credit checks pass.");
         } else if (scope.has(PermissionNames.SALES_ORDER_CREATE)) {
             steps.add(locale == HelpLocale.VI
-                ? "Tạo và kiểm tra đơn bán hàng Nháp đúng khách hàng, sản phẩm, số lượng và kho xuất; không tự hoàn tất nếu không có quyền kho."
-                : "Create and review Draft sales orders with the correct customer, products, quantities and warehouse; do not fulfill them without warehouse permission.");
+                ? "Tạo và kiểm tra đơn bán hàng Nháp đúng khách hàng, sản phẩm, số lượng và kho xuất; chỉ hoàn tất khi tài khoản có quyền xác nhận đơn."
+                : "Create and review Draft sales orders with the correct customer, products, quantities and warehouse; complete them only when the account has sales-order confirmation permission.");
         } else if (scope.has(PermissionNames.SALES_ORDER_VIEW)) {
             steps.add(locale == HelpLocale.VI
                 ? "Theo dõi trạng thái các đơn bán hàng được phép xem và chuyển việc xử lý cho vai trò có quyền thao tác tương ứng."
@@ -174,12 +174,12 @@ final class GeneralWorkflowKnowledge {
 
         if (scope.has(PermissionNames.INVENTORY_MANAGE)) {
             steps.add(locale == HelpLocale.VI
-                ? "Kiểm tra Kho hàng, cảnh báo sắp hết và lịch sử nhập/xuất; chỉ nhập hoặc điều chỉnh khi có phát sinh thật."
-                : "Review Inventory, low-stock alerts and movement history; receive or adjust stock only for real movements.");
+                ? "Kiểm tra Kho hàng, cảnh báo sắp hết và lịch sử nhập/xuất; chỉ dùng Nhập kho khi có hàng thực tế được nhận."
+                : "Review Inventory, low-stock alerts and movement history; use Receive Stock only for actual inbound stock.");
         } else if (scope.has(PermissionNames.INVENTORY_VIEW)) {
             steps.add(locale == HelpLocale.VI
-                ? "Theo dõi tồn kho và cảnh báo sắp hết; báo cho vai trò quản lý kho nếu cần điều chỉnh."
-                : "Monitor stock and low-stock alerts, and hand adjustments to a role with inventory management permission.");
+                ? "Theo dõi tồn kho và cảnh báo sắp hết; nếu số tồn có dấu hiệu sai, báo Kế toán hoặc Chủ doanh nghiệp để kiểm tra lịch sử giao dịch."
+                : "Monitor stock and low-stock alerts; if stock appears incorrect, ask Accounting or Owner to review the movement history.");
         }
 
         if (scope.canUsePayments()) {
@@ -194,8 +194,8 @@ final class GeneralWorkflowKnowledge {
 
         if (scope.has(PermissionNames.PRODUCT_MANAGE)) {
             steps.add(locale == HelpLocale.VI
-                ? "Kiểm tra và cập nhật danh mục sản phẩm, SKU, giá và mức tồn tối thiểu từ thông tin đã xác minh."
-                : "Review and update product catalog data, SKU, prices and minimum stock from verified information.");
+                ? "Kiểm tra và cập nhật danh mục sản phẩm, mã sản phẩm hệ thống, giá và mức tồn tối thiểu từ thông tin đã xác minh."
+                : "Review and update product catalog data, system product codes, prices and minimum stock from verified information.");
         } else if (scope.has(PermissionNames.PRODUCT_VIEW)) {
             steps.add(locale == HelpLocale.VI
                 ? "Kiểm tra danh mục sản phẩm được phép xem; báo người có quyền quản lý nếu dữ liệu cần sửa."

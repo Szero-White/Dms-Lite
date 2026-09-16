@@ -12,7 +12,7 @@ export function InventoryWatchlist({ lowStockItems }: InventoryWatchlistProps) {
   const { t } = useTranslation();
 
   return (
-    <Card className={`panel-card ${styles.watchlistCard}`} title={t('inventory.watchlist.title')}>
+    <Card className={`panel-card workspace-surface ${styles.watchlistCard}`} title={t('inventory.watchlist.title')}>
       {lowStockItems.length ? (
         <Space direction="vertical" className={styles.watchlist}>
           {lowStockItems.map((product) => (

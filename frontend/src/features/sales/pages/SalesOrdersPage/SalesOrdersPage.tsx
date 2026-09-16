@@ -1,34 +1,22 @@
 import {
-  CheckCircleOutlined,
-  FilterOutlined,
-  MoreOutlined,
   PlusOutlined,
   SearchOutlined,
-  StopOutlined,
 } from '@ant-design/icons';
 import {
   App,
   Avatar,
   Button,
   Card,
-  Checkbox,
   DatePicker,
-  Descriptions,
-  Drawer,
-  Dropdown,
-  Popover,
   Input,
-  Select,
-  Space,
   Table,
   Tag,
-  Timeline,
-  Typography,
 } from 'antd';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
+import { TableMultiSelectFilter } from '../../../../components/common/TableMultiSelectFilter';
 import { QueryState } from '../../../../components/common/QueryState';
 import { PERMISSIONS, canAccessPath, canViewOrderFinancials, hasPermission, useAuth } from '../../../auth';
 import { SalesOrderStatusTag } from '../../../../components/common/StatusTag';
@@ -45,8 +33,11 @@ import {
   formatDateTime,
   toNumber,
 } from '../../../../lib/format';
-import { TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
+import { newestFirst, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../lib/tableSorting';
 import type { SalesOrder, SalesOrderStatus } from '../../types/sales.types';
+import { SalesOrderCancellationModal } from './components/SalesOrderCancellationModal';
+import { SalesOrderDetailDrawer } from './components/SalesOrderDetailDrawer';
+import { SalesOrderRowActions } from './components/SalesOrderRowActions';
 import { SalesOrdersPulseBar } from './components/SalesOrdersPulseBar';
 import styles from './SalesOrdersPage.module.css';
 
@@ -60,6 +51,8 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
+
+type CollectionFilter = 'UNPAID' | 'PARTIAL' | 'PAID';
 
 export function SalesOrdersPage() {
   const { i18n, t } = useTranslation();
@@ -79,12 +72,13 @@ export function SalesOrdersPage() {
   const confirmMutation = useConfirmSalesOrder();
   const cancelMutation = useCancelSalesOrder();
   const [keyword, setKeyword] = useState('');
-  const [statusFilters, setStatusFilters] = useState<Array<SalesOrderStatus | 'ALL'>>(['ALL']);
-  const [customerFilter, setCustomerFilter] = useState<number | 'ALL'>('ALL');
-  const [collectionFilters, setCollectionFilters] = useState<string[]>(['ALL']);
+  const [statusFilters, setStatusFilters] = useState<SalesOrderStatus[]>([]);
+  const [customerFilters, setCustomerFilters] = useState<number[]>([]);
+  const [collectionFilters, setCollectionFilters] = useState<CollectionFilter[]>([]);
   const [dateRange, setDateRange] = useState<[string, string] | null>(null);
   const [datePickerKey, setDatePickerKey] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<SalesOrder | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<SalesOrder | null>(null);
   const selectedOrderDetailQuery = useSalesOrderDetail(selectedOrder?.id);
   const selectedOrderDetail = selectedOrderDetailQuery.data ?? selectedOrder;
 
@@ -111,12 +105,12 @@ export function SalesOrdersPage() {
 
   const filteredOrders = useMemo(() => {
     const kw = keyword.trim().toLowerCase();
-    return orders.filter((order) => {
+    const filtered = orders.filter((order) => {
       const cName = order.customerName ?? customersMap.get(order.customerId)?.name ?? '';
       const matchesKeyword = !kw || order.code.toLowerCase().includes(kw) || cName.toLowerCase().includes(kw);
-      const matchesStatus = statusFilters.includes('ALL') || statusFilters.includes(order.status);
-      const matchesCustomer = customerFilter === 'ALL' || order.customerId === customerFilter;
-      const matchesCollection = collectionFilters.includes('ALL') || (
+      const matchesStatus = statusFilters.length === 0 || statusFilters.includes(order.status);
+      const matchesCustomer = customerFilters.length === 0 || customerFilters.includes(order.customerId);
+      const matchesCollection = collectionFilters.length === 0 || (
         order.status === 'COMPLETED' && (
           (collectionFilters.includes('UNPAID') && toNumber(order.paidAmount) <= 0 && toNumber(order.debtAmount) > 0) ||
           (collectionFilters.includes('PARTIAL') && toNumber(order.paidAmount) > 0 && toNumber(order.debtAmount) > 0) ||
@@ -129,22 +123,20 @@ export function SalesOrdersPage() {
         ts <= new Date(`${dateRange[1]}T23:59:59`).getTime()
       );
       return matchesKeyword && matchesStatus && matchesCustomer && matchesCollection && matchesDate;
-    }).sort((first, second) => {
-      const createdDifference =
-        new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime();
-      return createdDifference || second.id - first.id;
     });
-  }, [collectionFilters, customerFilter, customersMap, dateRange, keyword, orders, statusFilters]);
+
+    return newestFirst(filtered);
+  }, [collectionFilters, customerFilters, customersMap, dateRange, keyword, orders, statusFilters]);
 
   const hasFilters = Boolean(
-    keyword || !statusFilters.includes('ALL') || customerFilter !== 'ALL' || dateRange || !collectionFilters.includes('ALL')
+    keyword || statusFilters.length > 0 || customerFilters.length > 0 || dateRange || collectionFilters.length > 0
   );
 
   function clearFilters() {
     setKeyword('');
-    setStatusFilters(['ALL']);
-    setCustomerFilter('ALL');
-    setCollectionFilters(['ALL']);
+    setStatusFilters([]);
+    setCustomerFilters([]);
+    setCollectionFilters([]);
     setDateRange(null);
     setDatePickerKey((c) => c + 1);
   }
@@ -162,24 +154,28 @@ export function SalesOrdersPage() {
     });
   }
 
-  function cancelOrder(order: SalesOrder) {
-    if (!canCancelSalesOrder) {
+  function requestCancelOrder(order: SalesOrder) {
+    if (!canCancelSalesOrder || order.status !== 'DRAFT') {
       return;
     }
 
-    modal.confirm({
-      title: t('sales.cancel.title', { code: order.code }),
-      content: t('sales.cancel.content'),
-      okText: t('sales.cancel.ok'),
-      okButtonProps: { danger: true },
-      onOk: () => cancelMutation.mutateAsync(order.id),
-    });
+    setCancelTarget(order);
+  }
+
+  async function submitCancellation(reason: string) {
+    if (!cancelTarget) {
+      return;
+    }
+
+    await cancelMutation.mutateAsync({ orderId: cancelTarget.id, reason });
+    setCancelTarget(null);
   }
 
 
   return (
     <div className={styles.page}>
       <PageHeader
+        variant="operations"
         title={t('sales.title')}
         subtitle={t('sales.subtitle')}
         extra={canCreateSalesOrder ? (
@@ -200,7 +196,7 @@ export function SalesOrdersPage() {
         totalOrders={totalOrders}
       />
       {/* Table card */}
-      <Card className={`panel-card ${styles.tableCard}`}>
+      <Card className={`panel-card workspace-surface ${styles.tableCard}`}>
         <div className={styles.toolbar}>
           <div className={styles.filterControls}>
             <Input
@@ -211,90 +207,45 @@ export function SalesOrdersPage() {
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
             />
-            <Popover
-              trigger="click"
-              placement="bottomLeft"
-              content={(
-                <div className={styles.collectionFilterMenu}>
-                  <Typography.Text strong>{t('sales.filters.orderStatus')}</Typography.Text>
-                  <Checkbox.Group
-                    className={styles.collectionFilterGroup}
-                    value={statusFilters}
-                    options={[
-                      { value: 'ALL', label: t('sales.filters.allStatuses') },
-                      { value: 'DRAFT', label: t('status.sales.DRAFT') },
-                      { value: 'COMPLETED', label: t('status.sales.COMPLETED') },
-                      { value: 'CANCELLED', label: t('status.sales.CANCELLED') },
-                    ]}
-                    onChange={(values) => {
-                      const next = values.map(String) as Array<SalesOrderStatus | 'ALL'>;
-                      const previousAll = statusFilters.includes('ALL');
-                      const nextAll = next.includes('ALL');
-                      if (nextAll && !previousAll) {
-                        setStatusFilters(['ALL']);
-                        return;
-                      }
-                      const specific = next.filter((value): value is SalesOrderStatus => value !== 'ALL');
-                      setStatusFilters(specific.length > 0 ? specific : ['ALL']);
-                    }}
-                  />
-                </div>
-              )}
-            >
-              <Button className={styles.filter} icon={<FilterOutlined />}>
-                {t('sales.filters.orderStatus')}
-                {!statusFilters.includes('ALL') ? ` (${statusFilters.length})` : ''}
-              </Button>
-            </Popover>
+            <TableMultiSelectFilter
+              ariaLabel={t('sales.filters.orderStatus')}
+              className={styles.filter}
+              value={statusFilters}
+              onChange={setStatusFilters}
+              placeholder={t('sales.filters.allStatuses')}
+              options={[
+                { value: 'DRAFT', label: t('status.sales.DRAFT') },
+                { value: 'COMPLETED', label: t('status.sales.COMPLETED') },
+                { value: 'CANCELLED', label: t('status.sales.CANCELLED') },
+              ]}
+            />
             {canViewCustomers ? (
-              <Select
-                showSearch
-                optionFilterProp="label"
+              <TableMultiSelectFilter
+                ariaLabel={t('sales.filters.allCustomers')}
                 className={styles.customerFilter}
-                value={customerFilter}
-                onChange={setCustomerFilter}
-                options={[
-                  { value: 'ALL', label: t('sales.filters.allCustomers') },
-                  ...customers.map((c) => ({ value: c.id, label: c.name })),
-                ]}
+                value={customerFilters}
+                onChange={setCustomerFilters}
+                placeholder={t('sales.filters.allCustomers')}
+                showSearch
+                options={customers.map((customer) => ({
+                  value: customer.id,
+                  label: customer.name,
+                }))}
               />
             ) : null}
             {canViewSalesOrderFinancials ? (
-              <Popover
-                trigger="click"
-                placement="bottomLeft"
-                content={(
-                  <div className={styles.collectionFilterMenu}>
-                    <Typography.Text strong>{t('sales.filters.collectionStatus')}</Typography.Text>
-                    <Checkbox.Group
-                      className={styles.collectionFilterGroup}
-                      value={collectionFilters}
-                      options={[
-                        { value: 'ALL', label: t('sales.filters.collectionAll') },
-                        { value: 'UNPAID', label: t('sales.filters.collectionUnpaid') },
-                        { value: 'PARTIAL', label: t('sales.filters.collectionPartial') },
-                        { value: 'PAID', label: t('sales.filters.collectionPaid') },
-                      ]}
-                      onChange={(values) => {
-                        const next = values.map(String);
-                        const previousAll = collectionFilters.includes('ALL');
-                        const nextAll = next.includes('ALL');
-                        if (nextAll && !previousAll) {
-                          setCollectionFilters(['ALL']);
-                          return;
-                        }
-                        const specific = next.filter((value) => value !== 'ALL');
-                        setCollectionFilters(specific.length > 0 ? specific : ['ALL']);
-                      }}
-                    />
-                  </div>
-                )}
-              >
-                <Button icon={<FilterOutlined />}>
-                  {t('sales.filters.collectionStatus')}
-                  {!collectionFilters.includes('ALL') ? ` (${collectionFilters.length})` : ''}
-                </Button>
-              </Popover>
+              <TableMultiSelectFilter
+                ariaLabel={t('sales.filters.collectionStatus')}
+                className={styles.filter}
+                value={collectionFilters}
+                onChange={setCollectionFilters}
+                placeholder={t('sales.filters.collectionStatus')}
+                options={[
+                  { value: 'UNPAID', label: t('sales.filters.collectionUnpaid') },
+                  { value: 'PARTIAL', label: t('sales.filters.collectionPartial') },
+                  { value: 'PAID', label: t('sales.filters.collectionPaid') },
+                ]}
+              />
             ) : null}
             <DatePicker.RangePicker
               key={datePickerKey}
@@ -309,30 +260,30 @@ export function SalesOrdersPage() {
         {hasFilters && (
           <div className={styles.filterChips}>
             {keyword && <Tag closable onClose={() => setKeyword('')}>{t('sales.filters.searchChip', { keyword })}</Tag>}
-            {!statusFilters.includes('ALL') && statusFilters.map((status) => (
+            {statusFilters.map((status) => (
               <Tag
                 key={status}
                 closable
                 onClose={() => {
                   const next = statusFilters.filter((value) => value !== status);
-                  setStatusFilters(next.length > 0 ? next : ['ALL']);
+                  setStatusFilters(next);
                 }}
               >
                 {t('sales.filters.statusChip', { status: t(`status.sales.${status}`) })}
               </Tag>
             ))}
-            {customerFilter !== 'ALL' && (
-              <Tag closable onClose={() => setCustomerFilter('ALL')}>
-                {t('sales.filters.customerChip', { customer: customersMap.get(customerFilter)?.name || customerFilter })}
+            {customerFilters.map((customerId) => (
+              <Tag key={customerId} closable onClose={() => setCustomerFilters((current) => current.filter((value) => value !== customerId))}>
+                {t('sales.filters.customerChip', { customer: customersMap.get(customerId)?.name || customerId })}
               </Tag>
-            )}
-            {!collectionFilters.includes('ALL') && collectionFilters.map((filter) => (
+            ))}
+            {collectionFilters.map((filter) => (
               <Tag
                 key={filter}
                 closable
                 onClose={() => {
                   const next = collectionFilters.filter((value) => value !== filter);
-                  setCollectionFilters(next.length > 0 ? next : ['ALL']);
+                  setCollectionFilters(next);
                 }}
               >
                 {t(`sales.filters.collection.${filter}`)}
@@ -370,9 +321,9 @@ export function SalesOrdersPage() {
         >
           <Table
             rowKey="id"
-            scroll={{ x: 1120 }}
+            scroll={{ x: 1320 }}
             sortDirections={TABLE_SORT_DIRECTIONS}
-            showSorterTooltip={false}
+            showSorterTooltip={TABLE_SORTER_TOOLTIP}
             dataSource={filteredOrders}
             columns={[
               {
@@ -401,7 +352,7 @@ export function SalesOrdersPage() {
                     ?? '--';
                   return (
                     <div className={styles.customerCell}>
-                      <Avatar size={30} style={{ background: 'var(--gradient-primary)', color: '#fff', fontWeight: 700 }}>
+                      <Avatar size={30} style={{ background: 'var(--color-primary)', color: '#fff', fontWeight: 700 }}>
                         {getInitials(customerName)}
                       </Avatar>
                       <div>
@@ -415,7 +366,6 @@ export function SalesOrdersPage() {
                 title: t('sales.column.created'),
                 dataIndex: 'createdAt',
                 width: 160,
-                defaultSortOrder: 'descend' as const,
                 sorter: (first, second) =>
                   new Date(first.createdAt).getTime() - new Date(second.createdAt).getTime(),
                 render: (v) => formatDateTime(v, i18n.language),
@@ -474,112 +424,58 @@ export function SalesOrdersPage() {
                 },
               ] : []),
               {
-                title: '', fixed: 'right', width: 56,
+                title: t('common.actions'),
+                key: 'actions',
+                fixed: 'right',
+                width: 142,
+                align: 'right',
                 render: (_, record) => (
-                  <Dropdown trigger={['click']} menu={{
-                    items: [
-                      { key: 'view', label: t('sales.action.viewDetails') },
-                      ...(record.status === 'DRAFT' && canConfirmSalesOrder ? [
-                        { key: 'confirm', label: t('sales.action.confirmOrder'), icon: <CheckCircleOutlined /> },
-                      ] : []),
-                      ...(record.status === 'DRAFT' && canCancelSalesOrder ? [
-                        { key: 'cancel', label: t('sales.action.cancelOrder'), icon: <StopOutlined />, danger: true },
-                      ] : []),
-                    ],
-                    onClick: ({ key }) => {
-                      if (key === 'view') setSelectedOrder(record);
-                      if (key === 'confirm') confirmOrder(record);
-                      if (key === 'cancel') cancelOrder(record);
-                    },
-                  }}>
-                    <Button type="text" icon={<MoreOutlined />} aria-label={t('sales.action.actionsFor', { code: record.code })} />
-                  </Dropdown>
+                  <SalesOrderRowActions
+                    order={record}
+                    canConfirm={canConfirmSalesOrder}
+                    canCancel={canCancelSalesOrder}
+                    confirming={confirmMutation.isPending && confirmMutation.variables === record.id}
+                    cancelling={cancelMutation.isPending && cancelMutation.variables?.orderId === record.id}
+                    onView={setSelectedOrder}
+                    onConfirm={confirmOrder}
+                    onCancel={requestCancelOrder}
+                  />
                 ),
               },
             ]}
           />
         </QueryState>
       </Card>
-      {/* Detail drawer */}
-      <Drawer
-        title={selectedOrderDetail ? t('sales.drawer.orderTitle', { code: selectedOrderDetail.code }) : t('sales.drawer.detailsTitle')}
-        width={720}
-        open={Boolean(selectedOrder)}
+      <SalesOrderDetailDrawer
+        canCancel={canCancelSalesOrder}
+        canConfirm={canConfirmSalesOrder}
+        canViewFinancials={canViewSalesOrderFinancials}
+        cancelling={cancelMutation.isPending}
+        confirming={confirmMutation.isPending}
+        customerName={
+          selectedOrderDetail
+            ? selectedOrderDetail.customerName
+              ?? customersMap.get(selectedOrderDetail.customerId)?.name
+            : undefined
+        }
+        getProductName={(productId) => productsMap.get(productId)?.name}
+        onCancel={requestCancelOrder}
         onClose={() => setSelectedOrder(null)}
-      >
-        {selectedOrderDetail && (
-          <div className={styles.drawerContent}>
-            <Descriptions bordered size="small" column={{ xs: 1, sm: 2 }}>
-              <Descriptions.Item label={t('sales.column.customer')}>
-                {selectedOrderDetail.customerName
-                  ?? customersMap.get(selectedOrderDetail.customerId)?.name
-                  ?? '--'}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('common.status')}><SalesOrderStatusTag status={selectedOrderDetail.status} /></Descriptions.Item>
-              {canViewSalesOrderFinancials ? (
-                <>
-                  <Descriptions.Item label={t('sales.column.total')}>{formatCurrency(selectedOrderDetail.totalAmount)}</Descriptions.Item>
-                  <Descriptions.Item label={t('sales.column.paid')}>
-                    {selectedOrderDetail.status === 'COMPLETED'
-                      ? formatCurrency(selectedOrderDetail.paidAmount)
-                      : t('sales.financial.notApplicable')}
-                  </Descriptions.Item>
-                  <Descriptions.Item label={t('sales.column.debt')}>
-                    {selectedOrderDetail.status === 'COMPLETED'
-                      ? formatCurrency(selectedOrderDetail.debtAmount)
-                      : selectedOrderDetail.status === 'DRAFT'
-                        ? t('sales.financial.projectedReceivable', { amount: formatCurrency(selectedOrderDetail.totalAmount) })
-                        : t('sales.financial.notIncurred')}
-                  </Descriptions.Item>
-                </>
-              ) : null}
-              <Descriptions.Item label={t('sales.drawer.warehouse')}>
-                {selectedOrderDetail.warehouseName ?? '--'}
-              </Descriptions.Item>
-            </Descriptions>
-            <div>
-              <Typography.Title level={5}>{t('sales.drawer.orderItems')}</Typography.Title>
-              <Table size="small" pagination={false}
-                rowKey={(item, i) => item.id ?? `${item.productId}-${i}`}
-                dataSource={selectedOrderDetail.items ?? []}
-                sortDirections={TABLE_SORT_DIRECTIONS}
-                showSorterTooltip={false}
-                columns={[
-                  { title: t('sales.drawer.product'), sorter: (first, second) => (productsMap.get(first.productId)?.name ?? '').localeCompare(productsMap.get(second.productId)?.name ?? ''), render: (_, item) => productsMap.get(item.productId)?.name || '--' },
-                  { title: t('inventory.history.qty'), dataIndex: 'quantity', align: 'right', sorter: (first, second) => first.quantity - second.quantity },
-                  ...(canViewSalesOrderFinancials ? [
-                    { title: t('sales.drawer.unitPrice'), dataIndex: 'unitPrice', align: 'right' as const, sorter: (first, second) => toNumber(first.unitPrice) - toNumber(second.unitPrice), render: (value) => formatCurrency(value) },
-                    { title: t('sales.drawer.discount'), dataIndex: 'discountAmount', align: 'right' as const, sorter: (first, second) => toNumber(first.discountAmount) - toNumber(second.discountAmount), render: (value) => formatCurrency(value) },
-                    { title: t('sales.drawer.lineTotal'), dataIndex: 'lineTotal', align: 'right' as const, sorter: (first, second) => toNumber(first.lineTotal) - toNumber(second.lineTotal), render: (value) => formatCurrency(value) },
-                  ] : []),
-                ]}
-              />
-            </div>
-            <div>
-              <Typography.Title level={5}>{t('sales.drawer.timeline')}</Typography.Title>
-              <Timeline items={[
-                { color: 'blue', children: t('sales.timeline.created', { time: formatDateTime(selectedOrderDetail.createdAt, i18n.language) }) },
-                ...(selectedOrderDetail.confirmedAt ? [{ color: 'green', children: t('sales.timeline.confirmed', { time: formatDateTime(selectedOrderDetail.confirmedAt, i18n.language) }) }] : []),
-                { color: selectedOrderDetail.status === 'CANCELLED' ? 'red' : 'gray', children: t('sales.timeline.status', { status: t(`status.sales.${selectedOrderDetail.status}`) }) },
-              ]} />
-            </div>
-            {selectedOrderDetail.status === 'DRAFT' && (canConfirmSalesOrder || canCancelSalesOrder) ? (
-              <Space>
-                {canConfirmSalesOrder ? (
-                  <Button type="primary" loading={confirmMutation.isPending} onClick={() => confirmOrder(selectedOrderDetail)}>
-                    {t('sales.confirm.ok')}
-                  </Button>
-                ) : null}
-                {canCancelSalesOrder ? (
-                  <Button danger loading={cancelMutation.isPending} onClick={() => cancelOrder(selectedOrderDetail)}>
-                    {t('sales.cancel.ok')}
-                  </Button>
-                ) : null}
-              </Space>
-            ) : null}
-          </div>
-        )}
-      </Drawer>
+        onConfirm={confirmOrder}
+        open={Boolean(selectedOrder)}
+        order={selectedOrderDetail ?? null}
+      />
+      <SalesOrderCancellationModal
+        order={cancelTarget}
+        open={Boolean(cancelTarget)}
+        submitting={cancelMutation.isPending}
+        onClose={() => {
+          if (!cancelMutation.isPending) {
+            setCancelTarget(null);
+          }
+        }}
+        onSubmit={submitCancellation}
+      />
     </div>
   );
 }

@@ -3,7 +3,7 @@ import type { TableProps } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '../../../../../components/common/QueryState';
-import { TABLE_SORT_DIRECTIONS } from '../../../../../lib/tableSorting';
+import { TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../../lib/tableSorting';
 import { useOutstandingPaymentOrders } from '../../../hooks/usePaymentQueries';
 import type {
   OutstandingPaymentFilters,
@@ -11,7 +11,6 @@ import type {
   OutstandingPaymentSortField,
 } from '../../../types/payment.types';
 import { OutstandingReceivableFilters } from './OutstandingReceivableFilters';
-import { ALL_DUE_STATUSES } from './receivableDueStatusOptions';
 import { useOutstandingReceivableColumns } from './useOutstandingReceivableColumns';
 import styles from '../PaymentsPage.module.css';
 
@@ -39,7 +38,7 @@ export function OutstandingReceivablesCard({
   const [page, setPage] = useState(0);
   const [filters, setFilters] = useState<OutstandingPaymentFilters>({
     search: '',
-    dueStatuses: ALL_DUE_STATUSES,
+    dueStatuses: [],
   });
   const query = useOutstandingPaymentOrders(page, filters, { enabled });
   const columns = useOutstandingReceivableColumns(
@@ -56,7 +55,7 @@ export function OutstandingReceivablesCard({
   function resetFilters() {
     setFilters({
       search: '',
-      dueStatuses: ALL_DUE_STATUSES,
+      dueStatuses: [],
     });
     setPage(0);
   }
@@ -81,7 +80,7 @@ export function OutstandingReceivablesCard({
   };
 
   return (
-    <Card className={`panel-card ${styles.watchlistCard}`} title={t('payments.outstanding.title')}>
+    <Card className={`panel-card workspace-surface ${styles.watchlistCard}`} title={t('payments.outstanding.title')}>
       <div className={styles.toolbar}>
         <Typography.Text type="secondary">
           {t('payments.outstanding.count', { count: query.data?.totalElements ?? 0 })}
@@ -108,7 +107,7 @@ export function OutstandingReceivablesCard({
           pagination={false}
           scroll={{ x: 1590 }}
           sortDirections={TABLE_SORT_DIRECTIONS}
-          showSorterTooltip={false}
+          showSorterTooltip={TABLE_SORTER_TOOLTIP}
           dataSource={query.data?.content ?? []}
           rowClassName={(order) => order.dueStatus === 'OVERDUE' ? styles.overdueRow : ''}
           columns={columns}

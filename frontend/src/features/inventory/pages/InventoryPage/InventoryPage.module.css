@@ -4,5 +4,9 @@
 
 .contentStack {
   display: grid;
-  gap: 24px;
+  gap: 20px;
+}
+
+.contentStack > :global(.ant-row) {
+  align-items: stretch;
 }

@@ -21,7 +21,7 @@ public class AuditQueryService {
 
     public Page<AuditLogResponse> listRecent() {
         Long tenantId = TenantContext.tenantRequired();
-        Page<AuditLog> logs = auditLogRepository.findByTenantIdOrderByCreatedAtDesc(
+        Page<AuditLog> logs = auditLogRepository.findByTenantIdOrderByCreatedAtDescIdDesc(
             tenantId,
             PageRequest.of(0, 50)
         );

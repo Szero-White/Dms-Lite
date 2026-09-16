@@ -76,7 +76,7 @@ export function ReceiveStockModal({
             showSearch
             placeholder={t('inventory.receive.productPlaceholder')}
             optionFilterProp="label"
-            options={products.map((product) => ({
+            options={products.filter((product) => product.active).map((product) => ({
               value: product.id,
               label: `${product.sku} - ${product.name}`,
             }))}

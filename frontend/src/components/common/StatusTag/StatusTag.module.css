@@ -1,44 +1,45 @@
-.tag:global(.ant-tag) {
+.tag {
   display: inline-flex;
+  min-height: 24px;
   align-items: center;
-  min-height: 22px;
-  margin-inline-end: 0;
-  border-radius: 999px;
-  font-size: 11.5px;
+  gap: 5px;
+  margin: 0;
+  padding: 1px 9px;
+  border: 1px solid transparent !important;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 22px;
-  letter-spacing: 0.02em;
-  padding: 0 10px;
+  line-height: 20px;
+  letter-spacing: -0.01em;
   white-space: nowrap;
-  transition: all 0.2s ease;
 }
 
-.neutral:global(.ant-tag) {
-  border: 1px solid #e2e8f0 !important;
-  background: #f8fafc;
-  color: #64748b;
+.neutral {
+  border-color: var(--color-border) !important;
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
 }
 
-.info:global(.ant-tag) {
-  border: 1px solid rgba(99,102,241,0.25) !important;
-  background: #eef2ff;
-  color: #6366f1;
+.info {
+  border-color: var(--color-info-border) !important;
+  background: var(--color-info-light);
+  color: var(--color-info);
 }
 
-.success:global(.ant-tag) {
-  border: 1px solid #a7f3d0 !important;
-  background: #ecfdf5;
-  color: #059669;
+.success {
+  border-color: var(--color-success-border) !important;
+  background: var(--color-success-light);
+  color: var(--color-success);
 }
 
-.warning:global(.ant-tag) {
-  border: 1px solid #fde68a !important;
-  background: #fffbeb;
-  color: #d97706;
+.warning {
+  border-color: var(--color-warning-border) !important;
+  background: var(--color-warning-light);
+  color: var(--color-warning);
 }
 
-.danger:global(.ant-tag) {
-  border: 1px solid #fecaca !important;
-  background: #fef2f2;
-  color: #dc2626;
+.danger {
+  border-color: var(--color-danger-border) !important;
+  background: var(--color-danger-light);
+  color: var(--color-danger);
 }

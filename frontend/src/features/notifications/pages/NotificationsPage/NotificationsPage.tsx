@@ -23,6 +23,7 @@ import { NotificationTypeTag } from '../../../../components/common/StatusTag';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatDateTime } from '../../../../lib/format';
+import { newestFirst } from '../../../../lib/tableSorting';
 import {
   useNotifications,
   useSetNotificationReadState,
@@ -178,7 +179,7 @@ export function NotificationsPage() {
   const readStateMutation = useSetNotificationReadState();
   const [activeCategory, setActiveCategory] = useState<NotificationCategory>('ALL');
   const [keyword, setKeyword] = useState('');
-  const notifications = notificationsQuery.data ?? [];
+  const notifications = useMemo(() => newestFirst(notificationsQuery.data ?? []), [notificationsQuery.data]);
   const unreadCount = notifications.filter((item) => item.readFlag === false).length;
   const availableCategories = new Set(
     notifications.map((item) => categoryForType(item.type)).filter(Boolean),
@@ -215,11 +216,12 @@ export function NotificationsPage() {
   return (
     <div className={styles.page}>
       <PageHeader
+        variant="activity"
         title={t('notifications.title')}
         subtitle={t('notifications.subtitle')}
       />
 
-      <Card className={`panel-card ${styles.activityCard}`}>
+      <Card className={`panel-card workspace-surface ${styles.activityCard}`}>
         <div className={styles.toolbar}>
           <Segmented
             className={styles.segmented}

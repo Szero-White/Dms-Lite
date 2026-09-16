@@ -4,6 +4,7 @@ import {
   Empty,
 } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { uiPalette } from '../../../../styles/palette';
 import type { SalesReportOrder } from '../../types/salesReport.types';
 import styles from './OrderStatusChart.module.css';
 
@@ -34,7 +35,7 @@ export function OrderStatusChart({
   return (
     <Card
       title={t('charts.salesOrderStatus.title')}
-      className={`panel-card ${styles.card}`}
+      className={`panel-card analysis-surface ${styles.card}`}
     >
       {chartData.length ? (
         <Pie
@@ -44,6 +45,7 @@ export function OrderStatusChart({
           height={280}
           innerRadius={0.62}
           radius={0.9}
+          color={[uiPalette.semantic.warning, uiPalette.semantic.success, uiPalette.semantic.danger]}
           legend={{
             color: {
               position: 'bottom',
@@ -78,7 +80,7 @@ export function OrderStatusChart({
                 textAlign: 'center',
                 fontSize: 24,
                 fontWeight: 600,
-                fill: '#20293a',
+                fill: uiPalette.text.primary,
               },
             },
             {
@@ -89,7 +91,7 @@ export function OrderStatusChart({
                 y: '57%',
                 textAlign: 'center',
                 fontSize: 13,
-                fill: '#98a2b3',
+                fill: uiPalette.text.muted,
               },
             },
           ]}

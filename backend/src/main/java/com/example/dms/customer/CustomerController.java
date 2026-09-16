@@ -1,12 +1,12 @@
 package com.example.dms.customer;
 
 import com.example.dms.common.ApiResponse;
+import com.example.dms.common.PageResponse;
 import com.example.dms.debt.CustomerDebtStatementResponse;
 import com.example.dms.debt.CustomerDebtStatementService;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,12 +27,12 @@ public class CustomerController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('CUSTOMER_VIEW')")
-    public ApiResponse<Page<CustomerResponse>> list(
+    public ApiResponse<PageResponse<CustomerResponse>> list(
         @RequestParam(defaultValue = "") String keyword,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size
     ) {
-        return ApiResponse.ok(customerService.list(keyword, page, size));
+        return ApiResponse.ok(PageResponse.from(customerService.list(keyword, page, size)));
     }
 
     @GetMapping("/{id}")

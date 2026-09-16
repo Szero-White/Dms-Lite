@@ -48,7 +48,7 @@ public class DashboardReadRepository {
             "from stock_items stock " +
             "join products product on product.id=stock.product_id " +
             "where stock.tenant_id=:tenantId and product.tenant_id=:tenantId " +
-            "and product.deleted_at is null and stock.quantity_on_hand<=product.min_stock"
+            "and product.deleted_at is null and product.active = true and stock.quantity_on_hand<=product.min_stock"
         )
             .setParameter("tenantId", tenantId)
             .getSingleResult();

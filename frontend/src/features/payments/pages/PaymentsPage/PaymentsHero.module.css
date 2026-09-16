@@ -1,257 +1,202 @@
 .heroRow {
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 16px;
-  margin-bottom: 20px;
+  grid-template-columns: minmax(380px, 0.92fr) minmax(0, 1.08fr);
+  gap: 0;
+  margin-bottom: 22px;
+  overflow: hidden;
+  border-top: 1px solid rgba(112, 105, 232, 0.16);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: linear-gradient(90deg, rgba(112, 105, 232, 0.035), #ffffff 38%, #ffffff 100%);
 }
 
-.heroLeft,
-.heroRight {
-  display: flex;
-  flex-direction: column;
+.heroCard,
+.topDebtorsCard {
+  min-width: 0;
+  background: transparent;
 }
 
 .heroCard {
   position: relative;
-  overflow: hidden;
-  height: 100%;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
-  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.35);
+  padding: 20px 22px;
+  border-right: 1px solid var(--color-border-subtle);
 }
 
-.heroCard::before {
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
-  content: '';
-}
-
-.heroCardInner {
+.heroHeading {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 24px;
-  height: 100%;
-  padding: 28px 32px;
+  gap: 13px;
+  margin-bottom: 14px;
 }
 
-.ringWrap {
-  position: relative;
-  flex-shrink: 0;
-  width: 110px;
-  height: 110px;
+.heroIcon {
+  width: 30px;
+  height: 38px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-right: 2px solid rgba(112, 105, 232, 0.42);
+  color: var(--color-primary-dark);
+  font-size: 18px;
 }
 
-.ring {
-  width: 110px;
-  height: 110px;
-}
-
-.ringCenter {
-  position: absolute;
-  inset: 0;
+.heroHeading > div:last-child {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.ringPct {
-  color: #fff;
-  font-size: 22px;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.ringLabel {
-  margin-top: 2px;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 10px;
-  font-weight: 500;
-  text-align: center;
-}
-
-.heroMain {
-  min-width: 0;
-  flex: 1;
+  gap: 1px;
 }
 
 .heroEyebrow {
-  margin-bottom: 6px;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  font-size: 11.8px;
+  font-weight: var(--font-weight-label);
+  line-height: 18px;
 }
 
 .heroAmount {
-  margin-bottom: 18px;
-  color: #fff;
-  font-size: 32px;
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -1px;
+  overflow: hidden;
+  color: var(--color-text-value);
+  font-size: 27px;
+  font-weight: 670;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.032em;
+  line-height: 32px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .heroMiniStats {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .miniStat {
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
+  padding: 7px 14px 7px 0;
 }
 
-.miniDot {
-  flex-shrink: 0;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+.miniStat + .miniStat {
+  padding-left: 14px;
+  border-left: 1px solid var(--color-border-subtle);
 }
 
-.miniDot.red { background: #ef4444; }
-.miniDot.green { background: #10b981; }
-.miniDot.blue { background: #60a5fa; }
+.miniIcon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+}
 
-.miniStat div {
+.miniIcon.danger { color: var(--color-danger); }
+.miniIcon.success { color: var(--color-success); }
+.miniIcon.brand { color: var(--color-primary-dark); }
+
+.miniStat > div {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 1px;
 }
 
 .miniStat strong {
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.3;
+  overflow: hidden;
+  color: var(--color-text-strong);
+  font-size: 12.8px;
+  font-weight: 620;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.miniStat span {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 11px;
-  font-weight: 500;
+.miniStat span:not(.miniIcon) {
+  color: var(--color-text-tertiary);
+  font-size: 10.4px;
+  line-height: 15px;
 }
 
 .topDebtorsCard {
-  flex: 1;
-  padding: 22px 24px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+  padding: 20px 22px;
 }
 
 .topDebtorsHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .topDebtorsHeader span:first-child {
-  color: var(--color-text-primary);
-  font-size: 15px;
-  font-weight: 700;
+  color: var(--color-text-heading);
+  font-size: 14px;
+  font-weight: 610;
 }
 
 .topDebtorsCount {
-  padding: 2px 10px;
-  border-radius: 999px;
-  color: var(--color-text-muted);
-  background: var(--color-surface-muted);
-  font-size: 12px;
-  font-weight: 500;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+  font-weight: 560;
 }
 
-.barList {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.barRow {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.barMeta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.barList { display: flex; flex-direction: column; gap: 11px; }
+.barRow { display: flex; flex-direction: column; gap: 5px; }
+.barMeta { display: flex; align-items: center; gap: 8px; }
 
 .barRank {
-  flex-shrink: 0;
-  display: grid;
   width: 20px;
-  height: 20px;
-  place-items: center;
-  border-radius: 6px;
-  color: var(--color-text-secondary);
-  background: var(--color-surface-muted);
-  font-size: 11px;
-  font-weight: 700;
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  font-size: 10.5px;
+  font-weight: 650;
+  text-align: center;
 }
 
 .barName {
   overflow: hidden;
   flex: 1;
   color: var(--color-text-primary);
-  font-size: 13.5px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 540;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .barAmt {
-  color: #dc2626;
-  font-size: 13px;
-  font-weight: 700;
+  color: var(--color-danger);
+  font-size: 12px;
+  font-weight: 610;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .barTrack {
   overflow: hidden;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--color-surface-muted);
+  height: 3px;
+  background: var(--color-surface-soft);
+}
+.barFill { height: 100%; opacity: .66; }
+.barEmpty { padding: 26px 0; color: var(--color-text-muted); font-size: 12.5px; text-align: center; }
+
+@media (max-width: 1000px) {
+  .heroRow { grid-template-columns: 1fr; }
+  .heroCard { border-right: 0; border-bottom: 1px solid var(--color-border-subtle); }
 }
 
-.barFill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.barEmpty {
-  padding: 32px 0;
-  color: var(--color-text-muted);
-  font-size: 14px;
-  text-align: center;
-}
-
-@media (max-width: 900px) {
-  .heroRow {
-    grid-template-columns: 1fr;
-  }
-
-  .heroCardInner {
-    flex-direction: column;
-    padding: 24px;
-    text-align: center;
-  }
-
-  .heroMiniStats {
-    align-items: center;
-  }
+@media (max-width: 640px) {
+  .heroCard,
+  .topDebtorsCard { padding: 18px; }
+  .heroMiniStats { grid-template-columns: 1fr; }
+  .miniStat + .miniStat { padding-left: 0; border-top: 1px solid var(--color-border-subtle); border-left: 0; }
 }

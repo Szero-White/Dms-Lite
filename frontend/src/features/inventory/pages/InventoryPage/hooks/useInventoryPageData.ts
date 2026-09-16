@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { ProductRow } from '../../../../products';
 import { toNumber } from '../../../../../lib/format';
+import { newestFirst } from '../../../../../lib/tableSorting';
 import type { InventoryTransaction } from '../../../types/inventory.types';
 import type { StockFilter } from '../inventoryPage.types';
 
@@ -10,7 +11,7 @@ interface UseInventoryPageDataParams {
   products: ProductRow[];
   receivedQuantity?: number;
   selectedProductId?: number;
-  stockFilter: StockFilter;
+  stockFilters: StockFilter[];
 }
 
 export function useInventoryPageData({
@@ -19,7 +20,7 @@ export function useInventoryPageData({
   products,
   receivedQuantity,
   selectedProductId,
-  stockFilter,
+  stockFilters,
 }: UseInventoryPageDataParams) {
   const lowStockItems = useMemo(
     () => products.filter((product) => product.isLowStock),
@@ -28,21 +29,21 @@ export function useInventoryPageData({
 
   const filteredProducts = useMemo(
     () =>
-      products.filter((product) => {
+      newestFirst(products.filter((product) => {
         const normalizedKeyword = keyword.trim().toLowerCase();
         const matchesKeyword =
           !normalizedKeyword ||
           [product.name, product.sku, product.barcode].some((value) =>
             value?.toLowerCase().includes(normalizedKeyword),
           );
+        const stockState: StockFilter = product.isLowStock ? 'LOW' : 'HEALTHY';
         const matchesStock =
-          stockFilter === 'ALL' ||
-          (stockFilter === 'LOW' && product.isLowStock) ||
-          (stockFilter === 'HEALTHY' && !product.isLowStock);
+          stockFilters.length === 0 ||
+          (product.active && stockFilters.includes(stockState));
 
         return matchesKeyword && matchesStock;
-      }),
-    [keyword, products, stockFilter],
+      })),
+    [keyword, products, stockFilters],
   );
 
   const latestMovementByProduct = useMemo(() => {
@@ -81,7 +82,7 @@ export function useInventoryPageData({
     [products],
   );
 
-  const hasFilters = Boolean(keyword || stockFilter !== 'ALL');
+  const hasFilters = Boolean(keyword || stockFilters.length > 0);
 
   return {
     filteredProducts,

@@ -7,7 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatCurrency, formatDate, getErrorMessage, toNumber } from '../../../../lib/format';
-import { compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
+import { compareNumber, compareText, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../lib/tableSorting';
 import { PERMISSIONS, canViewInvoiceReceivableState, hasPermission, useAuth } from '../../../auth';
 import { InvoiceStatusTag } from '../../InvoiceStatusTag';
 import { downloadInvoicePdf } from '../../api/invoiceService';
@@ -79,6 +79,7 @@ export function InvoiceDetailPage() {
       {invoice ? (
         <div className={styles.page}>
           <PageHeader
+            variant="records"
             title={invoice.invoiceNumber}
             subtitle={`${invoice.customerName ?? t('invoice.customerFallback', { id: invoice.customerId })} · ${invoice.salesOrderCode ?? '-'}`}
             breadcrumb={[t('invoice.title'), invoice.invoiceNumber]}
@@ -98,7 +99,7 @@ export function InvoiceDetailPage() {
           />
 
           <div className={styles.summaryGrid}>
-            <Card className="panel-card">
+            <Card className="panel-card analysis-surface">
               <Descriptions column={1} size="small" bordered>
                 <Descriptions.Item label={t('common.status')}><InvoiceStatusTag status={invoice.status} /></Descriptions.Item>
                 <Descriptions.Item label={t('invoice.column.issueDate')}>{invoice.issueDate ? formatDate(invoice.issueDate, i18n.language) : '-'}</Descriptions.Item>
@@ -106,7 +107,7 @@ export function InvoiceDetailPage() {
                 <Descriptions.Item label={t('invoice.column.order')}>{invoice.salesOrderCode ?? '-'}</Descriptions.Item>
               </Descriptions>
             </Card>
-            <Card className="panel-card">
+            <Card className="panel-card analysis-surface">
               <div className={styles.financeBlock}>
                 <div><span>{t('invoice.column.total')}</span><strong>{formatCurrency(invoice.totalAmount, i18n.language)}</strong></div>
                 {canViewReceivableState ? (
@@ -121,7 +122,7 @@ export function InvoiceDetailPage() {
             </Card>
           </div>
 
-          <Card className="panel-card" title={t('invoice.itemsTitle')}>
+          <Card className="panel-card analysis-surface" title={t('invoice.itemsTitle')}>
             <Table
               rowKey="id"
               columns={columns}
@@ -129,7 +130,7 @@ export function InvoiceDetailPage() {
               pagination={false}
               scroll={{ x: 760 }}
               sortDirections={TABLE_SORT_DIRECTIONS}
-              showSorterTooltip={false}
+              showSorterTooltip={TABLE_SORTER_TOOLTIP}
             />
           </Card>
         </div>

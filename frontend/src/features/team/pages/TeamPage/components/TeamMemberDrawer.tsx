@@ -3,11 +3,11 @@ import {
   Drawer,
   Form,
   Input,
-  Select,
   Switch,
 } from 'antd';
 import type { FormInstance } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { CheckboxMultiSelect } from '../../../../../components/common/CheckboxMultiSelect';
 import type {
   TeamMember,
   TeamMemberFormValues,
@@ -102,7 +102,7 @@ export function TeamMemberDrawer({
           name="roles"
           rules={[{ required: true, message: t('team.drawer.roleRequired') }]}
         >
-          <Select mode="multiple" options={roleOptions} placeholder={t('team.drawer.rolePlaceholder')} />
+          <CheckboxMultiSelect options={roleOptions} placeholder={t('team.drawer.rolePlaceholder')} />
         </Form.Item>
         <Form.Item label={t('team.drawer.activeAccount')} name="active" valuePropName="checked">
           <Switch />

@@ -7,7 +7,6 @@ import { downloadCsvContent } from '../../../../lib/csvExport';
 import { downloadXlsx } from '../../../../lib/xlsxExport';
 import { QueryState } from '../../../../components/common/QueryState';
 import { PERMISSIONS, canAccessPath, hasPermission, useAuth } from '../../../auth';
-import { useCustomers } from '../../../customers';
 import { useProducts } from '../../../products';
 import { useSalesReport } from '../../../reports/hooks/useSalesReportQueries';
 import { useSalesOrders } from '../../../sales';
@@ -18,7 +17,6 @@ import {
   useDashboardReceivableAttention,
 } from '../../hooks/useDashboardQueries';
 import { DashboardAttentionSection } from './components/DashboardAttentionSection';
-import { DashboardCommercialSection } from './components/DashboardCommercialSection';
 import { DashboardHeaderActions } from './components/DashboardHeaderActions';
 import {
   buildDashboardExportCsv,
@@ -36,7 +34,6 @@ export function DashboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const canViewCustomers = hasPermission(user, PERMISSIONS.CUSTOMER_VIEW);
   const canViewOrders = hasPermission(user, PERMISSIONS.SALES_ORDER_VIEW);
   const canViewInventoryProducts = hasPermission(user, PERMISSIONS.PRODUCT_VIEW) && hasPermission(user, PERMISSIONS.INVENTORY_VIEW);
   const canViewReceivables = hasPermission(user, PERMISSIONS.DEBT_VIEW);
@@ -60,27 +57,20 @@ export function DashboardPage() {
     enabled: canViewOrders,
     ...salesReportRange,
   });
-  const customersQuery = useCustomers({ enabled: canViewCustomers });
   const productsQuery = useProducts({ enabled: canViewInventoryProducts });
 
   const orders = canViewOrders ? ordersQuery.data ?? [] : [];
   const analyticsOrders = canViewOrders ? salesReportQuery.data?.orders ?? [] : [];
-  const customers = canViewCustomers ? customersQuery.data ?? [] : [];
   const products = canViewInventoryProducts ? productsQuery.data ?? [] : [];
   const {
-    activeCustomers,
     attentionOrders,
-    customersMap,
     analyticsOrders: dashboardAnalyticsOrders,
-    healthyProducts,
     latestOrder,
     lowStockProducts,
     outOfStockProducts,
     rangeDays,
-    recentOrders,
   } = useDashboardPageData({
     analyticsOrders,
-    customers,
     orders,
     products,
     range,
@@ -90,19 +80,16 @@ export function DashboardPage() {
     dashboardQuery.isLoading ||
     (canViewReceivables && receivableAttentionQuery.isLoading) ||
     (canViewOrders && (ordersQuery.isLoading || salesReportQuery.isLoading)) ||
-    (canViewCustomers && customersQuery.isLoading) ||
     (canViewInventoryProducts && productsQuery.isLoading);
   const isError =
     dashboardQuery.isError ||
     (canViewReceivables && receivableAttentionQuery.isError) ||
     (canViewOrders && (ordersQuery.isError || salesReportQuery.isError)) ||
-    (canViewCustomers && customersQuery.isError) ||
     (canViewInventoryProducts && productsQuery.isError);
   const error =
     dashboardQuery.error ||
     (canViewReceivables ? receivableAttentionQuery.error : null) ||
     (canViewOrders && (ordersQuery.error || salesReportQuery.error)) ||
-    (canViewCustomers && customersQuery.error) ||
     (canViewInventoryProducts && productsQuery.error);
 
   async function handleRefresh() {
@@ -114,7 +101,6 @@ export function DashboardPage() {
         canViewReceivables ? receivableAttentionQuery.refetch() : Promise.resolve(),
         canViewOrders ? ordersQuery.refetch() : Promise.resolve(),
         canViewOrders ? salesReportQuery.refetch() : Promise.resolve(),
-        canViewCustomers ? customersQuery.refetch() : Promise.resolve(),
         canViewInventoryProducts ? productsQuery.refetch() : Promise.resolve(),
       ]);
     } finally {
@@ -139,6 +125,7 @@ export function DashboardPage() {
   return (
     <div className={styles.dashboardPage}>
       <PageHeader
+        variant="executive"
         title={t('dashboard.title')}
         subtitle={t('dashboard.subtitle')}
         extra={
@@ -179,15 +166,8 @@ export function DashboardPage() {
             />
 
             <DashboardPerformanceSection
-              activeCustomers={activeCustomers}
-              canViewCustomers={canViewCustomers}
-              canViewOrders={canViewOrders}
               dashboard={dashboardQuery.data}
-              analyticsOrders={dashboardAnalyticsOrders}
               range={range}
-              receivableAttention={canViewReceivables
-                ? receivableAttentionQuery.data ?? EMPTY_RECEIVABLE_ATTENTION
-                : undefined}
             />
 
             {canViewOrders ? (
@@ -207,21 +187,14 @@ export function DashboardPage() {
             </section>
             ) : null}
 
-            <DashboardCommercialSection dashboard={dashboardQuery.data} />
-
             {canViewInventoryProducts || canViewOrders || canViewReceivables ? (
               <DashboardAttentionSection
                 attentionOrders={attentionOrders}
-                customersMap={customersMap}
-                healthyProducts={healthyProducts}
                 lowStockProducts={lowStockProducts}
                 onOpenInventory={() => navigate('/inventory')}
                 onOpenReceivables={canOpenPaymentWorkspace ? () => navigate('/payments') : undefined}
                 onReviewOrders={() => navigate('/sales-orders')}
-                onViewActivity={() => navigate('/sales-orders')}
                 outOfStockProducts={outOfStockProducts}
-                products={products}
-                recentOrders={recentOrders}
                 receivableAttention={receivableAttentionQuery.data ?? EMPTY_RECEIVABLE_ATTENTION}
                 showInventory={canViewInventoryProducts}
                 showReceivables={canViewReceivables}

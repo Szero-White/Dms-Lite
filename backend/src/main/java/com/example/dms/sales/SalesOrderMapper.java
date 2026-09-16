@@ -35,7 +35,9 @@ public class SalesOrderMapper {
             receivableRecognized ? salesOrder.getPaidAmount() : null,
             receivableRecognized ? salesOrder.getDebtAmount() : null,
             salesOrder.getCreatedAt(),
-            salesOrder.getConfirmedAt()
+            salesOrder.getConfirmedAt(),
+            salesOrder.getCancelledAt(),
+            salesOrder.getCancellationReason()
         );
     }
 
@@ -73,6 +75,8 @@ public class SalesOrderMapper {
             receivableRecognized ? salesOrder.getDebtAmount() : null,
             salesOrder.getCreatedAt(),
             salesOrder.getConfirmedAt(),
+            salesOrder.getCancelledAt(),
+            salesOrder.getCancellationReason(),
             itemResponses
         );
     }

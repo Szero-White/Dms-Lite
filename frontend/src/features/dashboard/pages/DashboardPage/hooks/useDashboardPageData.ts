@@ -1,13 +1,12 @@
 import { useMemo } from 'react';
-import type { Customer } from '../../../../customers';
 import type { ProductRow } from '../../../../products';
 import type { SalesReportOrder } from '../../../../reports/types/salesReport.types';
 import type { SalesOrder } from '../../../../sales';
 import type { DashboardRange } from '../dashboardPage.types';
+import { newestFirst } from '../../../../../lib/tableSorting';
 
 interface UseDashboardPageDataParams {
   analyticsOrders: SalesReportOrder[];
-  customers: Customer[];
   orders: SalesOrder[];
   products: ProductRow[];
   range: DashboardRange;
@@ -15,24 +14,13 @@ interface UseDashboardPageDataParams {
 
 export function useDashboardPageData({
   analyticsOrders,
-  customers,
   orders,
   products,
   range,
 }: UseDashboardPageDataParams) {
-  const customersMap = useMemo(
-    () => new Map(customers.map((customer) => [customer.id, customer.name])),
-    [customers],
-  );
-
   const attentionOrders = useMemo(
     () => orders.filter((order) => order.status === 'DRAFT'),
     [orders],
-  );
-
-  const healthyProducts = useMemo(
-    () => products.filter((product) => product.active && !product.isLowStock && product.stock > 0),
-    [products],
   );
 
   const lowStockProducts = useMemo(
@@ -45,30 +33,7 @@ export function useDashboardPageData({
     [products],
   );
 
-  const activeCustomers = useMemo(
-    () => customers.filter((customer) => customer.active).length,
-    [customers],
-  );
-
-  const latestOrder = useMemo(
-    () =>
-      [...orders].sort(
-        (left, right) =>
-          new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
-      )[0],
-    [orders],
-  );
-
-  const recentOrders = useMemo(
-    () =>
-      [...orders]
-        .sort(
-          (left, right) =>
-            new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
-        )
-        .slice(0, 4),
-    [orders],
-  );
+  const latestOrder = useMemo(() => newestFirst(orders)[0], [orders]);
 
   const rangeDays =
     range === 'TODAY'
@@ -81,15 +46,11 @@ export function useDashboardPageData({
 
 
   return {
-    activeCustomers,
     attentionOrders,
-    customersMap,
     analyticsOrders,
-    healthyProducts,
     latestOrder,
     lowStockProducts,
     outOfStockProducts,
     rangeDays,
-    recentOrders,
   };
 }

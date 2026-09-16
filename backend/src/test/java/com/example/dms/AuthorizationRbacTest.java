@@ -42,15 +42,68 @@ class AuthorizationRbacTest {
     }
 
     @Test
-    void currentSessionReflectsAuthoritativeServerPermissions() throws Exception {
+    void invalidCredentialsReturnUnauthorizedInsteadOfServerError() throws Exception {
+        mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(Map.of(
+                    "username", "owner",
+                    "password", "wrong-password"
+                ))))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value("Bad credentials"));
+    }
+
+    @Test
+    void retiredWarehouseDemoAccountCannotLogin() throws Exception {
+        mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(Map.of(
+                    "username", "warehouse",
+                    "password", DEMO_PASSWORD
+                ))))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value("Bad credentials"));
+    }
+
+    @Test
+    void salesSessionReflectsSmallBusinessFulfillmentPermissions() throws Exception {
         mvc.perform(get("/api/auth/me")
-                .header("Authorization", bearer("warehouse")))
+                .header("Authorization", bearer("sale")))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.username").value("warehouse"))
+            .andExpect(jsonPath("$.data.username").value("sale"))
             .andExpect(jsonPath("$.data.accessToken").doesNotExist())
-            .andExpect(jsonPath("$.data.permissions", org.hamcrest.Matchers.hasItem("SALES_ORDER_CONFIRM")))
+            .andExpect(jsonPath("$.data.permissions", org.hamcrest.Matchers.hasItems(
+                "SALES_ORDER_CREATE",
+                "SALES_ORDER_CONFIRM",
+                "SALES_ORDER_CANCEL",
+                "INVENTORY_VIEW"
+            )))
+            .andExpect(jsonPath("$.data.permissions", org.hamcrest.Matchers.not(
+                org.hamcrest.Matchers.hasItem("INVENTORY_MANAGE")
+            )))
             .andExpect(jsonPath("$.data.permissions", org.hamcrest.Matchers.not(
                 org.hamcrest.Matchers.hasItem("PAYMENT_CREATE")
+            )));
+    }
+
+    @Test
+    void accountantSessionCombinesInventoryOperationsAndFinance() throws Exception {
+        mvc.perform(get("/api/auth/me")
+                .header("Authorization", bearer("accountant")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.username").value("accountant"))
+            .andExpect(jsonPath("$.data.permissions", org.hamcrest.Matchers.hasItems(
+                "INVENTORY_VIEW",
+                "INVENTORY_MANAGE",
+                "PAYMENT_CREATE",
+                "INVOICE_ISSUE",
+                "REPORT_VIEW"
+            )))
+            .andExpect(jsonPath("$.data.permissions", org.hamcrest.Matchers.not(
+                org.hamcrest.Matchers.hasItem("SALES_ORDER_CREATE")
+            )))
+            .andExpect(jsonPath("$.data.permissions", org.hamcrest.Matchers.not(
+                org.hamcrest.Matchers.hasItem("SALES_ORDER_CONFIRM")
             )));
     }
 
@@ -128,13 +181,13 @@ class AuthorizationRbacTest {
     }
 
     @Test
-    void warehouseCanReadOrdersButCannotCreateOrders() throws Exception {
+    void accountantCanReadOrdersButCannotCreateOrders() throws Exception {
         mvc.perform(get("/api/sales-orders")
-                .header("Authorization", bearer("warehouse")))
+                .header("Authorization", bearer("accountant")))
             .andExpect(status().isOk());
 
         mvc.perform(post("/api/sales-orders")
-                .header("Authorization", bearer("warehouse"))
+                .header("Authorization", bearer("accountant"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of(
                     "customerId", 1,
@@ -147,9 +200,9 @@ class AuthorizationRbacTest {
     }
 
     @Test
-    void warehouseNotificationFeedDoesNotExposeFinanceAlerts() throws Exception {
+    void salesNotificationFeedDoesNotExposeFinanceAlerts() throws Exception {
         MvcResult result = mvc.perform(get("/api/notifications")
-                .header("Authorization", bearer("warehouse")))
+                .header("Authorization", bearer("sale")))
             .andExpect(status().isOk())
             .andReturn();
 
@@ -222,7 +275,7 @@ class AuthorizationRbacTest {
             .andExpect(status().isForbidden());
 
         mvc.perform(get("/api/payments/history")
-                .header("Authorization", bearer("warehouse")))
+                .header("Authorization", bearer("sale")))
             .andExpect(status().isForbidden());
     }
 
@@ -235,6 +288,29 @@ class AuthorizationRbacTest {
         mvc.perform(get("/api/team/members")
                 .header("Authorization", bearer("sale")))
             .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void demoTeamAccessHidesRetiredWarehousePersona() throws Exception {
+        MvcResult membersResult = mvc.perform(get("/api/team/members")
+                .header("Authorization", bearer("owner")))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonNode members = objectMapper.readTree(membersResult.getResponse().getContentAsString()).path("data");
+        assertThat(members.findValuesAsText("username"))
+            .contains("owner", "sale", "accountant")
+            .doesNotContain("warehouse");
+
+        MvcResult rolesResult = mvc.perform(get("/api/team/roles")
+                .header("Authorization", bearer("owner")))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonNode roles = objectMapper.readTree(rolesResult.getResponse().getContentAsString()).path("data");
+        assertThat(roles.findValuesAsText("name"))
+            .contains("SALE_STAFF", "ACCOUNTANT")
+            .doesNotContain("WAREHOUSE_STAFF", "OWNER");
     }
 
     @Test

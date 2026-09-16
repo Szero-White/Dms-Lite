@@ -1,10 +1,12 @@
 import { SearchOutlined } from '@ant-design/icons';
-import { Button, Card, Input, Progress, Select, Table, Tag, Typography } from 'antd';
+import { Button, Card, Input, Progress, Table, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
+import { TableMultiSelectFilter } from '../../../../../components/common/TableMultiSelectFilter';
+import { ActiveStatusTag } from '../../../../../components/common/StatusTag';
 import { formatDateTime, toNumber } from '../../../../../lib/format';
-import { compareBoolean, compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../../lib/tableSorting';
+import { compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../../lib/tableSorting';
 import type { ProductRow } from '../../../../products';
 import type { StockFilter } from '../inventoryPage.types';
 import styles from './InventoryStockTable.module.css';
@@ -17,8 +19,8 @@ interface InventoryStockTableProps {
   keyword: string;
   latestMovementByProduct: Map<number, string>;
   onKeywordChange: (value: string) => void;
-  onStockFilterChange: (value: StockFilter) => void;
-  stockFilter: StockFilter;
+  onStockFiltersChange: (values: StockFilter[]) => void;
+  stockFilters: StockFilter[];
 }
 
 const stockColumns = (
@@ -66,16 +68,26 @@ const stockColumns = (
   {
     title: t('common.status'),
     width: 120,
-    sorter: (first, second) => compareBoolean(first.isLowStock, second.isLowStock),
-    render: (_, record) => (
-      <Tag
-        className={`${tagStyles.stockTag} ${
-          record.isLowStock ? tagStyles.lowStock : tagStyles.healthy
-        }`}
-      >
-        {record.isLowStock ? t('status.product.lowStock') : t('inventory.status.healthy')}
-      </Tag>
-    ),
+    sorter: (first, second) => {
+      const firstRank = !first.active ? 0 : first.isLowStock ? 1 : 2;
+      const secondRank = !second.active ? 0 : second.isLowStock ? 1 : 2;
+      return compareNumber(firstRank, secondRank);
+    },
+    render: (_, record) => {
+      if (!record.active) {
+        return <ActiveStatusTag active={false} />;
+      }
+
+      return (
+        <Tag
+          className={`${tagStyles.stockTag} ${
+            record.isLowStock ? tagStyles.lowStock : tagStyles.healthy
+          }`}
+        >
+          {record.isLowStock ? t('status.product.lowStock') : t('inventory.status.healthy')}
+        </Tag>
+      );
+    },
   },
 ];
 
@@ -86,13 +98,13 @@ export function InventoryStockTable({
   keyword,
   latestMovementByProduct,
   onKeywordChange,
-  onStockFilterChange,
-  stockFilter,
+  onStockFiltersChange,
+  stockFilters,
 }: InventoryStockTableProps) {
   const { t } = useTranslation();
 
   return (
-    <Card className={`panel-card ${styles.stockCard}`} title={t('inventory.stock.title')}>
+    <Card className={`panel-card workspace-surface ${styles.stockCard}`} title={t('inventory.stock.title')}>
       <div className={styles.toolbar}>
         <Input
           allowClear
@@ -102,12 +114,13 @@ export function InventoryStockTable({
           value={keyword}
           onChange={(event) => onKeywordChange(event.target.value)}
         />
-        <Select
+        <TableMultiSelectFilter
+          ariaLabel={t('inventory.stock.allStates')}
           className={styles.filter}
-          value={stockFilter}
-          onChange={onStockFilterChange}
+          value={stockFilters}
+          onChange={onStockFiltersChange}
+          placeholder={t('inventory.stock.allStates')}
           options={[
-            { value: 'ALL', label: t('inventory.stock.allStates') },
             { value: 'HEALTHY', label: t('products.filters.healthyStock') },
             { value: 'LOW', label: t('status.product.lowStock') },
           ]}
@@ -121,7 +134,7 @@ export function InventoryStockTable({
         className={styles.stockTable}
         scroll={{ x: 820, y: 520 }}
         sortDirections={TABLE_SORT_DIRECTIONS}
-        showSorterTooltip={false}
+        showSorterTooltip={TABLE_SORTER_TOOLTIP}
         locale={{
           emptyText: hasFilters
             ? t('inventory.stock.noFiltered')
@@ -129,7 +142,7 @@ export function InventoryStockTable({
         }}
         dataSource={filteredProducts}
         pagination={false}
-        rowClassName={(record) => (record.isLowStock ? styles.lowStockRow : '')}
+        rowClassName={(record) => (record.active && record.isLowStock ? styles.lowStockRow : '')}
         columns={stockColumns(latestMovementByProduct, t)}
       />
     </Card>

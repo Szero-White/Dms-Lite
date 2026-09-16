@@ -34,7 +34,7 @@ public interface StockItemRepository extends JpaRepository<StockItem, Long> {
         "select s from StockItem s " +
         "join Product p on p.id = s.productId " +
         "where s.tenantId = :tenantId and p.tenantId = :tenantId " +
-        "and p.deletedAt is null and s.quantityOnHand <= p.minStock " +
+        "and p.deletedAt is null and p.active = true and s.quantityOnHand <= p.minStock " +
         "order by (p.minStock - s.quantityOnHand) desc"
     )
     List<StockItem> lowStock(@Param("tenantId") Long tenantId, Pageable pageable);

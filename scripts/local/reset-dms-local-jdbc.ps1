@@ -344,7 +344,6 @@ try {
     Write-Host 'Expected seeded accounts use password Demo@2026:' -ForegroundColor DarkGray
     Write-Host '  owner' -ForegroundColor DarkGray
     Write-Host '  sale' -ForegroundColor DarkGray
-    Write-Host '  warehouse' -ForegroundColor DarkGray
     Write-Host '  accountant' -ForegroundColor DarkGray
 }
 finally {

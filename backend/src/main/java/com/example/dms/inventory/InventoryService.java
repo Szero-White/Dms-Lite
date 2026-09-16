@@ -49,8 +49,8 @@ public class InventoryService {
         String note
     ) {
         validateWarehouse(tenantId, warehouseId);
-        if (!productRepository.existsByIdAndTenantIdAndDeletedAtIsNull(productId, tenantId)) {
-            throw new BusinessException("Product not found");
+        if (!productRepository.existsByIdAndTenantIdAndDeletedAtIsNullAndActiveTrue(productId, tenantId)) {
+            throw new BusinessException("Product is unavailable or inactive");
         }
 
         StockItem stockItem = stockItemRepository.lock(tenantId, warehouseId, productId)
@@ -132,7 +132,7 @@ public class InventoryService {
 
     @Transactional(readOnly = true)
     public Page<InventoryTransactionResponse> history(Pageable pageable) {
-        return inventoryTransactionRepository.findByTenantIdOrderByCreatedAtDesc(
+        return inventoryTransactionRepository.findByTenantIdOrderByCreatedAtDescIdDesc(
             TenantContext.tenantRequired(),
             pageable
         ).map(InventoryTransactionResponse::from);

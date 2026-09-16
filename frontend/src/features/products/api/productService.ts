@@ -31,7 +31,7 @@ export async function fetchProductRows() {
       ...product,
       stock,
       status: product.active ? 'ACTIVE' : 'INACTIVE',
-      isLowStock: stock <= product.minStock,
+      isLowStock: product.active && stock <= product.minStock,
     };
   });
 }
@@ -47,6 +47,10 @@ export async function updateProduct(
   return unwrapResponse<Product>(apiClient.put(`/products/${productId}`, payload));
 }
 
-export async function deleteProduct(productId: number) {
-  return unwrapResponse<void>(apiClient.delete(`/products/${productId}`));
+export async function deactivateProduct(productId: number) {
+  return unwrapResponse<Product>(apiClient.post(`/products/${productId}/deactivate`));
+}
+
+export async function reactivateProduct(productId: number) {
+  return unwrapResponse<Product>(apiClient.post(`/products/${productId}/reactivate`));
 }

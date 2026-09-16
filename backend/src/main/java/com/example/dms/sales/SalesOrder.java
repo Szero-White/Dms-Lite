@@ -35,6 +35,10 @@ public class SalesOrder {
     private BigDecimal debtAmount;
     private Instant createdAt;
     private Instant confirmedAt;
+    private Instant cancelledAt;
+
+    @Column(length = 500)
+    private String cancellationReason;
 
     @OneToMany(
         mappedBy = "order",

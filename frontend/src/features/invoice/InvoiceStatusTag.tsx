@@ -1,20 +1,21 @@
-import { Tag } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { SemanticStatusTag, type StatusTone } from '../../components/common/StatusTag';
 import type { InvoiceStatus } from './types/invoice.types';
 
-const COLOR_BY_STATUS: Record<string, string> = {
-  DRAFT: 'default',
-  ISSUED: 'blue',
-  PAID: 'green',
-  CANCELLED: 'red',
-  OVERDUE: 'orange',
+const TONE_BY_STATUS: Record<string, StatusTone> = {
+  DRAFT: 'neutral',
+  ISSUED: 'info',
+  PAID: 'success',
+  CANCELLED: 'danger',
+  OVERDUE: 'warning',
 };
 
 export function InvoiceStatusTag({ status }: { status: InvoiceStatus }) {
   const { t } = useTranslation();
+
   return (
-    <Tag color={COLOR_BY_STATUS[status]}>
+    <SemanticStatusTag tone={TONE_BY_STATUS[status] || 'neutral'}>
       {t(`status.invoice.${status}`, { defaultValue: t('status.invoice.UNKNOWN') })}
-    </Tag>
+    </SemanticStatusTag>
   );
 }

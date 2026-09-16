@@ -80,9 +80,9 @@ public class GeminiHelpAssistantClient {
 
             Product context:
             - Owner manages dashboard, reports, staff accounts, roles, permissions, audit logs, products, customers, inventory, sales orders, payments, and receivables.
-            - Sales staff mainly work with customers and sales orders.
-            - Warehouse staff mainly work with products, inventory, receiving stock, and stock correction.
-            - Accounting staff mainly work with payments, customer debt, and receivables.
+            - Sales staff mainly work with customers, sales orders, stock visibility, and order completion.
+            - Accounting staff mainly work with inventory receiving, payments, customer debt, invoices, and reports.
+            - Permissions are authoritative; default role names describe common small-business responsibilities, not hard-coded workflow gates.
             - Missing sidebar screens usually mean the user does not have that permission.
 
             Response language:

@@ -2,6 +2,10 @@
   width: 100%;
 }
 
+.page :global(.panel-card) {
+  border-radius: 17px !important;
+}
+
 .modal :global(.ant-modal-body) {
   padding-top: 8px !important;
 }

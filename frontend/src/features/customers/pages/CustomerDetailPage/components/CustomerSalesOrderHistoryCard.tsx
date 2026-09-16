@@ -2,7 +2,7 @@ import { Card, Table } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { SalesOrderStatusTag } from '../../../../../components/common/StatusTag';
 import { formatCurrency, formatDateTime } from '../../../../../lib/format';
-import { compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS } from '../../../../../lib/tableSorting';
+import { compareDate, compareNumber, compareText, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../../lib/tableSorting';
 import type { SalesOrder } from '../../../../sales';
 
 interface CustomerSalesOrderHistoryCardProps {
@@ -17,13 +17,13 @@ export function CustomerSalesOrderHistoryCard({
   const { t } = useTranslation();
 
   return (
-    <Card className="panel-card" title={t('customers.detail.salesOrderHistory')}>
+    <Card className="panel-card workspace-surface" title={t('customers.detail.salesOrderHistory')}>
       <Table
         size="small"
         rowKey="id"
         scroll={{ x: 800 }}
         sortDirections={TABLE_SORT_DIRECTIONS}
-        showSorterTooltip={false}
+        showSorterTooltip={TABLE_SORTER_TOOLTIP}
         locale={{ emptyText: t('customers.detail.noSalesOrders') }}
         dataSource={orders}
         columns={[
@@ -31,7 +31,6 @@ export function CustomerSalesOrderHistoryCard({
           {
             title: t('customers.detail.createdAt'),
             dataIndex: 'createdAt',
-            defaultSortOrder: 'descend',
             sorter: (first, second) => compareDate(first.createdAt, second.createdAt),
             render: (value) => formatDateTime(value),
           },

@@ -1,0 +1,29 @@
+.actions {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.actions :global(.ant-btn) {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  color: #68758d;
+}
+
+.actions :global(.ant-btn:hover) {
+  color: var(--color-primary) !important;
+  background: rgba(108, 99, 255, 0.08) !important;
+}
+
+.confirmButton {
+  color: #4f8a69 !important;
+}
+
+.confirmButton:hover {
+  color: #3f7658 !important;
+  background: rgba(79, 138, 105, 0.10) !important;
+}
+
+.cancelButton:hover {
+  background: rgba(214, 83, 83, 0.08) !important;
+}

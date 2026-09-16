@@ -86,7 +86,7 @@ class CustomerDebtStatementServiceTest {
             .note("Bank transfer")
             .build();
 
-        when(customerDebtRepository.findByTenantIdAndCustomerIdOrderByCreatedAtDesc(1L, 2L))
+        when(customerDebtRepository.findByTenantIdAndCustomerIdOrderByCreatedAtDescIdDesc(1L, 2L))
             .thenReturn(List.of(payment, receivable));
         when(salesOrderRepository.findByTenantIdAndIdIn(1L, Set.of(101L)))
             .thenReturn(List.of(SalesOrder.builder().id(101L).tenantId(1L).code("SO-20260906-0001").build()));

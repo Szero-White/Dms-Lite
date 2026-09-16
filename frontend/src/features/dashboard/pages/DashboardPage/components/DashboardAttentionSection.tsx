@@ -1,49 +1,134 @@
-import { Button, Card, List, Progress, Tag, Typography } from 'antd';
+import {
+  AppstoreOutlined,
+  RightOutlined,
+  ShoppingCartOutlined,
+  WarningOutlined,
+  WalletOutlined,
+} from '@ant-design/icons';
+import { Button, Typography } from 'antd';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SalesOrderStatusTag } from '../../../../../components/common/StatusTag';
-import { formatCurrency, formatDateTime } from '../../../../../lib/format';
+import { formatCurrency, formatNumber } from '../../../../../lib/format';
 import type { ProductRow } from '../../../../products';
 import type { SalesOrder } from '../../../../sales';
 import type { ReceivableAttention } from '../../../types/dashboard.types';
-import { DashboardReceivableAttentionCard } from './DashboardReceivableAttentionCard';
 import styles from './DashboardAttentionSection.module.css';
 
 interface DashboardAttentionSectionProps {
   attentionOrders: SalesOrder[];
-  customersMap: Map<number, string>;
-  healthyProducts: ProductRow[];
   lowStockProducts: ProductRow[];
   onOpenInventory: () => void;
   onOpenReceivables?: () => void;
   onReviewOrders: () => void;
-  onViewActivity: () => void;
   outOfStockProducts: ProductRow[];
-  products: ProductRow[];
-  recentOrders: SalesOrder[];
   receivableAttention: ReceivableAttention;
   showInventory: boolean;
   showReceivables: boolean;
   showOrders: boolean;
 }
 
+interface AttentionItem {
+  key: string;
+  icon: ReactNode;
+  label: string;
+  detail: string;
+  value: string;
+  tone?: 'danger';
+  onClick?: () => void;
+}
+
 export function DashboardAttentionSection({
   attentionOrders,
-  customersMap,
-  healthyProducts,
   lowStockProducts,
   onOpenInventory,
   onOpenReceivables,
   onReviewOrders,
-  onViewActivity,
   outOfStockProducts,
-  products,
-  recentOrders,
   receivableAttention,
   showInventory,
   showReceivables,
   showOrders,
 }: DashboardAttentionSectionProps) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const attentionItems: AttentionItem[] = [];
+
+  if (showReceivables && receivableAttention.overdueCount > 0) {
+    attentionItems.push({
+      key: 'overdue-receivables',
+      icon: <WalletOutlined />,
+      label: t('dashboard.attention.receivables.overdue'),
+      detail: t('dashboard.attention.receivables.itemCount', {
+        count: receivableAttention.overdueCount,
+      }),
+      value: formatCurrency(receivableAttention.overdueAmount, i18n.language),
+      tone: 'danger',
+      onClick: onOpenReceivables,
+    });
+  }
+
+  if (showReceivables && receivableAttention.dueTodayCount > 0) {
+    attentionItems.push({
+      key: 'due-today-receivables',
+      icon: <WalletOutlined />,
+      label: t('dashboard.attention.receivables.dueToday'),
+      detail: t('dashboard.attention.receivables.itemCount', {
+        count: receivableAttention.dueTodayCount,
+      }),
+      value: formatCurrency(receivableAttention.dueTodayAmount, i18n.language),
+      onClick: onOpenReceivables,
+    });
+  }
+
+  if (showReceivables && receivableAttention.dueSoonCount > 0) {
+    attentionItems.push({
+      key: 'due-soon-receivables',
+      icon: <WalletOutlined />,
+      label: t('dashboard.attention.receivables.dueSoon'),
+      detail: t('dashboard.attention.receivables.itemCount', {
+        count: receivableAttention.dueSoonCount,
+      }),
+      value: formatCurrency(receivableAttention.dueSoonAmount, i18n.language),
+      onClick: onOpenReceivables,
+    });
+  }
+
+  if (showInventory && lowStockProducts.length > 0) {
+    attentionItems.push({
+      key: 'low-stock',
+      icon: <AppstoreOutlined />,
+      label: t('dashboard.attention.lowStock'),
+      detail: t('dashboard.performance.lowStockProductsNote'),
+      value: String(formatNumber(lowStockProducts.length)),
+      onClick: onOpenInventory,
+    });
+  }
+
+  if (showInventory && outOfStockProducts.length > 0) {
+    attentionItems.push({
+      key: 'out-of-stock',
+      icon: <WarningOutlined />,
+      label: t('dashboard.attention.outOfStock'),
+      detail: t('dashboard.attention.openInventory'),
+      value: String(formatNumber(outOfStockProducts.length)),
+      tone: 'danger',
+      onClick: onOpenInventory,
+    });
+  }
+
+  if (showOrders && attentionOrders.length > 0) {
+    attentionItems.push({
+      key: 'draft-orders',
+      icon: <ShoppingCartOutlined />,
+      label: t('dashboard.performance.ordersNeedAction'),
+      detail: t('dashboard.attention.reviewOrders'),
+      value: String(formatNumber(attentionOrders.length)),
+      onClick: onReviewOrders,
+    });
+  }
+
+  if (attentionItems.length === 0) {
+    return null;
+  }
 
   return (
     <section className={styles.section}>
@@ -55,109 +140,30 @@ export function DashboardAttentionSection({
           </Typography.Text>
         </div>
       </div>
-      <div className={styles.actionGrid}>
-        {showReceivables ? (
-          <DashboardReceivableAttentionCard
-            attention={receivableAttention}
-            onOpenReceivables={onOpenReceivables}
-          />
-        ) : null}
 
-        {showInventory ? (
-          <Card title={t('dashboard.attention.inventoryHealth')} className={`panel-card ${styles.actionCard}`}>
-          <div className={styles.healthSummary}>
-            <div>
-              <span>{t('dashboard.attention.healthy')}</span>
-              <strong>{healthyProducts.length}</strong>
+      <div className={styles.attentionPanel}>
+        {attentionItems.map((item) => (
+          <div
+            key={item.key}
+            className={`${styles.attentionItem} ${item.tone === 'danger' ? styles.dangerItem : ''}`}
+          >
+            <div className={styles.iconWrap}>{item.icon}</div>
+            <div className={styles.itemContent}>
+              <strong>{item.label}</strong>
+              <span>{item.detail}</span>
             </div>
-            <div>
-              <span>{t('dashboard.attention.lowStock')}</span>
-              <strong>{lowStockProducts.length}</strong>
-            </div>
-            <div>
-              <span>{t('dashboard.attention.outOfStock')}</span>
-              <strong>{outOfStockProducts.length}</strong>
-            </div>
+            <div className={styles.itemValue}>{item.value}</div>
+            {item.onClick ? (
+              <Button
+                type="text"
+                className={styles.itemAction}
+                icon={<RightOutlined />}
+                aria-label={item.label}
+                onClick={item.onClick}
+              />
+            ) : null}
           </div>
-          <Progress
-            percent={
-              products.length
-                ? Math.round((healthyProducts.length / products.length) * 100)
-                : 0
-            }
-            showInfo={false}
-            strokeColor="var(--color-success)"
-          />
-          <List
-            dataSource={lowStockProducts.slice(0, 3)}
-            locale={{ emptyText: t('dashboard.attention.allAboveMinimum') }}
-            renderItem={(product) => (
-              <List.Item>
-                <div className={styles.compactRow}>
-                  <div>
-                    <strong>{product.name}</strong>
-                    <span>{product.sku}</span>
-                  </div>
-                  <Tag color="orange">{t('dashboard.attention.onHand', { count: product.stock })}</Tag>
-                </div>
-              </List.Item>
-            )}
-          />
-          <Button type="link" onClick={onOpenInventory}>
-            {t('dashboard.attention.openInventory')}
-          </Button>
-          </Card>
-        ) : null}
-
-        {showOrders ? (
-          <Card title={t('dashboard.attention.ordersRequiringAttention')} className={`panel-card ${styles.actionCard}`}>
-          <List
-            dataSource={attentionOrders.slice(0, 4)}
-            locale={{ emptyText: t('dashboard.attention.noDraftOrders') }}
-            renderItem={(order) => (
-              <List.Item>
-                <div className={styles.compactRow}>
-                  <div>
-                    <strong>{order.code}</strong>
-                    <span>
-                      {order.customerName
-                        || customersMap.get(order.customerId)
-                        || '--'}
-                    </span>
-                  </div>
-                  <Typography.Text strong>{formatCurrency(order.totalAmount)}</Typography.Text>
-                </div>
-              </List.Item>
-            )}
-          />
-          <Button type="link" onClick={onReviewOrders}>
-            {t('dashboard.attention.reviewOrders')}
-          </Button>
-          </Card>
-        ) : null}
-
-        {showOrders ? (
-          <Card title={t('dashboard.attention.recentActivity')} className={`panel-card ${styles.actionCard}`}>
-          <List
-            dataSource={recentOrders}
-            locale={{ emptyText: t('dashboard.attention.noRecentActivity') }}
-            renderItem={(order) => (
-              <List.Item>
-                <div className={styles.compactRow}>
-                  <div>
-                    <strong>{order.code}</strong>
-                    <span>{formatDateTime(order.createdAt)}</span>
-                  </div>
-                  <SalesOrderStatusTag status={order.status} />
-                </div>
-              </List.Item>
-            )}
-          />
-          <Button type="link" onClick={onViewActivity}>
-            {t('dashboard.attention.viewActivity')}
-          </Button>
-          </Card>
-        ) : null}
+        ))}
       </div>
     </section>
   );

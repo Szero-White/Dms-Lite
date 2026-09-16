@@ -20,9 +20,9 @@ public class CatalogHelpDataService {
             return responses.blocked(scope, "Products", locale);
         }
 
-        long count = products.countByTenantIdAndDeletedAtIsNull(TenantContext.tenantRequired());
+        long count = products.countByTenantIdAndDeletedAtIsNullAndActiveTrue(TenantContext.tenantRequired());
         return responses.response(
-            locale == HelpLocale.VI ? "Hiện có " + count + " mã hàng đang được quản lý." : "There are " + count + " active product codes being managed.",
+            locale == HelpLocale.VI ? "Hiện có " + count + " mã hàng đang hoạt động." : "There are " + count + " active product codes being managed.",
             List.of(
                 locale == HelpLocale.VI ? "Mở Sản phẩm để tìm theo mã hàng, tên hoặc mã vạch." : "Open Products to search by product code, name or barcode.",
                 locale == HelpLocale.VI ? "Dữ liệu giá vốn/giá bán nên chỉ mở cho vai trò liên quan." : "Cost and selling price should stay limited to relevant roles.",

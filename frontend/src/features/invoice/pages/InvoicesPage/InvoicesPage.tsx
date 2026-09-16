@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../../components/common/PageHeader';
 import { QueryState } from '../../../../components/common/QueryState';
 import { formatCurrency, formatDate, getErrorMessage, toNumber } from '../../../../lib/format';
-import { getTableSortOrder, TABLE_SORT_DIRECTIONS } from '../../../../lib/tableSorting';
+import { getTableSortOrder, TABLE_SORT_DIRECTIONS, TABLE_SORTER_TOOLTIP } from '../../../../lib/tableSorting';
 import { PERMISSIONS, canViewInvoiceReceivableState, hasPermission, useAuth } from '../../../auth';
 import { InvoiceStatusTag } from '../../InvoiceStatusTag';
 import { downloadInvoicePdf } from '../../api/invoiceService';
@@ -184,9 +184,9 @@ export function InvoicesPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader title={t('invoice.title')} subtitle={t('invoice.subtitle')} />
+      <PageHeader variant="records" title={t('invoice.title')} subtitle={t('invoice.subtitle')} />
 
-      <Card className={`panel-card ${styles.tableCard}`}>
+      <Card className={`panel-card workspace-surface ${styles.tableCard}`}>
         <div className={styles.toolbar}>
           <div className={styles.filters}>
             <Input
@@ -232,7 +232,7 @@ export function InvoicesPage() {
             pagination={false}
             scroll={{ x: 1230 }}
             sortDirections={TABLE_SORT_DIRECTIONS}
-            showSorterTooltip={false}
+            showSorterTooltip={TABLE_SORTER_TOOLTIP}
             onChange={handleTableChange}
           />
         </QueryState>

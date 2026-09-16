@@ -8,12 +8,21 @@
 .headerActions { justify-content: flex-end; }
 
 /* ===== Profile Card ===== */
+.profileCard {
+  border: 0 !important;
+  border-top: 1px solid rgba(112, 105, 232, 0.16) !important;
+  border-bottom: 1px solid var(--color-border-subtle) !important;
+  border-radius: 0 !important;
+  background: linear-gradient(90deg, rgba(112, 105, 232, 0.025), #ffffff 34%, #ffffff 100%) !important;
+  box-shadow: none !important;
+}
+.profileCard:hover { box-shadow: none !important; }
 .profileCard :global(.ant-card-body) {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 24px !important;
+  padding: 22px 0 !important;
 }
 
 .profileMain {
@@ -25,12 +34,12 @@
 
 .profileAvatar {
   flex: 0 0 auto;
-  background: var(--gradient-primary) !important;
-  color: #fff !important;
-  font-size: 22px !important;
-  font-weight: 800 !important;
+  background: var(--color-primary) !important;
+  color: var(--color-card-background) !important;
+  font-size: 20px !important;
+  font-weight: 650 !important;
   border-radius: 16px !important;
-  box-shadow: 0 6px 20px rgba(99,102,241,0.3) !important;
+  box-shadow: none !important;
 }
 
 .profileCopy { min-width: 0; }
@@ -46,17 +55,17 @@
 .profileTitleRow :global(.ant-typography) {
   margin: 0 !important;
   color: var(--color-text-primary);
-  font-size: 22px !important;
-  font-weight: 800 !important;
+  font-size: 20px !important;
+  font-weight: 650 !important;
   letter-spacing: -0.3px;
   line-height: 1.2;
 }
 
 .profileTitleRow :global(.ant-tag) {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 650;
   padding: 2px 10px;
-  border-radius: 999px;
+  border-radius: 8px;
 }
 
 .profileMeta {
@@ -74,10 +83,8 @@
 .creditPanel {
   width: min(340px, 100%);
   flex: 0 0 auto;
-  padding: 16px 18px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 14px;
-  background: var(--color-surface-muted);
+  padding: 4px 0 4px 22px;
+  border-left: 1px solid var(--color-border-subtle);
 }
 
 .creditPanel > div:first-child {
@@ -95,7 +102,7 @@
 }
 
 .creditPanel > div:first-child :global(.ant-typography:last-child) {
-  font-weight: 700;
+  font-weight: 650;
   font-size: 14px;
 }
 
@@ -110,34 +117,54 @@
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  gap: 0;
+  overflow: hidden;
+  border-top: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.metricsGrid > :last-child { border-right: 0; }
+.metricsGrid > div {
+  min-height: 104px !important;
+  padding: 14px 18px 14px 16px !important;
+  border: 0 !important;
+  border-right: 1px solid var(--color-border-subtle) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.metricsGrid > div:hover {
+  border-color: var(--color-border-subtle) !important;
+  background: rgba(112, 105, 232, 0.018) !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 /* ===== Debt tags ===== */
 .increaseTag:global(.ant-tag) {
   margin: 0;
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca !important;
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-border) !important;
   font-weight: 600;
   font-size: 11.5px;
   padding: 1px 10px;
-  border-radius: 999px;
+  border-radius: 8px;
 }
 
 .decreaseTag:global(.ant-tag) {
   margin: 0;
-  background: #ecfdf5;
-  color: #059669;
-  border: 1px solid #a7f3d0 !important;
+  background: var(--color-success-light);
+  color: var(--color-success);
+  border: 1px solid var(--color-success-border) !important;
   font-weight: 600;
   font-size: 11.5px;
   padding: 1px 10px;
-  border-radius: 999px;
+  border-radius: 8px;
 }
 
-.debtOutstanding { color: #dc2626; font-weight: 700; font-variant-numeric: tabular-nums; }
-.debtClear { color: #059669; font-weight: 700; font-variant-numeric: tabular-nums; }
+.debtOutstanding { color: var(--color-danger); font-weight: 650; font-variant-numeric: tabular-nums; }
+.debtClear { color: var(--color-success); font-weight: 650; font-variant-numeric: tabular-nums; }
 
 .dueDateCell {
   display: grid;

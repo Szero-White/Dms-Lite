@@ -41,7 +41,7 @@ public interface CustomerDebtRepository extends JpaRepository<CustomerDebtTransa
         java.time.Instant getConfirmedAt();
     }
 
-    List<CustomerDebtTransaction> findByTenantIdAndCustomerIdOrderByCreatedAtDesc(
+    List<CustomerDebtTransaction> findByTenantIdAndCustomerIdOrderByCreatedAtDescIdDesc(
         Long tenantId,
         Long customerId
     );

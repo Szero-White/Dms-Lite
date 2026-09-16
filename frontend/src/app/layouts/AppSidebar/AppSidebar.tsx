@@ -5,7 +5,6 @@ import {
   BellOutlined,
   HistoryOutlined,
   DoubleLeftOutlined,
-  DoubleRightOutlined,
   DashboardOutlined,
   DollarOutlined,
   FileTextOutlined,
@@ -15,7 +14,7 @@ import {
   TeamOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Avatar, Menu } from 'antd';
+import { Avatar, Menu, Tooltip } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -194,15 +193,27 @@ export function AppSidebar({
         </div>
 
         {onToggleCollapse ? (
-          <button
-            type="button"
-            className={styles.collapseButton}
-            aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-            onClick={onToggleCollapse}
+          <Tooltip
+            title={collapsed ? t('sidebar.expand') : undefined}
+            placement="right"
+            mouseEnterDelay={0.25}
           >
-            {collapsed ? <DoubleRightOutlined /> : <DoubleLeftOutlined />}
-            <span>{collapsed ? '>>' : t('sidebar.collapse')}</span>
-          </button>
+            <button
+              type="button"
+              className={styles.collapseButton}
+              aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+              onClick={onToggleCollapse}
+            >
+              {collapsed ? (
+                <span className={styles.expandGlyph} aria-hidden="true">&gt;&gt;</span>
+              ) : (
+                <>
+                  <DoubleLeftOutlined />
+                  <span>{t('sidebar.collapse')}</span>
+                </>
+              )}
+            </button>
+          </Tooltip>
         ) : null}
       </div>
     </div>

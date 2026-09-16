@@ -2,11 +2,24 @@ import { PropsWithChildren } from 'react';
 import { Breadcrumb, Space, Typography } from 'antd';
 import styles from './PageHeader.module.css';
 
+export type PageHeaderVariant =
+  | 'default'
+  | 'executive'
+  | 'operations'
+  | 'finance'
+  | 'records'
+  | 'catalog'
+  | 'people'
+  | 'inventory'
+  | 'activity'
+  | 'governance';
+
 interface PageHeaderProps extends PropsWithChildren {
   title: string;
   subtitle: string;
   breadcrumb?: string[];
   extra?: React.ReactNode;
+  variant?: PageHeaderVariant;
 }
 
 export function PageHeader({
@@ -14,10 +27,11 @@ export function PageHeader({
   subtitle,
   breadcrumb,
   extra,
+  variant = 'default',
   children,
 }: PageHeaderProps) {
   return (
-    <div className={styles.header}>
+    <div className={`${styles.header} ${styles[`variant_${variant}`]}`}>
       <div className={styles.content}>
         {breadcrumb?.length ? (
           <Breadcrumb

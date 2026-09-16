@@ -104,9 +104,9 @@ public class SalesOrderHelpDataService {
         if (salesOrder.getStatus() == SalesOrderStatus.DRAFT) {
             return locale == HelpLocale.VI
                 ? " Tổng đơn " + responses.money(totalAmount, locale)
-                    + ". Khoản phải thu thực tế chưa phát sinh; giá trị đơn hiện chỉ được dùng để kiểm tra hạn mức tín dụng dự kiến cho tới khi kho hoàn tất đơn."
+                    + ". Khoản phải thu thực tế chưa phát sinh; giá trị đơn hiện chỉ được dùng để kiểm tra hạn mức tín dụng dự kiến cho tới khi đơn được xác nhận và hoàn tất."
                 : " Order total " + responses.money(totalAmount, locale)
-                    + ". No actual receivable has been recognized yet; this is projected credit exposure until warehouse fulfillment.";
+                    + ". No actual receivable has been recognized yet; this is projected credit exposure until order completion.";
         }
 
         if (salesOrder.getStatus() == SalesOrderStatus.CANCELLED) {
