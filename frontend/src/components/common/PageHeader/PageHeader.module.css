@@ -1,59 +1,121 @@
 .header {
+  --page-accent: var(--color-primary);
+  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--spacing-lg);
-  margin-bottom: 28px;
-  padding: 0;
+  gap: 24px;
+  margin-bottom: 22px;
+  padding: 2px 2px 2px 0;
 }
 
 .content {
+  position: relative;
   min-width: 0;
+  padding-left: 16px;
 }
 
-.breadcrumb {
-  margin-bottom: 8px;
+.content::before {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 4px;
+  border-radius: 999px;
+  background: var(--page-accent);
+  content: "";
 }
+
+.breadcrumb { margin-bottom: 7px; }
 
 .title:global(.ant-typography) {
-  margin: 0 0 4px !important;
-  color: var(--color-text-primary) !important;
-  font-size: 26px !important;
-  font-weight: 700 !important;
-  line-height: 34px !important;
-  letter-spacing: -0.3px;
+  margin: 0 0 5px !important;
+  color: #2f3b52 !important;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-page-title) !important;
+  font-weight: 640 !important;
+  line-height: var(--line-height-page-title) !important;
+  letter-spacing: -0.02em;
 }
 
 .subtitle:global(.ant-typography) {
+  max-width: 780px;
   margin-bottom: 0;
-  color: var(--color-text-secondary) !important;
-  font-size: var(--font-size-secondary);
-  font-weight: var(--font-weight-body);
-  line-height: var(--line-height-body);
+  color: #66748d !important;
+  font-size: 13.5px;
+  font-weight: 430;
+  line-height: 20px;
 }
 
 .extra {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 9px;
+}
+
+/* Unified page-header language across the product.
+   Variants only adjust density/scale, not their own layout theme. */
+.variant_executive .title:global(.ant-typography) { font-size: 27px !important; }
+
+.variant_operations,
+.variant_activity,
+.variant_governance,
+.variant_finance,
+.variant_records,
+.variant_catalog,
+.variant_people,
+.variant_inventory {
+  margin-bottom: 20px;
+}
+
+.variant_operations .content,
+.variant_activity .content,
+.variant_governance .content,
+.variant_finance .content,
+.variant_records .content,
+.variant_catalog .content,
+.variant_people .content,
+.variant_inventory .content {
+  padding-left: 16px;
+}
+
+.variant_operations .content::before,
+.variant_activity .content::before,
+.variant_governance .content::before,
+.variant_finance .content::before,
+.variant_records .content::before,
+.variant_catalog .content::before,
+.variant_people .content::before,
+.variant_inventory .content::before {
+  top: 4px;
+  bottom: 4px;
+  width: 4px;
+  height: auto;
+  border-radius: 999px;
+  background: var(--page-accent);
+  box-shadow: none;
 }
 
 @media (max-width: 992px) {
-  .header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .extra {
-    width: 100%;
-    justify-content: flex-start;
-  }
+  .header { flex-direction: column; align-items: stretch; }
+  .extra { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
 }
 
 @media (max-width: 640px) {
-  .title:global(.ant-typography) {
-    font-size: var(--text-xl) !important;
-    line-height: var(--leading-xl) !important;
+  .header { margin-bottom: 18px; gap: 14px; }
+  .content { padding-left: 14px; }
+  .title:global(.ant-typography) { font-size: 24px !important; line-height: 30px !important; }
+  .subtitle:global(.ant-typography) { font-size: 13px; line-height: 19px; }
+
+  .variant_operations .content,
+  .variant_activity .content,
+  .variant_governance .content,
+  .variant_finance .content,
+  .variant_records .content,
+  .variant_catalog .content,
+  .variant_people .content,
+  .variant_inventory .content {
+    padding-left: 14px;
   }
 }

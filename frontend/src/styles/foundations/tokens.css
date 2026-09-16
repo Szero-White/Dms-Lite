@@ -1,162 +1,153 @@
 :root {
-  /* ===================================================
-     Font
-     =================================================== */
-  --font-family-base: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-family-mono: "Cascadia Code", "Fira Code", Consolas, "Courier New", monospace;
+  /* Typography: calm, product-grade and readable at business-data density. */
+  --font-family-base: "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family-display: "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family-mono: "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
-  /* ===================================================
-     Type scale
-     =================================================== */
-  --text-xs:   11px;
-  --text-sm:   13px;
+  --text-xs: 12px;
+  --text-sm: 13px;
   --text-base: 14px;
-  --text-md:   15px;
-  --text-lg:   19px;
-  --text-xl:   24px;
-  --text-2xl:  28px;
+  --text-md: 14.5px;
+  --text-lg: 18px;
+  --text-xl: 21px;
+  --text-2xl: 27px;
 
-  --leading-xs:   16px;
-  --leading-sm:   20px;
+  --leading-xs: 17px;
+  --leading-sm: 19px;
   --leading-base: 22px;
-  --leading-md:   22px;
-  --leading-lg:   26px;
-  --leading-xl:   32px;
-  --leading-2xl:  36px;
+  --leading-md: 23px;
+  --leading-lg: 25px;
+  --leading-xl: 29px;
+  --leading-2xl: 34px;
 
-  --font-weight-regular:  400;
-  --font-weight-medium:   500;
-  --font-weight-semibold: 600;
-  --font-weight-bold:     700;
-  --font-weight-black:    800;
+  --font-weight-regular: 460;
+  --font-weight-medium: 540;
+  --font-weight-semibold: 610;
+  --font-weight-bold: 660;
 
-  --font-size-meta:         var(--text-xs);
-  --font-size-secondary:    var(--text-sm);
-  --font-size-body:         var(--text-base);
-  --font-size-card-title:   var(--text-md);
+  --font-size-meta: var(--text-xs);
+  --font-size-secondary: var(--text-sm);
+  --font-size-body: var(--text-base);
+  --font-size-card-title: var(--text-md);
   --font-size-section-title: var(--text-lg);
-  --font-size-page-title:   var(--text-2xl);
+  --font-size-page-title: var(--text-2xl);
 
-  --line-height-meta:         var(--leading-xs);
-  --line-height-secondary:    var(--leading-sm);
-  --line-height-body:         var(--leading-base);
-  --line-height-card-title:   var(--leading-md);
+  --line-height-meta: var(--leading-xs);
+  --line-height-secondary: var(--leading-sm);
+  --line-height-body: var(--leading-base);
+  --line-height-card-title: var(--leading-md);
   --line-height-section-title: var(--leading-lg);
-  --line-height-page-title:   var(--leading-2xl);
+  --line-height-page-title: var(--leading-2xl);
 
-  --font-weight-body:    var(--font-weight-regular);
-  --font-weight-label:   var(--font-weight-medium);
+  --font-weight-body: var(--font-weight-regular);
+  --font-weight-label: var(--font-weight-medium);
   --font-weight-heading: var(--font-weight-semibold);
-  --font-weight-strong:  var(--font-weight-bold);
+  --font-weight-strong: 630;
+  --font-weight-page-title: var(--font-weight-bold);
 
-  /* ===================================================
-     Brand palette
-     =================================================== */
-  --color-primary:          #6366f1;
-  --color-primary-hover:    #4f46e5;
-  --color-primary-light:    #eef2ff;
-  --color-primary-mid:      #c7d2fe;
-  --color-primary-dark:     #4338ca;
-  --color-primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  --color-secondary:        #8b5cf6;
-  --color-accent:           #06b6d4;
+  /* Brand: clean indigo with a subtle violet edge. */
+  --color-primary: #7069e8;
+  --color-primary-hover: #625cdd;
+  --color-primary-active: #5751d1;
+  --color-primary-dark: #4d48b5;
+  --color-primary-light: #f3f2fc;
+  --color-primary-light-hover: #ebe9fa;
+  --color-primary-mid: #dad7f3;
+  --color-secondary: #68758a;
+  --color-accent: #7c76e6;
+  --color-accent-warm: #8b84e7;
+  --color-accent-light: #f7f6fc;
 
-  /* ===================================================
-     Semantic colours
-     =================================================== */
-  --color-success:  #10b981;
-  --color-warning:  #f59e0b;
-  --color-danger:   #ef4444;
-  --color-purple:   #7c3aed;
-  --color-cyan:     #06b6d4;
+  /* Semantic colors are reserved for state and risk, never decoration. */
+  --color-success: #4f8a69;
+  --color-warning: #b98538;
+  --color-danger: #c45b5b;
+  --color-info: #65738a;
+  --color-purple: var(--color-primary);
+  --color-cyan: var(--color-info);
 
-  --color-success-light: #ecfdf5;
-  --color-warning-light: #fffbeb;
-  --color-danger-light:  #fef2f2;
-  --color-purple-light:  #f5f3ff;
-  --color-cyan-light:    #ecfeff;
+  --color-success-light: #f1f7f3;
+  --color-warning-light: #fbf6ed;
+  --color-danger-light: #fbf1f1;
+  --color-info-light: #f3f5f8;
+  --color-purple-light: var(--color-primary-light);
+  --color-cyan-light: var(--color-info-light);
+  --color-success-border: #bdd8c8;
+  --color-warning-border: #dfc89f;
+  --color-danger-border: #e3b9b9;
+  --color-info-border: #d1d8e2;
 
-  /* ===================================================
-     Text
-     =================================================== */
-  --color-text-primary:   #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted:     #94a3b8;
+  --gradient-brand: linear-gradient(135deg, #6862df 0%, #746ee9 52%, #8179e8 100%);
+  --gradient-brand-hover: linear-gradient(135deg, #5d57d3 0%, #6963df 52%, #766ee0 100%);
+  --gradient-brand-soft: linear-gradient(135deg, rgba(112, 105, 232, 0.095) 0%, rgba(101, 115, 138, 0.035) 100%);
+  --gradient-brand-softer: linear-gradient(135deg, rgba(112, 105, 232, 0.045) 0%, rgba(101, 115, 138, 0.02) 100%);
 
-  /* ===================================================
-     Surfaces & borders
-     =================================================== */
-  --color-page-background:  #f4f6fb;
-  --color-card-background:  #ffffff;
-  --color-surface-muted:    #f8fafc;
+  /* Blue-indigo text reads softer than black while keeping enterprise contrast. */
+  --color-text-primary: #46546d;
+  --color-text-heading: #253149;
+  --color-text-strong: #34415a;
+  --color-text-value: #5751bc;
+  --color-text-secondary: #5c6980;
+  --color-text-tertiary: #76839a;
+  --color-text-muted: #929daf;
+  --color-text-inverse: #ffffff;
+
+  /* Airy blue-white surfaces. Avoid dull gray page fills. */
+  --color-page-background: #f7f9fd;
+  --color-card-background: #ffffff;
+  --color-surface-muted: #f8fafe;
+  --color-surface-soft: #f2f4f9;
   --color-surface-elevated: #ffffff;
-  --color-border:           #e2e8f0;
-  --color-border-strong:    #cbd5e1;
-  --color-border-subtle:    #f1f5f9;
+  --color-border: #e0e5ee;
+  --color-border-strong: #cbd3df;
+  --color-border-subtle: #e9edf3;
+  --color-border-secondary: var(--color-border);
+  --color-surface: var(--color-card-background);
 
-  /* ===================================================
-     Radius
-     =================================================== */
-  --radius-xs:     6px;
-  --radius-small:  8px;
-  --radius-medium: 10px;
-  --radius-large:  14px;
-  --radius-xl:     18px;
+  --radius-xs: 7px;
+  --radius-small: 9px;
+  --radius-medium: 11px;
+  --radius-large: 14px;
+  --radius-xl: 16px;
   --radius-section: 16px;
 
-  /* ===================================================
-     Shadows
-     =================================================== */
-  --shadow-xs:        0 1px 2px rgba(0,0,0,0.04);
-  --shadow-card:      0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
-  --shadow-card-hover:0 4px 20px rgba(0,0,0,0.08);
-  --shadow-modal:     0 24px 64px rgba(0,0,0,0.15);
-  --shadow-primary:   0 4px 14px rgba(99,102,241,0.3);
+  --shadow-xs: 0 1px 2px rgba(63, 78, 122, 0.03);
+  --shadow-card: 0 1px 2px rgba(63, 78, 122, 0.035), 0 12px 32px rgba(70, 86, 139, 0.065);
+  --shadow-card-hover: 0 4px 12px rgba(63, 78, 122, 0.055), 0 18px 42px rgba(70, 86, 139, 0.085);
+  --shadow-popover: 0 18px 44px rgba(50, 63, 103, 0.14);
+  --shadow-modal: 0 26px 64px rgba(50, 63, 103, 0.18);
+  --shadow-primary: 0 8px 24px rgba(112, 105, 232, 0.18);
 
-  /* ===================================================
-     Spacing
-     =================================================== */
   --spacing-2xs: 4px;
-  --spacing-xs:  8px;
-  --spacing-sm:  12px;
-  --spacing-md:  16px;
-  --spacing-lg:  20px;
-  --spacing-xl:  24px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 20px;
+  --spacing-xl: 24px;
   --spacing-2xl: 32px;
   --spacing-3xl: 48px;
 
-  /* ===================================================
-     Layout
-     =================================================== */
-  --sidebar-width:           232px;
+  --sidebar-width: 232px;
   --sidebar-collapsed-width: 72px;
-  --header-height:           64px;
-  --content-max-width:       1520px;
-  --page-padding-desktop:    24px;
+  --header-height: 64px;
+  --content-max-width: 1540px;
+  --page-padding-desktop: 32px;
 
-  /* ===================================================
-     Transition
-     =================================================== */
-  --transition-fast:    0.12s ease;
-  --transition-default: 0.18s ease;
-  --transition-smooth:  0.28s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce:  0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: 0.12s ease;
+  --transition-default: 0.16s ease;
+  --transition-smooth: 0.22s ease;
+  --transition-bounce: 0.22s ease;
 
-  /* ===================================================
-     Gradients
-     =================================================== */
-  --gradient-primary:   linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  --gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
-  --gradient-success:   linear-gradient(135deg, #10b981 0%, #34d399 100%);
-  --gradient-danger:    linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-  --gradient-warning:   linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-  --gradient-dark:      linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  --gradient-page:      linear-gradient(160deg, #f8fafc 0%, #f1f5f9 100%);
-
-  /* ===================================================
-     Glassmorphism
-     =================================================== */
-  --glass-bg:     rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.35);
-  --glass-blur:   24px;
+  /* Compatibility aliases used by legacy feature styles. */
+  --color-primary-gradient: var(--color-primary);
+  --gradient-primary: var(--color-primary);
+  --gradient-secondary: var(--color-secondary);
+  --gradient-success: var(--color-success);
+  --gradient-danger: var(--color-danger);
+  --gradient-warning: var(--color-warning);
+  --gradient-dark: #35435e;
+  --gradient-page: var(--color-page-background);
+  --glass-bg: rgba(255, 255, 255, 0.94);
+  --glass-border: var(--color-border-subtle);
+  --glass-blur: 12px;
 }

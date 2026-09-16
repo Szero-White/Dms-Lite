@@ -21,6 +21,22 @@ async function collectFiles(directory) {
   return files;
 }
 
+async function collectStyleFiles(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...await collectStyleFiles(absolute));
+    } else if (/\.css$/.test(entry.name)) {
+      files.push(absolute);
+    }
+  }
+
+  return files;
+}
+
 function flattenKeys(value, prefix = '', output = new Set()) {
   for (const [key, child] of Object.entries(value)) {
     const next = prefix ? `${prefix}.${key}` : key;
@@ -41,6 +57,10 @@ const failures = [];
 const sourceFiles = await collectFiles(srcRoot);
 const sourceEntries = await Promise.all(
   sourceFiles.map(async (file) => [file, await readFile(file, 'utf8')]),
+);
+const styleFiles = await collectStyleFiles(srcRoot);
+const styleEntries = await Promise.all(
+  styleFiles.map(async (file) => [file, await readFile(file, 'utf8')]),
 );
 
 for (const [file, source] of sourceEntries) {
@@ -69,6 +89,34 @@ for (const [file, source] of sourceEntries) {
         `${relative(file)}: every data table must use the shared three-state sort cycle and sorter tooltip.`,
       );
     }
+  }
+}
+
+
+for (const [file, source] of styleEntries) {
+  if (/\.ant-table-sticky-scroll\s*\{[^}]*display\s*:\s*none/si.test(source)) {
+    failures.push(`${relative(file)}: do not hide Ant Design horizontal table scrollbars.`);
+  }
+}
+
+const legacyPresetTagPattern = /color=[{]?['"](?:blue|geekblue|purple|magenta|cyan)['"]/g;
+for (const [file, source] of sourceEntries) {
+  if (legacyPresetTagPattern.test(source)) {
+    failures.push(`${relative(file)}: avoid decorative preset tag colors; use neutral or semantic status styling.`);
+  }
+}
+
+const legacyPalettePattern = /#(?:3f6f68|345f58|2b514b|294b46|4f46e5|4338ca|3730a3|6366f1|5b4df6|7c67ff|735df6|795ff5|f58bd5|fb7fd4)\b/i;
+for (const [file, source] of styleEntries) {
+  if (legacyPalettePattern.test(source)) {
+    failures.push(`${relative(file)}: legacy sage, blue, or neon decorative palette is not allowed.`);
+  }
+}
+
+const nearBlackUiPattern = /#(?:000000|111111|171717|1f1f1f|222222|262626|2b2b2b)\b/i;
+for (const [file, source] of styleEntries) {
+  if (nearBlackUiPattern.test(source)) {
+    failures.push(`${relative(file)}: use the shared slate text tokens instead of near-black UI colors.`);
   }
 }
 
@@ -101,6 +149,6 @@ if (failures.length > 0) {
   for (const failure of failures) console.error(`- ${failure}`);
   process.exitCode = 1;
 } else {
-  console.log(`UI consistency audit: PASS (${sourceFiles.length} TS/TSX files, ${viKeys.size} VI/EN keys)`);
-  console.log('Rules checked: neutral initial sort, shared table sort cycle/tooltips, checkbox multi-select, VI/EN parity.');
+  console.log(`UI consistency audit: PASS (${sourceFiles.length} TS/TSX files, ${styleFiles.length} CSS files, ${viKeys.size} VI/EN keys)`);
+  console.log('Rules checked: neutral initial sort, shared table sort cycle/tooltips, visible horizontal table overflow, checkbox multi-select, visual palette guardrails, VI/EN parity.');
 }

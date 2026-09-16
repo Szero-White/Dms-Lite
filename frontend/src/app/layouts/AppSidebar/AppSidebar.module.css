@@ -1,271 +1,210 @@
-/* ============================================================
-   SIDEBAR SHELL
-   ============================================================ */
 .sidebar {
-  min-height: 100%;
+  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 14px 10px 12px;
-  background: #ffffff;
+  overflow: hidden;
+  padding: 12px 10px 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
 }
 
-/* ============================================================
-   BRAND
-   ============================================================ */
 .brand {
   display: flex;
+  min-height: 58px;
   align-items: center;
-  gap: 11px;
-  min-height: 56px;
-  margin-bottom: 6px;
-  padding: 0 6px 14px;
+  gap: 10px;
+  flex: 0 0 auto;
+  margin-bottom: 8px;
+  padding: 0 7px 13px;
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .brandBadge {
   width: 36px;
   height: 36px;
+  flex: 0 0 auto;
   display: grid;
   place-items: center;
-  flex: 0 0 auto;
+  border: 1px solid rgba(108, 99, 255, 0.16);
   border-radius: 11px;
-  background: var(--color-primary);
-  color: #fff;
-  font-size: 17px;
-  box-shadow: none;
+  background: var(--gradient-brand);
+  color: #ffffff;
+  box-shadow: 0 7px 18px rgba(108, 99, 255, 0.18);
+  font-size: 16px;
 }
 
-.brandCopy {
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  transition: opacity var(--transition-default);
-}
-
+.brandCopy { min-width: 0; overflow: hidden; white-space: nowrap; }
 .brandTitle {
-  color: var(--color-text-primary);
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 20px;
-  letter-spacing: -0.3px;
+  color: var(--color-text-heading);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.1px;
 }
-
 .brandSubtitle {
-  color: var(--color-text-muted);
-  font-size: 11px;
-  line-height: 16px;
-  font-weight: 500;
   margin-top: 1px;
+  color: var(--color-text-tertiary);
+  font-size: 10.5px;
+  font-weight: 400;
+  line-height: 15px;
 }
 
-/* ============================================================
-   ANT MENU
-   ============================================================ */
 .sidebar :global(.ant-menu) {
-  flex: 1;
+  min-height: 0;
+  flex: 1 1 auto;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 10px;
   border-inline-end: none !important;
   background: transparent;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
 }
-
-.sidebar :global(.ant-menu)::-webkit-scrollbar { display: none; }
+.sidebar :global(.ant-menu:hover) { scrollbar-color: var(--color-border) transparent; }
+.sidebar :global(.ant-menu::-webkit-scrollbar) { width: 6px; }
+.sidebar :global(.ant-menu::-webkit-scrollbar-thumb) { border-radius: 999px; background: transparent; }
+.sidebar :global(.ant-menu:hover::-webkit-scrollbar-thumb) { background: var(--color-border); }
 
 .sidebar :global(.ant-menu-item-group-title) {
-  margin-top: 14px;
-  padding: 0 8px 4px;
-  color: var(--color-text-muted);
+  margin-top: 13px;
+  padding: 0 10px 5px;
+  color: #9aa6bc;
   font-size: 10px;
-  font-weight: 700;
-  line-height: 16px;
-  letter-spacing: 0.1em;
+  font-weight: 600;
+  line-height: 15px;
+  letter-spacing: 0.035em;
   text-transform: uppercase;
 }
-
-.sidebar :global(.ant-menu-item-group-list) {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
+.sidebar :global(.ant-menu-item-group-list) { display: flex; flex-direction: column; gap: 2px; }
 .sidebar :global(.ant-menu-item) {
   position: relative;
   height: 40px;
-  line-height: 40px;
   margin-inline: 0 !important;
   margin-block: 0 !important;
   border-radius: 10px;
-  font-size: 13.5px;
-  font-weight: 500;
   color: var(--color-text-secondary);
-  transition: all var(--transition-smooth);
-  overflow: hidden;
+  font-size: 12.8px;
+  font-weight: 500;
+  line-height: 40px;
+  transition: background var(--transition-default), color var(--transition-default), transform var(--transition-default);
 }
-
-.sidebar :global(.ant-menu-item .anticon) {
-  font-size: 16px;
-  transition: all var(--transition-smooth);
-}
-
+.sidebar :global(.ant-menu-item .anticon) { color: #8995aa; font-size: 15px; }
 .sidebar :global(.ant-menu-item:hover) {
-  background: var(--color-surface-muted) !important;
-  color: var(--color-text-primary) !important;
+  background: #f5f8ff !important;
+  color: var(--color-text-heading) !important;
 }
-
-.sidebar :global(.ant-menu-item:hover .anticon) {
-  color: var(--color-primary);
-  transform: scale(1.1);
-}
-
-/* Active item */
+.sidebar :global(.ant-menu-item:hover .anticon) { color: var(--color-primary); }
 .sidebar :global(.ant-menu-item-selected) {
-  background: var(--color-primary-light) !important;
-  color: var(--color-primary) !important;
-  font-weight: 700 !important;
+  background: linear-gradient(90deg, #eeefff 0%, #f5f4ff 100%) !important;
+  color: var(--color-primary-dark) !important;
+  font-weight: 600 !important;
 }
-
-.sidebar :global(.ant-menu-item-selected .anticon) {
-  color: var(--color-primary) !important;
-}
-
-/* Active left bar */
+.sidebar :global(.ant-menu-item-selected .anticon) { color: var(--color-primary) !important; }
 .sidebar :global(.ant-menu-item-selected::before) {
   position: absolute;
   top: 50%;
   left: 0;
   width: 3px;
-  height: 22px;
-  border-radius: 0 3px 3px 0;
+  height: 21px;
+  border-radius: 0 4px 4px 0;
   background: var(--color-primary);
-  box-shadow: none;
   content: '';
   transform: translateY(-50%);
 }
 
-/* ============================================================
-   FOOTER
-   ============================================================ */
 .sidebarFooter {
-  display: grid;
-  gap: 6px;
-  margin-top: 10px;
-  padding-top: 10px;
+  flex: 0 0 auto;
+  margin-top: 8px;
+  padding: 10px 2px 0;
   border-top: 1px solid var(--color-border-subtle);
+  background: transparent;
 }
 
 .userSummary {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
+  gap: 9px;
+  padding: 7px;
   border-radius: 10px;
-  cursor: pointer;
-  transition: all var(--transition-smooth);
+  cursor: default;
 }
-
-.userSummary:hover {
-  background: var(--color-surface-muted);
-}
-
+.userSummary:hover { background: #f6f9ff; }
 .userSummary :global(.ant-avatar) {
-  background: var(--color-primary) !important;
   flex-shrink: 0;
-  box-shadow: none;
-  border-radius: 8px !important;
+  border: 1px solid var(--color-primary-mid);
+  border-radius: 10px !important;
+  background: var(--color-primary-light) !important;
+  color: var(--color-primary) !important;
 }
-
-.userCopy {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
+.userCopy { min-width: 0; display: flex; flex-direction: column; overflow: hidden; white-space: nowrap; }
 .userCopy span {
   overflow: hidden;
-  color: var(--color-text-primary);
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 18px;
+  color: var(--color-text-heading);
+  font-size: 12.2px;
+  font-weight: 600;
+  line-height: 17px;
   text-overflow: ellipsis;
 }
-
 .userCopy small {
   overflow: hidden;
   color: var(--color-text-muted);
   font-size: 10.5px;
-  line-height: 15px;
+  font-weight: 400;
+  line-height: 14px;
   text-overflow: ellipsis;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
 .collapseButton {
   width: 100%;
-  min-height: 32px;
+  min-height: 36px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 0 10px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 9px;
+  justify-content: flex-start;
+  gap: 7px;
+  margin-top: 4px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 10px;
   background: transparent;
-  color: var(--color-text-muted);
+  color: var(--color-text-tertiary);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
+  font-size: 11.2px;
   font-weight: 500;
-  transition: all var(--transition-smooth);
+  transition: background var(--transition-default), border-color var(--transition-default), color var(--transition-default), box-shadow var(--transition-default);
 }
+.collapseButton:hover { border-color: var(--color-primary-mid); background: var(--color-primary-light); color: var(--color-primary-dark); }
+.collapseButton:focus-visible { outline: 3px solid rgba(108, 99, 255, 0.10); outline-offset: 1px; }
 
-.collapseButton:hover {
-  border-color: var(--color-primary);
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-}
-
-/* ============================================================
-   COLLAPSED STATE
-   ============================================================ */
 .collapsed { padding-inline: 6px; }
-
 .collapsed .brand { justify-content: center; padding-inline: 0; }
-
 .collapsed .brandCopy,
 .collapsed .userCopy { display: none; }
-
-.collapsed .userSummary { justify-content: center; padding-inline: 0; }
-
+.collapsed .userSummary { justify-content: center; padding: 5px 0; }
 .collapsed .collapseButton {
-  min-height: 36px;
+  width: 44px;
+  min-height: 38px;
+  justify-content: center;
+  margin: 5px auto 0;
   padding: 0;
-  border-color: rgba(99, 102, 241, 0.34);
+  border-color: var(--color-border);
+  background: var(--color-card-background);
   color: var(--color-primary);
+  box-shadow: var(--shadow-xs);
+}
+.collapsed .collapseButton:hover {
+  border-color: var(--color-primary-mid);
+  background: var(--color-primary-light);
+  box-shadow: 0 6px 16px rgba(108, 99, 255, 0.12);
+}
+.expandGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
   font-size: 13px;
-  font-weight: 800;
-}
-
-.collapsed .collapseButton :global(.anticon) {
-  display: none;
-}
-
-.collapsed :global(.ant-menu-item-group-title) {
-  height: 8px;
-  overflow: hidden;
-  padding: 0;
-  color: transparent;
-  font-size: 0;
-  margin-top: 8px;
-}
-
-.collapsed :global(.ant-menu-inline-collapsed) { width: 100%; }
-
-.collapsed :global(.ant-menu-inline-collapsed > .ant-menu-item) {
-  width: 40px;
-  margin-inline: auto;
-  padding-inline: calc(50% - 8px) !important;
+  font-weight: 650;
+  letter-spacing: -1px;
+  line-height: 1;
 }

@@ -4,7 +4,7 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: 16px;
   background: var(--color-card-background);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 4px rgba(88,72,142,0.055);
 }
 
 .feedbackBlock,
@@ -13,7 +13,7 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: 16px;
   background: var(--color-card-background);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 4px rgba(88,72,142,0.055);
 }
 
 .feedbackBlock :global(.ant-alert) {
@@ -34,7 +34,7 @@
 .emptyContent strong {
   color: var(--color-text-primary);
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 650;
 }
 
 .emptyContent span {

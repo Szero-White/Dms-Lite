@@ -1,8 +1,9 @@
+import type { ReactNode } from 'react';
 import { Tag } from 'antd';
 import { useTranslation } from 'react-i18next';
 import styles from './StatusTag.module.css';
 
-type StatusTone =
+export type StatusTone =
   | 'neutral'
   | 'info'
   | 'success'
@@ -28,6 +29,26 @@ function statusClass(tone: StatusTone) {
   return `${styles.tag} ${styles[tone]}`;
 }
 
+export function SemanticStatusTag({
+  tone = 'neutral',
+  children,
+}: {
+  tone?: StatusTone;
+  children: ReactNode;
+}) {
+  return <Tag className={statusClass(tone)}>{children}</Tag>;
+}
+
+export function ActiveStatusTag({ active }: { active: boolean }) {
+  const { t } = useTranslation();
+
+  return (
+    <SemanticStatusTag tone={active ? 'success' : 'neutral'}>
+      {active ? t('common.active') : t('common.inactive')}
+    </SemanticStatusTag>
+  );
+}
+
 export function SalesOrderStatusTag({
   status,
 }: {
@@ -36,9 +57,9 @@ export function SalesOrderStatusTag({
   const { t } = useTranslation();
 
   return (
-    <Tag className={statusClass(SALES_STATUS_MAP[status] || 'neutral')}>
+    <SemanticStatusTag tone={SALES_STATUS_MAP[status] || 'neutral'}>
       {t(`status.sales.${status}`, { defaultValue: t('status.sales.UNKNOWN') })}
-    </Tag>
+    </SemanticStatusTag>
   );
 }
 
@@ -52,17 +73,13 @@ export function ProductStatusTag({
   const { t } = useTranslation();
 
   if (!active) {
-    return (
-      <Tag className={statusClass('neutral')}>
-        {t('common.inactive')}
-      </Tag>
-    );
+    return <ActiveStatusTag active={false} />;
   }
 
   return isLowStock ? (
-    <Tag className={statusClass('warning')}>{t('status.product.lowStock')}</Tag>
+    <SemanticStatusTag tone="warning">{t('status.product.lowStock')}</SemanticStatusTag>
   ) : (
-    <Tag className={statusClass('success')}>{t('common.active')}</Tag>
+    <ActiveStatusTag active />
   );
 }
 
@@ -74,11 +91,11 @@ export function CustomerDebtTag({
   const { t } = useTranslation();
 
   return (
-    <Tag className={statusClass(amount > 0 ? 'danger' : 'success')}>
+    <SemanticStatusTag tone={amount > 0 ? 'danger' : 'success'}>
       {amount > 0
         ? t('status.customer.outstanding')
         : t('status.customer.clear')}
-    </Tag>
+    </SemanticStatusTag>
   );
 }
 
@@ -90,8 +107,8 @@ export function NotificationTypeTag({
   const { t } = useTranslation();
 
   return (
-    <Tag className={statusClass(NOTIFICATION_STATUS_MAP[type] || 'info')}>
+    <SemanticStatusTag tone={NOTIFICATION_STATUS_MAP[type] || 'info'}>
       {t(`status.notification.${type}`, { defaultValue: t('status.notification.UNKNOWN') })}
-    </Tag>
+    </SemanticStatusTag>
   );
 }

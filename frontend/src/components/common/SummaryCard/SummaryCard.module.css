@@ -1,138 +1,131 @@
-/* ============================================================
-   SUMMARY CARD — vibrant enterprise card
-   ============================================================ */
 .card {
   position: relative;
   display: flex;
+  min-height: 118px;
   flex-direction: column;
-  gap: 2px;
-  min-height: 140px;
-  padding: 20px 22px 18px 26px;
-  border-radius: 16px;
-  border: 1.5px solid #e8ecf2;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 6px 20px rgba(0,0,0,0.03);
-  overflow: hidden;
-  cursor: default;
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  gap: 5px;
+  padding: 17px 18px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-section);
+  background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--transition-default), box-shadow var(--transition-default), transform var(--transition-default);
+}
+
+.card::before {
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: var(--accent, var(--color-primary));
+  opacity: 0.76;
+  content: "";
 }
 
 .card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 24px rgba(0,0,0,0.07), 0 0 0 3px color-mix(in srgb, var(--accent, #6366f1) 12%, transparent);
-  border-color: color-mix(in srgb, var(--accent, #6366f1) 40%, transparent);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
 }
 
-/* Decorative background gradient blob */
-.card::after {
-  content: '';
-  position: absolute;
-  right: -20px;
-  top: -20px;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent, #6366f1) 10%, transparent) 0%, transparent 70%);
-  pointer-events: none;
+.dashboardCard {
+  overflow: hidden;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
 }
 
-/* ---- left accent stripe ---- */
-.accentBar {
-  position: absolute;
-  left: 0;
-  top: 14px;
-  bottom: 14px;
-  width: 4px;
-  border-radius: 0 4px 4px 0;
-  background: linear-gradient(180deg, var(--accent, #6366f1), color-mix(in srgb, var(--accent, #6366f1) 50%, transparent));
-  transition: top 0.2s ease, bottom 0.2s ease, width 0.2s ease;
-}
-
-.card:hover .accentBar {
-  top: 8px;
-  bottom: 8px;
-  width: 5px;
-}
-
-/* ---- header row ---- */
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
 }
 
-/* ---- icon badge ---- */
-.icon {
+.icon,
+.microVisualBox {
   width: 42px;
   height: 42px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
   border-radius: 12px;
-  font-size: 18px;
-  background: linear-gradient(135deg, var(--icon-bg, #eef2ff), color-mix(in srgb, var(--icon-bg, #eef2ff) 70%, white));
-  color: var(--icon-color, #4f46e5);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent, #6366f1) 20%, transparent);
-  transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
 
-.card:hover .icon {
-  transform: scale(1.12) rotate(-5deg);
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--accent, #6366f1) 30%, transparent);
+.icon {
+  background: var(--icon-bg, var(--color-primary-light));
+  color: var(--accent, var(--color-primary));
+  font-size: 15px;
 }
 
-/* ---- title ---- */
+.microVisualBox {
+  border: 1px solid color-mix(in srgb, var(--accent, var(--color-primary)) 16%, transparent);
+  background: color-mix(in srgb, var(--icon-bg, var(--color-primary-light)) 72%, #ffffff 28%);
+  color: var(--accent, var(--color-primary));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
 .title {
-  font-size: 11px;
-  font-weight: 700;
-  color: #7c8db0;
-  letter-spacing: 0.08em;
-  line-height: 1.4;
-  text-transform: uppercase;
+  color: #58667f;
+  font-size: 12.4px;
+  font-weight: 590;
+  line-height: 17px;
 }
 
-/* ---- value ---- */
 .value {
-  font-size: 27px;
-  font-weight: 800;
-  color: var(--accent, #0f172a);
-  letter-spacing: -0.6px;
-  line-height: 1.15;
+  margin-top: 2px;
+  color: var(--accent, var(--color-text-value));
+  font-size: 23px;
+  font-weight: 650;
   font-variant-numeric: tabular-nums;
-  margin-top: 0;
-  background: linear-gradient(135deg, var(--accent, #0f172a) 0%, color-mix(in srgb, var(--accent, #0f172a) 70%, #000) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
 }
 
-/* ---- footer ---- */
 .footer {
-  margin-top: 6px;
+  margin-top: auto;
+  padding-top: 3px;
 }
 
-.note {
-  font-size: 11.5px;
-  color: #94a3b8;
-  font-weight: 400;
-  line-height: 1.4;
+.noteRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.note,
+.trendLabel {
+  color: #8190a7;
+  font-size: 11.8px;
+  font-weight: 480;
+  line-height: 17px;
+}
+
+.indicatorPill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 23px;
+  padding: 0 9px;
+  border: 1px solid color-mix(in srgb, var(--accent, var(--color-primary)) 14%, transparent);
+  border-radius: 8px;
+  color: color-mix(in srgb, var(--accent, var(--color-primary)) 76%, #3b4a68 24%);
+  background: color-mix(in srgb, var(--card-tint, rgba(111, 104, 232, 0.08)) 48%, #ffffff 52%);
+  font-size: 10.8px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.trendUp,
+.trendDown {
+  font-size: 11.7px;
+  font-weight: 600;
 }
 
 .trendUp {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #059669;
+  color: var(--color-success);
 }
 
 .trendDown {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #dc2626;
-}
-
-.trendLabel {
-  font-weight: 400;
-  color: #94a3b8;
+  color: var(--color-danger);
 }
